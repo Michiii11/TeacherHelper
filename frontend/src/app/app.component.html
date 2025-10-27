@@ -1,0 +1,19 @@
+@if(isLoading){
+  <div class="loading">
+    <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+  </div>
+} @else {
+  <div class="app-wrapper">
+    @if(isLoggedIn){
+      <app-navigation></app-navigation>
+    }
+
+      <main>
+      <router-outlet></router-outlet>
+    </main>
+
+    @if(isLoggedIn){
+      <app-footer></app-footer>
+    }
+  </div>
+}

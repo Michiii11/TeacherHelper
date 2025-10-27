@@ -1,0 +1,28 @@
+.classic-navbar {
+  margin: 0 auto 0 auto;
+  max-width: 60vw;
+  padding: 0 1rem;
+  border-bottom-right-radius: .5rem;
+  border-bottom-left-radius: .5rem;
+}
+
+.navbar-title {
+  font-weight: 700;
+  font-size: 1.3rem;
+  letter-spacing: 1px;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+a[mat-button] {
+  font-weight: 500;
+  font-size: 1rem;
+  margin-left: 8px;
+  border-radius: 4px;
+  &.active-link {
+    background: rgba(255,255,255,0.18);
+    color: #222;
+  }
+}
