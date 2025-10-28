@@ -48,4 +48,16 @@ public class SchoolRepository {
                 )))
                 .toList();
     }
+
+    public SchoolDTO findById(Long id) {
+        School school = em.find(School.class, id);
+        if (school == null) {
+            return null;
+        }
+        return new SchoolDTO(school.getId(), school.getName(), new UserDTO(
+                school.getAdmin().getUsername(),
+                school.getAdmin().getEmail(),
+                school.getAdmin().getPassword()
+        ));
+    }
 }

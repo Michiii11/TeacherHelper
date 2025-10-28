@@ -43,4 +43,10 @@ public class SchoolResource {
     public List<SchoolDTO> getSchools() {
         return schoolRepository.getAllSchools();
     }
+
+    @GET
+    @Path("{id}")
+    public SchoolDTO getSchoolById(Long id) {
+        return schoolRepository.findById(id);
+    }
 }

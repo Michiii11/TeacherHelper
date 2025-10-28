@@ -1,5 +1,13 @@
-@for (school of schools; track school.id){
-  <p>{{school.name}}</p>
-}
-
-<button mat-raised-button color="primary" (click)="openCreateDialog()">Create</button>
+<h2 style="margin-bottom: 16px;">Deine Schulen</h2>
+<button mat-raised-button color="primary" style="margin-bottom: 24px;" (click)="openCreateDialog()">Erstellen</button>
+<div class="school-list">
+  <mat-card (click)="openSchool(school)" class="school" *ngFor="let school of yourSchools">
+    <mat-card-header>
+      <mat-card-title>{{school.name}}</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p><strong>Admin:</strong> {{school.admin.username}}</p>
+      <p><strong>Beispiele:</strong> 0</p>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -12,9 +12,15 @@ export class HttpService {
     return this.http.get<SchoolDTO[]>(`${Config.API_URL}/school`);
   }
 
+  getSchoolById(schoolId: string) {
+    return this.http.get<SchoolDTO>(`${Config.API_URL}/school/${schoolId}`);
+  }
+
   addSchool(schoolName: string) {
-    return this.http.post(
-      Config.API_URL + '/school/add', {schoolName, authToken: localStorage.getItem('teacher_authToken')},
-    )
+    return this.http.post<string>(
+      Config.API_URL + '/school/add',
+      { schoolName, authToken: localStorage.getItem('teacher_authToken') },
+      { responseType: 'text' as 'json' }
+    );
   }
 }

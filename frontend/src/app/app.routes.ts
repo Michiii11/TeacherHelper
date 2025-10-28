@@ -3,8 +3,10 @@ import {LoginComponent} from './components/login/login.component'
 import {AppComponent} from './app.component'
 import {AuthGuard} from './guard/auth.guard'
 import {HomeComponent} from './components/home/home.component'
+import {SchoolComponent} from './components/school/school.component'
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, canActivate: [AuthGuard] },
-  { path: 'login', component: LoginComponent }
+  { path: 'school/:id', component: SchoolComponent, canActivate: [AuthGuard] },
+  { path: 'login', component: LoginComponent },
 ];
