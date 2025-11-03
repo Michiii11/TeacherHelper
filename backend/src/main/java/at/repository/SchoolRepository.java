@@ -5,6 +5,7 @@ import at.dtos.SchoolDTO;
 import at.dtos.UserDTO;
 import at.model.School;
 import at.model.User;
+import at.security.TokenService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -17,6 +18,9 @@ import java.util.List;
 public class SchoolRepository {
     @Inject
     EntityManager em;
+
+    @Inject
+    TokenService tokenService;
 
     @Transactional
     public Response addSchool(String schoolName, Long userId) {
@@ -59,5 +63,29 @@ public class SchoolRepository {
                 school.getAdmin().getEmail(),
                 school.getAdmin().getPassword()
         ));
+    }
+
+    public List<SchoolDTO> getYourSchools(String auth) {
+        Long userId = tokenService.validateTokenAndGetUserId(auth);
+
+        if (userId == null) {
+            return List.of();
+        }
+
+        User user = em.find(User.class, userId);
+
+        List<School> schools = em.createQuery(
+                        "SELECT s FROM School s WHERE s.admin.id = :userId OR :user MEMBER OF s.users", School.class)
+                .setParameter("userId", userId)
+                .setParameter("user", user)
+                .getResultList();
+
+        return schools.stream()
+                .map(school -> new SchoolDTO(school.getId(), school.getName(), new UserDTO(
+                        school.getAdmin().getUsername(),
+                        school.getAdmin().getEmail(),
+                        school.getAdmin().getPassword()
+                )))
+                .toList();
     }
 }

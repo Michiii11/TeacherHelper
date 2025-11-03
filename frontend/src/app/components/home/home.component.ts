@@ -31,21 +31,34 @@ import {Router} from '@angular/router'
   styleUrl: './home.component.scss'
 })
 export class HomeComponent {
-  schools : SchoolDTO[] = [];
-  yourSchoolsSearch = '';
-  otherSchoolsSearch = '';
+  yourSchools : SchoolDTO[] = [];
+  allOtherSchools : SchoolDTO[] = [];
+  otherSchools : SchoolDTO[] = [];
 
   constructor(private dialog: MatDialog, private http: HttpService, private router: Router) {}
 
   ngOnInit() {
-    this.http.getSchools().subscribe((schools: SchoolDTO[]) => {
-      this.schools = schools;
+    this.http.getYourSchools().subscribe((schools: SchoolDTO[]) => {
+      this.yourSchools = schools;
+
+      this.http.getSchools().subscribe((schools: SchoolDTO[]) => {
+        this.allOtherSchools = schools.filter(school => !this.yourSchools.some(yourSchool => yourSchool.id === school.id));
+        this.otherSchools = [...this.allOtherSchools];
+      })
     })
   }
 
-  get yourSchools() {
-    return this.schools.filter(
-      s => /*s.isMine &&*/ s.name.toLowerCase().includes(this.yourSchoolsSearch.toLowerCase())
+  filterSchools(e: Event) {
+    if(!e) {
+      this.otherSchools = [...this.allOtherSchools];
+      return;
+    }
+
+    const search = (e.target as HTMLInputElement).value;
+
+    const term = search?.toLowerCase() || '';
+    this.otherSchools = this.allOtherSchools.filter(school =>
+      school.name.toLowerCase().includes(term)
     );
   }
 
@@ -55,14 +68,12 @@ export class HomeComponent {
       if (schoolName) {
         this.http.addSchool(schoolName).subscribe({
           next: (value) => {
-            this.http.getSchools().subscribe((schools: SchoolDTO[]) => {
-              this.schools = schools;
+            this.http.getYourSchools().subscribe((schools: SchoolDTO[]) => {
+              this.yourSchools = schools;
             });
           },
           error: (err) => {
-            // Fehler ausgeben oder ignorieren
             console.log('Fehler beim Hinzufügen:', err.error);
-            // Optional: Fehlermeldung im UI anzeigen
           }
         });
       }
@@ -72,4 +83,6 @@ export class HomeComponent {
   openSchool(school: SchoolDTO) {
     this.router.navigate(['/school', school.id]);
   }
+
+  protected readonly HTMLInputElement = HTMLInputElement
 }

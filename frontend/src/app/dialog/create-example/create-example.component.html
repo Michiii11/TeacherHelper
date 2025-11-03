@@ -1,0 +1,13 @@
+<main>
+  <form>
+    <mat-form-field appearance="fill">
+      <mat-label>Fragetyp</mat-label>
+      <mat-select [(ngModel)]="selectedExampleType" name="exampleType" aria-label="Fragetyp">
+        <mat-option *ngFor="let t of exampleTypes" [value]="t">
+          {{ ExampleTypeLabels[t] }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </form>
+
+</main>

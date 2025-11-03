@@ -22,7 +22,6 @@ import {AuthService} from './service/auth.service'
 })
 export class AppComponent{
   service = inject(HttpService)
-  authService = inject(AuthService)
 
   private route = inject(ActivatedRoute);
   private dialog = inject(MatDialog);
@@ -31,12 +30,14 @@ export class AppComponent{
 
   isLoading = false;
 
-  ngOnInit() {
-    this.authService.validateToken(localStorage.getItem('teacher_authToken') || '').subscribe({
-      next: (isValid) => {
-        this.isLoggedIn = isValid;
-      }
-    })
+  constructor(private authService: AuthService) {
+    console.log(this.isLoggedIn)
+    this.authService.loggedIn$.subscribe(status => {
+      console.log("init", status)
+      this.isLoggedIn = status;
+    });
+  }
+
 
     /*this.service.getAllReservations().subscribe({
       next: () => {
@@ -53,5 +54,4 @@ export class AppComponent{
         }
       });
     }*/
-  }
 }

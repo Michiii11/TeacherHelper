@@ -78,6 +78,7 @@ export class LoginComponent {
       if (result.success) {
         localStorage.setItem('teacher_authToken', result.token);
         localStorage.setItem('teacher_userId', result.userId.toString());
+        this.authService.setLogin(result.token, result.userId.toString());
         this.router.navigate(['']);
       }
     });
@@ -93,6 +94,7 @@ export class LoginComponent {
       this.registerMessage = result.message;
       this.snackBar.open(result.message, '', { duration: 3000, panelClass: result.success ? 'snack-success' : 'snack-error' });
       if (result.success) {
+        this.authService.setLogin(result.token, result.userId.toString());
         localStorage.setItem('teacher_authToken', result.token);
         localStorage.setItem('teacher_userId', result.userId.toString());
         this.router.navigate(['']);

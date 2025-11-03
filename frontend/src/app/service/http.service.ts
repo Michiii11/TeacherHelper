@@ -23,4 +23,10 @@ export class HttpService {
       { responseType: 'text' as 'json' }
     );
   }
+
+  getYourSchools() {
+    console.log(localStorage.getItem('teacher_authToken'));
+    return this.http.post<SchoolDTO[]>(Config.API_URL + '/school/your-schools',
+      localStorage.getItem('teacher_authToken'));
+  }
 }

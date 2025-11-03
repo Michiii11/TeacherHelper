@@ -2,7 +2,7 @@
   <span class="navbar-title">TeacherHelper</span>
   <span class="spacer"></span>
   <a mat-button routerLink="/" routerLinkActive="active-link">Home</a>
-  <a mat-button routerLink="/about" routerLinkActive="active-link">About</a>
-  <a mat-button routerLink="/services" routerLinkActive="active-link">Services</a>
-  <a mat-button routerLink="/contact" routerLinkActive="active-link">Contact</a>
+  <a mat-button (click)="goToSchool()" routerLinkActive="active-link">Schule</a>
+  <a mat-button routerLink="/contact" routerLinkActive="active-link">Kontakt</a>
+  <a mat-button routerLink="/user" routerLinkActive="active-link">Profil</a>
 </mat-toolbar>

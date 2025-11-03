@@ -44,9 +44,15 @@ public class SchoolResource {
         return schoolRepository.getAllSchools();
     }
 
+    @POST
+    @Path("your-schools")
+    public List<SchoolDTO> getYourSchools(String auth) {
+        return schoolRepository.getYourSchools(auth);
+    }
+
     @GET
     @Path("{id}")
-    public SchoolDTO getSchoolById(Long id) {
+    public SchoolDTO getYourSchools(Long id) {
         return schoolRepository.findById(id);
     }
 }

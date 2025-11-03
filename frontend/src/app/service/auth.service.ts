@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {HttpClient} from '@angular/common/http'
-import {Observable} from 'rxjs'
+import {BehaviorSubject, Observable, of} from 'rxjs'
 import {LoginDTO, UserDTO} from '../model/User'
 import {Config} from '../config'
 import {map} from "rxjs/operators"
@@ -25,5 +25,28 @@ export class AuthService {
     ).pipe(
         map(response => response.valid)
     );
+  }
+
+  private loggedIn = new BehaviorSubject<boolean>(!(this.hasValidToken() instanceof Observable));
+  loggedIn$ = this.loggedIn.asObservable();
+
+  private hasValidToken(): Observable<boolean> {
+    const token = localStorage.getItem('teacher_authToken');
+    if (!token) {
+      return of(false);
+    }
+    return this.validateToken(token);
+  }
+
+  setLogin(token: string, userId: string) {
+    localStorage.setItem('teacher_authToken', token);
+    localStorage.setItem('teacher_userId', userId);
+    this.loggedIn.next(true);
+  }
+
+  logout() {
+    localStorage.removeItem('teacher_authToken');
+    localStorage.removeItem('teacher_userId');
+    this.loggedIn.next(false);
   }
 }

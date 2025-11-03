@@ -1,16 +1,75 @@
+main {
+  max-width: 70vw;
+  margin: 2.5rem auto;
+  padding: 0 2vw;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+  border-bottom: 1.5px solid #e0e0e0;
+  padding-bottom: 0.5rem;
+}
+
+.section-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.section-header button {
+  margin-left: 1rem;
+}
+
 .school-list {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  flex-wrap: wrap;
-  gap: 20px;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
 }
+
 .school {
-  min-width: 250px;
-  max-width: 350px;
-  flex: 1 1 250px;
   cursor: pointer;
-  transition: box-shadow 0.2s;
+  border-radius: 0.8rem;
+  border: 1px solid #e0e0e0;
+  background: #fafafa;
+  transition: border 0.2s, background 0.2s;
+  &:hover {
+    border: 1.5px solid #1976d2;
+    background: #f5faff;
+  }
 }
-.school:hover {
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+
+mat-card-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1976d2;
+}
+
+mat-card-content p {
+  margin: 0.3rem 0;
+  font-size: 1rem;
+}
+
+mat-form-field {
+  width: 18vw;
+  min-width: 180px;
+  margin-left: 1rem;
+}
+
+@media (max-width: 900px) {
+  main {
+    max-width: 98vw;
+    padding: 0 1vw;
+  }
+  .school-list {
+    grid-template-columns: 1fr;
+    gap: 1.2rem;
+  }
+  mat-form-field {
+    width: 90vw;
+    margin-left: 0;
+  }
 }

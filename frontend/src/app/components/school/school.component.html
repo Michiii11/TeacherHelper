@@ -1,1 +1,134 @@
-<h2>{{school.name}}</h2>
+<main class="dashboard" aria-label="School dashboard">
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true">SM</div>
+        <div class="brand-text">
+          <h1 class="brand-title">{{ school.name }}</h1>
+          <p class="brand-sub">Verwaltung • {{ school.admin || '—' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <div class="meta">
+        <div class="meta-item">
+          <div class="meta-value">{{ examples?.length || 0 }}</div>
+          <div class="meta-label">Beispiele</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-value">{{ teachers?.length || 0 }}</div>
+          <div class="meta-label">Lehrer</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button mat-stroked-button color="primary" (click)="openCreateExample()">
+          <mat-icon>post_add</mat-icon>
+          Neue Frage
+        </button>
+
+        <button mat-flat-button color="primary" (click)="createTest()">
+          <mat-icon>assignment</mat-icon>
+          Test erstellen
+        </button>
+
+        <button mat-icon-button aria-label="Einstellungen" (click)="openSettings()">
+          <mat-icon>settings</mat-icon>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- KPI cards -->
+  <section class="kpis">
+    <article class="kpi-card" *ngFor="let k of kpis">
+      <div class="kpi-left">
+        <div class="kpi-title">{{ k.title }}</div>
+        <div class="kpi-value">{{ k.value }}</div>
+        <div class="kpi-sub" *ngIf="k.sub">{{ k.sub }}</div>
+      </div>
+      <div class="kpi-right" aria-hidden="true">
+        <mat-icon>{{ k.icon }}</mat-icon>
+      </div>
+    </article>
+  </section>
+
+  <section class="content-area">
+
+    <!-- Beispiele Panel -->
+    <article class="panel examples">
+      <div class="panel-header">
+        <h2 class="panel-title">Beispiele</h2>
+        <button mat-mini-fab color="primary" (click)="openCreateExample()" aria-label="Neue Frage">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+
+      <div class="panel-body">
+        <table mat-table [dataSource]="examples" class="mat-elevation-z1 table" matSort>
+          <!-- Spalten wie zuvor -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Beispiel</th>
+            <td mat-cell *matCellDef="let e">{{ e.name }}</td>
+          </ng-container>
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Typ</th>
+            <td mat-cell *matCellDef="let e">{{ e.type }}</td>
+          </ng-container>
+          <ng-container matColumnDef="question">
+            <th mat-header-cell *matHeaderCellDef>Frage</th>
+            <td mat-cell *matCellDef="let e">{{ e.question }}</td>
+          </ng-container>
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Aktionen</th>
+            <td mat-cell *matCellDef="let e">
+              <button mat-icon-button (click)="editExample(e)"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button color="warn" (click)="deleteExample(e)"><mat-icon>delete</mat-icon></button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="exampleDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: exampleDisplayedColumns;"></tr>
+        </table>
+      </div>
+    </article>
+
+    <!-- Lehrer Panel -->
+    <article class="panel teachers">
+      <div class="panel-header">
+        <h2 class="panel-title">Lehrer</h2>
+        <button mat-mini-fab color="primary" (click)="openAddTeacher()" aria-label="Lehrer hinzufügen">
+          <mat-icon>person_add</mat-icon>
+        </button>
+      </div>
+
+      <div class="panel-body teachers-list">
+        <div *ngFor="let t of teachers" class="teacher-card mat-elevation-z1">
+          <div class="teacher-info">
+            <div class="avatar">{{ initials(t) }}</div>
+            <div class="teacher-text">
+              <div class="name">{{ t }}</div>
+              <div class="role">{{ t }}</div>
+            </div>
+          </div>
+          <div class="teacher-actions">
+            <button mat-icon-button (click)="promoteTeacher(t)" aria-label="Befördern"><mat-icon>arrow_upward</mat-icon></button>
+            <button mat-icon-button (click)="editTeacher(t)" aria-label="Bearbeiten"><mat-icon>edit</mat-icon></button>
+          </div>
+        </div>
+      </div>
+    </article>
+
+  </section>
+
+
+  <!-- Footer actions -->
+  <footer class="footer-actions">
+    <button mat-flat-button color="warn" (click)="deleteSchool()"><mat-icon>delete_forever</mat-icon> Schule löschen</button>
+    <span class="spacer"></span>
+    <button mat-stroked-button (click)="exportCsv()"><mat-icon>download</mat-icon> Export CSV</button>
+  </footer>
+
+</main>
