@@ -18,7 +18,6 @@ import {Router} from '@angular/router'
   standalone: true,
   imports: [
     MatTabGroup,
-    MatCardTitle,
     MatLabel,
     MatError,
     MatTab,
@@ -27,8 +26,6 @@ import {Router} from '@angular/router'
     MatInput,
     MatButton,
     MatCard,
-    MatIcon,
-    MatCardHeader,
     MatCardContent,
     NgIf,
     MatCardActions,

@@ -48,8 +48,7 @@ public class SchoolRepository {
                 .map(school -> new SchoolDTO(school.getId(), school.getName(), new UserDTO(
                         school.getAdmin().getUsername(),
                         school.getAdmin().getEmail(),
-                        school.getAdmin().getPassword()
-                )))
+                        school.getAdmin().getPassword()), 0))
                 .toList();
     }
 
@@ -61,8 +60,7 @@ public class SchoolRepository {
         return new SchoolDTO(school.getId(), school.getName(), new UserDTO(
                 school.getAdmin().getUsername(),
                 school.getAdmin().getEmail(),
-                school.getAdmin().getPassword()
-        ));
+                school.getAdmin().getPassword()), 0);
     }
 
     public List<SchoolDTO> getYourSchools(String auth) {
@@ -84,8 +82,7 @@ public class SchoolRepository {
                 .map(school -> new SchoolDTO(school.getId(), school.getName(), new UserDTO(
                         school.getAdmin().getUsername(),
                         school.getAdmin().getEmail(),
-                        school.getAdmin().getPassword()
-                )))
+                        school.getAdmin().getPassword()), 0))
                 .toList();
     }
 }

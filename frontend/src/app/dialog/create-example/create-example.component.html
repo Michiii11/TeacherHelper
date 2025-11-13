@@ -1,13 +1,273 @@
 <main>
-  <form>
-    <mat-form-field appearance="fill">
-      <mat-label>Fragetyp</mat-label>
-      <mat-select [(ngModel)]="selectedExampleType" name="exampleType" aria-label="Fragetyp">
-        <mat-option *ngFor="let t of exampleTypes" [value]="t">
-          {{ ExampleTypeLabels[t] }}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-  </form>
+  <mat-dialog-content class="create-example-dialog">
+
+    <form class="example-form" (ngSubmit)="saveExample()">
+
+      <!-- Top row: type -->
+      <div class="row">
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>Fragetyp</mat-label>
+          <mat-select [(ngModel)]="selectedExampleType" name="exampleType" (selectionChange)="markDirty()">
+            <mat-option *ngFor="let t of exampleTypes" [value]="t">
+              {{ ExampleTypeLabels[t] }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <!-- Common instruction -->
+      <div class="row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Angabe</mat-label>
+          <textarea matInput [(ngModel)]="instruction" name="instruction" (input)="markDirty()" placeholder="Gegeben ist ..."></textarea>
+        </mat-form-field>
+      </div>
+
+      <!-- TYPE-SPECIFIC PANELS -->
+      <section class="example-panel">
+
+        <!-- OPEN -->
+        <ng-container *ngIf="selectedExampleType === ExampleTypes.OPEN">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Aufgabenstellung</mat-label>
+            <textarea matInput [(ngModel)]="question" name="question" (input)="markDirty()" placeholder="Ermitteln Sie ..."></textarea>
+          </mat-form-field>
+        </ng-container>
+
+        <!-- HALF_OPEN -->
+        <ng-container *ngIf="selectedExampleType === ExampleTypes.HALF_OPEN">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Aufgabenstellung</mat-label>
+            <textarea matInput [(ngModel)]="question" name="question" (input)="markDirty()" placeholder="Geben Sie die Antworten an ..."></textarea>
+          </mat-form-field>
+
+          <div class="panel-box half-open-answers">
+            <div class="panel-title">Antworten</div>
+            <div *ngFor="let a of halfOpenAnswers; let i = index; trackBy: trackByIndex" class="item-row">
+              <mat-form-field appearance="fill" class="item-input">
+                <input matInput [(ngModel)]="halfOpenAnswers[i]" name="halfOpenAnswer{{i}}" (input)="markDirty()" placeholder="Antwort {{ i + 1 }}">
+              </mat-form-field>
+              <button mat-icon-button color="warn" type="button" (click)="removeHalfOpenAnswer(i)" aria-label="Antwort entfernen">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+            <button mat-mini-fab color="primary" type="button" (click)="addHalfOpenAnswer()" aria-label="Antwort hinzufügen"><mat-icon>add</mat-icon></button>
+          </div>
+        </ng-container>
+
+        <!-- MULTIPLE_CHOICE -->
+        <ng-container *ngIf="selectedExampleType === ExampleTypes.MULTIPLE_CHOICE">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Aufgabenstellung</mat-label>
+            <textarea matInput [(ngModel)]="question" name="question" (input)="markDirty()" placeholder="Wählen Sie die richtige Lösung aus ..."></textarea>
+          </mat-form-field>
+
+          <div class="panel-box multiple-choice-options">
+            <div class="panel-title">Optionen</div>
+            <div *ngFor="let opt of multipleChoiceOptions; let i = index; trackBy: trackByIndex" class="item-row">
+              <mat-form-field appearance="fill" class="item-input">
+                <input matInput [(ngModel)]="multipleChoiceOptions[i]" name="option{{i}}" (input)="markDirty()" placeholder="Option {{ i + 1 }}">
+              </mat-form-field>
+
+              <mat-checkbox [(ngModel)]="correctOptions[i]" name="correctOption{{i}}" (change)="markDirty()">Richtig</mat-checkbox>
+
+              <button mat-icon-button color="warn" (click)="removeOption(i)" type="button" aria-label="Option entfernen">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+
+            <div class="panel-actions">
+              <button mat-mini-fab color="primary" type="button" (click)="addOption()"><mat-icon>add</mat-icon></button>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- GAP_FILL -->
+        <ng-container *ngIf="selectedExampleType === ExampleTypes.GAP_FILL">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Aufgabenstellung</mat-label>
+            <textarea matInput [(ngModel)]="question" name="question" (input)="updateGapsFromText(); markDirty()" placeholder="Ergänzen Sie die Textlücken ..."></textarea>
+            <button mat-stroked-button type="button" (click)="insertGapAtCursor()" matTooltip="Lücke an Cursorposition einfügen" class="insert-gap-btn">
+              <mat-icon>add</mat-icon> Lücke
+            </button>
+          </mat-form-field>
+
+          <mat-button-toggle-group [(ngModel)]="gapFillType" name="gapFillType" (change)="onGapFillTypeChange(gapFillType)">
+            <mat-button-toggle value="select">Auswahl</mat-button-toggle>
+            <mat-button-toggle value="input">Freitext</mat-button-toggle>
+          </mat-button-toggle-group>
+
+          <div class="panel-box gap-fill-luecken">
+            <div class="panel-title">Lücken</div>
+            <div *ngFor="let gap of gapFillGaps; let gi = index" class="item-row">
+              <mat-form-field appearance="fill" class="item-input">
+                <input matInput [(ngModel)]="gapFillGaps[gi].label" name="gapLabel{{gi}}" (input)="markDirty()" placeholder="Beschreibung der Lücke">
+              </mat-form-field>
+
+              <!-- Antwortmöglichkeiten für Auswahlmodus -->
+              <div *ngIf="gapFillType === 'select'" class="gap-options">
+                <div *ngFor="let opt of gap.options; let oi = index" class="option-row">
+                  <mat-form-field appearance="fill" class="option-input">
+                    <input matInput [(ngModel)]="gap.options[oi].text" name="gapOption{{gi}}_{{oi}}" (input)="markDirty()" placeholder="Antwortmöglichkeit {{oi + 1}}">
+                  </mat-form-field>
+                  <mat-checkbox [(ngModel)]="gap.options[oi].correct" name="gapOptionCorrect{{gi}}_{{oi}}" (change)="markDirty()">
+                    Richtig
+                  </mat-checkbox>
+                  <button mat-icon-button color="warn" type="button" (click)="removeGapOption(gi, oi)" aria-label="Antwortmöglichkeit entfernen">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+                <button mat-mini-fab color="primary" type="button" (click)="addGapOption(gi)" aria-label="Antwortmöglichkeit hinzufügen">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- CONSTRUCTION -->
+        <ng-container *ngIf="selectedExampleType === ExampleTypes.CONSTRUCTION">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Aufgabenstellung</mat-label>
+            <textarea matInput [(ngModel)]="question" name="question" (input)="markDirty()" placeholder="Zeichnen Sie ..."></textarea>
+          </mat-form-field>
+
+          <div class="panel-box image-upload">
+            <div class="panel-title">Bild</div>
+            <input type="file" accept="image/*" (change)="onImageSelected($event)" />
+            <img *ngIf="imagePreview" [src]="imagePreview" alt="Vorschau" class="image-preview" />
+          </div>
+        </ng-container>
+
+        <!-- ASSIGN (refactored UI) -->
+        <ng-container *ngIf="selectedExampleType === ExampleTypes.ASSIGN">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Aufgabenstellung</mat-label>
+            <textarea matInput [(ngModel)]="question" name="question" (input)="markDirty()" placeholder="Ordnen Sie ..."></textarea>
+          </mat-form-field>
+
+          <div class="assign-board">
+            <div class="assign-column">
+              <div class="column-title">Links</div>
+              <div *ngFor="let left of assignLeftItems; let li = index" class="assign-row">
+                <mat-form-field appearance="fill" class="item-input">
+                  <input matInput [(ngModel)]="assignLeftItems[li]" name="assignLeft{{li}}" (input)="markDirty()" placeholder="Linkes Statement">
+                </mat-form-field>
+
+                <mat-form-field appearance="fill" class="assign-select">
+                  <mat-label>Zuordnung</mat-label>
+                  <mat-select [value]="assignConnections[li]" (selectionChange)="setAssignConnection(li, $any($event.value))" >
+                    <mat-option [value]="null">— Keine —</mat-option>
+                    <mat-option *ngFor="let right of assignRightItems" [value]="right">{{ right }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <button mat-icon-button color="warn" (click)="removeAssignLeftItem(li)" aria-label="Linkes entfernen"><mat-icon>delete</mat-icon></button>
+              </div>
+
+              <div class="panel-actions">
+                <button mat-mini-fab color="primary" (click)="addAssignLeftItem()" type="button"><mat-icon>add</mat-icon></button>
+              </div>
+            </div>
+
+            <div class="assign-column">
+              <div class="column-title">Rechts</div>
+              <div *ngFor="let right of assignRightItems; let ri = index" class="assign-row">
+                <mat-form-field appearance="fill" class="item-input">
+                  <input matInput [(ngModel)]="assignRightItems[ri]" name="assignRight{{ri}}" (input)="markDirty()" placeholder="Rechtes Statement">
+                </mat-form-field>
+
+                <button mat-icon-button color="warn" (click)="removeAssignRightItem(ri)" aria-label="Rechtes entfernen"><mat-icon>delete</mat-icon></button>
+              </div>
+
+              <div class="panel-actions">
+                <button mat-mini-fab color="primary" (click)="addAssignRightItem()" type="button"><mat-icon>add</mat-icon></button>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+      </section>
+
+      <!-- Dialog Actions -->
+      <mat-dialog-actions align="end">
+        <button mat-stroked-button type="button" (click)="closeDialog()">Abbrechen</button>
+        <button mat-flat-button color="primary" type="submit">Speichern</button>
+      </mat-dialog-actions>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-content class="create-example-layout">
+      <div class="preview-panel">
+      <h3>Vorschau</h3>
+      <div>
+        {{ instruction }}
+      </div>
+      <p><strong>Aufgabenstellung:</strong></p>
+      <div>
+        {{ getQuestionWithGapLabels()}}
+      </div>
+
+        @if(selectedExampleType === ExampleTypes.HALF_OPEN){
+          <div class="half-open-preview">
+            @for (ans of halfOpenAnswers; track ans){
+              <p>{{ ans }} = ___________________</p>
+            }
+          </div>
+        }
+
+        @if(selectedExampleType === ExampleTypes.CONSTRUCTION){
+          <div class="construction-preview">
+            <img *ngIf="imagePreview" [src]="imagePreview" alt="Vorschau" class="image-preview" />
+            <p *ngIf="!imagePreview">Kein Bild ausgewählt.</p>
+          </div>
+        }
+
+        @if(selectedExampleType === ExampleTypes.MULTIPLE_CHOICE){
+          <div class="multiple-choice-preview">
+            <table>
+              @for (option of multipleChoiceOptions; track option){
+                <tr>
+                  <td>
+                    {{ option }}
+                  </td>
+                  <td class="small">
+                    <mat-pseudo-checkbox></mat-pseudo-checkbox>
+                  </td>
+                </tr>
+              }
+            </table>
+          </div>
+        }
+
+        @if(selectedExampleType === ExampleTypes.GAP_FILL){
+          @if(gapFillType === 'select'){
+            <div class="gap-fill-preview">
+              @for (gap of gapFillGaps; track gap){
+                <table>
+                  <tr>
+                    <th>({{gap.label}})</th>
+                  </tr>
+
+                  @for(opt of gap.options; track opt){
+                    <tr>
+                      <td>{{ opt.text }}</td>
+                      <td class="small">
+                        <mat-pseudo-checkbox></mat-pseudo-checkbox>
+                      </td>
+                    </tr>
+                  }
+                </table>
+              }
+            </div>
+          }
+        }
+
+    </div>
+  </mat-dialog-content>
 
 </main>
+
+
+
+

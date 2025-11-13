@@ -1,30 +1,23 @@
 <main class="dashboard" aria-label="School dashboard">
 
-  <!-- Top bar -->
+  <!-- Responsive Top Bar -->
   <header class="topbar">
-    <div class="topbar-left">
-      <div class="brand">
-        <div class="brand-logo" aria-hidden="true">SM</div>
-        <div class="brand-text">
-          <h1 class="brand-title">{{ school.name }}</h1>
-          <p class="brand-sub">Verwaltung • {{ school.admin || '—' }}</p>
-        </div>
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true">
+        <mat-icon class="school-icon">school</mat-icon>
+      </div>
+      <div class="brand-text">
+        <h1 class="brand-title">{{ school.name }}</h1>
+        <p class="brand-sub">Verwaltung • {{ school.admin.username || '—' }}</p>
       </div>
     </div>
 
-    <div class="topbar-right">
-      <div class="meta">
-        <div class="meta-item">
-          <div class="meta-value">{{ examples?.length || 0 }}</div>
-          <div class="meta-label">Beispiele</div>
-        </div>
-        <div class="meta-item">
-          <div class="meta-value">{{ teachers?.length || 0 }}</div>
-          <div class="meta-label">Lehrer</div>
-        </div>
-      </div>
+    <div class="topbar-actions">
+      <button mat-icon-button class="menu-toggle" (click)="menuOpen = !menuOpen" aria-label="Menü öffnen">
+        <mat-icon>more_vert</mat-icon>
+      </button>
 
-      <div class="actions">
+      <div class="actions" [class.show]="menuOpen">
         <button mat-stroked-button color="primary" (click)="openCreateExample()">
           <mat-icon>post_add</mat-icon>
           Neue Frage
@@ -56,9 +49,8 @@
     </article>
   </section>
 
+  <!-- Panels -->
   <section class="content-area">
-
-    <!-- Beispiele Panel -->
     <article class="panel examples">
       <div class="panel-header">
         <h2 class="panel-title">Beispiele</h2>
@@ -67,9 +59,9 @@
         </button>
       </div>
 
-      <div class="panel-body">
+      <div class="panel-body table-wrapper">
         <table mat-table [dataSource]="examples" class="mat-elevation-z1 table" matSort>
-          <!-- Spalten wie zuvor -->
+          <!-- columns -->
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Beispiel</th>
             <td mat-cell *matCellDef="let e">{{ e.name }}</td>
@@ -95,7 +87,6 @@
       </div>
     </article>
 
-    <!-- Lehrer Panel -->
     <article class="panel teachers">
       <div class="panel-header">
         <h2 class="panel-title">Lehrer</h2>
@@ -107,28 +98,22 @@
       <div class="panel-body teachers-list">
         <div *ngFor="let t of teachers" class="teacher-card mat-elevation-z1">
           <div class="teacher-info">
-            <div class="avatar">{{ initials(t) }}</div>
+            <div class="avatar">{{ initials(t.name) }}</div>
             <div class="teacher-text">
-              <div class="name">{{ t }}</div>
-              <div class="role">{{ t }}</div>
+              <div class="name">{{ t.name }}</div>
+              <div class="role">{{ t.role }}</div>
             </div>
           </div>
           <div class="teacher-actions">
-            <button mat-icon-button (click)="promoteTeacher(t)" aria-label="Befördern"><mat-icon>arrow_upward</mat-icon></button>
-            <button mat-icon-button (click)="editTeacher(t)" aria-label="Bearbeiten"><mat-icon>edit</mat-icon></button>
+            <button mat-icon-button (click)="promoteTeacher(t)" aria-label="Befördern">
+              <mat-icon>arrow_upward</mat-icon>
+            </button>
+            <button mat-icon-button (click)="editTeacher(t)" aria-label="Bearbeiten">
+              <mat-icon>edit</mat-icon>
+            </button>
           </div>
         </div>
       </div>
     </article>
-
   </section>
-
-
-  <!-- Footer actions -->
-  <footer class="footer-actions">
-    <button mat-flat-button color="warn" (click)="deleteSchool()"><mat-icon>delete_forever</mat-icon> Schule löschen</button>
-    <span class="spacer"></span>
-    <button mat-stroked-button (click)="exportCsv()"><mat-icon>download</mat-icon> Export CSV</button>
-  </footer>
-
 </main>

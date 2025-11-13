@@ -1,43 +1,75 @@
-<main>
-  <section>
-    <div class="section-header">
-      <h2 style="margin-bottom: 16px;">Deine Schulen</h2>
-      <button mat-raised-button color="primary" style="margin-bottom: 24px;" (click)="openCreateDialog()">Erstellen</button>
+<main class="schools-dashboard" aria-label="School Overview">
+
+  <header class="page-header mat-elevation-z2">
+    <div class="header-left">
+      <h1 class="page-title">Schulen</h1>
+      <p class="page-subtitle">Verwalte deine Schulen oder entdecke neue</p>
     </div>
 
-    <div class="school-list">
-      <mat-card (click)="openSchool(school)" class="school" *ngFor="let school of yourSchools">
-        <mat-card-header>
-          <mat-card-title>{{school.name}}</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <p><strong>Admin:</strong> {{school.admin.username}}</p>
-          <p><strong>Beispiele:</strong> 0</p>
-        </mat-card-content>
+    <div class="header-actions">
+      <button mat-flat-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add_circle</mat-icon>
+        Neue Schule
+      </button>
+    </div>
+  </header>
+
+  <!-- Deine Schulen -->
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">Deine Schulen</h2>
+    </div>
+
+    <div class="school-grid">
+      <mat-card
+        *ngFor="let school of yourSchools"
+        class="school-card mat-elevation-z2"
+        (click)="openSchool(school)"
+      >
+        <div class="school-header">
+          <mat-icon class="school-icon">school</mat-icon>
+          <h3 class="school-name">{{ school.name }}</h3>
+        </div>
+        <p class="school-meta">Admin: {{ school.admin.username }}</p>
+        <p class="school-meta">Beispiele: {{ school.exampleCount }}</p>
+      </mat-card>
+
+      <mat-card *ngIf="!yourSchools?.length" class="empty-card mat-elevation-z1">
+        <mat-icon>info</mat-icon>
+        <p>Du hast noch keine Schulen erstellt.</p>
       </mat-card>
     </div>
   </section>
 
-  <section>
+  <!-- Andere Schulen -->
+  <section class="section">
     <div class="section-header">
-      <h2>Andere Schulen</h2>
-      <mat-form-field appearance="outline">
+      <h2 class="section-title">Andere Schulen</h2>
+      <mat-form-field appearance="outline" class="school-search">
         <mat-label>Schule suchen</mat-label>
-        <input matInput (input)="filterSchools($event)">
+        <input matInput (input)="filterSchools($event)" />
+        <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
     </div>
 
-    <div class="school-list">
-      <mat-card (click)="openSchool(school)" class="school" *ngFor="let school of otherSchools">
-        <mat-card-header>
-          <mat-card-title>{{school.name}}</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <p><strong>Admin:</strong> {{school.admin.username}}</p>
-          <p><strong>Beispiele:</strong> 0</p>
-        </mat-card-content>
+    <div class="school-grid">
+      <mat-card
+        *ngFor="let school of otherSchools"
+        class="school-card mat-elevation-z1"
+        (click)="openSchool(school)"
+      >
+        <div class="school-header">
+          <mat-icon class="school-icon alt">domain</mat-icon>
+          <h3 class="school-name">{{ school.name }}</h3>
+        </div>
+        <p class="school-meta">Admin: {{ school.admin.username }}</p>
+        <p class="school-meta">Beispiele: {{ school.exampleCount }}</p>
+      </mat-card>
+
+      <mat-card *ngIf="!otherSchools?.length" class="empty-card mat-elevation-z1">
+        <mat-icon>search_off</mat-icon>
+        <p>Keine Schulen gefunden.</p>
       </mat-card>
     </div>
   </section>
-
 </main>

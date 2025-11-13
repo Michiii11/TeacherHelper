@@ -1,7 +1,9 @@
 import { Component } from '@angular/core';
 import {Router, RouterLink, RouterLinkActive} from '@angular/router'
 import {MatToolbar} from '@angular/material/toolbar'
-import {MatAnchor} from '@angular/material/button'
+import {MatAnchor, MatIconButton} from '@angular/material/button'
+import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu'
+import {MatIcon} from '@angular/material/icon'
 
 @Component({
   selector: 'app-navigation',
@@ -9,7 +11,12 @@ import {MatAnchor} from '@angular/material/button'
     RouterLink,
     RouterLinkActive,
     MatToolbar,
-    MatAnchor
+    MatAnchor,
+    MatIcon,
+    MatIconButton,
+    MatMenuItem,
+    MatMenu,
+    MatMenuTrigger,
   ],
   templateUrl: './navigation.component.html',
   standalone: true,
@@ -26,5 +33,9 @@ export class NavigationComponent {
     } else {
       this.router.navigate(['/school']);
     }
+  }
+
+  toggleMenu() {
+
   }
 }

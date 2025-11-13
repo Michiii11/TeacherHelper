@@ -1,8 +1,39 @@
-<mat-toolbar color="primary" class="mat-elevation-z4 classic-navbar">
-  <span class="navbar-title">TeacherHelper</span>
-  <span class="spacer"></span>
-  <a mat-button routerLink="/" routerLinkActive="active-link">Home</a>
-  <a mat-button (click)="goToSchool()" routerLinkActive="active-link">Schule</a>
-  <a mat-button routerLink="/contact" routerLinkActive="active-link">Kontakt</a>
-  <a mat-button routerLink="/user" routerLinkActive="active-link">Profil</a>
+<mat-toolbar color="primary" class="navbar mat-elevation-z4">
+  <div class="navbar-container">
+    <!-- Brand -->
+    <div class="navbar-left">
+      <span class="navbar-title">TeacherHelper</span>
+    </div>
+
+    <!-- Desktop Links -->
+    <nav class="navbar-links">
+      <a mat-button routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
+        Home
+      </a>
+      <a mat-button (click)="goToSchool()" routerLinkActive="active-link">
+        Schule
+      </a>
+      <a mat-button routerLink="/contact" routerLinkActive="active-link">
+        Kontakt
+      </a>
+      <a mat-button routerLink="/user" routerLinkActive="active-link">
+        Profil
+      </a>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item routerLink="/" routerLinkActive="active-link">Home</button>
+      <button mat-menu-item (click)="goToSchool()" routerLinkActive="active-link">Schule</button>
+      <button mat-menu-item routerLink="/contact" routerLinkActive="active-link">Kontakt</button>
+      <button mat-menu-item routerLink="/user" routerLinkActive="active-link">Profil</button>
+    </mat-menu>
+
+    <!-- User Icon (optional) -->
+    <div class="navbar-right">
+      <button mat-icon-button [matMenuTriggerFor]="menu" class="mobile-menu-button">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </div>
+  </div>
 </mat-toolbar>

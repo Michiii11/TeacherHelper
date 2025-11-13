@@ -4,12 +4,19 @@ import {BehaviorSubject, Observable, of} from 'rxjs'
 import {LoginDTO, UserDTO} from '../model/User'
 import {Config} from '../config'
 import {map} from "rxjs/operators"
+import {SchoolDTO} from '../model/School'
 
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  constructor(private http: HttpClient) {}
+  private loggedIn = new BehaviorSubject<boolean>(false);
+  loggedIn$ = this.loggedIn.asObservable();
 
+  constructor(private http: HttpClient) {
+    this.hasValidToken().subscribe(isValid => {
+      this.loggedIn.next(isValid);
+    });
+  }
   login(login: LoginDTO): Observable<any> {
     return this.http.post(Config.API_URL + '/user/login', login);
   }
@@ -27,14 +34,12 @@ export class AuthService {
     );
   }
 
-  private loggedIn = new BehaviorSubject<boolean>(!(this.hasValidToken() instanceof Observable));
-  loggedIn$ = this.loggedIn.asObservable();
-
   private hasValidToken(): Observable<boolean> {
     const token = localStorage.getItem('teacher_authToken');
     if (!token) {
       return of(false);
     }
+
     return this.validateToken(token);
   }
 

@@ -9,22 +9,22 @@ import {HttpService} from '../../service/http.service'
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card'
 import {MatFormField, MatInput, MatLabel} from '@angular/material/input'
 import {FormsModule} from '@angular/forms'
-import {NgForOf} from '@angular/common'
+import {NgForOf, NgIf} from '@angular/common'
 import {Router} from '@angular/router'
+import {MatIcon} from '@angular/material/icon'
 
 @Component({
   selector: 'app-home',
   imports: [
     MatButton,
     MatCard,
-    MatCardTitle,
-    MatCardContent,
-    MatCardHeader,
     MatFormField,
     MatLabel,
     FormsModule,
     MatInput,
-    NgForOf
+    NgForOf,
+    MatIcon,
+    NgIf
   ],
   templateUrl: './home.component.html',
   standalone: true,

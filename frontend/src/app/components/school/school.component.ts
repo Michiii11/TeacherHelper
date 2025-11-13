@@ -53,7 +53,6 @@ export class SchoolComponent {
   schoolId: string | null = null;
 
   exampleDisplayedColumns = ['name', 'type', 'question'];
-  teacherDisplayedColumns = ['name', 'promote', 'edit'];
   examples = [
     {"name": "test", "type": "test", "question": "asfd"},
     {"name": "test", "type": "test", "question": "asfd"},
@@ -62,7 +61,11 @@ export class SchoolComponent {
     {"name": "test", "type": "test", "question": "asfd"},
     {"name": "test", "type": "test", "question": "asfd"},
   ]; // Array mit Beispielen
-  teachers = []; // Array mit Lehrern
+  teachers = [
+    {"name": "Max Mustermann", "role": "teacher"},
+    {"name": "Erika Musterfrau", "role": "admin"},
+    {"name": "Hans Meier", "role": "teacher"},
+  ]; // Array mit Lehrern
 
   constructor(private route: ActivatedRoute, private router: Router) {
     this.route.paramMap.subscribe(params => {
@@ -86,7 +89,8 @@ export class SchoolComponent {
 
   openCreateExample() {
     this.dialog.open(CreateExampleComponent, {
-      width: '50vw',
+      width: '800px',
+      maxWidth: 'none'
     }).afterClosed().subscribe(result => {
 
     });
@@ -110,6 +114,7 @@ export class SchoolComponent {
   }
 
   /* Actions (replace with real logic) */
+  menuOpen: boolean | undefined
   createTest() { console.log('create test'); }
   openSettings() { console.log('open settings'); }
   editExample(e: any) { console.log('edit example', e); }

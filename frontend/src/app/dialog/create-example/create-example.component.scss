@@ -1,0 +1,138 @@
+main {
+  display: flex;
+  gap: 2rem;
+  background: lightgray;
+}
+
+mat-dialog-content{
+  background: white;
+  min-width: 40%;
+  padding-inline: 2rem;
+}
+
+.create-example-dialog {
+  max-width: 920px;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  box-sizing: border-box;
+  color: #1f2937;
+}
+
+.full-width { width: 100%; }
+
+.row { display: flex; gap: 1rem; align-items: center; }
+
+.example-panel { display: flex; flex-direction: column; gap: 1rem; margin-top: 0.5rem; }
+
+.panel-box {
+  background: #fafafa;
+  border: 1px solid #eee;
+  padding: 0.75rem;
+  border-radius: 8px;
+}
+
+.panel-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #0f172a;
+}
+
+.item-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.item-input { flex: 1 1 auto; }
+
+.panel-actions { margin-top: 0.5rem; display: flex; gap: 0.5rem; }
+
+.insert-gap-btn {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+}
+
+.image-preview {
+  width: 100%;
+  max-width: 320px;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+/* ASSIGN board */
+.assign-board {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.assign-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.column-title {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.assign-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #f0f3f8;
+  box-shadow: 0 1px 3px rgba(2,6,23,0.03);
+}
+
+.assign-select { width: 220px; min-width: 160px; }
+
+.connections-preview {
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+}
+
+.connection-row {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  align-items: center;
+  border-bottom: 1px dashed #eef2f7;
+}
+
+.connection-row .left { flex: 1; color: #0f172a; }
+.connection-row .arrow { width: 24px; text-align: center; color: #6b7280; }
+.connection-row .right { flex: 1; color: #0f172a; }
+
+/* Responsive */
+@media (max-width: 880px) {
+  .assign-board { grid-template-columns: 1fr; }
+  .assign-select { width: 160px; }
+  .insert-gap-btn { position: static; margin-top: 0.5rem; }
+}
+
+
+
+.create-example-layout{
+  table{
+    margin-top: 1rem;
+    border: 1px solid black;
+    border-collapse: collapse;
+    width: 100%;
+
+    td{
+      padding: .5rem;
+      border: 1px solid black;
+    }
+
+    td.small{
+      width: 15%;
+      text-align: center;
+    }
+  }
+}

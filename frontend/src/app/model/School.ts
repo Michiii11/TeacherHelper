@@ -11,4 +11,5 @@ export interface SchoolDTO {
   id: number;
   name: string;
   admin: UserDTO;
+  exampleCount: number;
 }
