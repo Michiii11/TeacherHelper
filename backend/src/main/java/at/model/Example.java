@@ -1,8 +1,15 @@
+// src/main/java/at/model/Example.java
 package at.model;
 
 import at.enums.ExampleDifficulty;
 import at.enums.ExampleTypes;
+import at.enums.GapFillType;
+import at.model.helper.Assign;
+import at.model.helper.Gap;
+import at.model.helper.Option;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Example {
@@ -13,70 +20,108 @@ public class Example {
     @ManyToOne
     private User admin;
 
+    @Enumerated(EnumType.STRING)
     private ExampleTypes type;
 
+    private String instruction;
+
     private String question;
-    private ExampleDifficulty difficulty;
+
+    @Enumerated(EnumType.STRING)
+    private ExampleDifficulty difficulty = ExampleDifficulty.LEICHT;
 
     private String answer;
 
-    public Example(){
+    private String imageUrl;
 
-    }
+    @ManyToOne
+    private School school;
 
-    public Example(User admin, ExampleTypes type, String question, ExampleDifficulty difficulty, String answer) {
+    @ElementCollection
+    @CollectionTable(name = "example_answers", joinColumns = @JoinColumn(name = "example_id"))
+    @Column(name = "answer")
+    private List<String> answers = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "example_options", joinColumns = @JoinColumn(name = "example_id"))
+    private List<Option> options = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    private GapFillType gapFillType;
+
+    @OneToMany(mappedBy = "example", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Gap> gaps = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "example_assigns", joinColumns = @JoinColumn(name = "example_id"))
+    private List<Assign> assigns = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "example_assign_right_items", joinColumns = @JoinColumn(name = "example_id"))
+    @Column(name = "right_item")
+    private List<String> assignRightItems = new ArrayList<>();
+
+    public Example() {}
+
+    public Example(User admin, ExampleTypes type, String instruction, String question, ExampleDifficulty difficulty, String answer, School school) {
         this.admin = admin;
         this.type = type;
+        this.instruction = instruction;
         this.question = question;
         this.difficulty = difficulty;
         this.answer = answer;
+        this.school = school;
     }
 
-    public Long getId() {
-        return id;
+    // Getter und Setter (gekürzt für Übersichtlichkeit)
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public User getAdmin() { return admin; }
+    public void setAdmin(User admin) { this.admin = admin; }
+
+    public ExampleTypes getType() { return type; }
+    public void setType(ExampleTypes type) { this.type = type; }
+
+    public String getInstruction() { return instruction; }
+    public void setInstruction(String instruction) { this.instruction = instruction; }
+
+    public String getQuestion() { return question; }
+    public void setQuestion(String question) { this.question = question; }
+
+    public ExampleDifficulty getDifficulty() { return difficulty; }
+    public void setDifficulty(ExampleDifficulty difficulty) { this.difficulty = difficulty; }
+
+    public String getAnswer() { return answer; }
+    public void setAnswer(String answer) { this.answer = answer; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public List<String> getAnswers() { return answers; }
+    public void setAnswers(List<String> answers) { this.answers = answers; }
+
+    public List<Option> getOptions() { return options; }
+    public void setOptions(List<Option> options) { this.options = options; }
+
+    public GapFillType getGapFillType() { return gapFillType; }
+    public void setGapFillType(GapFillType gapFillType) { this.gapFillType = gapFillType; }
+
+    public List<Gap> getGaps() { return gaps; }
+    public void setGaps(List<Gap> gaps) {
+        this.gaps.clear();
+        if (gaps != null) {
+            gaps.forEach(g -> g.setExample(this));
+            this.gaps.addAll(gaps);
+        }
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public List<Assign> getAssigns() { return assigns; }
+    public void setAssigns(List<Assign> assigns) { this.assigns = assigns; }
 
-    public User getAdmin() {
-        return admin;
-    }
+    public List<String> getAssignRightItems() { return assignRightItems; }
+    public void setAssignRightItems(List<String> assignRightItems) { this.assignRightItems = assignRightItems; }
 
-    public void setAdmin(User admin) {
-        this.admin = admin;
-    }
-
-    public ExampleTypes getType() {
-        return type;
-    }
-
-    public void setType(ExampleTypes type) {
-        this.type = type;
-    }
-
-    public String getQuestion() {
-        return question;
-    }
-
-    public void setQuestion(String question) {
-        this.question = question;
-    }
-
-    public ExampleDifficulty getDifficulty() {
-        return difficulty;
-    }
-
-    public void setDifficulty(ExampleDifficulty difficulty) {
-        this.difficulty = difficulty;
-    }
-
-    public String getAnswer() {
-        return answer;
-    }
-
-    public void setAnswer(String answer) {
-        this.answer = answer;
-    }
+    public School getSchool() { return school; }
+    public void setSchool(School school) { this.school = school; }
 }

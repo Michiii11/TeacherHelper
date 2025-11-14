@@ -28,4 +28,8 @@ export class HttpService {
     return this.http.post<SchoolDTO[]>(Config.API_URL + '/school/your-schools',
       localStorage.getItem('teacher_authToken'));
   }
+
+  getExamples(schoolId: string | null) {
+    return this.http.get(`${Config.API_URL}/example/school/${schoolId}`);
+  }
 }

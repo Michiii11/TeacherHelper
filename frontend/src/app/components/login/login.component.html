@@ -3,12 +3,12 @@
     <mat-tab label="Login">
       <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="auth-form">
         <mat-card-content>
-          <mat-form-field appearance="outline" class="full-width">
+          <mat-form-field subscriptSizing="fixed" appearance="outline" class="full-width">
             <mat-label>E-Mail</mat-label>
             <input matInput formControlName="email" autocomplete="email">
             <mat-error *ngIf="loginForm.get('email')?.invalid">Gültige E-Mail erforderlich</mat-error>
           </mat-form-field>
-          <mat-form-field appearance="outline" class="full-width">
+          <mat-form-field subscriptSizing="fixed" appearance="outline" class="full-width">
             <mat-label>Passwort</mat-label>
             <input matInput type="password" formControlName="password" autocomplete="current-password">
             <mat-error *ngIf="loginForm.get('password')?.invalid">Passwort erforderlich</mat-error>
@@ -26,17 +26,17 @@
     <mat-tab label="Registrieren">
       <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="auth-form">
         <mat-card-content>
-          <mat-form-field appearance="outline" class="full-width">
+          <mat-form-field subscriptSizing="fixed" appearance="outline" class="full-width">
             <mat-label>Benutzername</mat-label>
             <input matInput formControlName="username" autocomplete="username">
             <mat-error *ngIf="registerForm.get('username')?.invalid">Benutzername erforderlich</mat-error>
           </mat-form-field>
-          <mat-form-field appearance="outline" class="full-width">
+          <mat-form-field subscriptSizing="fixed" appearance="outline" class="full-width">
             <mat-label>E-Mail</mat-label>
             <input matInput formControlName="email" autocomplete="email">
             <mat-error *ngIf="registerForm.get('email')?.invalid">Gültige E-Mail erforderlich</mat-error>
           </mat-form-field>
-          <mat-form-field appearance="outline" class="full-width">
+          <mat-form-field subscriptSizing="fixed" appearance="outline" class="full-width">
             <mat-label>Passwort</mat-label>
             <input matInput type="password" formControlName="password" autocomplete="new-password">
             <mat-error *ngIf="registerForm.get('password')?.invalid">Passwort erforderlich</mat-error>

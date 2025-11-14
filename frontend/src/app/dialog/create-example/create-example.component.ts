@@ -1,24 +1,21 @@
-import {
-  Component,
-  HostListener, inject,
-  OnDestroy, Pipe, PipeTransform
-} from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {Component, HostListener, OnDestroy} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
 
 import {MatDialog, MatDialogActions, MatDialogContent, MatDialogRef} from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {MatSelectModule} from '@angular/material/select';
+import {MatButtonModule} from '@angular/material/button';
+import {MatIconModule} from '@angular/material/icon';
+import {MatCheckboxModule} from '@angular/material/checkbox';
+import {MatButtonToggleModule} from '@angular/material/button-toggle';
 
-import { ExampleTypes, ExampleTypeLabels } from '../../model/Example';
-import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
+import {ExampleTypeLabels, ExampleTypes} from '../../model/Example';
+import {ConfirmDialogComponent} from '../confirm-dialog/confirm-dialog.component';
 import {MatTooltip} from '@angular/material/tooltip'
 import {MatPseudoCheckbox} from '@angular/material/core'
+import {MatSnackBar} from '@angular/material/snack-bar'
 
 @Component({
   selector: 'app-create-example',
@@ -69,14 +66,15 @@ export class CreateExampleComponent implements OnDestroy {
   imagePreview: string | null = null;
 
   // assign (refactored)
-  assignLeftItems: string[] = ['Linkes Statement 1'];
-  assignRightItems: string[] = ['Rechtes Statement A'];
+  assignLeftItems: string[] = [''];
+  assignRightItems: string[] = [''];
   // assignConnections[i] = value of assignRightItems[j] or null
   assignConnections: (string | null)[] = [null];
 
   constructor(
     private dialogRef: MatDialogRef<CreateExampleComponent>,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
   ) {
     dialogRef.disableClose = true;
     dialogRef.backdropClick().subscribe(() => {
@@ -170,21 +168,41 @@ export class CreateExampleComponent implements OnDestroy {
     }));
   }
 
+  getLetter(i: number): string {
+    return String.fromCharCode(65 + i);
+  }
+
   /* ----------------------
      Gap fill helpers
   ---------------------- */
   updateGapsFromText() {
     const regex = /\{Lücke (\d+)\}/g;
     const matches = Array.from(this.question.matchAll(regex));
-    this.gapFillGaps = matches.map(() => ({
+    const oldGaps = this.gapFillGaps;
+
+    this.gapFillGaps = matches.map((match, i) => {
+      const oldGap = oldGaps[i];
+      return oldGap
+        ? { ...oldGap }
+        : {
+          label: '',
+          options: this.gapFillType === 'select'
+            ? [
+              { text: '', correct: false },
+              { text: '', correct: false },
+              { text: '', correct: false }
+            ]
+            : []
+        };
+    });
+  }
+
+  extractGapsFromQuestion(text: string): { label: string; options: { text: string; correct: boolean }[] }[] {
+    const regex = /\{Lücke (\d+)\}/g;
+    const matches = Array.from(text.matchAll(regex));
+    return matches.map(() => ({
       label: '',
-      options: this.gapFillType === 'select'
-        ? [
-          { text: '', correct: false },
-          { text: '', correct: false },
-          { text: '', correct: false }
-        ]
-        : []
+      options: []
     }));
   }
 
@@ -238,6 +256,13 @@ export class CreateExampleComponent implements OnDestroy {
      (save -> console.log for now)
   ---------------------- */
   saveExample() {
+    if (!this.instruction.trim() || !this.question.trim()) {
+      this.snackBar.open('Bitte füllen Sie sowohl die Aufgabenstellung als auch die Angabe aus.', 'OK', {
+        duration: 3000
+      });
+      return;
+    }
+
     const payload: any = {
       type: this.selectedExampleType,
       instruction: this.instruction,
@@ -296,7 +321,7 @@ export class CreateExampleComponent implements OnDestroy {
     // nothing to cleanup now
   }
 
-  trackByIndex(index: number, item: any): number {
+  trackByIndex(index: number, item: any) {
     return index;
   }
 
@@ -311,5 +336,23 @@ export class CreateExampleComponent implements OnDestroy {
         return `______________`;
       }
     });
+  }
+
+  getTooltip() {
+    switch (this.selectedExampleType){
+      case ExampleTypes.OPEN: return "Beim offenen Antwortformat kann die Bearbeitung der Aufgaben je nach Aufgabenstellung auf unterschiedliche Weise erfolgen.";
+
+      case ExampleTypes.HALF_OPEN: return "Beim halboffenen Antwortformat muss die richtige Antwort in eine vorgegebene Gleichung, Funktion etc. eingesetzt werden.";
+
+      case ExampleTypes.CONSTRUCTION: return "Bei diesem Antwortformat ist eine Abbildung, eine Grafik, ein Diagramm etc. vorgegeben.Diese Aufgaben erfordern die Ergänzung von Graphen, Punkten, Vektoren o. Ä. in die vorgegebene Darstellung."
+
+      case ExampleTypes.MULTIPLE_CHOICE: return "Dieses Antwortformat ist durch einen Fragenstamm und mehreren Antwortmöglichkeiten gekennzeichnet. Aufgaben dieses Formats werden korrekt bearbeitet, indem die richtig zutreffenden Antwortmöglichkeiten angekreuzt werden. ";
+
+      case ExampleTypes.GAP_FILL: return "Dieses Antwortformat ist durch einen Satz mit Lücken gekennzeichnet, d.h., im Aufgabentext sind die Stellen ausgewiesen, die ergänzt werden müssen. Für jede Lücke sind Antwortmöglichkeiten vorgegeben, oder wenn gewünscht auch ohne Antwortmöglichkeiten. Aufgaben dieses Formats werden korrekt bearbeitet, indem die Lücken durch Ankreuzen der beiden zutreffenden Antwortmöglichkeiten gefüllt werden, oder durch Eingabe der richtigen Antwort in die Lücke.";
+
+      case ExampleTypes.ASSIGN: return "Dieses Antwortformat ist durch Auswahlmöglichkeiten (z.B. Aussagen, Tabellen, Abbildungen) gekennzeichnet, die den vorgegebenen Antwortmöglichkeiten zugeordnet werden müssen. Aufgaben dieses Formats werden korrekt bearbeitet, indem man den Antwortmöglichkeiten durch Eintragen des entsprechenden Buchstabens (aus A bis F) jeweils die zutreffende Auswahlmöglichkeit zuordnet.";
+    }
+
+    return ""
   }
 }

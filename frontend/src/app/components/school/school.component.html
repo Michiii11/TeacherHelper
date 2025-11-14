@@ -8,7 +8,7 @@
       </div>
       <div class="brand-text">
         <h1 class="brand-title">{{ school.name }}</h1>
-        <p class="brand-sub">Verwaltung • {{ school.admin.username || '—' }}</p>
+        <p class="brand-sub" *ngIf="school.admin">Verwaltung • {{ school.admin.username || '—' }}</p>
       </div>
     </div>
 
@@ -40,7 +40,9 @@
     <article class="kpi-card" *ngFor="let k of kpis">
       <div class="kpi-left">
         <div class="kpi-title">{{ k.title }}</div>
-        <div class="kpi-value">{{ k.value }}</div>
+        <div class="kpi-value">
+          {{ k.value }}
+        </div>
         <div class="kpi-sub" *ngIf="k.sub">{{ k.sub }}</div>
       </div>
       <div class="kpi-right" aria-hidden="true">
@@ -60,19 +62,27 @@
       </div>
 
       <div class="panel-body table-wrapper">
-        <table mat-table [dataSource]="examples" class="mat-elevation-z1 table" matSort>
+        <table mat-table [dataSource]="dataSource" class="mat-elevation-z1 table" matSort>
           <!-- columns -->
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Beispiel</th>
-            <td mat-cell *matCellDef="let e">{{ e.name }}</td>
-          </ng-container>
           <ng-container matColumnDef="type">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Typ</th>
             <td mat-cell *matCellDef="let e">{{ e.type }}</td>
           </ng-container>
+          <ng-container matColumnDef="instruction">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Angabe</th>
+            <td mat-cell *matCellDef="let e">{{ e.instruction }}</td>
+          </ng-container>
           <ng-container matColumnDef="question">
-            <th mat-header-cell *matHeaderCellDef>Frage</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Aufgabenstellung</th>
             <td mat-cell *matCellDef="let e">{{ e.question }}</td>
+          </ng-container>
+          <ng-container matColumnDef="difficulty">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Schwierigkeit</th>
+            <td mat-cell *matCellDef="let e">{{ e.difficulty }}</td>
+          </ng-container>
+          <ng-container matColumnDef="adminUsername">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Admin</th>
+            <td mat-cell *matCellDef="let e">{{ e.adminUsername }}</td>
           </ng-container>
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Aktionen</th>
