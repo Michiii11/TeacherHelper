@@ -20,9 +20,6 @@ public class TokenService {
     @ConfigProperty(name = "app.jwt.secret")
     String jwtSecret; // kann Base64-kodiert oder plain UTF-8 sein
 
-    @ConfigProperty(name = "app.jwt.ttl-ms", defaultValue = "3600000")
-    long ttlMs;
-
     private Key key;
 
     @PostConstruct
@@ -36,7 +33,7 @@ public class TokenService {
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
                 .setIssuedAt(new Date(now))
-                .setExpiration(new Date(now + ttlMs))
+                .setExpiration(new Date(now + 48 * 60 * 60 * 1000))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }

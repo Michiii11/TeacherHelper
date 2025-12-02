@@ -1,8 +1,8 @@
-import {Component, HostListener, OnDestroy} from '@angular/core';
+import {Component, HostListener, inject, OnDestroy} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 
-import {MatDialog, MatDialogActions, MatDialogContent, MatDialogRef} from '@angular/material/dialog';
+import {MAT_DIALOG_DATA, MatDialog, MatDialogActions, MatDialogContent, MatDialogRef} from '@angular/material/dialog';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
@@ -11,11 +11,15 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 
-import {ExampleTypeLabels, ExampleTypes} from '../../model/Example';
+import {ExampleDifficulty, ExampleTypeLabels, ExampleTypes} from '../../model/Example';
 import {ConfirmDialogComponent} from '../confirm-dialog/confirm-dialog.component';
 import {MatTooltip} from '@angular/material/tooltip'
 import {MatPseudoCheckbox} from '@angular/material/core'
 import {MatSnackBar} from '@angular/material/snack-bar'
+import {HttpClient} from '@angular/common/http'
+import {HttpService} from '../../service/http.service'
+import {MatDivider} from '@angular/material/divider'
+import {MatSlider, MatSliderModule, MatSliderRangeThumb, MatSliderThumb} from '@angular/material/slider'
 
 @Component({
   selector: 'app-create-example',
@@ -33,22 +37,37 @@ import {MatSnackBar} from '@angular/material/snack-bar'
     MatDialogActions,
     MatDialogContent,
     MatTooltip,
-    MatPseudoCheckbox
+    MatPseudoCheckbox,
+    MatDivider,
+    MatSlider,
+    MatSliderThumb,
+    MatSliderModule
   ],
   templateUrl: './create-example.component.html',
   styleUrls: ['./create-example.component.scss']
 })
 export class CreateExampleComponent implements OnDestroy {
+  data = inject<{ schoolId: number }>(MAT_DIALOG_DATA);
+
   // types
   readonly ExampleTypes = ExampleTypes;
   exampleTypes = Object.values(ExampleTypes).filter(v => typeof v === 'number') as ExampleTypes[];
   ExampleTypeLabels = ExampleTypeLabels;
 
+  exampleDifficulties = [
+    { value: ExampleDifficulty.EASY, label: 'Leicht' },
+    { value: ExampleDifficulty.MEDIUM, label: 'Mittel' },
+    { value: ExampleDifficulty.HARD, label: 'Schwer' },
+    { value: ExampleDifficulty.VERY_HARD, label: 'Sehr schwer' },
+    { value: ExampleDifficulty.EXPERT, label: 'Experte' }
+  ];
+  difficultyIndex = 1;
 
   // common fields
   selectedExampleType: ExampleTypes = ExampleTypes.OPEN;
   instruction = '';
   question = '';
+  answer = '';
   hasUnsavedChanges = false;
 
   // multiple choice
@@ -57,13 +76,16 @@ export class CreateExampleComponent implements OnDestroy {
 
   // half-open
   halfOpenAnswers: string[] = [''];
+  halfOpenCorrectAnswers: string[] = [''];
 
   // gap-fill
   gapFillType: 'select' | 'input' = 'select';
   gapFillGaps: { label: string; options: { text: string; correct: boolean }[] }[] = [];
+  gapFillCorrectAnswers: string[] = [];
 
   // construction
   imagePreview: string | null = null;
+  solutionPreview: string | null = null;
 
   // assign (refactored)
   assignLeftItems: string[] = [''];
@@ -240,16 +262,23 @@ export class CreateExampleComponent implements OnDestroy {
   /* ----------------------
      Construction image
   ---------------------- */
-  onImageSelected(event: Event) {
+  onImageSelected(event: Event, type: 'solution' | 'preview') {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      this.imagePreview = reader.result as string;
+      if (type === 'solution') {
+        this.solutionPreview = reader.result as string;
+      } else {
+        this.imagePreview = reader.result as string;
+      }
       this.markDirty();
     };
     reader.readAsDataURL(file);
   }
+
+
+  http = inject(HttpService)
 
   /* ----------------------
      Save & close
@@ -271,23 +300,38 @@ export class CreateExampleComponent implements OnDestroy {
 
     // add type-specific
     if (this.selectedExampleType === ExampleTypes.MULTIPLE_CHOICE) {
-      payload.options = this.multipleChoiceOptions;
-      payload.correct = this.correctOptions;
+      payload.options = [];
+      for (let i = 0; i < this.multipleChoiceOptions.length; i++) {
+        payload.options.push({text: this.multipleChoiceOptions[i], isCorrect: this.correctOptions[i]});
+      }
     } else if (this.selectedExampleType === ExampleTypes.HALF_OPEN) {
       payload.answers = this.halfOpenAnswers;
+      payload.halfOpenCorrectAnswers = this.halfOpenCorrectAnswers;
     } else if (this.selectedExampleType === ExampleTypes.GAP_FILL) {
       payload.gaps = this.gapFillGaps;
       payload.gapFillType = this.gapFillType;
+      payload.gapFillCorrectAnswers = this.gapFillCorrectAnswers;
     } else if (this.selectedExampleType === ExampleTypes.CONSTRUCTION) {
       payload.image = this.imagePreview;
+      payload.solutionUrl = this.solutionPreview;
     } else if (this.selectedExampleType === ExampleTypes.ASSIGN) {
       payload.assigns = this.buildAssignPairs();
       payload.assignRightItems = this.assignRightItems;
     }
 
-    console.log('[CreateExample] saving (mock):', payload);
-    this.hasUnsavedChanges = false;
-    this.dialogRef.close(payload);
+    payload.authToken = localStorage.getItem('teacher_authToken') || ''
+    payload.schoolId = this.data.schoolId
+    payload.answer = this.answer
+    payload.difficulty = this.exampleDifficulties[this.difficultyIndex].value
+
+    this.http.createExample(payload).subscribe({
+      next: (response) => {
+        console.log('[CreateExample] saving (mock):', payload);
+        console.log('[CreateExample] saved:', response);
+        this.hasUnsavedChanges = false;
+        this.dialogRef.close(payload);
+      }
+    })
   }
 
   /* ----------------------

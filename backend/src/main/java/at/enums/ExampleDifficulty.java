@@ -1,5 +1,5 @@
 package at.enums;
 
 public enum ExampleDifficulty {
-    LEICHT, MITTEL, SCHWER
+    EASY, MEDIUM, HARD, VERY_HARD, EXPERT
 }

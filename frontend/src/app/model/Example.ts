@@ -1,7 +1,7 @@
 import {User} from './User'
 
 export enum ExampleDifficulty {
-  LEICHT, MITTEL, SCHWER
+  EASY, MEDIUM, HARD, VERY_HARD, EXPERT
 }
 
 export enum ExampleTypes {

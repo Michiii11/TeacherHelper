@@ -22,6 +22,17 @@
 
       <!-- Common instruction -->
       <div class="row">
+        <mat-form-field class="full-width">
+          <mat-label>Schwierigkeitsgrad</mat-label>
+          <mat-select>
+            <mat-option *ngFor="let level of exampleDifficulties" [value]="level">
+              {{ level.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="row">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Angabe</mat-label>
           <textarea
@@ -53,6 +64,22 @@
               cdkAutosizeMaxRows="10">
           </textarea>
           </mat-form-field>
+
+          <mat-divider></mat-divider>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Lösung</mat-label>
+            <textarea
+              matInput
+              [(ngModel)]="answer"
+              name="question"
+              (input)="markDirty()"
+              placeholder="Geben Sie die richtige Antwort an ..."
+              cdkTextareaAutosize
+              cdkAutosizeMinRows="2"
+              cdkAutosizeMaxRows="10">
+          </textarea>
+          </mat-form-field>
         </ng-container>
 
         <!-- HALF_OPEN -->
@@ -70,6 +97,9 @@
             <div *ngFor="let a of halfOpenAnswers; let i = index; trackBy: trackByIndex" class="item-row">
               <mat-form-field appearance="outline" class="item-input">
                 <input matInput [(ngModel)]="halfOpenAnswers[i]" name="halfOpenAnswer{{i}}" (input)="markDirty()" placeholder="Antwort {{ i + 1 }}">
+              </mat-form-field>
+              <mat-form-field>
+                <input matInput [(ngModel)]="halfOpenCorrectAnswers[i]" name="halfOpenCorrectAnswer{{i}}" (input)="markDirty()" placeholder="Korrekte Lösung {{ i + 1 }}">
               </mat-form-field>
               <button mat-icon-button color="warn" type="button" (click)="removeHalfOpenAnswer(i)" aria-label="Antwort entfernen">
                 <mat-icon>delete</mat-icon>
@@ -164,6 +194,30 @@
               </div>
             </div>
           </div>
+
+          <div class="panel-box gap-fill-luecken" *ngIf="gapFillType === 'input'">
+            <div *ngFor="let gap of gapFillGaps; let gi = index" class="item-row">
+              <div class="panel-title">Lücke {{gi+1}}</div>
+              <mat-form-field appearance="outline" class="item-input">
+                <input
+                  matInput
+                  [(ngModel)]="gapFillGaps[gi].label"
+                  name="gapLabel{{gi}}"
+                  (input)="markDirty()"
+                  placeholder="Beschreibung der Lücke"
+                >
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="item-input">
+                <input
+                  matInput
+                  [(ngModel)]="gapFillCorrectAnswers[gi]"
+                  name="gapCorrectAnswer{{gi}}"
+                  (input)="markDirty()"
+                  placeholder="Korrekte Antwort"
+                >
+              </mat-form-field>
+            </div>
+          </div>
         </ng-container>
 
         <!-- CONSTRUCTION -->
@@ -178,8 +232,16 @@
 
           <div class="panel-box image-upload">
             <div class="panel-title">Bild</div>
-            <input type="file" accept="image/*" (change)="onImageSelected($event)" />
+            <input type="file" accept="image/*" (change)="onImageSelected($event, 'preview')" />
             <img *ngIf="imagePreview" [src]="imagePreview" alt="Vorschau" class="image-preview" />
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <div class="panel-box image-upload">
+            <div class="panel-title">Lösung</div>
+            <input type="file" accept="image/*" (change)="onImageSelected($event, 'solution')" />
+            <img *ngIf="solutionPreview" [src]="solutionPreview" alt="Vorschau" class="image-preview" />
           </div>
         </ng-container>
 

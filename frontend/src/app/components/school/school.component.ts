@@ -18,7 +18,7 @@ import {CreateExampleComponent} from '../../dialog/create-example/create-example
 import {MatIcon} from '@angular/material/icon'
 import {MatSort, MatSortHeader} from '@angular/material/sort'
 import {NgForOf, NgIf} from '@angular/common'
-import {ExampleOverviewDTO, ExampleTypeLabels} from '../../model/Example'
+import {ExampleDifficulty, ExampleOverviewDTO, ExampleTypeLabels, ExampleTypes} from '../../model/Example'
 
 @Component({
   selector: 'app-school',
@@ -58,6 +58,32 @@ export class SchoolComponent {
 
   dataSource = new MatTableDataSource<ExampleOverviewDTO>();
 
+  exampleDifficulties = [
+    { value: 'EASY',      label: 'Leicht' },
+    { value: 'MEDIUM',    label: 'Mittel' },
+    { value: 'HARD',      label: 'Schwer' },
+    { value: 'VERY_HARD', label: 'Sehr schwer' },
+    { value: 'EXPERT',    label: 'Experte' }
+  ];
+
+  getDifficultyLabelFromValue(value: string | number): string {
+    if (!value && value !== 0) return '—';
+    const valStr = String(value);
+    const found = this.exampleDifficulties.find(d => d.value === valStr);
+    return found?.label ?? valStr;
+  }
+
+  getExampleTypeLabel(type: ExampleTypes | string): string {
+    if (type == null) return '—';
+
+    // Falls es ein String ist (Backend case):
+    const enumKey = typeof type === 'string'
+      ? ExampleTypes[type as keyof typeof ExampleTypes]
+      : type;
+
+    return ExampleTypeLabels[enumKey];
+  }
+
   exampleDisplayedColumns = ['type', 'instruction', 'question', 'difficulty', 'adminUsername', 'actions'];
   teachers = [
     {"name": "Max Mustermann", "role": "teacher"},
@@ -73,6 +99,10 @@ export class SchoolComponent {
   ]
 
   ngOnInit(){
+    this.loadExamples();
+  }
+
+  loadExamples(){
     this.service.getExamples(this.schoolId).subscribe(examples => {
       this.dataSource.data = examples as ExampleOverviewDTO[]
 
@@ -114,9 +144,10 @@ export class SchoolComponent {
   openCreateExample() {
     this.dialog.open(CreateExampleComponent, {
       width: '1000px',
-      maxWidth: 'none'
+      maxWidth: 'none',
+      data: { schoolId: this.schoolId }
     }).afterClosed().subscribe(result => {
-
+      this.loadExamples();
     });
   }
 

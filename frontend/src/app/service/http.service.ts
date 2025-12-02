@@ -32,4 +32,8 @@ export class HttpService {
   getExamples(schoolId: string | null) {
     return this.http.get(`${Config.API_URL}/example/school/${schoolId}`);
   }
+
+  createExample(payload: any) {
+    return this.http.post(`${Config.API_URL}/example`, payload, { responseType: 'text' as 'json' });
+  }
 }

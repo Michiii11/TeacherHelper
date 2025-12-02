@@ -28,9 +28,19 @@ public class Example {
     private String question;
 
     @Enumerated(EnumType.STRING)
-    private ExampleDifficulty difficulty = ExampleDifficulty.LEICHT;
+    private ExampleDifficulty difficulty = ExampleDifficulty.EASY;
 
     private String answer;
+
+    @ElementCollection
+    @CollectionTable(name = "example_half_answers", joinColumns = @JoinColumn(name = "example_id"))
+    private List<String> halfOpenCorrectAnswers;
+
+    @ElementCollection
+    @CollectionTable(name = "example_gap_answers", joinColumns = @JoinColumn(name = "example_id"))
+    private List<String> gapFillCorrectAnswers;
+
+    private String solutionUrl;
 
     private String imageUrl;
 
@@ -39,7 +49,6 @@ public class Example {
 
     @ElementCollection
     @CollectionTable(name = "example_answers", joinColumns = @JoinColumn(name = "example_id"))
-    @Column(name = "answer")
     private List<String> answers = new ArrayList<>();
 
     @ElementCollection
@@ -71,6 +80,27 @@ public class Example {
         this.difficulty = difficulty;
         this.answer = answer;
         this.school = school;
+    }
+
+    @Override
+    public String toString() {
+        return "Example{" +
+                "id=" + id +
+                ", admin=" + admin +
+                ", type=" + type +
+                ", instruction='" + instruction + '\'' +
+                ", question='" + question + '\'' +
+                ", difficulty=" + difficulty +
+                ", answer='" + answer + '\'' +
+                ", imageUrl='" + imageUrl + '\'' +
+                ", school=" + school +
+                ", answers=" + answers +
+                ", options=" + options +
+                ", gapFillType=" + gapFillType +
+                ", gaps=" + gaps +
+                ", assigns=" + assigns +
+                ", assignRightItems=" + assignRightItems +
+                '}';
     }
 
     // Getter und Setter (gekürzt für Übersichtlichkeit)
@@ -124,4 +154,28 @@ public class Example {
 
     public School getSchool() { return school; }
     public void setSchool(School school) { this.school = school; }
+
+    public List<String> getHalfOpenCorrectAnswers() {
+        return halfOpenCorrectAnswers;
+    }
+
+    public void setHalfOpenCorrectAnswers(List<String> halfOpenCorrectAnswers) {
+        this.halfOpenCorrectAnswers = halfOpenCorrectAnswers;
+    }
+
+    public List<String> getGapFillCorrectAnswers() {
+        return gapFillCorrectAnswers;
+    }
+
+    public void setGapFillCorrectAnswers(List<String> gapFillCorrectAnswers) {
+        this.gapFillCorrectAnswers = gapFillCorrectAnswers;
+    }
+
+    public String getSolutionUrl() {
+        return solutionUrl;
+    }
+
+    public void setSolutionUrl(String solutionUrl) {
+        this.solutionUrl = solutionUrl;
+    }
 }
