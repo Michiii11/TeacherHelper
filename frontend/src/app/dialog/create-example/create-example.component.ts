@@ -11,7 +11,15 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 
-import {CreateExampleDTO, ExampleDifficulty, ExampleTypeLabels, ExampleTypes} from '../../model/Example';
+import {
+  Assign,
+  CreateExampleDTO,
+  ExampleDifficulty,
+  ExampleTypeLabels,
+  ExampleTypes,
+  Gap,
+  Option
+} from '../../model/Example';
 import {ConfirmDialogComponent} from '../confirm-dialog/confirm-dialog.component';
 import {MatTooltip} from '@angular/material/tooltip'
 import {MatPseudoCheckbox} from '@angular/material/core'
@@ -47,7 +55,25 @@ import {MatSlider, MatSliderModule, MatSliderRangeThumb, MatSliderThumb} from '@
 export class CreateExampleComponent implements OnDestroy {
   data = inject<{ schoolId: number; exampleId: number }>(MAT_DIALOG_DATA);
 
-  example = {} as CreateExampleDTO;
+  example = {
+    authToken: '',
+    schoolId: this.data.schoolId,
+    type: ExampleTypes.OPEN,
+    instruction: '',
+    question: '',
+    answers: [],
+    options: [],
+    gapFillType: 'select',
+    gaps: [],
+    assigns: [],
+    assignRightItems: [],
+    image: '',
+    answer: '',
+    halfOpenCorrectAnswers: [],
+    gapFillCorrectAnswers: [],
+    solutionUrl: '',
+    difficulty: ExampleDifficulty.EASY
+  } as CreateExampleDTO;
   service = inject(HttpService)
 
   // types
@@ -80,9 +106,6 @@ export class CreateExampleComponent implements OnDestroy {
   // gap-fill
   gapFillGaps: { label: string; options: { text: string; correct: boolean }[] }[] = [];
   gapFillCorrectAnswers: string[] = [];
-
-  // construction
-  solutionPreview: string | null = null;
 
   // assign (refactored)
   assignLeftItems: string[] = [''];
@@ -277,7 +300,7 @@ export class CreateExampleComponent implements OnDestroy {
     const reader = new FileReader();
     reader.onload = () => {
       if (type === 'solution') {
-        this.solutionPreview = reader.result as string;
+        this.example.solutionUrl = reader.result as string;
       } else {
         this.example.image = reader.result as string;
       }

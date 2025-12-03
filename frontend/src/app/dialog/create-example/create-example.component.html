@@ -241,7 +241,7 @@
           <div class="panel-box image-upload">
             <div class="panel-title">Lösung</div>
             <input type="file" accept="image/*" (change)="onImageSelected($event, 'solution')" />
-            <img *ngIf="solutionPreview" [src]="solutionPreview" alt="Vorschau" class="image-preview" />
+            <img *ngIf="example.solutionUrl" [src]="example.solutionUrl" alt="Vorschau" class="image-preview" />
           </div>
         </ng-container>
 
