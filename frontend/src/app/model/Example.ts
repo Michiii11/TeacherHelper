@@ -33,6 +33,26 @@ export interface Example {
   assignRightItems: string[]
 }
 
+export interface CreateExampleDTO {
+  authToken: string;
+  schoolId: number;
+  type: ExampleTypes;
+  instruction: string;
+  question: string;
+  answers: string[];
+  options: Option[];
+  gapFillType: 'input' | 'select'
+  gaps: Gap[]
+  assigns: Assign[]
+  assignRightItems: string[]
+  image: string;
+  answer: string;
+  halfOpenCorrectAnswers: string[];
+  gapFillCorrectAnswers: string[];
+  solutionUrl: string;
+  difficulty: ExampleDifficulty;
+}
+
 export interface Option {
   text: string;
   isCorrect: boolean;
@@ -50,6 +70,7 @@ export interface Assign{
 
 
 export interface ExampleOverviewDTO{
+  id: number;
   type: ExampleTypes;
   instruction: string;
   question: string;

@@ -4,10 +4,8 @@ import at.dtos.CreateExampleDTO;
 import at.dtos.ExampleOverviewDTO;
 import at.repository.ExampleRepository;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
+import jakarta.json.JsonObject;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 
 import java.util.List;
@@ -24,7 +22,19 @@ public class ExampleResource {
     }
 
     @POST
+    @Path("{exampleId}")
+    public CreateExampleDTO getExample(@PathParam("exampleId") Long exampleId, JsonObject json){
+        return repo.getExample(exampleId, json.getString("authToken"));
+    }
+
+    @POST
     public Response createExample(CreateExampleDTO dto){
         return repo.createExample(dto);
+    }
+
+    @DELETE
+    @Path("{exampleId}")
+    public Response deleteExample(JsonObject json, @PathParam("exampleId") Long exampleId){
+        return repo.deleteExample(json.getString("authToken"), exampleId);
     }
 }

@@ -11,7 +11,7 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 
-import {ExampleDifficulty, ExampleTypeLabels, ExampleTypes} from '../../model/Example';
+import {CreateExampleDTO, ExampleDifficulty, ExampleTypeLabels, ExampleTypes} from '../../model/Example';
 import {ConfirmDialogComponent} from '../confirm-dialog/confirm-dialog.component';
 import {MatTooltip} from '@angular/material/tooltip'
 import {MatPseudoCheckbox} from '@angular/material/core'
@@ -39,15 +39,16 @@ import {MatSlider, MatSliderModule, MatSliderRangeThumb, MatSliderThumb} from '@
     MatTooltip,
     MatPseudoCheckbox,
     MatDivider,
-    MatSlider,
-    MatSliderThumb,
     MatSliderModule
   ],
   templateUrl: './create-example.component.html',
   styleUrls: ['./create-example.component.scss']
 })
 export class CreateExampleComponent implements OnDestroy {
-  data = inject<{ schoolId: number }>(MAT_DIALOG_DATA);
+  data = inject<{ schoolId: number; exampleId: number }>(MAT_DIALOG_DATA);
+
+  example = {} as CreateExampleDTO;
+  service = inject(HttpService)
 
   // types
   readonly ExampleTypes = ExampleTypes;
@@ -61,13 +62,11 @@ export class CreateExampleComponent implements OnDestroy {
     { value: ExampleDifficulty.VERY_HARD, label: 'Sehr schwer' },
     { value: ExampleDifficulty.EXPERT, label: 'Experte' }
   ];
-  difficultyIndex = 1;
+  exampleDifficulty = { value: ExampleDifficulty.EASY, label: 'Easy' };
+
 
   // common fields
   selectedExampleType: ExampleTypes = ExampleTypes.OPEN;
-  instruction = '';
-  question = '';
-  answer = '';
   hasUnsavedChanges = false;
 
   // multiple choice
@@ -79,12 +78,10 @@ export class CreateExampleComponent implements OnDestroy {
   halfOpenCorrectAnswers: string[] = [''];
 
   // gap-fill
-  gapFillType: 'select' | 'input' = 'select';
   gapFillGaps: { label: string; options: { text: string; correct: boolean }[] }[] = [];
   gapFillCorrectAnswers: string[] = [];
 
   // construction
-  imagePreview: string | null = null;
   solutionPreview: string | null = null;
 
   // assign (refactored)
@@ -107,6 +104,18 @@ export class CreateExampleComponent implements OnDestroy {
         this.closeDialog();
       }
     });
+  }
+
+  ngOnInit(){
+    if(this.data.exampleId){
+      console.log(this.data.exampleId)
+      this.service.getCreateExample(this.data.exampleId).subscribe({
+        next: (response) => {
+          this.example = response;
+          console.log('[CreateExample] loaded example:', response);
+        }
+      })
+    }
   }
 
   /* ----------------------
@@ -199,7 +208,7 @@ export class CreateExampleComponent implements OnDestroy {
   ---------------------- */
   updateGapsFromText() {
     const regex = /\{Lücke (\d+)\}/g;
-    const matches = Array.from(this.question.matchAll(regex));
+    const matches = Array.from(this.example.question.matchAll(regex));
     const oldGaps = this.gapFillGaps;
 
     this.gapFillGaps = matches.map((match, i) => {
@@ -208,7 +217,7 @@ export class CreateExampleComponent implements OnDestroy {
         ? { ...oldGap }
         : {
           label: '',
-          options: this.gapFillType === 'select'
+          options: this.example.gapFillType === 'select'
             ? [
               { text: '', correct: false },
               { text: '', correct: false },
@@ -243,7 +252,7 @@ export class CreateExampleComponent implements OnDestroy {
   }
 
   onGapFillTypeChange(type: 'select' | 'input') {
-    this.gapFillType = type;
+    this.example.gapFillType = type;
     this.updateGapsFromText();
     this.markDirty();
   }
@@ -270,7 +279,7 @@ export class CreateExampleComponent implements OnDestroy {
       if (type === 'solution') {
         this.solutionPreview = reader.result as string;
       } else {
-        this.imagePreview = reader.result as string;
+        this.example.image = reader.result as string;
       }
       this.markDirty();
     };
@@ -285,12 +294,14 @@ export class CreateExampleComponent implements OnDestroy {
      (save -> console.log for now)
   ---------------------- */
   saveExample() {
-    if (!this.instruction.trim() || !this.question.trim()) {
+    if (!this.example.instruction.trim() || !this.example.question.trim()) {
       this.snackBar.open('Bitte füllen Sie sowohl die Aufgabenstellung als auch die Angabe aus.', 'OK', {
         duration: 3000
       });
       return;
     }
+
+    /*
 
     const payload: any = {
       type: this.selectedExampleType,
@@ -320,16 +331,18 @@ export class CreateExampleComponent implements OnDestroy {
     }
 
     payload.authToken = localStorage.getItem('teacher_authToken') || ''
-    payload.schoolId = this.data.schoolId
     payload.answer = this.answer
-    payload.difficulty = this.exampleDifficulties[this.difficultyIndex].value
+    payload.difficulty = this.exampleDifficulties[this.exampleDifficulty.value].value*/
 
-    this.http.createExample(payload).subscribe({
+    this.example.authToken = localStorage.getItem('teacher_authToken') || ''
+    this.example.schoolId = this.example.schoolId || this.data.schoolId
+
+    this.http.createExample(this.example).subscribe({
       next: (response) => {
-        console.log('[CreateExample] saving (mock):', payload);
-        console.log('[CreateExample] saved:', response);
+        console.log('[CreateExample] saving (mock):', this.example);
+        console.log(response);
         this.hasUnsavedChanges = false;
-        this.dialogRef.close(payload);
+        this.dialogRef.close(this.example);
       }
     })
   }
@@ -340,7 +353,7 @@ export class CreateExampleComponent implements OnDestroy {
   async closeDialog() {
     if (this.hasUnsavedChanges) {
       const confirmRef = this.dialog.open(ConfirmDialogComponent, {
-        data: { message: 'Möchten Sie wirklich schließen? Nicht gespeicherte Änderungen gehen verloren.' }
+        data: { title: 'Warnung', message: 'Möchten Sie wirklich schließen? Nicht gespeicherte Änderungen gehen verloren.', cancelText: 'Abbrechen', confirmText: 'Schließen' }
       });
       const confirmed = await confirmRef.afterClosed().toPromise();
       if (!confirmed) return;
@@ -371,7 +384,7 @@ export class CreateExampleComponent implements OnDestroy {
 
   getQuestionWithGapLabels(): string {
     let idx = 0;
-    return this.question.replace(/\{Lücke \d+\}/g, () => {
+    return this.example.question.replace(/\{Lücke \d+\}/g, () => {
       const label = this.gapFillGaps[idx]?.label?.trim();
       idx++;
       if (label) {

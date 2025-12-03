@@ -10,6 +10,7 @@ import at.model.User;
 import at.security.TokenService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.json.JsonValue;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
@@ -25,8 +26,8 @@ public class ExampleRepository {
     TokenService tokenService;
 
     public List<ExampleOverviewDTO> getAllExamples(Long schoolId) {
-        return em.createQuery("SELECT new at.dtos.ExampleOverviewDTO(e.type, e.instruction, e.question, e.difficulty, e.admin.username) " +
-                        "FROM Example e where e.school.id = :schoolId", ExampleOverviewDTO.class)
+        return em.createQuery("SELECT new at.dtos.ExampleOverviewDTO(e.id, e.type, e.instruction, e.question, e.difficulty, e.admin.username) " +
+                        "FROM Example e where e.school.id = :schoolId order by e.id", ExampleOverviewDTO.class)
                 .setParameter("schoolId", schoolId)
                  .getResultList();
     }
@@ -65,5 +66,50 @@ public class ExampleRepository {
         em.persist(example);
 
         return Response.ok().build();
+    }
+
+    @Transactional
+    public Response deleteExample(String authToken, Long exampleId) {
+        Example example = em.find(Example.class, exampleId);
+
+        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+
+        if(example.getAdmin().getId() != userId && example.getSchool().getAdmin().getId() != userId){
+            return Response.status(403)
+                    .entity("Not allowed to delete this Example.")
+                    .build();
+        }
+
+        em.remove(example);
+
+        return Response.ok().build();
+    }
+
+    public CreateExampleDTO getExample(Long exampleId, String authToken) {
+        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+
+        Example e = em.find(Example.class, exampleId);
+
+        if(e.getAdmin().getId() != userId && e.getSchool().getAdmin().getId() != userId){
+            return null;
+        }
+
+        return new CreateExampleDTO("",
+                e.getSchool().getId(),
+                e.getType(),
+                e.getInstruction(),
+                e.getQuestion(),
+                e.getAnswers(),
+                e.getOptions(),
+                e.getGapFillType(),
+                e.getGaps(),
+                e.getAssigns(),
+                e.getAssignRightItems(),
+                e.getImageUrl(),
+                e.getAnswer(),
+                e.getHalfOpenCorrectAnswers(),
+                e.getGapFillCorrectAnswers(),
+                e.getSolutionUrl(),
+                e.getDifficulty());
     }
 }

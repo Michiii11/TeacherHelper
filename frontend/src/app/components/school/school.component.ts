@@ -19,6 +19,7 @@ import {MatIcon} from '@angular/material/icon'
 import {MatSort, MatSortHeader} from '@angular/material/sort'
 import {NgForOf, NgIf} from '@angular/common'
 import {ExampleDifficulty, ExampleOverviewDTO, ExampleTypeLabels, ExampleTypes} from '../../model/Example'
+import {ConfirmDialogComponent} from '../../dialog/confirm-dialog/confirm-dialog.component'
 
 @Component({
   selector: 'app-school',
@@ -166,10 +167,42 @@ export class SchoolComponent {
 
   /* Actions (replace with real logic) */
   menuOpen: boolean | undefined
+
   createTest() { console.log('create test'); }
+
   openSettings() { console.log('open settings'); }
-  editExample(e: any) { console.log('edit example', e); }
-  deleteExample(e: any) {}
+
+  editExample(e: any) {
+    this.dialog.open(CreateExampleComponent, {
+      width: '1000px',
+      maxWidth: 'none',
+      data: { schoolId: this.schoolId, exampleId: e.id }
+    }).afterClosed().subscribe(result => {
+      this.loadExamples();
+    });
+  }
+
+  deleteExample(e: any) {
+    const title = e.question || e.id || 'das Beispiel';
+
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      data: {
+        title: 'Beispiel löschen',
+        message: `Beispiel "${title}" wirklich löschen?`,
+        confirmText: 'Löschen',
+        cancelText: 'Abbrechen'
+      }
+    });
+
+    ref.afterClosed().subscribe(confirmed => {
+      if (!confirmed) return;
+      this.service.deleteExample(e.id).subscribe(() => {
+        this.loadExamples();
+      });
+    });
+  }
+
   openAddTeacher() { console.log('add teacher'); }
   deleteSchool() { if(confirm(`Schule "${this.school.name}" wirklich löschen?`)) { console.log('delete school'); } }
   exportCsv() { console.log('export csv'); }

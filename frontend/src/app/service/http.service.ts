@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Config } from '../config';
 import {School, SchoolDTO} from '../model/School'
+import {CreateExampleDTO} from '../model/Example'
 
 @Injectable({ providedIn: 'root' })
 export class HttpService {
@@ -35,5 +36,17 @@ export class HttpService {
 
   createExample(payload: any) {
     return this.http.post(`${Config.API_URL}/example`, payload, { responseType: 'text' as 'json' });
+  }
+
+  deleteExample(id: number) {
+    return this.http.delete(`${Config.API_URL}/example/${id}`,
+      {
+        body: { authToken: localStorage.getItem('teacher_authToken')},
+        responseType: 'text' as 'json'
+      });
+  }
+
+  getCreateExample(exampleId: number) {
+    return this.http.post<CreateExampleDTO>(`${Config.API_URL}/example/${exampleId}`, {authToken: localStorage.getItem('teacher_authToken')});
   }
 }

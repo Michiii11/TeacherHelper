@@ -24,7 +24,7 @@
       <div class="row">
         <mat-form-field class="full-width">
           <mat-label>Schwierigkeitsgrad</mat-label>
-          <mat-select>
+          <mat-select [ngModel]="exampleDifficulty" name="exampleDifficulty" (selectionChange)="exampleDifficulty = $any($event.value); markDirty();">
             <mat-option *ngFor="let level of exampleDifficulties" [value]="level">
               {{ level.label }}
             </mat-option>
@@ -37,7 +37,7 @@
           <mat-label>Angabe</mat-label>
           <textarea
             matInput
-            [(ngModel)]="instruction"
+            [(ngModel)]="example.instruction"
             name="instruction"
             (input)="markDirty()"
             placeholder="Gegeben ist ..."
@@ -55,7 +55,7 @@
             <mat-label>Aufgabenstellung</mat-label>
             <textarea
               matInput
-              [(ngModel)]="question"
+              [(ngModel)]="example.question"
               name="question"
               (input)="markDirty()"
               placeholder="Ermitteln Sie ..."
@@ -71,7 +71,7 @@
             <mat-label>Lösung</mat-label>
             <textarea
               matInput
-              [(ngModel)]="answer"
+              [(ngModel)]="example.answer"
               name="question"
               (input)="markDirty()"
               placeholder="Geben Sie die richtige Antwort an ..."
@@ -86,10 +86,10 @@
         <ng-container *ngIf="selectedExampleType === ExampleTypes.HALF_OPEN">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Aufgabenstellung</mat-label>
-            <textarea matInput [(ngModel)]="question" name="question" (input)="markDirty()" placeholder="Geben Sie die Antworten an ..."
+            <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="Geben Sie die Antworten an ..."
                       cdkTextareaAutosize
                       cdkAutosizeMinRows="2"
-                      cdkAutosizeMaxRows="10">></textarea>
+                      cdkAutosizeMaxRows="10"></textarea>
           </mat-form-field>
 
           <div class="panel-box half-open-answers">
@@ -113,7 +113,7 @@
         <ng-container *ngIf="selectedExampleType === ExampleTypes.MULTIPLE_CHOICE">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Aufgabenstellung</mat-label>
-            <textarea matInput [(ngModel)]="question" name="question" (input)="markDirty()" placeholder="Wählen Sie die richtige Lösung aus ..."
+            <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="Wählen Sie die richtige Lösung aus ..."
                       cdkTextareaAutosize
                       cdkAutosizeMinRows="2"
                       cdkAutosizeMaxRows="10">></textarea>
@@ -144,7 +144,7 @@
         <ng-container *ngIf="selectedExampleType === ExampleTypes.GAP_FILL">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Aufgabenstellung</mat-label>
-            <textarea matInput [(ngModel)]="question" name="question" (input)="updateGapsFromText(); markDirty()" placeholder="Ergänzen Sie die Textlücken ..."
+            <textarea matInput [(ngModel)]="example.question" name="question" (input)="updateGapsFromText(); markDirty()" placeholder="Ergänzen Sie die Textlücken ..."
                       cdkTextareaAutosize
                       cdkAutosizeMinRows="2"
                       cdkAutosizeMaxRows="10">></textarea>
@@ -154,16 +154,16 @@
           </mat-form-field>
 
           <mat-button-toggle-group
-            [(ngModel)]="gapFillType"
+            [(ngModel)]="example.gapFillType"
             name="gapFillType"
-            (change)="onGapFillTypeChange(gapFillType)"
+            (change)="onGapFillTypeChange(example.gapFillType)"
             class="styled-toggle-group"
           >
             <mat-button-toggle value="select">Auswahl</mat-button-toggle>
             <mat-button-toggle value="input">Freitext</mat-button-toggle>
           </mat-button-toggle-group>
 
-          <div class="panel-box gap-fill-luecken" *ngIf="gapFillType === 'select'">
+          <div class="panel-box gap-fill-luecken" *ngIf="example.gapFillType === 'select'">
             <div *ngFor="let gap of gapFillGaps; let gi = index" class="item-row">
               <div class="panel-title">Lücke {{gi+1}}</div>
               <mat-form-field appearance="outline" class="item-input">
@@ -177,7 +177,7 @@
               </mat-form-field>
 
               <!-- Antwortmöglichkeiten für Auswahlmodus -->
-              <div *ngIf="gapFillType === 'select'" class="gap-options">
+              <div *ngIf="example.gapFillType === 'select'" class="gap-options">
                 <div *ngFor="let opt of gap.options; let oi = index" class="option-row">
                   <mat-checkbox [(ngModel)]="gap.options[oi].correct" name="gapOptionCorrect{{gi}}_{{oi}}" (change)="markDirty()" [matTooltip]="'Als richtige Antwort markieren'" [matTooltipShowDelay]="500">
                   </mat-checkbox>
@@ -195,7 +195,7 @@
             </div>
           </div>
 
-          <div class="panel-box gap-fill-luecken" *ngIf="gapFillType === 'input'">
+          <div class="panel-box gap-fill-luecken" *ngIf="example.gapFillType === 'input'">
             <div *ngFor="let gap of gapFillGaps; let gi = index" class="item-row">
               <div class="panel-title">Lücke {{gi+1}}</div>
               <mat-form-field appearance="outline" class="item-input">
@@ -224,7 +224,7 @@
         <ng-container *ngIf="selectedExampleType === ExampleTypes.CONSTRUCTION">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Aufgabenstellung</mat-label>
-            <textarea matInput [(ngModel)]="question" name="question" (input)="markDirty()" placeholder="Zeichnen Sie ..."
+            <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="Zeichnen Sie ..."
                       cdkTextareaAutosize
                       cdkAutosizeMinRows="2"
                       cdkAutosizeMaxRows="10">></textarea>
@@ -233,7 +233,7 @@
           <div class="panel-box image-upload">
             <div class="panel-title">Bild</div>
             <input type="file" accept="image/*" (change)="onImageSelected($event, 'preview')" />
-            <img *ngIf="imagePreview" [src]="imagePreview" alt="Vorschau" class="image-preview" />
+            <img *ngIf="example.image" [src]="example.image" alt="Vorschau" class="image-preview" />
           </div>
 
           <mat-divider></mat-divider>
@@ -249,7 +249,7 @@
         <ng-container *ngIf="selectedExampleType === ExampleTypes.ASSIGN">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Aufgabenstellung</mat-label>
-            <textarea matInput [(ngModel)]="question" name="question" (input)="markDirty()" placeholder="Ordnen Sie ..."
+            <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="Ordnen Sie ..."
                       cdkTextareaAutosize
                       cdkAutosizeMinRows="2"
                       cdkAutosizeMaxRows="10"></textarea>
@@ -313,7 +313,7 @@
 
       <div class="preview-panel">
       <div>
-        <p style="white-space: pre-line;">{{ instruction }}</p>
+        <p style="white-space: pre-line;">{{ example.instruction }}</p>
       </div>
       <p><strong>Aufgabenstellung:</strong></p>
       <div>
@@ -330,8 +330,8 @@
 
         @if(selectedExampleType === ExampleTypes.CONSTRUCTION){
           <div class="construction-preview">
-            <img *ngIf="imagePreview" [src]="imagePreview" alt="Vorschau" class="image-preview" />
-            <p *ngIf="!imagePreview">Kein Bild ausgewählt.</p>
+            <img *ngIf="example.image" [src]="example.image" alt="Vorschau" class="image-preview" />
+            <p *ngIf="!example.image">Kein Bild ausgewählt.</p>
           </div>
         }
 
@@ -353,7 +353,7 @@
         }
 
         @if(selectedExampleType === ExampleTypes.GAP_FILL){
-          @if(gapFillType === 'select'){
+          @if(example.gapFillType === 'select'){
             <div class="gap-fill-preview">
               @for (gap of gapFillGaps; track gap){
                 <table>
