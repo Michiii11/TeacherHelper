@@ -25,6 +25,7 @@ public class ExampleResource {
     @POST
     @Path("{exampleId}")
     public CreateExampleDTO getExample(@PathParam("exampleId") Long exampleId, JsonObject json){
+        System.out.println(repo.getExample(exampleId, json.getString("authToken")));
         return repo.getExample(exampleId, json.getString("authToken"));
     }
 

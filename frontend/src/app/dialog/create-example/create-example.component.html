@@ -168,12 +168,12 @@
           </mat-button-toggle-group>
 
           <div class="panel-box gap-fill-luecken" *ngIf="example.gapFillType === 'SELECT'">
-            <div *ngFor="let gap of example.gaps; let gi = index" class="item-row">
-              <div class="panel-title">Lücke {{gi+1}}</div>
+            <div *ngFor="let gap of example.gaps; let gi = index; trackBy trackByGapId;" class="item-row">
+              <div class="panel-title">Lücke {{gi+1}} ({{gap.label}})</div>
               <mat-form-field appearance="outline" class="item-input">
                 <input
                   matInput
-                  [(ngModel)]="example.gaps[gi].label"
+                  [(ngModel)]="gap.label"
                   name="gapLabel{{gi}}"
                   (input)="markDirty()"
                   placeholder="Beschreibung der Lücke"

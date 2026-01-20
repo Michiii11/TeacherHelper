@@ -201,32 +201,34 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   updateGapsFromText() {
     const regex = /\{Lücke (\d+)\}/g;
     const matches = Array.from(this.example.question.matchAll(regex));
-    const oldGaps = this.example.gaps;
 
-    this.example.gaps = matches.map((match, i) => {
-      const oldGap = oldGaps[i];
-      return oldGap
-        ? { ...oldGap }
-        : {
-          id: this.generateUniqueId(),
+    const oldGaps = [...this.example.gaps];
+    const newGaps: Gap[] = [];
+
+    matches.forEach(match => {
+      const gapIndex = Number(match[1]) - 1;
+
+      const existing = oldGaps[gapIndex];
+
+      if (existing) {
+        newGaps.push(existing);
+      } else {
+        newGaps.push({
+          id: '',
           label: '',
           solution: '',
           options: this.example.gapFillType === 'SELECT'
-            ? [
-              { id: this.generateUniqueId(), text: '', solution: '', correct: false } as Option,
-            ]
+            ? [{
+              id: this.generateUniqueId(),
+              text: '',
+              correct: false
+            }]
             : []
-        };
+        });
+      }
     });
-  }
 
-  extractGapsFromQuestion(text: string): { label: string; options: { text: string; correct: boolean }[] }[] {
-    const regex = /\{Lücke (\d+)\}/g;
-    const matches = Array.from(text.matchAll(regex));
-    return matches.map(() => ({
-      label: '',
-      options: []
-    }));
+    this.example.gaps = newGaps;
   }
 
   insertGapAtCursor() {
@@ -302,7 +304,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
     request.subscribe({
       next: (response) => {
-        console.log('[CreateExample] saved:', response);
         this.hasUnsavedChanges = false;
         this.dialogRef.close(this.example);
       }

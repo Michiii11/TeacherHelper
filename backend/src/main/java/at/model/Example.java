@@ -131,11 +131,7 @@ public class Example {
 
     public List<Gap> getGaps() { return gaps; }
     public void setGaps(List<Gap> gaps) {
-        this.gaps.clear();
-        if (gaps != null) {
-            gaps.forEach(g -> g.setExample(this));
-            this.gaps.addAll(gaps);
-        }
+        this.gaps = gaps;
     }
 
     public List<Assign> getAssigns() { return assigns; }

@@ -51,6 +51,8 @@ public class ExampleRepository {
                 example.setOptions(dto.options());
             }
             case GAP_FILL -> {
+                System.out.println(dto.gaps());
+                System.out.println(dto.gaps().size());
                 example.setGaps(dto.gaps());
                 example.setGapFillType(dto.gapFillType());
             }
@@ -135,6 +137,9 @@ public class ExampleRepository {
         if(e.getAdmin().getId() != userId && e.getSchool().getAdmin().getId() != userId){
             return null;
         }
+
+        System.out.println("found");
+        System.out.println(e);
 
         return new CreateExampleDTO("",
                 e.getSchool().getId(),
