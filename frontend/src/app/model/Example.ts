@@ -51,7 +51,7 @@ export interface CreateExampleDTO {
   type: ExampleTypes;
   instruction: string;
   question: string;
-  answers: string[];
+  answers: string[][];
   options: Option[];
   gapFillType: 'INPUT' | 'SELECT'
   gaps: Gap[]
@@ -59,8 +59,6 @@ export interface CreateExampleDTO {
   assignRightItems: string[]
   image: string;
   solution: string;
-  halfOpenCorrectAnswers: string[];
-  gapFillCorrectAnswers: string[];
   solutionUrl: string;
   difficulty: ExampleDifficulty;
 
@@ -75,7 +73,9 @@ export interface Option {
 }
 
 export interface Gap{
+  id: string;
   label: string;
+  solution: string;
   options: Option[]
 }
 

@@ -61,7 +61,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     type: ExampleTypes.OPEN,
     instruction: '',
     question: '',
-    answers: [""],
+    answers: [['', '']] as string[][],
     options: [{id: this.generateUniqueId(), text: '', correct: false }] as Option[],
     gapFillType: 'SELECT',
     gaps: [],
@@ -69,8 +69,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     assignRightItems: [""],
     image: '',
     solution: '',
-    halfOpenCorrectAnswers: [""],
-    gapFillCorrectAnswers: [""],
     solutionUrl: '',
     difficulty: ExampleDifficulty.EASY
   } as CreateExampleDTO;
@@ -92,12 +90,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   // common fields
   hasUnsavedChanges = false;
   isEditMode = false;
-
-  // assign (refactored)
-  assignLeftItems: string[] = [''];
-  assignRightItems: string[] = [''];
-  // assignConnections[i] = value of assignRightItems[j] or null
-  assignConnections: (string | null)[] = [null];
 
   constructor(
     private dialogRef: MatDialogRef<CreateExampleComponent>,
@@ -157,12 +149,12 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
      Half-open
   ---------------------- */
   addHalfOpenAnswer() {
-    this.example.answers.push('');
+    this.example.answers.push(['', '']);
     this.markDirty();
   }
 
   removeHalfOpenAnswer(i: number) {
-    if (this.example.answers.length <= 1) return;
+    if (this.example.answers.length <= 0) return;
     this.example.answers.splice(i, 1);
     this.markDirty();
   }
@@ -190,8 +182,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   removeAssignRightItem(i: number) {
     const removed = this.example.assignRightItems[i];
     this.example.assignRightItems.splice(i, 1);
-    // remove connections to this right item (set to null)
-    this.assignConnections = this.assignConnections.map(conn => (conn === removed ? null : conn));
     this.markDirty();
   }
 
@@ -199,14 +189,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   setAssignConnection(assign: Assign, rightValue: string | null) {
     assign.right = rightValue || ""
     this.markDirty();
-  }
-
-  // builds structured assigns for saving
-  buildAssignPairs() {
-    return this.assignLeftItems.map((left, i) => ({
-      left,
-      right: this.assignConnections[i] // maybe null
-    }));
   }
 
   getLetter(i: number): string {
@@ -226,10 +208,12 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       return oldGap
         ? { ...oldGap }
         : {
+          id: this.generateUniqueId(),
           label: '',
+          solution: '',
           options: this.example.gapFillType === 'SELECT'
             ? [
-              { text: '', correct: false } as Option,
+              { id: this.generateUniqueId(), text: '', solution: '', correct: false } as Option,
             ]
             : []
         };
@@ -362,6 +346,10 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
   trackByOptionId(index: number, option: Option): string {
     return option.id;
+  }
+
+  trackByGapId(index: number, gap: Gap): string {
+    return gap.id;
   }
 
   getQuestionWithGapLabels(): string {

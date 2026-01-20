@@ -46,7 +46,6 @@ public class ExampleRepository {
         switch (dto.type()){
             case HALF_OPEN -> {
                 example.setAnswers(dto.answers());
-                example.setHalfOpenCorrectAnswers(dto.halfOpenCorrectAnswers());
             }
             case MULTIPLE_CHOICE -> {
                 example.setOptions(dto.options());
@@ -54,7 +53,6 @@ public class ExampleRepository {
             case GAP_FILL -> {
                 example.setGaps(dto.gaps());
                 example.setGapFillType(dto.gapFillType());
-                example.setGapFillCorrectAnswers(dto.gapFillCorrectAnswers());
             }
             case CONSTRUCTION -> {
                 example.setImageUrl(dto.image());
@@ -89,7 +87,6 @@ public class ExampleRepository {
         switch (dto.type()){
             case HALF_OPEN -> {
                 example.setAnswers(dto.answers());
-                example.setHalfOpenCorrectAnswers(dto.halfOpenCorrectAnswers());
             }
             case MULTIPLE_CHOICE -> {
                 example.setOptions(dto.options());
@@ -97,7 +94,6 @@ public class ExampleRepository {
             case GAP_FILL -> {
                 example.setGaps(dto.gaps());
                 example.setGapFillType(dto.gapFillType());
-                example.setGapFillCorrectAnswers(dto.gapFillCorrectAnswers());
             }
             case CONSTRUCTION -> {
                 example.setImageUrl(dto.image());
@@ -153,8 +149,6 @@ public class ExampleRepository {
                 e.getAssignRightItems(),
                 e.getImageUrl(),
                 e.getSolution(),
-                e.getHalfOpenCorrectAnswers(),
-                e.getGapFillCorrectAnswers(),
                 e.getSolutionUrl(),
                 e.getDifficulty());
     }

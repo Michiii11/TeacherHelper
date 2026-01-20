@@ -97,10 +97,10 @@
             <div class="panel-title">Antworten</div>
             <div *ngFor="let a of example.answers; let i = index; trackBy: trackByIndex" class="item-row">
               <mat-form-field appearance="outline" class="item-input">
-                <input matInput [(ngModel)]="example.answers[i]" name="halfOpenAnswer{{i}}" (input)="markDirty()" placeholder="Antwort {{ i + 1 }}">
+                <input matInput [(ngModel)]="example.answers[i][0]" name="halfOpenAnswer{{i}}" (input)="markDirty()" placeholder="Antwort {{ i + 1 }}">
               </mat-form-field>
               <mat-form-field>
-                <input matInput [(ngModel)]="example.halfOpenCorrectAnswers[i]" name="halfOpenCorrectAnswer{{i}}" (input)="markDirty()" placeholder="Korrekte Lösung {{ i + 1 }}">
+                <input matInput [(ngModel)]="example.answers[i][1]" name="halfOpenCorrectAnswer{{i}}" (input)="markDirty()" placeholder="Korrekte Lösung {{ i + 1 }}">
               </mat-form-field>
               <button mat-icon-button color="warn" type="button" (click)="removeHalfOpenAnswer(i)" aria-label="Antwort entfernen">
                 <mat-icon>delete</mat-icon>
@@ -182,7 +182,7 @@
 
               <!-- Antwortmöglichkeiten für Auswahlmodus -->
               <div *ngIf="example.gapFillType === 'SELECT'" class="gap-options">
-                <div *ngFor="let opt of gap.options; let oi = index" class="option-row">
+                <div *ngFor="let opt of gap.options; let oi = index;" class="option-row">
                   <mat-checkbox [(ngModel)]="gap.options[oi].correct" name="gapOptionCorrect{{gi}}_{{oi}}" (change)="markDirty()" [matTooltip]="'Als richtige Antwort markieren'" [matTooltipShowDelay]="500">
                   </mat-checkbox>
                   <mat-form-field appearance="outline" class="option-input">
@@ -200,12 +200,12 @@
           </div>
 
           <div class="panel-box gap-fill-luecken" *ngIf="example.gapFillType === 'INPUT'">
-            <div *ngFor="let gap of example.gaps; let gi = index" class="item-row">
+            <div *ngFor="let gap of example.gaps; let gi = index; trackBy trackByGapId" class="item-row">
               <div class="panel-title">Lücke {{gi+1}}</div>
               <mat-form-field appearance="outline" class="item-input">
                 <input
                   matInput
-                  [(ngModel)]="example.gaps[gi].label"
+                  [(ngModel)]="gap.label"
                   name="gapLabel{{gi}}"
                   (input)="markDirty()"
                   placeholder="Beschreibung der Lücke"
@@ -214,7 +214,7 @@
               <mat-form-field appearance="outline" class="item-input">
                 <input
                   matInput
-                  [(ngModel)]="example.gapFillCorrectAnswers[gi]"
+                  [(ngModel)]="gap.solution"
                   name="gapCorrectAnswer{{gi}}"
                   (input)="markDirty()"
                   placeholder="Korrekte Antwort"
@@ -329,7 +329,7 @@
         @if(example.type === ExampleTypes.HALF_OPEN){
           <div class="half-open-preview">
             @for (ans of example.answers; track ans){
-              <p>{{ ans }} = ___________________</p>
+              <p>{{ ans[0] }} = ___________________</p>
             }
           </div>
         }

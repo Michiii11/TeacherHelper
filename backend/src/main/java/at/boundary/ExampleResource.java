@@ -8,6 +8,7 @@ import jakarta.json.JsonObject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 
+import java.io.IOException;
 import java.util.List;
 
 @Path("/example")
@@ -28,7 +29,7 @@ public class ExampleResource {
     }
 
     @POST
-    public Response createExample(CreateExampleDTO dto){
+    public Response createExample(CreateExampleDTO dto) throws IOException {
         return repo.createExample(dto);
     }
 

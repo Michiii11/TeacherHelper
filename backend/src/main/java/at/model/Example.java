@@ -32,14 +32,6 @@ public class Example {
 
     private String solution;
 
-    @ElementCollection
-    @CollectionTable(name = "example_half_answers", joinColumns = @JoinColumn(name = "example_id"))
-    private List<String> halfOpenCorrectAnswers;
-
-    @ElementCollection
-    @CollectionTable(name = "example_gap_answers", joinColumns = @JoinColumn(name = "example_id"))
-    private List<String> gapFillCorrectAnswers;
-
     private String solutionUrl;
 
     private String imageUrl;
@@ -49,7 +41,7 @@ public class Example {
 
     @ElementCollection
     @CollectionTable(name = "example_answers", joinColumns = @JoinColumn(name = "example_id"))
-    private List<String> answers = new ArrayList<>();
+    private List<String[]> answers = new ArrayList<>();
 
     @ElementCollection
     @CollectionTable(name = "example_options", joinColumns = @JoinColumn(name = "example_id"))
@@ -128,8 +120,8 @@ public class Example {
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
-    public List<String> getAnswers() { return answers; }
-    public void setAnswers(List<String> answers) { this.answers = answers; }
+    public List<String[]> getAnswers() { return answers; }
+    public void setAnswers(List<String[]> answers) { this.answers = answers; }
 
     public List<Option> getOptions() { return options; }
     public void setOptions(List<Option> options) { this.options = options; }
@@ -154,22 +146,6 @@ public class Example {
 
     public School getSchool() { return school; }
     public void setSchool(School school) { this.school = school; }
-
-    public List<String> getHalfOpenCorrectAnswers() {
-        return halfOpenCorrectAnswers;
-    }
-
-    public void setHalfOpenCorrectAnswers(List<String> halfOpenCorrectAnswers) {
-        this.halfOpenCorrectAnswers = halfOpenCorrectAnswers;
-    }
-
-    public List<String> getGapFillCorrectAnswers() {
-        return gapFillCorrectAnswers;
-    }
-
-    public void setGapFillCorrectAnswers(List<String> gapFillCorrectAnswers) {
-        this.gapFillCorrectAnswers = gapFillCorrectAnswers;
-    }
 
     public String getSolutionUrl() {
         return solutionUrl;

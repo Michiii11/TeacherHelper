@@ -15,6 +15,8 @@ public class Gap {
 
     private String label;
 
+    private String solution;
+
     @ElementCollection
     @CollectionTable(name = "gap_options", joinColumns = @JoinColumn(name = "gap_id"))
     private List<Option> options = new ArrayList<>();
@@ -25,8 +27,9 @@ public class Gap {
 
     public Gap() {}
 
-    public Gap(String label, List<Option> options) {
+    public Gap(String label, String solution, List<Option> options) {
         this.label = label;
+        this.solution = solution;
         this.options = options;
     }
 
@@ -41,4 +44,12 @@ public class Gap {
 
     public Example getExample() { return example; }
     public void setExample(Example example) { this.example = example; }
+
+    public String getSolution() {
+        return solution;
+    }
+
+    public void setSolution(String solution) {
+        this.solution = solution;
+    }
 }
