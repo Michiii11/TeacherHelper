@@ -1,21 +1,33 @@
 import {User} from './User'
 
 export enum ExampleDifficulty {
-  EASY, MEDIUM, HARD, VERY_HARD, EXPERT
+  EASY = 'EASY',
+  MEDIUM = 'MEDIUM',
+  HARD = 'HARD',
+  VERY_HARD = 'VERY_HARD',
+  EXPERT = 'EXPERT'
 }
 
+
 export enum ExampleTypes {
-  OPEN, HALF_OPEN, CONSTRUCTION, MULTIPLE_CHOICE, GAP_FILL, ASSIGN
+  OPEN = 'OPEN',
+  HALF_OPEN = 'HALF_OPEN',
+  CONSTRUCTION = 'CONSTRUCTION',
+  MULTIPLE_CHOICE = 'MULTIPLE_CHOICE',
+  GAP_FILL = 'GAP_FILL',
+  ASSIGN = 'ASSIGN'
 }
+
 
 export const ExampleTypeLabels: Record<ExampleTypes, string> = {
   [ExampleTypes.OPEN]: 'Offenes Antwortformat',
   [ExampleTypes.HALF_OPEN]: 'Halboffenes Antwortformat',
   [ExampleTypes.CONSTRUCTION]: 'Konstruktionsformat',
-  [ExampleTypes.MULTIPLE_CHOICE]: 'Multiple-Choice-Antwortformat  ',
+  [ExampleTypes.MULTIPLE_CHOICE]: 'Multiple-Choice-Antwortformat',
   [ExampleTypes.GAP_FILL]: 'Lückentext',
   [ExampleTypes.ASSIGN]: 'Zuordnungsformat'
 };
+
 
 export interface Example {
   id: number;
@@ -27,7 +39,7 @@ export interface Example {
   answers: string[];
   imageUrl: string;
   options: Option[];
-  gapFillType: 'input' | 'select'
+  gapFillType: 'INPUT' | 'SELECT'
   gaps: Gap[]
   assigns: Assign[]
   assignRightItems: string[]
@@ -41,7 +53,7 @@ export interface CreateExampleDTO {
   question: string;
   answers: string[];
   options: Option[];
-  gapFillType: 'input' | 'select'
+  gapFillType: 'INPUT' | 'SELECT'
   gaps: Gap[]
   assigns: Assign[]
   assignRightItems: string[]

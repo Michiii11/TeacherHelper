@@ -40,6 +40,8 @@ public class ExampleRepository {
 
         Example example = new Example(admin, dto.type(), dto.instruction(), dto.question(), dto.difficulty(), dto.answer(), school);
 
+        System.out.println(dto);
+
         switch (dto.type()){
             case HALF_OPEN -> {
                 example.setAnswers(dto.answers());

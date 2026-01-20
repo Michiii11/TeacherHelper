@@ -8,7 +8,7 @@
       <div class="row type-selection">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Fragetyp</mat-label>
-          <mat-select [(ngModel)]="selectedExampleType" name="exampleType" (selectionChange)="markDirty()">
+          <mat-select [(ngModel)]="example.type" name="exampleType" (selectionChange)="markDirty()">
             <mat-option *ngFor="let t of exampleTypes" [value]="t">
               {{ ExampleTypeLabels[t] }}
             </mat-option>
@@ -24,8 +24,8 @@
       <div class="row">
         <mat-form-field class="full-width">
           <mat-label>Schwierigkeitsgrad</mat-label>
-          <mat-select [ngModel]="exampleDifficulty" name="exampleDifficulty" (selectionChange)="exampleDifficulty = $any($event.value); markDirty();">
-            <mat-option *ngFor="let level of exampleDifficulties" [value]="level">
+          <mat-select [ngModel]="example.difficulty" name="exampleDifficulty" (selectionChange)="example.difficulty = $any($event.value); markDirty();">
+            <mat-option *ngFor="let level of exampleDifficulties" [value]="level.value">
               {{ level.label }}
             </mat-option>
           </mat-select>
@@ -50,7 +50,7 @@
 
       <section class="example-panel">
         <!-- OPEN -->
-        <ng-container *ngIf="selectedExampleType === ExampleTypes.OPEN">
+        <ng-container *ngIf="example.type === ExampleTypes.OPEN">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Aufgabenstellung</mat-label>
             <textarea
@@ -83,7 +83,8 @@
         </ng-container>
 
         <!-- HALF_OPEN -->
-        <ng-container *ngIf="selectedExampleType === ExampleTypes.HALF_OPEN">
+        <ng-container *ngIf="example.type
+        === ExampleTypes.HALF_OPEN">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Aufgabenstellung</mat-label>
             <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="Geben Sie die Antworten an ..."
@@ -94,7 +95,7 @@
 
           <div class="panel-box half-open-answers">
             <div class="panel-title">Antworten</div>
-            <div *ngFor="let a of halfOpenAnswers; let i = index; trackBy: trackByIndex" class="item-row">
+            <div *ngFor="let a of example.answers; let i = index; trackBy: trackByIndex" class="item-row">
               <mat-form-field appearance="outline" class="item-input">
                 <input matInput [(ngModel)]="halfOpenAnswers[i]" name="halfOpenAnswer{{i}}" (input)="markDirty()" placeholder="Antwort {{ i + 1 }}">
               </mat-form-field>
@@ -110,7 +111,8 @@
         </ng-container>
 
         <!-- MULTIPLE_CHOICE -->
-        <ng-container *ngIf="selectedExampleType === ExampleTypes.MULTIPLE_CHOICE">
+        <ng-container *ngIf="example.type
+        === ExampleTypes.MULTIPLE_CHOICE">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Aufgabenstellung</mat-label>
             <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="Wählen Sie die richtige Lösung aus ..."
@@ -141,7 +143,8 @@
         </ng-container>
 
         <!-- GAP_FILL -->
-        <ng-container *ngIf="selectedExampleType === ExampleTypes.GAP_FILL">
+        <ng-container *ngIf="example.type
+        === ExampleTypes.GAP_FILL">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Aufgabenstellung</mat-label>
             <textarea matInput [(ngModel)]="example.question" name="question" (input)="updateGapsFromText(); markDirty()" placeholder="Ergänzen Sie die Textlücken ..."
@@ -159,11 +162,11 @@
             (change)="onGapFillTypeChange(example.gapFillType)"
             class="styled-toggle-group"
           >
-            <mat-button-toggle value="select">Auswahl</mat-button-toggle>
-            <mat-button-toggle value="input">Freitext</mat-button-toggle>
+            <mat-button-toggle value="SELECT">Auswahl</mat-button-toggle>
+            <mat-button-toggle value="INPUT">Freitext</mat-button-toggle>
           </mat-button-toggle-group>
 
-          <div class="panel-box gap-fill-luecken" *ngIf="example.gapFillType === 'select'">
+          <div class="panel-box gap-fill-luecken" *ngIf="example.gapFillType === 'SELECT'">
             <div *ngFor="let gap of gapFillGaps; let gi = index" class="item-row">
               <div class="panel-title">Lücke {{gi+1}}</div>
               <mat-form-field appearance="outline" class="item-input">
@@ -177,7 +180,7 @@
               </mat-form-field>
 
               <!-- Antwortmöglichkeiten für Auswahlmodus -->
-              <div *ngIf="example.gapFillType === 'select'" class="gap-options">
+              <div *ngIf="example.gapFillType === 'SELECT'" class="gap-options">
                 <div *ngFor="let opt of gap.options; let oi = index" class="option-row">
                   <mat-checkbox [(ngModel)]="gap.options[oi].correct" name="gapOptionCorrect{{gi}}_{{oi}}" (change)="markDirty()" [matTooltip]="'Als richtige Antwort markieren'" [matTooltipShowDelay]="500">
                   </mat-checkbox>
@@ -195,7 +198,7 @@
             </div>
           </div>
 
-          <div class="panel-box gap-fill-luecken" *ngIf="example.gapFillType === 'input'">
+          <div class="panel-box gap-fill-luecken" *ngIf="example.gapFillType === 'INPUT'">
             <div *ngFor="let gap of gapFillGaps; let gi = index" class="item-row">
               <div class="panel-title">Lücke {{gi+1}}</div>
               <mat-form-field appearance="outline" class="item-input">
@@ -221,7 +224,8 @@
         </ng-container>
 
         <!-- CONSTRUCTION -->
-        <ng-container *ngIf="selectedExampleType === ExampleTypes.CONSTRUCTION">
+        <ng-container *ngIf="example.type
+        === ExampleTypes.CONSTRUCTION">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Aufgabenstellung</mat-label>
             <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="Zeichnen Sie ..."
@@ -246,7 +250,8 @@
         </ng-container>
 
         <!-- ASSIGN -->
-        <ng-container *ngIf="selectedExampleType === ExampleTypes.ASSIGN">
+        <ng-container *ngIf="example.type
+        === ExampleTypes.ASSIGN">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Aufgabenstellung</mat-label>
             <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="Ordnen Sie ..."
@@ -320,7 +325,7 @@
         <p style="white-space: pre-line;">{{ getQuestionWithGapLabels()}}</p>
       </div>
 
-        @if(selectedExampleType === ExampleTypes.HALF_OPEN){
+        @if(example.type === ExampleTypes.HALF_OPEN){
           <div class="half-open-preview">
             @for (ans of halfOpenAnswers; track ans){
               <p>{{ ans }} = ___________________</p>
@@ -328,14 +333,14 @@
           </div>
         }
 
-        @if(selectedExampleType === ExampleTypes.CONSTRUCTION){
+        @if(example.type === ExampleTypes.CONSTRUCTION){
           <div class="construction-preview">
             <img *ngIf="example.image" [src]="example.image" alt="Vorschau" class="image-preview" />
             <p *ngIf="!example.image">Kein Bild ausgewählt.</p>
           </div>
         }
 
-        @if(selectedExampleType === ExampleTypes.MULTIPLE_CHOICE){
+        @if(example.type === ExampleTypes.MULTIPLE_CHOICE){
           <div class="multiple-choice-preview">
             <table>
               @for (option of multipleChoiceOptions; track option){
@@ -352,8 +357,8 @@
           </div>
         }
 
-        @if(selectedExampleType === ExampleTypes.GAP_FILL){
-          @if(example.gapFillType === 'select'){
+        @if(example.type === ExampleTypes.GAP_FILL){
+          @if(example.gapFillType === 'SELECT'){
             <div class="gap-fill-preview">
               @for (gap of gapFillGaps; track gap){
                 <table>
@@ -375,7 +380,7 @@
           }
         }
 
-        @if(selectedExampleType === ExampleTypes.ASSIGN){
+        @if(example.type === ExampleTypes.ASSIGN){
           <div class="assign-preview">
             <table class="leftSide">
               @for(left of assignLeftItems; track left){

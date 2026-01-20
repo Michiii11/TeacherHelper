@@ -63,7 +63,7 @@ export class CreateExampleComponent implements OnDestroy {
     question: '',
     answers: [],
     options: [],
-    gapFillType: 'select',
+    gapFillType: 'SELECT',
     gaps: [],
     assigns: [],
     assignRightItems: [],
@@ -78,7 +78,7 @@ export class CreateExampleComponent implements OnDestroy {
 
   // types
   readonly ExampleTypes = ExampleTypes;
-  exampleTypes = Object.values(ExampleTypes).filter(v => typeof v === 'number') as ExampleTypes[];
+  exampleTypes = Object.values(ExampleTypes) as ExampleTypes[];
   ExampleTypeLabels = ExampleTypeLabels;
 
   exampleDifficulties = [
@@ -88,11 +88,8 @@ export class CreateExampleComponent implements OnDestroy {
     { value: ExampleDifficulty.VERY_HARD, label: 'Sehr schwer' },
     { value: ExampleDifficulty.EXPERT, label: 'Experte' }
   ];
-  exampleDifficulty = { value: ExampleDifficulty.EASY, label: 'Easy' };
-
 
   // common fields
-  selectedExampleType: ExampleTypes = ExampleTypes.OPEN;
   hasUnsavedChanges = false;
 
   // multiple choice
@@ -240,7 +237,7 @@ export class CreateExampleComponent implements OnDestroy {
         ? { ...oldGap }
         : {
           label: '',
-          options: this.example.gapFillType === 'select'
+          options: this.example.gapFillType === 'SELECT'
             ? [
               { text: '', correct: false },
               { text: '', correct: false },
@@ -274,7 +271,7 @@ export class CreateExampleComponent implements OnDestroy {
     this.updateGapsFromText();
   }
 
-  onGapFillTypeChange(type: 'select' | 'input') {
+  onGapFillTypeChange(type: 'SELECT' | 'INPUT') {
     this.example.gapFillType = type;
     this.updateGapsFromText();
     this.markDirty();
@@ -324,42 +321,10 @@ export class CreateExampleComponent implements OnDestroy {
       return;
     }
 
-    /*
-
-    const payload: any = {
-      type: this.selectedExampleType,
-      instruction: this.instruction,
-      question: this.question
-    };
-
-    // add type-specific
-    if (this.selectedExampleType === ExampleTypes.MULTIPLE_CHOICE) {
-      payload.options = [];
-      for (let i = 0; i < this.multipleChoiceOptions.length; i++) {
-        payload.options.push({text: this.multipleChoiceOptions[i], isCorrect: this.correctOptions[i]});
-      }
-    } else if (this.selectedExampleType === ExampleTypes.HALF_OPEN) {
-      payload.answers = this.halfOpenAnswers;
-      payload.halfOpenCorrectAnswers = this.halfOpenCorrectAnswers;
-    } else if (this.selectedExampleType === ExampleTypes.GAP_FILL) {
-      payload.gaps = this.gapFillGaps;
-      payload.gapFillType = this.gapFillType;
-      payload.gapFillCorrectAnswers = this.gapFillCorrectAnswers;
-    } else if (this.selectedExampleType === ExampleTypes.CONSTRUCTION) {
-      payload.image = this.imagePreview;
-      payload.solutionUrl = this.solutionPreview;
-    } else if (this.selectedExampleType === ExampleTypes.ASSIGN) {
-      payload.assigns = this.buildAssignPairs();
-      payload.assignRightItems = this.assignRightItems;
-    }
-
-    payload.authToken = localStorage.getItem('teacher_authToken') || ''
-    payload.answer = this.answer
-    payload.difficulty = this.exampleDifficulties[this.exampleDifficulty.value].value*/
-
     this.example.authToken = localStorage.getItem('teacher_authToken') || ''
-    this.example.schoolId = this.example.schoolId || this.data.schoolId
+    this.example.schoolId = Number(this.example.schoolId || this.data.schoolId)
 
+    console.log(this.example)
     this.http.createExample(this.example).subscribe({
       next: (response) => {
         console.log('[CreateExample] saving (mock):', this.example);
@@ -419,7 +384,7 @@ export class CreateExampleComponent implements OnDestroy {
   }
 
   getTooltip() {
-    switch (this.selectedExampleType){
+    switch (this.example.type){
       case ExampleTypes.OPEN: return "Beim offenen Antwortformat kann die Bearbeitung der Aufgaben je nach Aufgabenstellung auf unterschiedliche Weise erfolgen.";
 
       case ExampleTypes.HALF_OPEN: return "Beim halboffenen Antwortformat muss die richtige Antwort in eine vorgegebene Gleichung, Funktion etc. eingesetzt werden.";
