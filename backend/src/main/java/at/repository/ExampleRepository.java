@@ -2,19 +2,20 @@ package at.repository;
 
 import at.dtos.CreateExampleDTO;
 import at.dtos.ExampleOverviewDTO;
-import at.enums.ExampleDifficulty;
-import at.enums.ExampleTypes;
 import at.model.Example;
 import at.model.School;
 import at.model.User;
 import at.security.TokenService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.json.JsonValue;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.List;
 
 @ApplicationScoped
@@ -33,12 +34,55 @@ public class ExampleRepository {
     }
 
     @Transactional
-    public Response createExample(CreateExampleDTO dto) {
+    public Response createExample(CreateExampleDTO dto) throws IOException {
         Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
         User admin = em.find(User.class, userId);
         School school = em.find(School.class, dto.schoolId());
 
-        Example example = new Example(admin, dto.type(), dto.instruction(), dto.question(), dto.difficulty(), dto.answer(), school);
+        Example example = new Example(admin, dto.type(), dto.instruction(), dto.question(), dto.difficulty(), dto.solution(), school);
+
+        System.out.println(dto);
+
+        switch (dto.type()){
+            case HALF_OPEN -> {
+                example.setAnswers(dto.answers());
+                example.setHalfOpenCorrectAnswers(dto.halfOpenCorrectAnswers());
+            }
+            case MULTIPLE_CHOICE -> {
+                example.setOptions(dto.options());
+            }
+            case GAP_FILL -> {
+                example.setGaps(dto.gaps());
+                example.setGapFillType(dto.gapFillType());
+                example.setGapFillCorrectAnswers(dto.gapFillCorrectAnswers());
+            }
+            case CONSTRUCTION -> {
+                example.setImageUrl(dto.image());
+                example.setSolutionUrl(dto.solutionUrl());
+            }
+            case ASSIGN -> {
+                example.setAssigns(dto.assigns());
+                example.setAssignRightItems(dto.assignRightItems());
+            }
+        }
+
+        em.persist(example);
+
+        return Response.ok().build();
+    }
+
+    @Transactional
+    public Response updateExample(Long exampleId, CreateExampleDTO dto) {
+        Example example = em.find(Example.class, exampleId);
+
+        if(tokenService.validateTokenAndGetUserId(dto.authToken()) == null){
+            return Response.status(500).build();
+        }
+
+        example.setInstruction(dto.instruction());
+        example.setQuestion(dto.question());
+        example.setDifficulty(dto.difficulty());
+        example.setSolution(dto.solution());
 
         System.out.println(dto);
 
@@ -108,7 +152,7 @@ public class ExampleRepository {
                 e.getAssigns(),
                 e.getAssignRightItems(),
                 e.getImageUrl(),
-                e.getAnswer(),
+                e.getSolution(),
                 e.getHalfOpenCorrectAnswers(),
                 e.getGapFillCorrectAnswers(),
                 e.getSolutionUrl(),

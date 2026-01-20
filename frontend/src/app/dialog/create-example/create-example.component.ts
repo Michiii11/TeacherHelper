@@ -1,4 +1,4 @@
-import {Component, HostListener, inject, OnDestroy} from '@angular/core';
+import {Component, HostListener, inject, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 
@@ -52,7 +52,7 @@ import {MatSlider, MatSliderModule, MatSliderRangeThumb, MatSliderThumb} from '@
   templateUrl: './create-example.component.html',
   styleUrls: ['./create-example.component.scss']
 })
-export class CreateExampleComponent implements OnDestroy {
+export class CreateExampleComponent implements OnInit, OnDestroy {
   data = inject<{ schoolId: number; exampleId: number }>(MAT_DIALOG_DATA);
 
   example = {
@@ -61,16 +61,16 @@ export class CreateExampleComponent implements OnDestroy {
     type: ExampleTypes.OPEN,
     instruction: '',
     question: '',
-    answers: [],
-    options: [],
+    answers: [""],
+    options: [{id: this.generateUniqueId(), text: '', correct: false }] as Option[],
     gapFillType: 'SELECT',
     gaps: [],
-    assigns: [],
-    assignRightItems: [],
+    assigns: [{ left: '', right: '' }] as Assign[],
+    assignRightItems: [""],
     image: '',
-    answer: '',
-    halfOpenCorrectAnswers: [],
-    gapFillCorrectAnswers: [],
+    solution: '',
+    halfOpenCorrectAnswers: [""],
+    gapFillCorrectAnswers: [""],
     solutionUrl: '',
     difficulty: ExampleDifficulty.EASY
   } as CreateExampleDTO;
@@ -91,18 +91,7 @@ export class CreateExampleComponent implements OnDestroy {
 
   // common fields
   hasUnsavedChanges = false;
-
-  // multiple choice
-  multipleChoiceOptions: string[] = ['', ''];
-  correctOptions: boolean[] = [false, false];
-
-  // half-open
-  halfOpenAnswers: string[] = [''];
-  halfOpenCorrectAnswers: string[] = [''];
-
-  // gap-fill
-  gapFillGaps: { label: string; options: { text: string; correct: boolean }[] }[] = [];
-  gapFillCorrectAnswers: string[] = [];
+  isEditMode = false;
 
   // assign (refactored)
   assignLeftItems: string[] = [''];
@@ -132,10 +121,15 @@ export class CreateExampleComponent implements OnDestroy {
       this.service.getCreateExample(this.data.exampleId).subscribe({
         next: (response) => {
           this.example = response;
+          this.isEditMode = true;
           console.log('[CreateExample] loaded example:', response);
         }
       })
     }
+  }
+
+  generateUniqueId(): string {
+    return Math.random().toString(36).substr(2, 9);
   }
 
   /* ----------------------
@@ -149,15 +143,13 @@ export class CreateExampleComponent implements OnDestroy {
      Multiple choice
   ---------------------- */
   addOption() {
-    this.multipleChoiceOptions.push('');
-    this.correctOptions.push(false);
+    this.example.options.push({ id: this.generateUniqueId(), text: '', correct: false });
     this.markDirty();
   }
 
   removeOption(i: number) {
-    if (this.multipleChoiceOptions.length <= 2) return; // keep at least 2
-    this.multipleChoiceOptions.splice(i, 1);
-    this.correctOptions.splice(i, 1);
+    if (this.example.options.length <= 0) return; // keep at least 2
+    this.example.options.splice(i, 1);
     this.markDirty();
   }
 
@@ -165,13 +157,13 @@ export class CreateExampleComponent implements OnDestroy {
      Half-open
   ---------------------- */
   addHalfOpenAnswer() {
-    this.halfOpenAnswers.push('');
+    this.example.answers.push('');
     this.markDirty();
   }
 
   removeHalfOpenAnswer(i: number) {
-    if (this.halfOpenAnswers.length <= 1) return;
-    this.halfOpenAnswers.splice(i, 1);
+    if (this.example.answers.length <= 1) return;
+    this.example.answers.splice(i, 1);
     this.markDirty();
   }
 
@@ -181,33 +173,31 @@ export class CreateExampleComponent implements OnDestroy {
      - For each left item there is a select to connect to a right item (or "Keine")
   ---------------------- */
   addAssignLeftItem() {
-    this.assignLeftItems.push('');
-    this.assignConnections.push(null);
+    this.example.assigns.push({ left: '', right: '' });
     this.markDirty();
   }
 
   removeAssignLeftItem(i: number) {
-    this.assignLeftItems.splice(i, 1);
-    this.assignConnections.splice(i, 1);
+    this.example.assigns.splice(i, 1);
     this.markDirty();
   }
 
   addAssignRightItem() {
-    this.assignRightItems.push('');
+    this.example.assignRightItems.push('');
     this.markDirty();
   }
 
   removeAssignRightItem(i: number) {
-    const removed = this.assignRightItems[i];
-    this.assignRightItems.splice(i, 1);
+    const removed = this.example.assignRightItems[i];
+    this.example.assignRightItems.splice(i, 1);
     // remove connections to this right item (set to null)
     this.assignConnections = this.assignConnections.map(conn => (conn === removed ? null : conn));
     this.markDirty();
   }
 
   // when a left item changes the selected connection index (string value)
-  setAssignConnection(leftIndex: number, rightValue: string | null) {
-    this.assignConnections[leftIndex] = rightValue;
+  setAssignConnection(assign: Assign, rightValue: string | null) {
+    assign.right = rightValue || ""
     this.markDirty();
   }
 
@@ -229,9 +219,9 @@ export class CreateExampleComponent implements OnDestroy {
   updateGapsFromText() {
     const regex = /\{Lücke (\d+)\}/g;
     const matches = Array.from(this.example.question.matchAll(regex));
-    const oldGaps = this.gapFillGaps;
+    const oldGaps = this.example.gaps;
 
-    this.gapFillGaps = matches.map((match, i) => {
+    this.example.gaps = matches.map((match, i) => {
       const oldGap = oldGaps[i];
       return oldGap
         ? { ...oldGap }
@@ -239,9 +229,7 @@ export class CreateExampleComponent implements OnDestroy {
           label: '',
           options: this.example.gapFillType === 'SELECT'
             ? [
-              { text: '', correct: false },
-              { text: '', correct: false },
-              { text: '', correct: false }
+              { text: '', correct: false } as Option,
             ]
             : []
         };
@@ -278,13 +266,13 @@ export class CreateExampleComponent implements OnDestroy {
   }
 
   addGapOption(gi: number) {
-    this.gapFillGaps[gi].options = this.gapFillGaps[gi].options || [];
-    this.gapFillGaps[gi].options.push({ text: '', correct: false });
+    this.example.gaps[gi].options = this.example.gaps[gi].options || [];
+    this.example.gaps[gi].options.push({ text: '', correct: false } as Option);
     this.markDirty();
   }
 
   removeGapOption(gi: number, oi: number) {
-    this.gapFillGaps[gi].options.splice(oi, 1);
+    this.example.gaps[gi].options.splice(oi, 1);
     this.markDirty();
   }
 
@@ -311,7 +299,6 @@ export class CreateExampleComponent implements OnDestroy {
 
   /* ----------------------
      Save & close
-     (save -> console.log for now)
   ---------------------- */
   saveExample() {
     if (!this.example.instruction.trim() || !this.example.question.trim()) {
@@ -325,14 +312,17 @@ export class CreateExampleComponent implements OnDestroy {
     this.example.schoolId = Number(this.example.schoolId || this.data.schoolId)
 
     console.log(this.example)
-    this.http.createExample(this.example).subscribe({
+    const request = this.isEditMode
+      ? this.http.saveExample(this.data.exampleId, this.example)
+      : this.http.createExample(this.example);
+
+    request.subscribe({
       next: (response) => {
-        console.log('[CreateExample] saving (mock):', this.example);
-        console.log(response);
+        console.log('[CreateExample] saved:', response);
         this.hasUnsavedChanges = false;
         this.dialogRef.close(this.example);
       }
-    })
+    });
   }
 
   /* ----------------------
@@ -370,10 +360,14 @@ export class CreateExampleComponent implements OnDestroy {
     return index;
   }
 
+  trackByOptionId(index: number, option: Option): string {
+    return option.id;
+  }
+
   getQuestionWithGapLabels(): string {
     let idx = 0;
     return this.example.question.replace(/\{Lücke \d+\}/g, () => {
-      const label = this.gapFillGaps[idx]?.label?.trim();
+      const label = this.example.gaps[idx]?.label?.trim();
       idx++;
       if (label) {
         return `_____(${label})_____`;

@@ -30,7 +30,7 @@ public class Example {
     @Enumerated(EnumType.STRING)
     private ExampleDifficulty difficulty = ExampleDifficulty.EASY;
 
-    private String answer;
+    private String solution;
 
     @ElementCollection
     @CollectionTable(name = "example_half_answers", joinColumns = @JoinColumn(name = "example_id"))
@@ -72,13 +72,13 @@ public class Example {
 
     public Example() {}
 
-    public Example(User admin, ExampleTypes type, String instruction, String question, ExampleDifficulty difficulty, String answer, School school) {
+    public Example(User admin, ExampleTypes type, String instruction, String question, ExampleDifficulty difficulty, String solution, School school) {
         this.admin = admin;
         this.type = type;
         this.instruction = instruction;
         this.question = question;
         this.difficulty = difficulty;
-        this.answer = answer;
+        this.solution = solution;
         this.school = school;
     }
 
@@ -91,7 +91,7 @@ public class Example {
                 ", instruction='" + instruction + '\'' +
                 ", question='" + question + '\'' +
                 ", difficulty=" + difficulty +
-                ", answer='" + answer + '\'' +
+                ", answer='" + solution + '\'' +
                 ", imageUrl='" + imageUrl + '\'' +
                 ", school=" + school +
                 ", answers=" + answers +
@@ -122,8 +122,8 @@ public class Example {
     public ExampleDifficulty getDifficulty() { return difficulty; }
     public void setDifficulty(ExampleDifficulty difficulty) { this.difficulty = difficulty; }
 
-    public String getAnswer() { return answer; }
-    public void setAnswer(String answer) { this.answer = answer; }
+    public String getSolution() { return solution; }
+    public void setSolution(String solution) { this.solution = solution; }
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }

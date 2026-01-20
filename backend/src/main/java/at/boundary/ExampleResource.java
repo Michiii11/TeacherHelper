@@ -32,6 +32,12 @@ public class ExampleResource {
         return repo.createExample(dto);
     }
 
+    @PUT
+    @Path("{exampleId}")
+    public Response updateExample(@PathParam("exampleId") Long exampleId, CreateExampleDTO dto){
+        return repo.updateExample(exampleId, dto);
+    }
+
     @DELETE
     @Path("{exampleId}")
     public Response deleteExample(JsonObject json, @PathParam("exampleId") Long exampleId){

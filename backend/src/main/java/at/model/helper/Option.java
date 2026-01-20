@@ -9,19 +9,18 @@ public class Option {
     @Column(name = "text", length = 1000)
     private String text;
 
-    @Column(name = "is_correct")
-    private boolean isCorrect;
+    private boolean correct;
 
     public Option() {}
 
-    public Option(String text, boolean isCorrect) {
+    public Option(String text, boolean correct) {
         this.text = text;
-        this.isCorrect = isCorrect;
+        this.correct = correct;
     }
 
     public String getText() { return text; }
     public void setText(String text) { this.text = text; }
 
-    public boolean isCorrect() { return isCorrect; }
-    public void setCorrect(boolean correct) { isCorrect = correct; }
+    public boolean isCorrect() { return correct; }
+    public void setCorrect(boolean correct) { this.correct = correct; }
 }

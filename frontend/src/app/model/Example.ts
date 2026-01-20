@@ -58,16 +58,20 @@ export interface CreateExampleDTO {
   assigns: Assign[]
   assignRightItems: string[]
   image: string;
-  answer: string;
+  solution: string;
   halfOpenCorrectAnswers: string[];
   gapFillCorrectAnswers: string[];
   solutionUrl: string;
   difficulty: ExampleDifficulty;
+
+  imageFile?: File;
+  solutionFile?: File;
 }
 
 export interface Option {
+  id: string;
   text: string;
-  isCorrect: boolean;
+  correct: boolean;
 }
 
 export interface Gap{

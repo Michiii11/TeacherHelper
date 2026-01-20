@@ -38,6 +38,10 @@ export class HttpService {
     return this.http.post(`${Config.API_URL}/example`, payload, { responseType: 'text' as 'json' });
   }
 
+  saveExample(id: number, payload: any) {
+    return this.http.put(`${Config.API_URL}/example/${id}`, payload, { responseType: 'text' as 'json' });
+  }
+
   deleteExample(id: number) {
     return this.http.delete(`${Config.API_URL}/example/${id}`,
       {
