@@ -139,7 +139,7 @@
 /* === Content === */
 .content-area {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 4fr 2fr 1.5fr;
   gap: 1.5rem;
 
   @media (max-width: 1024px) {
@@ -225,3 +225,93 @@
     flex: 1 1 auto;
   }
 }
+
+
+/* === Panel Title Upgrade === */
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-weight: 600;
+}
+
+/* === Tests Section === */
+
+.tests-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.test-card {
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  border-radius: 1rem;
+  padding: 1rem;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+  transition: transform .15s ease, box-shadow .15s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  }
+}
+
+.test-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .5rem;
+
+  .test-title {
+    font-weight: 600;
+    font-size: .95rem;
+  }
+}
+
+/* === Status Badge === */
+
+.status-badge {
+  font-size: .7rem;
+  padding: .25rem .6rem;
+  border-radius: 999px;
+  background: #e5e7eb;
+  color: #374151;
+  font-weight: 600;
+
+  &.active {
+    background: #dcfce7;
+    color: #166534;
+  }
+}
+
+/* === Test Meta === */
+
+.test-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: .8rem;
+  color: #64748b;
+  margin: .5rem 0;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: .25rem;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+/* === Actions === */
+
+.test-actions {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  margin-top: .75rem;
+}
+

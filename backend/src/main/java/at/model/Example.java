@@ -1,6 +1,7 @@
 // src/main/java/at/model/Example.java
 package at.model;
 
+import at.dtos.GapDTO;
 import at.enums.ExampleDifficulty;
 import at.enums.ExampleTypes;
 import at.enums.GapFillType;
@@ -9,6 +10,7 @@ import at.model.helper.Gap;
 import at.model.helper.Option;
 import jakarta.persistence.*;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 @Entity
@@ -132,6 +134,14 @@ public class Example {
     public List<Gap> getGaps() { return gaps; }
     public void setGaps(List<Gap> gaps) {
         this.gaps = gaps;
+    }
+
+    public List<GapDTO> getGapDTO() {
+        List<GapDTO> dtos = new LinkedList<>();
+        for(Gap g : getGaps()){
+            dtos.add(new GapDTO(g.getId(), g.getLabel(), g.getSolution(), g.getOptions()));
+        }
+        return dtos;
     }
 
     public List<Assign> getAssigns() { return assigns; }

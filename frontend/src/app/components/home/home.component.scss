@@ -1,26 +1,39 @@
+/* =========================
+   SCHOOLS DASHBOARD LAYOUT
+========================= */
+
 .schools-dashboard {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  padding: 2rem;
-  color: #1e293b;
+  gap: 1.5rem;
+  padding: 1.5rem;
   min-height: 100vh;
   max-width: 1200px;
   margin: 0 auto;
+  color: #1e293b;
+
+  @media (max-width: 600px) {
+    padding: 1rem;
+    gap: 1rem;
+  }
 }
 
-/* ===== Header ===== */
+/* =========================
+   PAGE HEADER
+========================= */
+
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: #ffffff;
-  padding: 1rem 1.5rem;
+  padding: 1rem 1.25rem;
   border-radius: 1rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  flex-wrap: wrap;
 
   .page-title {
-    font-size: 1.4rem;
+    font-size: 1.35rem;
     font-weight: 600;
     margin: 0;
   }
@@ -36,10 +49,18 @@
     display: flex;
     align-items: center;
     gap: 0.4rem;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 768px) {
+    gap: 0.75rem;
   }
 }
 
-/* ===== Sections ===== */
+/* =========================
+   SECTIONS
+========================= */
+
 .section {
   display: flex;
   flex-direction: column;
@@ -50,6 +71,7 @@
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
+    gap: .75rem;
 
     .section-title {
       font-size: 1.1rem;
@@ -58,41 +80,76 @@
     }
 
     .school-search {
-      width: 250px;
+      width: 260px;
+
+      @media (max-width: 500px) {
+        width: 100%;
+      }
     }
   }
 }
 
-/* ===== Compact Cards ===== */
+/* =========================
+   SCHOOL GRID
+========================= */
+
 .school-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: 1rem;
 }
 
+/* =========================
+   SCHOOL CARD
+========================= */
+
 .school-card {
-  background: #ffffff;
-  border-radius: 0.75rem;
-  padding: 0.9rem 1rem;
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  border-radius: 1rem;
+  padding: 1rem;
   cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.04);
   transition: all 0.2s ease;
-  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+
+  /* Accent line */
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+    opacity: 0;
+    transition: opacity .2s ease;
+  }
 
   &:hover {
-    transform: translateY(-2px);
-    border-color: #3b82f6;
-    box-shadow: 0 3px 8px rgba(59, 130, 246, 0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+
+    &::before {
+      opacity: 1;
+    }
   }
+
+  /* Header */
 
   .school-header {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
     margin-bottom: 0.4rem;
 
     .school-icon {
-      color: #3b82f6;
-      font-size: 1.5rem;
+      font-size: 1.8rem;
+      width: 1.8rem;
+      height: 1.8rem;
+      color: #2563eb;
 
       &.alt {
         color: #6366f1;
@@ -103,33 +160,42 @@
       font-size: 1rem;
       font-weight: 600;
       margin: 0;
+      line-height: 1.2;
     }
   }
 
+  /* Meta */
+
   .school-meta {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #64748b;
-    margin: 0.1rem 0;
+    margin: 0.15rem 0;
   }
 }
 
-/* ===== Empty State ===== */
+/* =========================
+   EMPTY STATE
+========================= */
+
 .empty-card {
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  border-radius: 1rem;
+  padding: 1.5rem 1rem;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  color: #94a3b8;
+  text-align: center;
+
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #94a3b8;
-  padding: 1.5rem;
-  border-radius: 0.75rem;
-  background: #f9fafb;
-  text-align: center;
 
   mat-icon {
-    width: 1.8rem;
-    height: 1.8rem;
-    font-size: 1.8rem;
-    margin-bottom: 0.3rem;
+    width: 2rem;
+    height: 2rem;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: .7;
   }
 
   p {
@@ -138,11 +204,44 @@
   }
 }
 
-/* ===== Responsive ===== */
-@media (max-width: 768px) {
+/* =========================
+   SEARCH FIELD POLISH
+========================= */
+
+.school-search {
+
+  .mat-mdc-text-field-wrapper {
+    border-radius: 12px;
+  }
+
+  .mat-mdc-form-field-flex {
+    background: #ffffff;
+  }
+}
+
+/* =========================
+   MICRO INTERACTIONS
+========================= */
+
+.school-card:active {
+  transform: scale(0.98);
+}
+
+/* =========================
+   MOBILE OPTIMIZATION
+========================= */
+
+@media (max-width: 600px) {
+
+  .school-grid {
+    grid-template-columns: 1fr;
+  }
+
   .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .section-title {
+    font-size: 1rem;
   }
 }

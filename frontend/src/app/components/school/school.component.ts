@@ -67,6 +67,12 @@ export class SchoolComponent {
     { value: 'EXPERT',    label: 'Experte' }
   ];
 
+  tests = [
+    { title: 'Mathe Test 1', questions: 20, duration: 45, active: true },
+    { title: 'Deutsch Probe', questions: 15, duration: 30, active: false }
+  ];
+
+
   getDifficultyLabelFromValue(value: string | number): string {
     if (!value && value !== 0) return '—';
     const valStr = String(value);
@@ -208,4 +214,31 @@ export class SchoolComponent {
   exportCsv() { console.log('export csv'); }
 
   protected readonly ExampleTypeLabels = ExampleTypeLabels
+
+  protected openTest(test: { title: string; questions: number; duration: number; active: boolean } | {
+    title: string;
+    questions: number;
+    duration: number;
+    active: boolean
+  }) {
+
+  }
+
+  protected editTest(test: { title: string; questions: number; duration: number; active: boolean } | {
+    title: string;
+    questions: number;
+    duration: number;
+    active: boolean
+  }) {
+
+  }
+
+  protected deleteTest(test: { title: string; questions: number; duration: number; active: boolean } | {
+    title: string;
+    questions: number;
+    duration: number;
+    active: boolean
+  }) {
+
+  }
 }

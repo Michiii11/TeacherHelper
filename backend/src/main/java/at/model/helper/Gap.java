@@ -27,10 +27,21 @@ public class Gap {
 
     public Gap() {}
 
-    public Gap(String label, String solution, List<Option> options) {
+    public Gap(String label, String solution, List<Option> options, Example example) {
         this.label = label;
         this.solution = solution;
         this.options = options;
+        this.example = example;
+    }
+
+    @Override
+    public String toString() {
+        return "Gap{" +
+                "id=" + id +
+                ", label='" + label + '\'' +
+                ", solution='" + solution + '\'' +
+                ", options=" + options +
+                '}';
     }
 
     public Long getId() { return id; }
@@ -40,7 +51,9 @@ public class Gap {
     public void setLabel(String label) { this.label = label; }
 
     public List<Option> getOptions() { return options; }
-    public void setOptions(List<Option> options) { this.options = options; }
+    public void setOptions(List<Option> options) {
+        this.options = options;
+    }
 
     public Example getExample() { return example; }
     public void setExample(Example example) { this.example = example; }

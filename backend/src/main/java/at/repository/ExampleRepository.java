@@ -2,9 +2,11 @@ package at.repository;
 
 import at.dtos.CreateExampleDTO;
 import at.dtos.ExampleOverviewDTO;
+import at.dtos.GapDTO;
 import at.model.Example;
 import at.model.School;
 import at.model.User;
+import at.model.helper.Gap;
 import at.security.TokenService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -16,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
+import java.util.LinkedList;
 import java.util.List;
 
 @ApplicationScoped
@@ -51,9 +54,11 @@ public class ExampleRepository {
                 example.setOptions(dto.options());
             }
             case GAP_FILL -> {
-                System.out.println(dto.gaps());
-                System.out.println(dto.gaps().size());
-                example.setGaps(dto.gaps());
+                List<Gap> gaps = new LinkedList<>();
+                for(GapDTO g : dto.gaps()){
+                    gaps.add(new Gap(g.label(), g.solution(), g.options(), example));
+                }
+                example.setGaps(gaps);
                 example.setGapFillType(dto.gapFillType());
             }
             case CONSTRUCTION -> {
@@ -79,6 +84,7 @@ public class ExampleRepository {
             return Response.status(500).build();
         }
 
+        example.setType(dto.type());
         example.setInstruction(dto.instruction());
         example.setQuestion(dto.question());
         example.setDifficulty(dto.difficulty());
@@ -94,7 +100,13 @@ public class ExampleRepository {
                 example.setOptions(dto.options());
             }
             case GAP_FILL -> {
-                example.setGaps(dto.gaps());
+                List<Gap> gaps = new LinkedList<>();
+                for(GapDTO g : dto.gaps()){
+                    gaps.add(new Gap(g.label(), g.solution(), g.options(), example));
+                }
+
+                example.getGaps().clear();
+                example.getGaps().addAll(gaps);
                 example.setGapFillType(dto.gapFillType());
             }
             case CONSTRUCTION -> {
@@ -138,9 +150,6 @@ public class ExampleRepository {
             return null;
         }
 
-        System.out.println("found");
-        System.out.println(e);
-
         return new CreateExampleDTO("",
                 e.getSchool().getId(),
                 e.getType(),
@@ -149,7 +158,7 @@ public class ExampleRepository {
                 e.getAnswers(),
                 e.getOptions(),
                 e.getGapFillType(),
-                e.getGaps(),
+                e.getGapDTO(),
                 e.getAssigns(),
                 e.getAssignRightItems(),
                 e.getImageUrl(),

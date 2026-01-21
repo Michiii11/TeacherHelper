@@ -97,6 +97,60 @@
       </div>
     </article>
 
+    <article class="panel tests">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <mat-icon>assignment</mat-icon>
+          Tests
+        </h2>
+
+        <button mat-mini-fab color="primary" (click)="createTest()" aria-label="Test erstellen">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+
+      <div class="panel-body tests-grid">
+
+        <div *ngFor="let test of tests" class="test-card">
+
+          <div class="test-header">
+            <div class="test-title">{{ test.title }}</div>
+            <span class="status-badge" [class.active]="test.active">
+          {{ test.active ? 'Aktiv' : 'Entwurf' }}
+        </span>
+          </div>
+
+          <div class="test-meta">
+        <span>
+          <mat-icon>quiz</mat-icon>
+          {{ test.questions }} Fragen
+        </span>
+
+            <span>
+          <mat-icon>schedule</mat-icon>
+              {{ test.duration }} Min
+        </span>
+          </div>
+
+          <div class="test-actions">
+            <button mat-stroked-button color="primary" (click)="openTest(test)">
+              Öffnen
+            </button>
+
+            <button mat-icon-button (click)="editTest(test)">
+              <mat-icon>edit</mat-icon>
+            </button>
+
+            <button mat-icon-button color="warn" (click)="deleteTest(test)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </article>
+
     <article class="panel teachers">
       <div class="panel-header">
         <h2 class="panel-title">Lehrer</h2>
@@ -108,16 +162,12 @@
       <div class="panel-body teachers-list">
         <div *ngFor="let t of teachers" class="teacher-card mat-elevation-z1">
           <div class="teacher-info">
-            <div class="avatar">{{ initials(t.name) }}</div>
             <div class="teacher-text">
               <div class="name">{{ t.name }}</div>
               <div class="role">{{ t.role }}</div>
             </div>
           </div>
           <div class="teacher-actions">
-            <button mat-icon-button (click)="promoteTeacher(t)" aria-label="Befördern">
-              <mat-icon>arrow_upward</mat-icon>
-            </button>
             <button mat-icon-button (click)="editTeacher(t)" aria-label="Bearbeiten">
               <mat-icon>edit</mat-icon>
             </button>
