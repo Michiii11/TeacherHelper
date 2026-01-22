@@ -1,56 +1,156 @@
+/* =========================
+   PAGE CENTERING
+========================= */
+
 .auth-card {
   max-width: 420px;
-  margin: 48px auto;
-  border-radius: 18px;
-  box-shadow: 0 6px 32px rgba(25, 118, 210, 0.13);
-  background: var(--color-background, #fff);
+  margin: 4rem auto;
+  padding: 1.5rem 1.5rem 1.8rem;
+
+  border-radius: 1.25rem;
+  background: #ffffff;
+
+  box-shadow:
+    0 10px 25px rgba(0,0,0,.08),
+    0 2px 6px rgba(0,0,0,.04);
+
+  border: 1px solid rgba(0,0,0,.05);
 }
+
+/* =========================
+   TABS DESIGN FIX
+========================= */
+
+::ng-deep .mat-mdc-tab-group {
+  --mdc-tab-indicator-active-indicator-color: #2563eb;
+}
+
+::ng-deep .mat-mdc-tab {
+  font-weight: 600;
+  letter-spacing: .2px;
+}
+
+::ng-deep .mat-mdc-tab-labels {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 4px;
+}
+
+::ng-deep .mat-mdc-tab.mdc-tab--active {
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+
+/* =========================
+   FORM LAYOUT
+========================= */
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 0 8px;
+  gap: 1rem;
+  padding-top: 1.2rem;
 }
 
 .full-width {
   width: 100%;
 }
 
-.feedback {
-  margin: 1vh 0;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 0.98em;
-  font-weight: 500;
-  text-align: left;
+/* =========================
+   INPUT FIELDS
+========================= */
+
+::ng-deep .mat-mdc-form-field {
+  font-size: .9rem;
 }
+
+::ng-deep .mat-mdc-text-field-wrapper {
+  border-radius: 12px !important;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+.auth-form button[type="submit"] {
+  height: 42px;
+  border-radius: 12px;
+  font-weight: 600;
+  letter-spacing: .3px;
+  margin-top: .5rem;
+}
+
+/* Secondary buttons */
+
+mat-card-actions {
+  display: flex;
+  justify-content: center;
+  padding-top: .5rem;
+}
+
+mat-card-actions button {
+  font-size: .85rem;
+  color: #2563eb;
+}
+
+/* =========================
+   FEEDBACK MESSAGES
+========================= */
+
+.feedback {
+  padding: .6rem .9rem;
+  border-radius: 10px;
+  font-size: .85rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Error */
 
 .feedback.error {
-  background: #ffebee;
-  color: #d32f2f;
-  border: 1px solid #d32f2f;
+  background: rgba(239,68,68,.08);
+  color: #dc2626;
+  border: 1px solid rgba(239,68,68,.25);
 }
+
+/* Success */
 
 .feedback.success {
-  background: #e8f5e9;
-  color: #388e3c;
-  border: 1px solid #388e3c;
+  background: rgba(34,197,94,.08);
+  color: #16a34a;
+  border: 1px solid rgba(34,197,94,.25);
 }
 
-mat-card-header {
-  align-items: center;
-  gap: 8px;
-}
+/* =========================
+   MOBILE
+========================= */
 
-mat-card-title {
-  font-size: 1.3em;
-  font-weight: 600;
-}
+@media (max-width: 520px) {
 
-@media (max-width: 500px) {
   .auth-card {
-    padding: 0;
-    border-radius: 8px;
+    margin: 2rem 1rem;
+    padding: 1.2rem;
+  }
+
+}
+
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0;
+    font-weight: 700;
+    background: linear-gradient(135deg,#2563eb,#1d4ed8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  p {
+    margin: .2rem 0 0;
+    font-size: .85rem;
+    color: #64748b;
   }
 }

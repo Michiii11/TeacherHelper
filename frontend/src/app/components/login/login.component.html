@@ -1,4 +1,9 @@
 <mat-card class="auth-card">
+  <div class="auth-header">
+    <h2>TeacherHelper</h2>
+    <p>Anmelden oder neuen Account erstellen</p>
+  </div>
+
   <mat-tab-group [(selectedIndex)]="selectedTab">
     <mat-tab label="Login">
       <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="auth-form">

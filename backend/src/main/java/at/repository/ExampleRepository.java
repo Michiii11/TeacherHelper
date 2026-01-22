@@ -20,6 +20,7 @@ import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class ExampleRepository {
@@ -30,10 +31,23 @@ public class ExampleRepository {
     TokenService tokenService;
 
     public List<ExampleOverviewDTO> getAllExamples(Long schoolId) {
-        return em.createQuery("SELECT new at.dtos.ExampleOverviewDTO(e.id, e.type, e.instruction, e.question, e.difficulty, e.admin.username) " +
-                        "FROM Example e where e.school.id = :schoolId order by e.id", ExampleOverviewDTO.class)
-                .setParameter("schoolId", schoolId)
-                 .getResultList();
+        List<Example> examples = em.createQuery(
+                "SELECT e FROM Example e WHERE e.school.id = :schoolId ORDER BY e.id",
+                Example.class
+        ).setParameter("schoolId", schoolId).getResultList();
+
+        return examples.stream().map(e ->
+                new ExampleOverviewDTO(
+                        e.getId(),
+                        e.getType(),
+                        e.getInstruction(),
+                        e.getQuestion(),
+                        e.getDifficulty(),
+                        e.getAdmin().getUsername(),
+                        e.getAdmin().getId(),
+                        e.getFocusList()
+                )
+        ).collect(Collectors.toList());
     }
 
     @Transactional
@@ -42,7 +56,7 @@ public class ExampleRepository {
         User admin = em.find(User.class, userId);
         School school = em.find(School.class, dto.schoolId());
 
-        Example example = new Example(admin, dto.type(), dto.instruction(), dto.question(), dto.difficulty(), dto.solution(), school);
+        Example example = new Example(admin, dto.type(), dto.instruction(), dto.question(), dto.difficulty(), dto.solution(), school, dto.focusList());
 
         System.out.println(dto);
 
@@ -89,6 +103,8 @@ public class ExampleRepository {
         example.setQuestion(dto.question());
         example.setDifficulty(dto.difficulty());
         example.setSolution(dto.solution());
+        example.getFocusList().clear();
+        example.getFocusList().addAll(dto.focusList());
 
         System.out.println(dto);
 
@@ -164,6 +180,7 @@ public class ExampleRepository {
                 e.getImageUrl(),
                 e.getSolution(),
                 e.getSolutionUrl(),
-                e.getDifficulty());
+                e.getDifficulty(),
+                e.getFocusList());
     }
 }

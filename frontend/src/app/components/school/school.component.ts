@@ -17,9 +17,11 @@ import {MatDialog} from '@angular/material/dialog'
 import {CreateExampleComponent} from '../../dialog/create-example/create-example.component'
 import {MatIcon} from '@angular/material/icon'
 import {MatSort, MatSortHeader} from '@angular/material/sort'
-import {NgForOf, NgIf} from '@angular/common'
+import {NgClass, NgForOf, NgIf} from '@angular/common'
 import {ExampleDifficulty, ExampleOverviewDTO, ExampleTypeLabels, ExampleTypes} from '../../model/Example'
 import {ConfirmDialogComponent} from '../../dialog/confirm-dialog/confirm-dialog.component'
+import {TestOverviewDTO} from '../../model/Test'
+import {CreateTestComponent} from '../../dialog/create-test/create-test.component'
 
 @Component({
   selector: 'app-school',
@@ -41,7 +43,8 @@ import {ConfirmDialogComponent} from '../../dialog/confirm-dialog/confirm-dialog
     MatSort,
     NgForOf,
     NgIf,
-    MatSortHeader
+    MatSortHeader,
+    NgClass
   ],
   templateUrl: './school.component.html',
   standalone: true,
@@ -57,7 +60,7 @@ export class SchoolComponent {
 
   schoolId: string | null = null;
 
-  dataSource = new MatTableDataSource<ExampleOverviewDTO>();
+  exampleDataSource = new MatTableDataSource<ExampleOverviewDTO>();
 
   exampleDifficulties = [
     { value: 'EASY',      label: 'Leicht' },
@@ -67,10 +70,7 @@ export class SchoolComponent {
     { value: 'EXPERT',    label: 'Experte' }
   ];
 
-  tests = [
-    { title: 'Mathe Test 1', questions: 20, duration: 45, active: true },
-    { title: 'Deutsch Probe', questions: 15, duration: 30, active: false }
-  ];
+  tests : TestOverviewDTO[] = []
 
 
   getDifficultyLabelFromValue(value: string | number): string {
@@ -99,33 +99,53 @@ export class SchoolComponent {
   ]; // Array mit Lehrern
 
   kpis = [
-    { title: 'Offene Tests', value: "3", sub: 'in Bearbeitung', icon: 'assignment' },
+    { title: 'Offene Tests', value: this.tests.length.toString(), sub: 'in Bearbeitung', icon: 'assignment' },
     { title: 'Beispiele', value: this.exampleCount.toString(), sub: 'Fragen', icon: 'library_books' },
     { title: 'Aktive Lehrer', value: this.teachers.length.toString(), sub: 'Konten', icon: 'people' },
     { title: 'Letzte Änderung', value: '2 Std. zuvor', sub: 'von Admin', icon: 'history' }
   ]
 
   ngOnInit(){
-    this.loadExamples();
+    this.loadExamples()
+    this.loadTests()
   }
 
   loadExamples(){
     this.service.getExamples(this.schoolId).subscribe(examples => {
-      this.dataSource.data = examples as ExampleOverviewDTO[]
+      this.exampleDataSource.data = examples as ExampleOverviewDTO[]
 
       this.kpis[1].value = this.exampleCount.toString();
     })
   }
 
-  ngAfterViewInit() {
-    this.dataSource.sort = this.sort;
+  loadTests(){
+    this.service.getTests(this.schoolId).subscribe(tests => {
+      this.tests = tests as TestOverviewDTO[]
 
-    this.dataSource.sortingDataAccessor = (item, property) => {
+      this.kpis[0].value = this.tests.length.toString();
+    })
+  }
+
+  ngAfterViewInit() {
+    this.exampleDataSource.sort = this.sort;
+
+    this.exampleDataSource.sortingDataAccessor = (item, property) => {
       switch (property) {
-        case 'adminUsername': return item.adminUsername || '';
-        default: return item[property as keyof ExampleOverviewDTO];
+        case 'adminUsername':
+          return item.adminUsername || '';
+
+        case 'focusList': // if this is an array of Focus objects
+          return item.focusList?.map(f => f.label).join(', ') || ''; // convert to string
+
+        default:
+          const value = item[property as keyof ExampleOverviewDTO];
+          if (Array.isArray(value)) {
+            return value.map(v => (v as any).toString()).join(', '); // fallback for any array
+          }
+          return value as string | number; // safe cast
       }
     };
+
   }
 
   constructor(private route: ActivatedRoute, private router: Router) {
@@ -163,7 +183,7 @@ export class SchoolComponent {
   }
 
   get exampleCount(): number {
-    return this.dataSource.data.length;
+    return this.exampleDataSource.data.length;
   }
 
   /* small helpers */
@@ -174,7 +194,15 @@ export class SchoolComponent {
   /* Actions (replace with real logic) */
   menuOpen: boolean | undefined
 
-  createTest() { console.log('create test'); }
+  createTest() {
+    this.dialog.open(CreateTestComponent, {
+      width: '1000px',
+      maxWidth: 'none',
+      data: { schoolId: this.schoolId }
+    }).afterClosed().subscribe(result => {
+      this.loadExamples();
+    });
+  }
 
   openSettings() { console.log('open settings'); }
 
@@ -215,30 +243,21 @@ export class SchoolComponent {
 
   protected readonly ExampleTypeLabels = ExampleTypeLabels
 
-  protected openTest(test: { title: string; questions: number; duration: number; active: boolean } | {
-    title: string;
-    questions: number;
-    duration: number;
-    active: boolean
-  }) {
+  protected openTest(test: TestOverviewDTO) {
 
   }
 
-  protected editTest(test: { title: string; questions: number; duration: number; active: boolean } | {
-    title: string;
-    questions: number;
-    duration: number;
-    active: boolean
-  }) {
-
+  protected editTest(test: TestOverviewDTO) {
+    this.dialog.open(CreateTestComponent, {
+      width: '1000px',
+      maxWidth: 'none',
+      data: { schoolId: this.schoolId, testId: test.id }
+    }).afterClosed().subscribe(result => {
+      this.loadExamples();
+    });
   }
 
-  protected deleteTest(test: { title: string; questions: number; duration: number; active: boolean } | {
-    title: string;
-    questions: number;
-    duration: number;
-    active: boolean
-  }) {
+  protected deleteTest(test: TestOverviewDTO) {
 
   }
 }

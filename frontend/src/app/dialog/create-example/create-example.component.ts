@@ -1,6 +1,6 @@
-import {Component, HostListener, inject, OnDestroy, OnInit} from '@angular/core';
+import {Component, HostListener, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
+import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
 
 import {MAT_DIALOG_DATA, MatDialog, MatDialogActions, MatDialogContent, MatDialogRef} from '@angular/material/dialog';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -16,7 +16,7 @@ import {
   CreateExampleDTO,
   ExampleDifficulty,
   ExampleTypeLabels,
-  ExampleTypes,
+  ExampleTypes, Focus,
   Gap,
   Option
 } from '../../model/Example';
@@ -28,6 +28,10 @@ import {HttpClient} from '@angular/common/http'
 import {HttpService} from '../../service/http.service'
 import {MatDivider} from '@angular/material/divider'
 import {MatSlider, MatSliderModule, MatSliderRangeThumb, MatSliderThumb} from '@angular/material/slider'
+import {MatChip, MatChipInput, MatChipsModule} from '@angular/material/chips'
+import {MatAutocomplete, MatAutocompleteTrigger} from '@angular/material/autocomplete'
+import {Observable, startWith} from 'rxjs'
+import {map} from 'rxjs/operators'
 
 @Component({
   selector: 'app-create-example',
@@ -47,12 +51,14 @@ import {MatSlider, MatSliderModule, MatSliderRangeThumb, MatSliderThumb} from '@
     MatTooltip,
     MatPseudoCheckbox,
     MatDivider,
-    MatSliderModule
+    MatSliderModule,
+    ReactiveFormsModule,
+    MatChipsModule,
   ],
   templateUrl: './create-example.component.html',
   styleUrls: ['./create-example.component.scss']
 })
-export class CreateExampleComponent implements OnInit, OnDestroy {
+export class CreateExampleComponent implements OnInit {
   data = inject<{ schoolId: number; exampleId: number }>(MAT_DIALOG_DATA);
 
   example = {
@@ -70,7 +76,8 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     image: '',
     solution: '',
     solutionUrl: '',
-    difficulty: ExampleDifficulty.EASY
+    difficulty: ExampleDifficulty.EASY,
+    focusList: []
   } as CreateExampleDTO;
   service = inject(HttpService)
 
@@ -118,6 +125,17 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
         }
       })
     }
+
+    this.service.getAllFocus(this.data.schoolId).subscribe(focuses => {
+      this.allFocusList = focuses;
+      this.filteredFocusList = this.focusCtrl.valueChanges.pipe(
+        startWith(''),
+        map(val => {
+          if (val === null) return this.allFocusList; // falls input leer
+          return this._filter(val);
+        })
+      );
+    });
   }
 
   generateUniqueId(): string {
@@ -337,10 +355,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy(): void {
-    // nothing to cleanup now
-  }
-
   trackByIndex(index: number, item: any) {
     return index;
   }
@@ -382,5 +396,45 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     }
 
     return ""
+  }
+
+
+
+  focusCtrl = new FormControl('');
+  filteredFocusList: Observable<Focus[]> = new Observable<Focus[]>();
+  selectedFocusList: Focus[] = [];
+  allFocusList: Focus[] = [];
+  allowNewFocus = true;
+
+  private _filter(value: string | Focus): Focus[] {
+    const filterValue = typeof value === 'string' ? value.toLowerCase() : value.label.toLowerCase();
+    return this.allFocusList.filter(focus => focus.label.toLowerCase().includes(filterValue));
+  }
+
+  selectFocus(event: any) {
+    const selected: Focus = event.option.value;
+    if (!this.selectedFocusList.find(f => f.id === selected.id)) {
+      this.selectedFocusList.push(selected);
+    }
+    this.focusCtrl.setValue('');
+  }
+
+  removeFocus(focus: Focus) {
+    this.selectedFocusList = this.selectedFocusList.filter(f => f.id !== focus.id);
+  }
+
+  createFocus(label: string) {
+    this.service.createFocus(this.data.schoolId, { label }).subscribe(newFocus => {
+      this.allFocusList.push(newFocus);
+      this.selectedFocusList.push(newFocus);
+      this.focusCtrl.setValue('');
+    });
+  }
+
+  addFocusFromInput(event: any) {
+    const inputValue = event.value?.trim();
+    if (inputValue) this.createFocus(inputValue);
+    event.input.value = '';
+    this.focusCtrl.setValue('');
   }
 }

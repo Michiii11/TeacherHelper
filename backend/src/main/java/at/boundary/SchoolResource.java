@@ -3,15 +3,18 @@ package at.boundary;
 import at.dtos.CreateSchoolDTO;
 import at.dtos.SchoolDTO;
 import at.model.School;
+import at.model.helper.Focus;
 import at.repository.SchoolRepository;
 import at.security.TokenService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.Response;
 
 import java.util.List;
+import java.util.Set;
 
 @Path("school")
 public class SchoolResource {
@@ -52,7 +55,13 @@ public class SchoolResource {
 
     @GET
     @Path("{id}")
-    public SchoolDTO getYourSchools(Long id) {
+    public SchoolDTO getYourSchools(@PathParam("id") Long id) {
         return schoolRepository.findById(id);
+    }
+
+    @GET
+    @Path("{id}/focus")
+    public List<Focus> getFocusList(@PathParam("id") Long id){
+        return schoolRepository.getFocusList(id);
     }
 }

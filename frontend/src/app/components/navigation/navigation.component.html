@@ -1,39 +1,68 @@
-<mat-toolbar color="primary" class="navbar mat-elevation-z4">
+<mat-toolbar class="navbar">
+
   <div class="navbar-container">
+
     <!-- Brand -->
     <div class="navbar-left">
       <span class="navbar-title">TeacherHelper</span>
     </div>
 
-    <!-- Desktop Links -->
-    <nav class="navbar-links">
-      <a mat-button routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
-        Home
-      </a>
-      <a mat-button (click)="goToSchool()" routerLinkActive="active-link">
-        Schule
-      </a>
-      <a mat-button routerLink="/contact" routerLinkActive="active-link">
-        Kontakt
-      </a>
-      <a mat-button routerLink="/user" routerLinkActive="active-link">
-        Profil
-      </a>
+    <!-- Desktop Navigation -->
+    <nav class="navbar-right">
+      <a mat-button routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+      <a mat-button (click)="goToSchool()" routerLinkActive="active-link">Schule</a>
+      <a mat-button routerLink="/contact" routerLinkActive="active-link">Kontakt</a>
+      <button mat-icon-button class="icon-btn" [matMenuTriggerFor]="notificationMenu">
+        <mat-icon>notifications</mat-icon>
+        <span class="notif-badge">3</span>
+      </button>
+
+      <!-- Avatar Dropdown -->
+      <button mat-button class="avatar-btn" [matMenuTriggerFor]="profileMenu">
+        <div class="avatar-circle">JD</div>
+      </button>
     </nav>
 
-    <!-- Mobile Menu -->
-    <mat-menu #menu="matMenu">
-      <button mat-menu-item routerLink="/" routerLinkActive="active-link">Home</button>
-      <button mat-menu-item (click)="goToSchool()" routerLinkActive="active-link">Schule</button>
-      <button mat-menu-item routerLink="/contact" routerLinkActive="active-link">Kontakt</button>
-      <button mat-menu-item routerLink="/user" routerLinkActive="active-link">Profil</button>
-    </mat-menu>
-
-    <!-- User Icon (optional) -->
-    <div class="navbar-right">
-      <button mat-icon-button [matMenuTriggerFor]="menu" class="mobile-menu-button">
-        <mat-icon>more_vert</mat-icon>
-      </button>
-    </div>
   </div>
+
 </mat-toolbar>
+
+<!-- ================= MENUS ================= -->
+
+<!-- Profile Menu -->
+<mat-menu #profileMenu="matMenu">
+  <button mat-menu-item routerLink="/user">
+    <mat-icon>person</mat-icon>
+    Profil
+  </button>
+
+  <button mat-menu-item>
+    <mat-icon>settings</mat-icon>
+    Einstellungen
+  </button>
+
+  <mat-divider></mat-divider>
+
+  <button mat-menu-item>
+    <mat-icon>logout</mat-icon>
+    Logout
+  </button>
+</mat-menu>
+
+<!-- Notification Menu -->
+<mat-menu #notificationMenu="matMenu" class="notification-menu">
+  <button mat-menu-item>
+    <mat-icon>quiz</mat-icon>
+    Neuer Test erstellt
+  </button>
+
+  <button mat-menu-item>
+    <mat-icon>school</mat-icon>
+    Neue Schule beigetreten
+  </button>
+
+  <button mat-menu-item>
+    <mat-icon>info</mat-icon>
+    System Update verfügbar
+  </button>
+</mat-menu>

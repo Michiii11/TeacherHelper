@@ -1,85 +1,204 @@
+/* =========================
+   NAVBAR RESET
+========================= */
+
 .navbar {
+  height: 64px;
+  padding: 0 !important;
+  background: linear-gradient(180deg, #ffffff, #f8fafc) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(0,0,0,0.05);
   position: sticky;
   top: 0;
   z-index: 1000;
-  padding: 0;
-  background: linear-gradient(90deg, #2563eb, #3b82f6);
-  color: #fff;
 
-  .navbar-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1rem;
-    width: 100%;
-  }
+  display: flex;
+  align-items: center;
 }
 
-/* ===== Brand ===== */
-.navbar-title {
-  font-weight: 700;
-  font-size: 1.3rem;
-  letter-spacing: 0.5px;
+/* Container */
+
+.navbar-container {
+  height: 100%;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 1.25rem;
 }
+
+/* =========================
+   BRAND
+========================= */
 
 .navbar-left {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
 }
 
-.menu-button {
-  display: none;
-  color: #fff;
+.navbar-title {
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: .3px;
+  background: linear-gradient(135deg,#2563eb,#1d4ed8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-/* ===== Links ===== */
+/* =========================
+   CENTER LINKS
+========================= */
+
 .navbar-links {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-
-  a[mat-button] {
-    font-weight: 500;
-    color: #fff;
-    font-size: 0.95rem;
-    border-radius: 8px;
-    transition: background 0.2s ease;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.15);
-    }
-
-    &.active-link {
-      background: rgba(255, 255, 255, 0.22);
-      font-weight: 600;
-    }
-  }
+  gap: .3rem;
 }
 
-/* ===== Right side ===== */
+.navbar-links a {
+  height: 36px;
+  line-height: 36px;
+  padding: 0 .75rem;
+  border-radius: 10px;
+  font-size: .9rem;
+  font-weight: 500;
+  color: #334155 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s ease;
+}
+
+/* Hover */
+
+.navbar-links a:hover {
+  background: rgba(59,130,246,.08);
+  color: #1d4ed8 !important;
+}
+
+/* Active link */
+
+.navbar-links a.active-link {
+  background: rgba(59,130,246,.12);
+  color: #1d4ed8 !important;
+  font-weight: 600;
+}
+
+/* =========================
+   RIGHT ACTIONS
+========================= */
+
 .navbar-right {
-  display: none;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
 }
 
-/* ===== Responsive ===== */
+/* Icon buttons */
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  position: relative;
+}
+
+.icon-btn mat-icon {
+  font-size: 22px;
+  color: #334155;
+}
+
+.icon-btn:hover {
+  background: rgba(59,130,246,.08);
+}
+
+/* Notification badge */
+
+.notif-badge {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  background: #ef4444;
+  color: #fff;
+  font-size: .6rem;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+/* =========================
+   AVATAR
+========================= */
+
+.avatar-btn {
+  height: 40px;
+  border-radius: 12px;
+  padding: 0 .4rem;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+.avatar-btn:hover {
+  background: rgba(59,130,246,.08);
+}
+
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg,#3b82f6,#1d4ed8);
+  color: #fff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: .75rem;
+  font-weight: 600;
+}
+
+.avatar-btn mat-icon {
+  font-size: 18px;
+  color: #334155;
+}
+
+/* =========================
+   DROPDOWN MENU FIX
+========================= */
+
+.mat-mdc-menu-panel {
+  border-radius: 1rem !important;
+  box-shadow: 0 10px 25px rgba(0,0,0,.12) !important;
+  padding: .25rem !important;
+}
+
+.mat-mdc-menu-item {
+  border-radius: .6rem;
+  font-size: .9rem;
+}
+
+.mat-mdc-menu-item:hover {
+  background: rgba(59,130,246,.08);
+}
+
+/* =========================
+   MOBILE
+========================= */
+
 @media (max-width: 768px) {
-  .navbar {
-    border-radius: 0;
-  }
 
   .navbar-links {
-    display: none; /* hide desktop links */
+    display: none;
   }
 
-  .menu-button {
-    display: inline-flex;
-  }
-
-  .navbar-right {
-    display: flex;
-    align-items: center;
-  }
 }

@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import {Component, HostListener} from '@angular/core';
 import {Router, RouterLink, RouterLinkActive} from '@angular/router'
 import {MatToolbar} from '@angular/material/toolbar'
-import {MatAnchor, MatIconButton} from '@angular/material/button'
+import {MatAnchor, MatButton, MatIconButton} from '@angular/material/button'
 import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu'
 import {MatIcon} from '@angular/material/icon'
+import {MatDivider} from '@angular/material/list'
 
 @Component({
   selector: 'app-navigation',
@@ -17,6 +18,8 @@ import {MatIcon} from '@angular/material/icon'
     MatMenuItem,
     MatMenu,
     MatMenuTrigger,
+    MatDivider,
+    MatButton,
   ],
   templateUrl: './navigation.component.html',
   standalone: true,
@@ -34,6 +37,15 @@ export class NavigationComponent {
       this.router.navigate(['/school']);
     }
   }
+
+  @HostListener('window:scroll')
+  onScroll() {
+    const nav = document.querySelector('.navbar');
+    window.scrollY > 10
+      ? nav?.classList.add('scrolled')
+      : nav?.classList.remove('scrolled');
+  }
+
 
   toggleMenu() {
 

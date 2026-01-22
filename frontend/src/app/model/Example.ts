@@ -32,7 +32,7 @@ export const ExampleTypeLabels: Record<ExampleTypes, string> = {
 export interface Example {
   id: number;
   admin: User;
-
+  focusList: Focus[];
   type: ExampleTypes;
   instruction: string;
   question: string;
@@ -61,6 +61,7 @@ export interface CreateExampleDTO {
   solution: string;
   solutionUrl: string;
   difficulty: ExampleDifficulty;
+  focusList: Focus[];
 
   imageFile?: File;
   solutionFile?: File;
@@ -84,6 +85,10 @@ export interface Assign{
   right: string;
 }
 
+export interface Focus{
+  id: number;
+  label: string;
+}
 
 export interface ExampleOverviewDTO{
   id: number;
@@ -92,4 +97,6 @@ export interface ExampleOverviewDTO{
   question: string;
   difficulty: ExampleDifficulty;
   adminUsername: string;
+  adminId: number;
+  focusList: Focus[];
 }

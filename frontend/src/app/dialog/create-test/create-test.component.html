@@ -1,0 +1,43 @@
+<main>
+  <mat-dialog-content class="create-example-dialog">
+    <h1>Test Erstellen</h1>
+
+    <form class="example-form" (ngSubmit)="saveTest()">
+
+      <div class="row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Titel</mat-label>
+          <textarea
+            matInput
+            [(ngModel)]="test.name"
+            name="instruction"
+            (input)="markDirty()"
+            placeholder="1. Schularbeit ..."
+            cdkTextareaAutosize
+            cdkAutosizeMinRows="2"
+            cdkAutosizeMaxRows="10">
+          </textarea>
+        </mat-form-field>
+      </div>
+
+      <!-- Dialog Actions -->
+      <mat-dialog-actions align="end">
+        <button mat-stroked-button type="button" (click)="closeDialog()">Abbrechen</button>
+        <button mat-flat-button color="primary" type="submit">Speichern</button>
+      </mat-dialog-actions>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-content class="create-example-layout">
+    <h1>Vorschau</h1>
+
+    <div class="preview-panel">
+
+    </div>
+  </mat-dialog-content>
+
+</main>
+
+
+
+

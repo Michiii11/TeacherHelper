@@ -5,6 +5,7 @@ import at.dtos.SchoolDTO;
 import at.dtos.UserDTO;
 import at.model.School;
 import at.model.User;
+import at.model.helper.Focus;
 import at.security.TokenService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -13,6 +14,7 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
 import java.util.List;
+import java.util.Set;
 
 @ApplicationScoped
 public class SchoolRepository {
@@ -84,5 +86,9 @@ public class SchoolRepository {
                         school.getAdmin().getEmail(),
                         school.getAdmin().getPassword()), 0))
                 .toList();
+    }
+
+    public List<Focus> getFocusList(Long id) {
+        return em.createQuery("SELECT s.focusList FROM School s WHERE s.id = :id", Focus.class).setParameter("id", id).getResultList();
     }
 }

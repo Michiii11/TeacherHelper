@@ -1,9 +1,12 @@
 package at.model;
 
+import at.model.helper.Focus;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 public class School {
@@ -19,6 +22,9 @@ public class School {
 
     @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<User> users = new ArrayList<>();
+
+    @OneToMany
+    private List<Focus> focusList;
 
     public School(){
 
@@ -68,5 +74,13 @@ public class School {
 
     public void setUsers(List<User> users) {
         this.users = users;
+    }
+
+    public List<Focus> getFocusList() {
+        return focusList;
+    }
+
+    public void setFocusList(List<Focus> focusList) {
+        this.focusList = focusList;
     }
 }

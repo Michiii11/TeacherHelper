@@ -62,7 +62,7 @@
       </div>
 
       <div class="panel-body table-wrapper">
-        <table mat-table [dataSource]="dataSource" class="mat-elevation-z1 table" matSort>
+        <table mat-table [dataSource]="exampleDataSource" class="mat-elevation-z1 table" matSort>
           <!-- columns -->
           <ng-container matColumnDef="type">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Typ</th>
@@ -114,16 +114,16 @@
         <div *ngFor="let test of tests" class="test-card">
 
           <div class="test-header">
-            <div class="test-title">{{ test.title }}</div>
-            <span class="status-badge" [class.active]="test.active">
-          {{ test.active ? 'Aktiv' : 'Entwurf' }}
+            <div class="test-title">{{ test.name }}</div>
+            <span class="status-badge" [ngClass]="test.state ? 'active' : 'draft'">
+          {{ test.state ? 'Aktiv' : 'Entwurf' }}
         </span>
           </div>
 
           <div class="test-meta">
         <span>
           <mat-icon>quiz</mat-icon>
-          {{ test.questions }} Fragen
+          {{ test.amountOfQuestions }} Fragen
         </span>
 
             <span>

@@ -2,7 +2,8 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Config } from '../config';
 import {School, SchoolDTO} from '../model/School'
-import {CreateExampleDTO} from '../model/Example'
+import {CreateExampleDTO, Focus} from '../model/Example'
+import {CreateTestDTO} from '../model/Test'
 
 @Injectable({ providedIn: 'root' })
 export class HttpService {
@@ -52,5 +53,21 @@ export class HttpService {
 
   getCreateExample(exampleId: number) {
     return this.http.post<CreateExampleDTO>(`${Config.API_URL}/example/${exampleId}`, {authToken: localStorage.getItem('teacher_authToken')});
+  }
+
+  getTests(schoolId: string | null) {
+    return this.http.get(`${Config.API_URL}/test/school/${schoolId}`);
+  }
+
+  getCreateTest(testId: number) {
+    return this.http.post<CreateTestDTO>(`${Config.API_URL}/test/${testId}`, {authToken: localStorage.getItem('teacher_authToken')});
+  }
+
+  getAllFocus(schoolId: number) {
+    return this.http.get<Focus[]>(`${Config.API_URL}/school/${schoolId}/focus`);
+  }
+
+  createFocus(schoolId: number, param: {label: string}) {
+    return this.http.post<Focus>(`${Config.API_URL}/school/${schoolId}/focus`, {...param, authToken: localStorage.getItem('teacher_authToken')}, { responseType: 'text' as 'json' });
   }
 }

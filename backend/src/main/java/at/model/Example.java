@@ -6,12 +6,14 @@ import at.enums.ExampleDifficulty;
 import at.enums.ExampleTypes;
 import at.enums.GapFillType;
 import at.model.helper.Assign;
+import at.model.helper.Focus;
 import at.model.helper.Gap;
 import at.model.helper.Option;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 public class Example {
@@ -37,6 +39,14 @@ public class Example {
     private String solutionUrl;
 
     private String imageUrl;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "example_focus",
+            joinColumns = @JoinColumn(name = "example_id"),
+            inverseJoinColumns = @JoinColumn(name = "focus_id")
+    )
+    private Set<Focus> focusList;
 
     @ManyToOne
     private School school;
@@ -66,7 +76,7 @@ public class Example {
 
     public Example() {}
 
-    public Example(User admin, ExampleTypes type, String instruction, String question, ExampleDifficulty difficulty, String solution, School school) {
+    public Example(User admin, ExampleTypes type, String instruction, String question, ExampleDifficulty difficulty, String solution, School school, Set<Focus> focus) {
         this.admin = admin;
         this.type = type;
         this.instruction = instruction;
@@ -74,6 +84,7 @@ public class Example {
         this.difficulty = difficulty;
         this.solution = solution;
         this.school = school;
+        this.focusList = focus;
     }
 
     @Override
@@ -159,5 +170,13 @@ public class Example {
 
     public void setSolutionUrl(String solutionUrl) {
         this.solutionUrl = solutionUrl;
+    }
+
+    public Set<Focus> getFocusList() {
+        return focusList;
+    }
+
+    public void setFocusList(Set<Focus> focusList) {
+        this.focusList = focusList;
     }
 }
