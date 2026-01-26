@@ -7,10 +7,7 @@ import at.model.helper.Focus;
 import at.repository.SchoolRepository;
 import at.security.TokenService;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 
 import java.util.List;
@@ -63,5 +60,17 @@ public class SchoolResource {
     @Path("{id}/focus")
     public List<Focus> getFocusList(@PathParam("id") Long id){
         return schoolRepository.getFocusList(id);
+    }
+
+    @POST
+    @Path("{id}/focus")
+    public Focus addFocus(@PathParam("id") Long id, Focus focus){
+        return schoolRepository.addFocus(id, focus);
+    }
+
+    @DELETE
+    @Path("{id}/focus/{focusId}")
+    public Response deleteFocus(@PathParam("id") Long id, @PathParam("focusId") Long focusId){
+        return schoolRepository.deleteFocus(id, focusId);
     }
 }

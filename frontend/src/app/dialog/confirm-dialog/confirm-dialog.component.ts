@@ -4,13 +4,18 @@ import {
   MatDialogRef
 } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
+import { FormsModule } from '@angular/forms';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import {NgIf} from '@angular/common'
 
 @Component({
   selector: 'app-confirm-dialog',
   standalone: true,
   imports: [
     MatButton,
+    FormsModule,
+    MatCheckboxModule,
+    NgIf
   ],
   template: `
 
@@ -20,7 +25,13 @@ import { MatIcon } from '@angular/material/icon';
         <h2>{{ data.title }}</h2>
         <p>{{ data.message }}</p>
       </div>
+    </div>
 
+    <!-- OPTIONAL CONFIRM CHECKBOX -->
+    <div *ngIf="data.requireConfirmation" class="checkbox-wrapper">
+      <mat-checkbox [(ngModel)]="isChecked">
+        {{ data.confirmationText || 'Ich bestätige diese Aktion' }}
+      </mat-checkbox>
     </div>
 
     <!-- ACTIONS -->
@@ -37,6 +48,7 @@ import { MatIcon } from '@angular/material/icon';
         mat-flat-button
         color="warn"
         (click)="onConfirm()"
+        [disabled]="data.requireConfirmation && !isChecked"
       >
         {{ data.confirmText }}
       </button>
@@ -45,83 +57,53 @@ import { MatIcon } from '@angular/material/icon';
 
   `,
   styles: [`
+    :host {
+      display: block;
+      padding: 1.3rem 1.5rem 1.5rem;
+    }
 
-:host {
-  display: block;
-  padding: 1.3rem 1.5rem 1.5rem;
-}
+    .dialog-header {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
 
-/* =========================
-   HEADER
-========================= */
+    .header-text {
+      h2 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+      }
 
-.dialog-header {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-}
+      p {
+        margin: .3rem 0 0;
+        font-size: .9rem;
+        color: #64748b;
+        line-height: 1.4;
+      }
+    }
 
-.header-text {
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: .6rem;
+      margin-top: 1.2rem;
 
-  h2 {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 700;
-  }
+      button {
+        min-width: 110px;
+        font-weight: 600;
+        border-radius: 10px;
+      }
+    }
 
-  p {
-    margin: .3rem 0 0;
-    font-size: .9rem;
-    color: #64748b;
-    line-height: 1.4;
-  }
-}
-
-/* =========================
-   ICON
-========================= */
-
-.icon-wrapper {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  mat-icon {
-    font-size: 22px;
-  }
-}
-
-/* Warning variant */
-
-.icon-wrapper.warn {
-  background: rgba(239,68,68,.12);
-  color: #dc2626;
-}
-
-/* =========================
-   ACTIONS
-========================= */
-
-.dialog-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: .6rem;
-  margin-top: 1.2rem;
-
-  button {
-    min-width: 110px;
-    font-weight: 600;
-    border-radius: 10px;
-  }
-}
-
+    .checkbox-wrapper {
+      margin-top: 1rem;
+    }
   `]
 })
 export class ConfirmDialogComponent {
+
+  isChecked = false;
 
   constructor(
     public dialogRef: MatDialogRef<ConfirmDialogComponent>,
@@ -131,6 +113,8 @@ export class ConfirmDialogComponent {
       message: string;
       confirmText: string;
       cancelText: string;
+      requireConfirmation?: boolean;      // neu: Checkbox optional
+      confirmationText?: string;          // optionaler Text für Checkbox
     }
   ) {}
 

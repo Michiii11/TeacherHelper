@@ -229,3 +229,18 @@ mat-button-toggle{
     text-align: center;
   }
 }
+
+.option-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.option-row button {
+  opacity: 0.6;
+}
+
+.option-row button:hover {
+  opacity: 1;
+}

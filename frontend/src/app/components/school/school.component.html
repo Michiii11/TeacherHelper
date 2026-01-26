@@ -80,6 +80,10 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Schwierigkeit</th>
             <td mat-cell *matCellDef="let e">{{ getDifficultyLabelFromValue(e.difficulty) }}</td>
           </ng-container>
+          <ng-container matColumnDef="focus">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Schwerpunkt</th>
+            <td mat-cell *matCellDef="let e">{{ getFocusList(e.focusList) }}</td>
+          </ng-container>
           <ng-container matColumnDef="adminUsername">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Admin</th>
             <td mat-cell *matCellDef="let e">{{ e.adminUsername }}</td>

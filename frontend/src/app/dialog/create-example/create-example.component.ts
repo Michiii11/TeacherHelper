@@ -1,4 +1,4 @@
-import {Component, HostListener, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, ElementRef, HostListener, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
 
@@ -28,9 +28,9 @@ import {HttpClient} from '@angular/common/http'
 import {HttpService} from '../../service/http.service'
 import {MatDivider} from '@angular/material/divider'
 import {MatSlider, MatSliderModule, MatSliderRangeThumb, MatSliderThumb} from '@angular/material/slider'
-import {MatChip, MatChipInput, MatChipsModule} from '@angular/material/chips'
-import {MatAutocomplete, MatAutocompleteTrigger} from '@angular/material/autocomplete'
-import {Observable, startWith} from 'rxjs'
+import {MatChip, MatChipInput, MatChipInputEvent, MatChipsModule} from '@angular/material/chips'
+import {MatAutocomplete, MatAutocompleteSelectedEvent, MatAutocompleteTrigger} from '@angular/material/autocomplete'
+import {BehaviorSubject, combineLatest, Observable, startWith} from 'rxjs'
 import {map} from 'rxjs/operators'
 
 @Component({
@@ -54,6 +54,8 @@ import {map} from 'rxjs/operators'
     MatSliderModule,
     ReactiveFormsModule,
     MatChipsModule,
+    MatAutocompleteTrigger,
+    MatAutocomplete,
   ],
   templateUrl: './create-example.component.html',
   styleUrls: ['./create-example.component.scss']
@@ -114,6 +116,9 @@ export class CreateExampleComponent implements OnInit {
     });
   }
 
+  private focusSubject = new BehaviorSubject<Focus[]>([]);
+  focus$ = this.focusSubject.asObservable();
+
   ngOnInit(){
     if(this.data.exampleId){
       console.log(this.data.exampleId)
@@ -127,14 +132,7 @@ export class CreateExampleComponent implements OnInit {
     }
 
     this.service.getAllFocus(this.data.schoolId).subscribe(focuses => {
-      this.allFocusList = focuses;
-      this.filteredFocusList = this.focusCtrl.valueChanges.pipe(
-        startWith(''),
-        map(val => {
-          if (val === null) return this.allFocusList; // falls input leer
-          return this._filter(val);
-        })
-      );
+      this.focusSubject.next(focuses);
     });
   }
 
@@ -401,40 +399,142 @@ export class CreateExampleComponent implements OnInit {
 
 
   focusCtrl = new FormControl('');
-  filteredFocusList: Observable<Focus[]> = new Observable<Focus[]>();
-  selectedFocusList: Focus[] = [];
-  allFocusList: Focus[] = [];
-  allowNewFocus = true;
+  filteredFocusList = combineLatest([
+    this.focusCtrl.valueChanges.pipe(startWith('')),
+    this.focus$,
+    // trigger neu, wenn example.focusList sich ändert
+    new BehaviorSubject(this.example.focusList)
+  ]).pipe(
+    map(([value, focuses, selectedList]) => {
+      const filterValue = (value || '').toLowerCase();
+      return focuses.filter(focus =>
+        focus.label.toLowerCase().includes(filterValue) &&
+        !this.example.focusList.some(
+          selected => selected.label.toLowerCase() === focus.label.toLowerCase()
+        )
+      );
+    })
+  );
 
-  private _filter(value: string | Focus): Focus[] {
-    const filterValue = typeof value === 'string' ? value.toLowerCase() : value.label.toLowerCase();
-    return this.allFocusList.filter(focus => focus.label.toLowerCase().includes(filterValue));
+  @ViewChild('inputEl') inputEl!: ElementRef<HTMLInputElement>;
+  @ViewChild(MatAutocompleteTrigger) autocompleteTrigger!: MatAutocompleteTrigger;
+
+
+  inputCtrl = new FormControl('');
+
+  showCreateOption(value: string | Focus | null): boolean {
+    if (!value) return false;
+
+    const label = typeof value === 'string' ? value : value.label;
+
+    return !this.focusSubject.value.some(
+      f => f.label.toLowerCase() === label.toLowerCase()
+    );
   }
 
-  selectFocus(event: any) {
-    const selected: Focus = event.option.value;
-    if (!this.selectedFocusList.find(f => f.id === selected.id)) {
-      this.selectedFocusList.push(selected);
+  selected(event: MatAutocompleteSelectedEvent) {
+    let value: Focus;
+
+    if (typeof event.option.value === 'string') {
+      value = { id: 0, label: event.option.value.trim() };
+    } else {
+      value = { id: event.option.value.id, label: event.option.value.label.trim() };
     }
+
+    this.processValue(value);
+
+    this.autocompleteTrigger.closePanel();
+  }
+
+
+  addFromInput(event: MatChipInputEvent) {
+
+    if (this.autocompleteTrigger.panelOpen) return;
+
+    console.log(event.value, 'input added')
+    const value = event.value.trim();
+    if (!value) return;
+
+    this.processValue({id: 0, label: value});
+
+    event.chipInput!.clear();
+  }
+
+  processValue(value: Focus) {
+    const existing = this.focusSubject.value.find(
+      f => f.label.toLowerCase() === value.label.toLowerCase()
+    );
+
+    const finalFocus = existing ? existing : { id: 0, label: value.label.trim() };
+
+    // prevent duplicates
+    if (!this.example.focusList.some(
+      f => f.label.toLowerCase() === finalFocus.label.toLowerCase()
+    )) {
+      this.example.focusList.push(finalFocus);
+    }
+
+    // add to options only if new
+    if (!existing) {
+      this.focusSubject.next([
+        ...this.focusSubject.value,
+        finalFocus
+      ]);
+
+      this.http.createFocus(this.data.schoolId, { id: -1, label: value.label }).subscribe(createdFocus => {
+        const index = this.example.focusList.findIndex(f => f.label.toLowerCase() === createdFocus.label.toLowerCase());
+        if (index !== -1) {
+          this.example.focusList[index] = createdFocus;
+        }
+      });
+    }
+
     this.focusCtrl.setValue('');
+    this.inputEl.nativeElement.value = '';
   }
 
-  removeFocus(focus: Focus) {
-    this.selectedFocusList = this.selectedFocusList.filter(f => f.id !== focus.id);
-  }
+  deleteFocus(focus: Focus, event: MouseEvent) {
+    event.stopPropagation();
 
-  createFocus(label: string) {
-    this.service.createFocus(this.data.schoolId, { label }).subscribe(newFocus => {
-      this.allFocusList.push(newFocus);
-      this.selectedFocusList.push(newFocus);
-      this.focusCtrl.setValue('');
+    this.dialog.open(ConfirmDialogComponent, {
+      data: { title: 'Warnung', message: 'Möchten Sie diesen Schwerpunkt wirklich löschen? Es kann sein das er noch bei anderen Beispielen verwenden wird.', cancelText: 'Abbrechen', confirmText: 'Löschen',
+        requireConfirmation: true, confirmationText: 'Ich verstehe, dass diese Aktion nicht rückgängig gemacht werden kann.'},
+    }).afterClosed().subscribe(result => {
+      if(!result) return
+
+      this.http.deleteFocus(this.data.schoolId, focus.id).subscribe(() => {
+        this.snackBar.open(
+          `Der Schwerpunkt "${focus.label}" wurde gelöscht.`,
+          'OK',
+          {
+            duration: 3000,
+          }
+        );
+      });
+
+      // remove from available list
+      const updated = this.focusSubject.value.filter(
+        f => f.id !== focus.id
+      );
+
+      this.focusSubject.next(updated);
+
+      // remove from selected list
+      this.example.focusList = this.example.focusList.filter(
+        f => f.id !== focus.id
+      );
+
+      // force UI refresh
+      this.focusCtrl.setValue(this.focusCtrl.value || '');
     });
   }
 
-  addFocusFromInput(event: any) {
-    const inputValue = event.value?.trim();
-    if (inputValue) this.createFocus(inputValue);
-    event.input.value = '';
-    this.focusCtrl.setValue('');
+
+
+  remove(focus: Focus) {
+    this.example.focusList = this.example.focusList.filter(f => f.id !== focus.id);
+
+    // trigger Filter neu
+    this.inputCtrl.setValue(this.inputCtrl.value);
   }
 }

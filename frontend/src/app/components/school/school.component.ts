@@ -18,7 +18,7 @@ import {CreateExampleComponent} from '../../dialog/create-example/create-example
 import {MatIcon} from '@angular/material/icon'
 import {MatSort, MatSortHeader} from '@angular/material/sort'
 import {NgClass, NgForOf, NgIf} from '@angular/common'
-import {ExampleDifficulty, ExampleOverviewDTO, ExampleTypeLabels, ExampleTypes} from '../../model/Example'
+import {ExampleDifficulty, ExampleOverviewDTO, ExampleTypeLabels, ExampleTypes, Focus} from '../../model/Example'
 import {ConfirmDialogComponent} from '../../dialog/confirm-dialog/confirm-dialog.component'
 import {TestOverviewDTO} from '../../model/Test'
 import {CreateTestComponent} from '../../dialog/create-test/create-test.component'
@@ -91,7 +91,7 @@ export class SchoolComponent {
     return ExampleTypeLabels[enumKey];
   }
 
-  exampleDisplayedColumns = ['type', 'instruction', 'question', 'difficulty', 'adminUsername', 'actions'];
+  exampleDisplayedColumns = ['type', 'instruction', 'question', 'difficulty', 'focus', 'adminUsername', 'actions'];
   teachers = [
     {"name": "Max Mustermann", "role": "teacher"},
     {"name": "Erika Musterfrau", "role": "admin"},
@@ -259,5 +259,9 @@ export class SchoolComponent {
 
   protected deleteTest(test: TestOverviewDTO) {
 
+  }
+
+  protected getFocusList(focus: Focus[]) {
+    return focus.map(f => f.label).join(', ');
   }
 }

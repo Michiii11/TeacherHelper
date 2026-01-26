@@ -2,6 +2,7 @@ package at.boundary;
 
 import at.dtos.CreateExampleDTO;
 import at.dtos.ExampleOverviewDTO;
+import at.model.helper.Focus;
 import at.repository.ExampleRepository;
 import jakarta.inject.Inject;
 import jakarta.json.JsonObject;

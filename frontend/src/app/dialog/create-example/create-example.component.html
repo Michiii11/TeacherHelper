@@ -34,6 +34,67 @@
 
       <div class="row">
         <mat-form-field appearance="outline" class="full-width">
+
+          <mat-label>Tags</mat-label>
+
+          <mat-chip-grid #chipGrid aria-label="Selection">
+
+            <mat-chip-row
+              *ngFor="let focus of example.focusList"
+              (removed)="remove(focus)">
+              {{ focus.label }}
+              <button matChipRemove>✕</button>
+            </mat-chip-row>
+
+          </mat-chip-grid>
+
+          <input
+            matInput
+            placeholder="Select or create"
+            [matChipInputFor]="chipGrid"
+            [matAutocomplete]="auto"
+            [formControl]="inputCtrl"
+            (matChipInputTokenEnd)="addFromInput($event)"
+            #inputEl
+          />
+
+          <mat-autocomplete
+            #auto="matAutocomplete"
+            autoActiveFirstOption
+            (optionSelected)="selected($event)">
+
+            <mat-option
+              *ngFor="let focus of filteredFocusList | async"
+              [value]="focus">
+
+              <div class="option-row">
+
+                <span>{{ focus.label }}</span>
+
+                <button
+                  mat-icon-button
+                  tabindex="-1"
+                  (click)="deleteFocus(focus, $event)">
+                  <mat-icon fontIcon="delete"></mat-icon>
+                </button>
+
+              </div>
+
+            </mat-option>
+
+            <mat-option
+              *ngIf="showCreateOption(inputCtrl.value)"
+              [value]="inputCtrl.value">
+              ➕ Create "{{ inputCtrl.value }}"
+            </mat-option>
+
+          </mat-autocomplete>
+
+        </mat-form-field>
+      </div>
+
+      <div class="row">
+        <mat-form-field appearance="outline" class="full-width">
           <mat-label>Angabe</mat-label>
           <textarea
             matInput

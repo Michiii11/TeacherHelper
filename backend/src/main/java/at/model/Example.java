@@ -46,7 +46,7 @@ public class Example {
             joinColumns = @JoinColumn(name = "example_id"),
             inverseJoinColumns = @JoinColumn(name = "focus_id")
     )
-    private Set<Focus> focusList;
+    private List<Focus> focusList = new ArrayList<>();
 
     @ManyToOne
     private School school;
@@ -76,7 +76,7 @@ public class Example {
 
     public Example() {}
 
-    public Example(User admin, ExampleTypes type, String instruction, String question, ExampleDifficulty difficulty, String solution, School school, Set<Focus> focus) {
+    public Example(User admin, ExampleTypes type, String instruction, String question, ExampleDifficulty difficulty, String solution, School school) {
         this.admin = admin;
         this.type = type;
         this.instruction = instruction;
@@ -84,7 +84,6 @@ public class Example {
         this.difficulty = difficulty;
         this.solution = solution;
         this.school = school;
-        this.focusList = focus;
     }
 
     @Override
@@ -172,11 +171,11 @@ public class Example {
         this.solutionUrl = solutionUrl;
     }
 
-    public Set<Focus> getFocusList() {
+    public List<Focus> getFocusList() {
         return focusList;
     }
 
-    public void setFocusList(Set<Focus> focusList) {
+    public void setFocusList(List<Focus> focusList) {
         this.focusList = focusList;
     }
 }

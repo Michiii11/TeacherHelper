@@ -3,6 +3,7 @@ package at.repository;
 import at.dtos.CreateSchoolDTO;
 import at.dtos.SchoolDTO;
 import at.dtos.UserDTO;
+import at.model.Example;
 import at.model.School;
 import at.model.User;
 import at.model.helper.Focus;
@@ -90,5 +91,41 @@ public class SchoolRepository {
 
     public List<Focus> getFocusList(Long id) {
         return em.createQuery("SELECT s.focusList FROM School s WHERE s.id = :id", Focus.class).setParameter("id", id).getResultList();
+    }
+
+    @Transactional
+    public Focus addFocus(Long id, Focus focus) {
+        School s = em.find(School.class, id);
+
+        Focus f = new Focus(focus.getLabel());
+
+        em.persist(f);
+
+        s.getFocusList().add(f);
+
+        em.merge(s);
+
+        return f;
+    }
+
+    @Transactional
+    public Response deleteFocus(Long id, Long focusId) {
+        School s = em.find(School.class, id);
+        Focus f = em.find(Focus.class, focusId);
+
+        s.getFocusList().remove(f);
+
+        List<Example> exampleList = em.createQuery(
+                        "select e from Example e where :f MEMBER OF e.focusList", Example.class)
+                .setParameter("f", f)
+                .getResultList();
+
+        for(Example e : exampleList){
+            e.getFocusList().remove(f);
+        }
+
+        em.remove(f);
+
+        return Response.ok().build();
     }
 }

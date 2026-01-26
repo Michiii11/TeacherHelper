@@ -56,7 +56,9 @@ public class ExampleRepository {
         User admin = em.find(User.class, userId);
         School school = em.find(School.class, dto.schoolId());
 
-        Example example = new Example(admin, dto.type(), dto.instruction(), dto.question(), dto.difficulty(), dto.solution(), school, dto.focusList());
+        Example example = new Example(admin, dto.type(), dto.instruction(), dto.question(), dto.difficulty(), dto.solution(), school);
+        example.getFocusList().clear();
+        example.getFocusList().addAll(dto.focusList());
 
         System.out.println(dto);
 

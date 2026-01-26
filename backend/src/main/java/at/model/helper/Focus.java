@@ -13,6 +13,9 @@ public class Focus {
 
     private String label;
 
+    public Focus() {
+    }
+
     public Focus(String label) {
         this.label = label;
     }

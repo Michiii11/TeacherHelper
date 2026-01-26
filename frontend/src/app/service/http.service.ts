@@ -67,7 +67,15 @@ export class HttpService {
     return this.http.get<Focus[]>(`${Config.API_URL}/school/${schoolId}/focus`);
   }
 
-  createFocus(schoolId: number, param: {label: string}) {
-    return this.http.post<Focus>(`${Config.API_URL}/school/${schoolId}/focus`, {...param, authToken: localStorage.getItem('teacher_authToken')}, { responseType: 'text' as 'json' });
+  createFocus(schoolId: number, focus: Focus) {
+    return this.http.post<Focus>(`${Config.API_URL}/school/${schoolId}/focus`, focus);
+  }
+
+  deleteFocus(schoolId: number, id: number) {
+    return this.http.delete(`${Config.API_URL}/school/${schoolId}/focus/${id}`,
+      {
+        body: { authToken: localStorage.getItem('teacher_authToken')},
+        responseType: 'text' as 'json'
+      });
   }
 }
