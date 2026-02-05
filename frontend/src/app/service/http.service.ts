@@ -31,7 +31,7 @@ export class HttpService {
       localStorage.getItem('teacher_authToken'));
   }
 
-  getExamples(schoolId: string | null) {
+  getExamples(schoolId: string | null | number) {
     return this.http.get(`${Config.API_URL}/example/school/${schoolId}`);
   }
 
@@ -77,5 +77,9 @@ export class HttpService {
         body: { authToken: localStorage.getItem('teacher_authToken')},
         responseType: 'text' as 'json'
       });
+  }
+
+  getFullExamples(schoolId: number) {
+    return this.http.get(`${Config.API_URL}/example/school/${schoolId}/full`);
   }
 }

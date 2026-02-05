@@ -20,6 +20,61 @@
         </mat-form-field>
       </div>
 
+      <div class="row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Frage hinzufügen</mat-label>
+
+          <input
+            matInput
+            [formControl]="exampleCtrl"
+            [matAutocomplete]="exampleAuto"
+            placeholder="Suchen…"
+          />
+
+          <mat-autocomplete
+            #exampleAuto="matAutocomplete"
+            [displayWith]="displayExample"
+            autoActiveFirstOption
+            (optionSelected)="onExampleSelected($event)"
+          >
+            <mat-option *ngFor="let ex of filteredExamples$ | async" [value]="ex">
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <strong>{{ ex.question }}</strong>
+                <small style="opacity:.75;">{{ ex.instruction }}</small>
+              </div>
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+      </div>
+
+      <div *ngIf="selectedExamples.length > 0">
+        <h3 style="margin: 0 0 8px;">Ausgewählte Fragen</h3>
+
+        <div *ngFor="let ex of selectedExamples" style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+          <div style="flex:1;">
+            <strong>{{ ex.question }}</strong>
+            <div style="opacity:.75; font-size: 12px;">{{ ex.instruction }}</div>
+          </div>
+
+          <div>
+            <mat-form-field>
+              <mat-label>Erreichbare Punkte</mat-label>
+              <input
+                matInput
+                type="number"
+                min="0"
+                name="points-{{ ex.id }}"
+                (input)="markDirty()"
+              />
+            </mat-form-field>
+          </div>
+
+          <button mat-icon-button color="warn" type="button" (click)="removeSelectedExample(ex)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+
       <!-- Dialog Actions -->
       <mat-dialog-actions align="end">
         <button mat-stroked-button type="button" (click)="closeDialog()">Abbrechen</button>
@@ -31,11 +86,97 @@
   <mat-dialog-content class="create-example-layout">
     <h1>Vorschau</h1>
 
-    <div class="preview-panel">
+    <div *ngFor="let example of selectedExamples">
 
+
+      <div class="preview-panel">
+        <div>
+          <p style="white-space: pre-line;">{{ example.instruction }}</p>
+        </div>
+        <p><strong>Aufgabenstellung:</strong></p>
+        <div>
+          <p style="white-space: pre-line;">{{ getQuestionWithGapLabels(example)}}</p>
+        </div>
+
+        @if(example.type === ExampleTypes.HALF_OPEN){
+          <div class="half-open-preview">
+            @for (ans of example.answers; track ans){
+              <p>{{ ans[0] }} = ___________________</p>
+            }
+          </div>
+        }
+
+        @if(example.type === ExampleTypes.CONSTRUCTION){
+          <div class="construction-preview">
+            <img *ngIf="example.imageUrl" [src]="example.imageUrl" alt="Vorschau" class="image-preview" />
+            <p *ngIf="!example.imageUrl">Kein Bild ausgewählt.</p>
+          </div>
+        }
+
+        @if(example.type === ExampleTypes.MULTIPLE_CHOICE){
+          <div class="multiple-choice-preview">
+            <table>
+              @for (option of example.options; track option){
+                <tr>
+                  <td>
+                    {{ option.text }}
+                  </td>
+                  <td class="small">
+                    <mat-pseudo-checkbox></mat-pseudo-checkbox>
+                  </td>
+                </tr>
+              }
+            </table>
+          </div>
+        }
+
+        @if(example.type === ExampleTypes.GAP_FILL){
+          @if(example.gapFillType === 'SELECT'){
+            <div class="gap-fill-preview">
+              @for (gap of example.gaps; track gap){
+                <table>
+                  <tr>
+                    <th>({{gap.label}})</th>
+                  </tr>
+
+                  @for(opt of gap.options; track opt){
+                    <tr>
+                      <td>{{ opt.text }}</td>
+                      <td class="small">
+                        <mat-pseudo-checkbox></mat-pseudo-checkbox>
+                      </td>
+                    </tr>
+                  }
+                </table>
+              }
+            </div>
+          }
+        }
+
+        @if(example.type === ExampleTypes.ASSIGN){
+          <div class="assign-preview">
+            <table class="leftSide">
+              @for(assign of example.assigns; track assign){
+                <tr>
+                  <td>{{ assign.left }}</td>
+                  <td class="fill"></td>
+                </tr>
+              }
+            </table>
+
+            <table class="rightSide">
+              <tr *ngFor="let right of example.assignRightItems; let i = index">
+                <td class="fill">{{ getLetter(i) }}</td>
+                <td>{{ right }}</td>
+              </tr>
+            </table>
+          </div>
+        }
+
+        <mat-divider style="margin-top: 1rem;"></mat-divider>
+      </div>
     </div>
   </mat-dialog-content>
-
 </main>
 
 

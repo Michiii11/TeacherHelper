@@ -43,6 +43,7 @@ export interface Example {
   gaps: Gap[]
   assigns: Assign[]
   assignRightItems: string[]
+  difficulty: ExampleDifficulty;
 }
 
 export interface CreateExampleDTO {

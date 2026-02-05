@@ -50,6 +50,13 @@ public class ExampleRepository {
         ).collect(Collectors.toList());
     }
 
+    public List<Example> getFullExamples(Long schoolId) {
+        return em.createQuery(
+                "SELECT e FROM Example e WHERE e.school.id = :schoolId ORDER BY e.id",
+                Example.class
+        ).setParameter("schoolId", schoolId).getResultList();
+    }
+
     @Transactional
     public Response createExample(CreateExampleDTO dto) throws IOException {
         Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
