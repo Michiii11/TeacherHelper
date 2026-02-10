@@ -3,7 +3,6 @@ package at.model;
 import at.enums.TestCreationStates;
 import jakarta.persistence.*;
 
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -22,18 +21,13 @@ public class Test {
 
     private TestCreationStates state;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "test_examples",
-            joinColumns = @JoinColumn(name = "test_id"),
-            inverseJoinColumns = @JoinColumn(name = "example_id")
-    )
-    private Set<Example> exampleList;
+    @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<TestExample> exampleList;
 
     @ManyToOne
     private School school;
 
-    public Test(String name, Set<Example> exampleList, User admin, School school, int duration, TestCreationStates state) {
+    public Test(String name, Set<TestExample> exampleList, User admin, School school, int duration, TestCreationStates state) {
         this.name = name;
         this.exampleList = exampleList;
         this.school = school;
@@ -90,11 +84,11 @@ public class Test {
         this.name = name;
     }
 
-    public Set<Example> getExampleList() {
+    public Set<TestExample> getExampleList() {
         return exampleList;
     }
 
-    public void setExampleList(Set<Example> exampleList) {
+    public void setExampleList(Set<TestExample> exampleList) {
         this.exampleList = exampleList;
     }
 }

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { MAT_DIALOG_DATA, MatDialog, MatDialogActions, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
-import {MatButton, MatIconButton} from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CdkTextareaAutosize } from '@angular/cdk/text-field';
 
@@ -18,11 +18,11 @@ import { MatDividerModule } from '@angular/material/divider';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 
-import {Example, ExampleOverviewDTO, ExampleTypes} from '../../model/Example';
-import { TestCreationStates } from '../../model/Test';
+import { Example, ExampleTypes } from '../../model/Example';
+import {CreateTestDTO, TestCreationStates, TestExample} from '../../model/Test';
 import { HttpService } from '../../service/http.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
-import {MatPseudoCheckbox} from '@angular/material/core'
+import { MatPseudoCheckbox } from '@angular/material/core';
 
 @Component({
   selector: 'app-create-test',
@@ -59,11 +59,12 @@ export class CreateTestComponent implements OnInit {
   // -----------------------------
   // Test model
   // -----------------------------
-  test = {
+  test: CreateTestDTO = {
     authToken: '',
     schoolId: this.data.schoolId,
     name: '',
-    exampleList: [] as Example[],
+    note: '',
+    exampleList: [] as TestExample[],
     duration: 0,
     state: TestCreationStates.DRAFT,
   };
@@ -75,7 +76,7 @@ export class CreateTestComponent implements OnInit {
   // Examples (available + selected)
   // -----------------------------
   private allExamplesSubject = new BehaviorSubject<Example[]>([]);
-  private selectedExamplesSubject = new BehaviorSubject<Example[]>([]);
+  private selectedExamplesSubject = new BehaviorSubject<TestExample[]>([]);
 
   /** Input control for autocomplete */
   exampleCtrl = new FormControl<string | Example>('');
@@ -87,7 +88,7 @@ export class CreateTestComponent implements OnInit {
     this.exampleCtrl.valueChanges.pipe(startWith('')),
   ]).pipe(
     map(([all, selected, raw]) => {
-      const selectedIds = new Set(selected.map((s) => s.id));
+      const selectedIds = new Set(selected.map((s) => s.example.id));
       const query = this.normalize(typeof raw === 'string' ? raw : this.displayExample(raw));
 
       // available = all - selected
@@ -116,14 +117,11 @@ export class CreateTestComponent implements OnInit {
           this.test = response;
           this.isEditMode = true;
 
-          // Falls dein Backend beim Editieren bereits exampleList liefert:
-          // -> Optional: hier könntest du die IDs zurück auf ExampleOverviewDTO mappen,
-          // sobald allExamples geladen sind. (Wenn du das brauchst, sag kurz Bescheid.)
+          // Keep UI selection in sync with backend payload (TestExample[])
+          this.selectedExamplesSubject.next(this.test.exampleList ?? []);
         },
       });
     }
-
-    console.log(this.data.schoolId)
 
     this.service.getFullExamples(this.data.schoolId).subscribe((examples) => {
       this.allExamplesSubject.next(examples as Example[]);
@@ -137,39 +135,41 @@ export class CreateTestComponent implements OnInit {
   displayExample = (value: Example | string | null): string => {
     if (!value) return '';
     if (typeof value === 'string') return value;
-
-    // Kurz & hilfreich: Frage anzeigen (optional mit Typ/Schwierigkeit)
     return value.question?.trim() ?? '';
   };
 
   onExampleSelected(event: MatAutocompleteSelectedEvent) {
     const picked = event.option.value as Example;
     this.addExampleToSelection(picked);
-
-    // input clear (so list shows all available again)
     this.exampleCtrl.setValue('');
   }
 
   addExampleToSelection(example: Example) {
     const current = this.selectedExamplesSubject.value;
 
-    // prevent duplicates by id
-    if (current.some((x) => x.id === example.id)) return;
+    if (current.some((x) => x.example?.id === example.id)) return;
 
-    const next = [...current, example];
+    const newEntry: TestExample = {
+      example,
+      points: 0,
+      title: '',
+      test: undefined as any,
+    };
+
+    const next: TestExample[] = [...current, newEntry];
     this.selectedExamplesSubject.next(next);
-    this.syncSelectionToTest(next);
+    this.test.exampleList = [...next];
     this.markDirty();
   }
 
-  removeSelectedExample(example: Example) {
-    const next = this.selectedExamplesSubject.value.filter((x) => x.id !== example.id);
+  removeSelectedExample(entry: TestExample) {
+    const next = this.selectedExamplesSubject.value.filter((x) => x.example.id !== entry.example.id);
     this.selectedExamplesSubject.next(next);
-    this.syncSelectionToTest(next);
+    this.test.exampleList = [...next];
     this.markDirty();
   }
 
-  get selectedExamples(): Example[] {
+  get selectedExamples(): TestExample[] {
     return this.selectedExamplesSubject.value;
   }
 
@@ -178,16 +178,13 @@ export class CreateTestComponent implements OnInit {
   // -----------------------------
   /**
    * Keep test.exampleList in sync.
-   * Minimal mapping: only id is guaranteed, rest depends on your backend contract.
    */
-  private syncSelectionToTest(selected: Example[]) {
-    this.test.exampleList = selected.map((e) => ({ id: e.id } as unknown as Example));
+  private syncSelectionToTest(selected: TestExample[]) {
+    // CreateTestDTO expects TestExample[] => { example: Example, points: number }
+    this.test.exampleList = [...selected];
   }
 
   protected saveTest() {
-    // Implementiere hier deine bestehende Save-Logik (create/update) – ich lasse es bewusst clean,
-    // weil ich deinen HttpService Contract nicht sehe.
-    // Wichtig: this.test.exampleList ist bereits synchronisiert.
     this.hasUnsavedChanges = false;
     this.dialogRef.close(this.test);
   }
@@ -231,12 +228,11 @@ export class CreateTestComponent implements OnInit {
   }
 
   private matchesQuery(e: Example, query: string): boolean {
-    // Du kannst hier beliebig erweitern
     const haystack = this.normalize(
       [
         e.question,
         e.instruction,
-        e.admin.username,
+        e.admin?.username ?? '',
         String(e.id),
         String(e.type ?? ''),
         String(e.difficulty ?? ''),
@@ -245,7 +241,7 @@ export class CreateTestComponent implements OnInit {
     return haystack.includes(query);
   }
 
-  protected readonly ExampleTypes = ExampleTypes
+  protected readonly ExampleTypes = ExampleTypes;
 
   getQuestionWithGapLabels(example: Example): string {
     let idx = 0;

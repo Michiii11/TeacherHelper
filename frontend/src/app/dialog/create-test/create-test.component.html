@@ -22,6 +22,22 @@
 
       <div class="row">
         <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Notiz</mat-label>
+          <textarea
+            matInput
+            [(ngModel)]="test.note"
+            name="instruction"
+            (input)="markDirty()"
+            placeholder="Rechne sorgfältig, schreibe sauber, ..."
+            cdkTextareaAutosize
+            cdkAutosizeMinRows="2"
+            cdkAutosizeMaxRows="10">
+          </textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="row">
+        <mat-form-field appearance="outline" class="full-width">
           <mat-label>Frage hinzufügen</mat-label>
 
           <input
@@ -50,26 +66,40 @@
       <div *ngIf="selectedExamples.length > 0">
         <h3 style="margin: 0 0 8px;">Ausgewählte Fragen</h3>
 
-        <div *ngFor="let ex of selectedExamples" style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <div *ngFor="let entry of selectedExamples"
+             style="display:flex; align-items:flex-start; gap:8px; margin-bottom:8px;">
+
           <div style="flex:1;">
-            <strong>{{ ex.question }}</strong>
-            <div style="opacity:.75; font-size: 12px;">{{ ex.instruction }}</div>
+            <strong>{{ entry.example.question }}</strong>
+            <div style="opacity:.75; font-size: 12px;">{{ entry.example.instruction }}</div>
+
+            <mat-form-field style="width:100%; margin-top:6px;">
+              <mat-label>Aufgabentitel (optional)</mat-label>
+              <input
+                matInput
+                name="title-{{ entry.example.id }}"
+                [(ngModel)]="entry.title"
+                (ngModelChange)="markDirty()"
+                placeholder="z.B. Gewinde berechnen"
+              />
+            </mat-form-field>
           </div>
 
-          <div>
-            <mat-form-field>
+          <div style="min-width:180px;">
+            <mat-form-field style="width:100%;">
               <mat-label>Erreichbare Punkte</mat-label>
               <input
                 matInput
                 type="number"
                 min="0"
-                name="points-{{ ex.id }}"
-                (input)="markDirty()"
+                name="points-{{ entry.example.id }}"
+                [(ngModel)]="entry.points"
+                (ngModelChange)="markDirty()"
               />
             </mat-form-field>
           </div>
 
-          <button mat-icon-button color="warn" type="button" (click)="removeSelectedExample(ex)">
+          <button mat-icon-button color="warn" type="button" (click)="removeSelectedExample(entry)">
             <mat-icon>delete</mat-icon>
           </button>
         </div>
@@ -86,65 +116,95 @@
   <mat-dialog-content class="create-example-layout">
     <h1>Vorschau</h1>
 
-    <div *ngFor="let example of selectedExamples">
+    <h2>{{ test.name }}</h2>
 
+    <p>Name:   _________________________</p>
+    <p>Klasse: _________________________</p>
+    <p>Datum:  _________________________</p>
+
+    <table>
+      <tr>
+        <th>Erreichte Punkte</th>
+        <th>Note</th>
+      </tr>
+      <tr>
+        <td></td>
+        <td></td>
+      </tr>
+    </table>
+
+    <p>Notenschlüssel</p>
+    <table>
+      <tr>
+        <th>Punkte:</th>
+      </tr>
+      <tr>
+        <td>Note:</td>
+        <td>Sehr gut</td>
+        <td>Gut</td>
+        <td>Befriedigend</td>
+        <td>Genügend</td>
+        <td>Nicht genügend</td>
+      </tr>
+    </table>
+
+    <p>{{test.note}}</p>
+
+    <h3>Viel Erfolg!</h3>
+
+    <div *ngFor="let entry of selectedExamples; let i = index">
+      <p>
+        Aufgabe {{ i + 1 }}:
+        {{ entry.title?.trim() ? entry.title : entry.example.question }}
+        ( __ / {{ entry.points || '__' }} Punkte)
+      </p>
 
       <div class="preview-panel">
-        <div>
-          <p style="white-space: pre-line;">{{ example.instruction }}</p>
-        </div>
-        <p><strong>Aufgabenstellung:</strong></p>
-        <div>
-          <p style="white-space: pre-line;">{{ getQuestionWithGapLabels(example)}}</p>
-        </div>
+        <p style="white-space: pre-line;">{{ entry.example.instruction }}</p>
 
-        @if(example.type === ExampleTypes.HALF_OPEN){
+        <p><strong>Aufgabenstellung:</strong></p>
+        <p style="white-space: pre-line;">
+          {{ getQuestionWithGapLabels(entry.example) }}
+        </p>
+
+        @if(entry.example.type === ExampleTypes.HALF_OPEN){
           <div class="half-open-preview">
-            @for (ans of example.answers; track ans){
+            @for (ans of entry.example.answers; track ans){
               <p>{{ ans[0] }} = ___________________</p>
             }
           </div>
         }
 
-        @if(example.type === ExampleTypes.CONSTRUCTION){
+        @if(entry.example.type === ExampleTypes.CONSTRUCTION){
           <div class="construction-preview">
-            <img *ngIf="example.imageUrl" [src]="example.imageUrl" alt="Vorschau" class="image-preview" />
-            <p *ngIf="!example.imageUrl">Kein Bild ausgewählt.</p>
+            <img *ngIf="entry.example.imageUrl" [src]="entry.example.imageUrl" alt="Vorschau" class="image-preview" />
+            <p *ngIf="!entry.example.imageUrl">Kein Bild ausgewählt.</p>
           </div>
         }
 
-        @if(example.type === ExampleTypes.MULTIPLE_CHOICE){
+        @if(entry.example.type === ExampleTypes.MULTIPLE_CHOICE){
           <div class="multiple-choice-preview">
             <table>
-              @for (option of example.options; track option){
+              @for (option of entry.example.options; track option){
                 <tr>
-                  <td>
-                    {{ option.text }}
-                  </td>
-                  <td class="small">
-                    <mat-pseudo-checkbox></mat-pseudo-checkbox>
-                  </td>
+                  <td>{{ option.text }}</td>
+                  <td class="small"><mat-pseudo-checkbox></mat-pseudo-checkbox></td>
                 </tr>
               }
             </table>
           </div>
         }
 
-        @if(example.type === ExampleTypes.GAP_FILL){
-          @if(example.gapFillType === 'SELECT'){
+        @if(entry.example.type === ExampleTypes.GAP_FILL){
+          @if(entry.example.gapFillType === 'SELECT'){
             <div class="gap-fill-preview">
-              @for (gap of example.gaps; track gap){
+              @for (gap of entry.example.gaps; track gap){
                 <table>
-                  <tr>
-                    <th>({{gap.label}})</th>
-                  </tr>
-
+                  <tr><th>({{ gap.label }})</th></tr>
                   @for(opt of gap.options; track opt){
                     <tr>
                       <td>{{ opt.text }}</td>
-                      <td class="small">
-                        <mat-pseudo-checkbox></mat-pseudo-checkbox>
-                      </td>
+                      <td class="small"><mat-pseudo-checkbox></mat-pseudo-checkbox></td>
                     </tr>
                   }
                 </table>
@@ -153,10 +213,10 @@
           }
         }
 
-        @if(example.type === ExampleTypes.ASSIGN){
+        @if(entry.example.type === ExampleTypes.ASSIGN){
           <div class="assign-preview">
             <table class="leftSide">
-              @for(assign of example.assigns; track assign){
+              @for(assign of entry.example.assigns; track assign){
                 <tr>
                   <td>{{ assign.left }}</td>
                   <td class="fill"></td>
@@ -165,8 +225,8 @@
             </table>
 
             <table class="rightSide">
-              <tr *ngFor="let right of example.assignRightItems; let i = index">
-                <td class="fill">{{ getLetter(i) }}</td>
+              <tr *ngFor="let right of entry.example.assignRightItems; let j = index">
+                <td class="fill">{{ getLetter(j) }}</td>
                 <td>{{ right }}</td>
               </tr>
             </table>
@@ -178,7 +238,3 @@
     </div>
   </mat-dialog-content>
 </main>
-
-
-
-

@@ -12,8 +12,15 @@ export interface Test {
   name: string;
   duration: number;
   state: TestCreationStates;
-  exampleList: Example[];
+  exampleList: TestExample[];
   school: School;
+}
+
+export interface TestExample{
+  example: Example;
+  test: Test;
+  points: number;
+  title: string;
 }
 
 export interface TestOverviewDTO {
@@ -30,7 +37,8 @@ export interface CreateTestDTO {
   authToken: string;
   schoolId: number;
   name: string;
-  exampleList: Example[];
+  note: string;
+  exampleList: TestExample[];
   duration: number;
   state: TestCreationStates;
 }
