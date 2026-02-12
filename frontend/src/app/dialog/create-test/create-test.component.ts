@@ -16,10 +16,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import {map, startWith, takeUntil} from 'rxjs/operators';
 
 import { Example, ExampleTypes } from '../../model/Example';
-import {CreateTestDTO, TestCreationStates, TestExample} from '../../model/Test';
+import {CreateTestDTO, TestCreationStates, TestExample, TestExampleDTO} from '../../model/Test';
 import { HttpService } from '../../service/http.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { MatPseudoCheckbox } from '@angular/material/core';
@@ -76,7 +76,7 @@ export class CreateTestComponent implements OnInit {
   // Examples (available + selected)
   // -----------------------------
   private allExamplesSubject = new BehaviorSubject<Example[]>([]);
-  private selectedExamplesSubject = new BehaviorSubject<TestExample[]>([]);
+  private selectedExamplesSubject = new BehaviorSubject<TestExampleDTO[]>([]);
 
   /** Input control for autocomplete */
   exampleCtrl = new FormControl<string | Example>('');
@@ -112,9 +112,11 @@ export class CreateTestComponent implements OnInit {
 
   ngOnInit() {
     if (this.data.testId) {
+      console.log(`Loading test with ID ${this.data.testId} for editing...`);
       this.service.getCreateTest(this.data.testId).subscribe({
         next: (response) => {
           this.test = response;
+          console.log(this.test)
           this.isEditMode = true;
 
           // Keep UI selection in sync with backend payload (TestExample[])
@@ -125,7 +127,6 @@ export class CreateTestComponent implements OnInit {
 
     this.service.getFullExamples(this.data.schoolId).subscribe((examples) => {
       this.allExamplesSubject.next(examples as Example[]);
-      console.log('Loaded examples for school', this.data.schoolId, examples);
     });
   }
 
@@ -150,26 +151,27 @@ export class CreateTestComponent implements OnInit {
     if (current.some((x) => x.example?.id === example.id)) return;
 
     const newEntry: TestExample = {
+      id: -1,
       example,
       points: 0,
       title: '',
       test: undefined as any,
     };
 
-    const next: TestExample[] = [...current, newEntry];
+    const next: TestExampleDTO[] = [...current, newEntry];
     this.selectedExamplesSubject.next(next);
     this.test.exampleList = [...next];
     this.markDirty();
   }
 
-  removeSelectedExample(entry: TestExample) {
+  removeSelectedExample(entry: TestExampleDTO) {
     const next = this.selectedExamplesSubject.value.filter((x) => x.example.id !== entry.example.id);
     this.selectedExamplesSubject.next(next);
     this.test.exampleList = [...next];
     this.markDirty();
   }
 
-  get selectedExamples(): TestExample[] {
+  get selectedExamples(): TestExampleDTO[] {
     return this.selectedExamplesSubject.value;
   }
 
@@ -179,14 +181,27 @@ export class CreateTestComponent implements OnInit {
   /**
    * Keep test.exampleList in sync.
    */
-  private syncSelectionToTest(selected: TestExample[]) {
-    // CreateTestDTO expects TestExample[] => { example: Example, points: number }
+  private syncSelectionToTest(selected: TestExampleDTO[]) {
+    // CreateTestDTO expects TestExampleDTO[] => { example: Example, points: number }
     this.test.exampleList = [...selected];
   }
 
   protected saveTest() {
     this.hasUnsavedChanges = false;
     this.dialogRef.close(this.test);
+
+    this.test.authToken = localStorage.getItem('teacher_authToken') || '';
+    this.test.schoolId = Number(this.test.schoolId || this.data.schoolId);
+    this.test.exampleList = this.selectedExamplesSubject.value;
+
+    console.log(this.test)
+    this.service.createTest(this.test).subscribe({
+      next: () => {
+        this.snackBar.open('Test erfolgreich erstellt', 'OK', { duration: 3000 });
+        this.hasUnsavedChanges = false;
+        this.dialogRef.close(this.test);
+      }
+    })
   }
 
   // -----------------------------
@@ -254,5 +269,10 @@ export class CreateTestComponent implements OnInit {
 
   getLetter(i: number): string {
     return String.fromCharCode(65 + i);
+  }
+
+  printPreview() {
+    document.title = this.test.name || 'Test';
+    window.print();
   }
 }

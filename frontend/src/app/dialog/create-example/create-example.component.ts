@@ -378,6 +378,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
+          this.snackBar.open('Beispiel erfolgreich erstellt', 'OK', { duration: 3000 });
           this.hasUnsavedChanges = false;
           this.dialogRef.close(this.example);
         }

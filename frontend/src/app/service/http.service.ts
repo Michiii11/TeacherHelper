@@ -82,4 +82,16 @@ export class HttpService {
   getFullExamples(schoolId: number) {
     return this.http.get(`${Config.API_URL}/example/school/${schoolId}/full`);
   }
+
+  createTest(test: CreateTestDTO) {
+    return this.http.post(`${Config.API_URL}/test`, test, { responseType: 'text' as 'json' });
+  }
+
+  deleteTest(id: number) {
+    return this.http.delete(`${Config.API_URL}/test/${id}`,
+      {
+        body: { authToken: localStorage.getItem('teacher_authToken')},
+        responseType: 'text' as 'json'
+      });
+  }
 }

@@ -17,8 +17,6 @@ mat-dialog-content{
 }
 
 .create-example-dialog {
-  max-width: 920px;
-  width: 100%;
   box-sizing: border-box;
   color: #1f2937;
 }
@@ -167,10 +165,6 @@ mat-button-toggle{
   .insert-gap-btn { position: static; margin-top: 0.5rem; }
 }
 
-.preview-panel{
-  margin-top: 2rem;
-}
-
 .create-example-layout{
   table{
     margin-top: 1rem;
@@ -231,3 +225,207 @@ mat-button-toggle{
 }
 
 
+
+.result-table{
+  th, td {
+    width: 50%;
+  }
+}
+
+
+
+
+/* Screen layout */
+.print-area {
+  background: #fff;
+  color: #000;
+  padding: 24px;
+  max-width: 900px;
+}
+
+.preline {
+  white-space: pre-line;
+}
+
+.test-header {
+  .test-title {
+    margin: 0 0 12px 0;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  .meta p {
+    margin: 4px 0;
+  }
+
+  .result-table,
+  .grading-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+  }
+
+  .result-table th,
+  .result-table td,
+  .grading-table th,
+  .grading-table td {
+    border: 1px solid #000;
+    padding: 6px 8px;
+    vertical-align: top;
+  }
+
+  .grading-title {
+    margin: 12px 0 6px 0;
+    font-weight: 700;
+  }
+
+  .teacher-note {
+    margin: 12px 0;
+  }
+
+  .good-luck {
+    margin: 16px 0 0 0;
+  }
+
+  .header-divider {
+    margin: 16px 0 0 0;
+  }
+}
+
+/* Tasks */
+.task {
+  margin-top: 18px;
+}
+
+.task-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 700;
+  margin-bottom: 10px;
+
+  .task-title {
+    flex: 1;
+  }
+
+  .task-points {
+    white-space: nowrap;
+  }
+}
+
+.task-divider {
+  margin-top: 10rem;
+}
+
+/* Make construction images nicer */
+.image-preview {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid #000;
+  margin-top: 8px;
+}
+
+@media print {
+  /* Browser/Angular dürfen beim Print NICHT scrollen */
+  html, body {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Material Dialog: kein max-height/scroll */
+  .mat-mdc-dialog-container,
+  .mat-mdc-dialog-surface,
+  .mat-mdc-dialog-content {
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Falls du irgendwo ein Wrapper mit overflow hast */
+  .create-example-layout,
+  .create-test-layout,
+  .print-area {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+
+  /* Print area wirklich bei 0,0 starten */
+  .print-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important; /* wenn du oben wirklich 0 willst */
+  }
+
+  /* Alles andere ausblenden */
+  body * { visibility: hidden !important; }
+  .print-area, .print-area * { visibility: visible !important; }
+}
+
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;  /* das ist dein "Druckrand" */
+  }
+}
+
+@media print {
+  .task { break-inside: auto; }              /* darf umbrechen */
+  .task-head { break-after: avoid; }         /* Header nicht allein am Seitenende */
+  .preview-panel { break-inside: auto; }
+}
+
+
+/* PRINT */
+@media print {
+  /* Hide everything except the print area */
+  body * {
+    visibility: hidden !important;
+  }
+
+  .print-area, .print-area * {
+    visibility: visible !important;
+  }
+
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+  }
+
+  /* Hide dialog chrome & buttons */
+  .print-actions,
+  h1 {
+    display: none !important;
+  }
+
+  /* A4-ish spacing */
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+
+  /* Page breaks: each task can start on a new page if it doesn’t fit */
+  .task {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Optional: force each task to new page (wenn du willst) */
+  /* .task { page-break-before: always; } */
+  /* .task:first-of-type { page-break-before: auto; } */
+
+  /* Mat pseudo checkbox might not print nicely - optional fallback */
+  mat-pseudo-checkbox {
+    display: none !important;
+  }
+  .multiple-choice-preview td.small::before,
+  .gap-fill-preview td.small::before {
+    content: "☐";
+  }
+}

@@ -200,7 +200,7 @@ export class SchoolComponent {
       maxWidth: 'none',
       data: { schoolId: this.schoolId }
     }).afterClosed().subscribe(result => {
-      this.loadExamples();
+      this.loadTests();
     });
   }
 
@@ -258,7 +258,24 @@ export class SchoolComponent {
   }
 
   protected deleteTest(test: TestOverviewDTO) {
+    const title = test.name || test.id || 'der Test';
 
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      data: {
+        title: 'Test löschen',
+        message: `Test "${title}" wirklich löschen?`,
+        confirmText: 'Löschen',
+        cancelText: 'Abbrechen'
+      }
+    });
+
+    ref.afterClosed().subscribe(confirmed => {
+      if (!confirmed) return;
+      this.service.deleteTest(test.id).subscribe(() => {
+        this.loadTests();
+      });
+    });
   }
 
   protected getFocusList(focus: Focus[]) {

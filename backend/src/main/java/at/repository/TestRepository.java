@@ -1,10 +1,7 @@
 package at.repository;
 
 import at.dtos.*;
-import at.model.Example;
-import at.model.School;
-import at.model.Test;
-import at.model.User;
+import at.model.*;
 import at.model.helper.Gap;
 import at.security.TokenService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -42,9 +39,14 @@ public class TestRepository {
         User admin = em.find(User.class, userId);
         School school = em.find(School.class, dto.schoolId());
 
-        Test test = new Test(dto.name(), dto.exampleList(), admin, school, dto.duration(), dto.state());
-
+        Test test = new Test(dto.name(), admin, school, dto.duration(), dto.state());
         em.persist(test);
+
+        dto.exampleList().forEach(example -> {
+            TestExample testExample = new TestExample(test, example.example(), example.points(), example.title());
+            em.persist(testExample);
+            test.getExampleList().add(testExample);
+        });
 
         return Response.ok().build();
     }
@@ -59,7 +61,18 @@ public class TestRepository {
 
         test.setName(dto.name());
         test.getExampleList().clear();
-        test.getExampleList().addAll(dto.exampleList());
+
+        test.getExampleList().clear();
+        List<TestExample> examplesToRemove = em.createQuery("SELECT te FROM TestExample te WHERE te.test.id = :testId", TestExample.class)
+                .setParameter("testId", testId)
+                .getResultList();
+        examplesToRemove.forEach(em::remove);
+
+        dto.exampleList().forEach(example -> {
+            TestExample testExample = new TestExample(test, example.example(), example.points(), example.title());
+            em.persist(testExample);
+            test.getExampleList().add(testExample);
+        });
         test.setDuration(dto.duration());
         test.setState(dto.state());
 
@@ -94,10 +107,13 @@ public class TestRepository {
             return null;
         }
 
+        List<TestExampleDTO> exampleList = new LinkedList<>();
+        t.getExampleList().forEach(example -> exampleList.add(new TestExampleDTO(example.getExample(), example.getPoints(), example.getTitle())));
+
         return new CreateTestDTO("",
                 t.getSchool().getId(),
                 t.getName(),
-                t.getExampleList(),
+                exampleList,
                 t.getDuration(),
                 t.getState());
     }
