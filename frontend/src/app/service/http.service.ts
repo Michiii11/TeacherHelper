@@ -94,4 +94,8 @@ export class HttpService {
         responseType: 'text' as 'json'
       });
   }
+
+  saveTest(testId: number, test: CreateTestDTO) {
+    return this.http.put(`${Config.API_URL}/test/${testId}`, test, { responseType: 'text' as 'json' });
+  }
 }

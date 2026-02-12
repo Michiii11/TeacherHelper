@@ -19,6 +19,8 @@ public class Test {
     @Column(nullable = false)
     private String name;
 
+    private String note;
+
     private int duration;
 
     private TestCreationStates state;
@@ -32,8 +34,9 @@ public class Test {
     public Test() {
     }
 
-    public Test(String name, User admin, School school, int duration, TestCreationStates state) {
+    public Test(String name, String note, User admin, School school, int duration, TestCreationStates state) {
         this.name = name;
+        this.note = note;
         this.school = school;
         this.admin = admin;
         this.duration = duration;
@@ -94,5 +97,13 @@ public class Test {
 
     public void setExampleList(List<TestExample> exampleList) {
         this.exampleList = exampleList;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 }

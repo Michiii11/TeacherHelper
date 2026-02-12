@@ -5,11 +5,6 @@ import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogActions, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { CdkTextareaAutosize } from '@angular/cdk/text-field';
-
-import { MatFormField } from '@angular/material/input';
-import { MatInput } from '@angular/material/input';
-import { MatLabel } from '@angular/material/input';
 
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatIconModule } from '@angular/material/icon';
@@ -30,28 +25,18 @@ import { MatPseudoCheckbox } from '@angular/material/core';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-
     MatButton,
-    MatDialogActions,
-    MatDialogContent,
-
-    CdkTextareaAutosize,
-    MatFormField,
-    MatInput,
-    MatLabel,
-
     MatAutocompleteModule,
     MatIconModule,
     MatDividerModule,
-    MatIconButton,
     MatPseudoCheckbox,
   ],
-  templateUrl: './create-test.component.html',
-  styleUrl: './create-test.component.scss',
+  templateUrl: './test-preview.component.html',
+  styleUrl: './test-preview.component.scss',
 })
-export class CreateTestComponent implements OnInit {
+export class TestPreviewComponent implements OnInit {
   data = inject<{ schoolId: number; testId: number }>(MAT_DIALOG_DATA);
-  private dialogRef = inject(MatDialogRef<CreateTestComponent>);
+  private dialogRef = inject(MatDialogRef<TestPreviewComponent>);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private service = inject(HttpService);

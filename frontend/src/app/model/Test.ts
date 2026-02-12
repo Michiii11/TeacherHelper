@@ -10,6 +10,7 @@ export interface Test {
   id: number;
   admin: User;
   name: string;
+  note: string;
   duration: number;
   state: TestCreationStates;
   exampleList: TestExample[];

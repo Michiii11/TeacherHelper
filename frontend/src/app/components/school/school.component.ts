@@ -22,6 +22,7 @@ import {ExampleDifficulty, ExampleOverviewDTO, ExampleTypeLabels, ExampleTypes, 
 import {ConfirmDialogComponent} from '../../dialog/confirm-dialog/confirm-dialog.component'
 import {TestOverviewDTO} from '../../model/Test'
 import {CreateTestComponent} from '../../dialog/create-test/create-test.component'
+import {TestPreviewComponent} from '../../dialog/test-preview/test-preview.component'
 
 @Component({
   selector: 'app-school',
@@ -244,7 +245,13 @@ export class SchoolComponent {
   protected readonly ExampleTypeLabels = ExampleTypeLabels
 
   protected openTest(test: TestOverviewDTO) {
-
+    this.dialog.open(TestPreviewComponent, {
+      width: '800px',
+      maxWidth: 'none',
+      data: { schoolId: this.schoolId, testId: test.id }
+    }).afterClosed().subscribe(result => {
+      this.loadTests();
+    });
   }
 
   protected editTest(test: TestOverviewDTO) {
@@ -253,7 +260,7 @@ export class SchoolComponent {
       maxWidth: 'none',
       data: { schoolId: this.schoolId, testId: test.id }
     }).afterClosed().subscribe(result => {
-      this.loadExamples();
+      this.loadTests();
     });
   }
 

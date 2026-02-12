@@ -39,7 +39,7 @@ public class TestRepository {
         User admin = em.find(User.class, userId);
         School school = em.find(School.class, dto.schoolId());
 
-        Test test = new Test(dto.name(), admin, school, dto.duration(), dto.state());
+        Test test = new Test(dto.name(), dto.note(), admin, school, dto.duration(), dto.state());
         em.persist(test);
 
         dto.exampleList().forEach(example -> {
@@ -113,6 +113,7 @@ public class TestRepository {
         return new CreateTestDTO("",
                 t.getSchool().getId(),
                 t.getName(),
+                t.getNote(),
                 exampleList,
                 t.getDuration(),
                 t.getState());
