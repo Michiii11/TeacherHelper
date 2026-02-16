@@ -48,10 +48,7 @@ public class SchoolRepository {
     public List<SchoolDTO> getAllSchools() {
         List<School> schools = em.createQuery("SELECT s FROM School s", School.class).getResultList();
         return schools.stream()
-                .map(school -> new SchoolDTO(school.getId(), school.getName(), new UserDTO(
-                        school.getAdmin().getUsername(),
-                        school.getAdmin().getEmail(),
-                        school.getAdmin().getPassword()), 0))
+                .map(school -> new SchoolDTO(school.getId(), school.getName(), school.getAdmin(), 0))
                 .toList();
     }
 
@@ -60,10 +57,7 @@ public class SchoolRepository {
         if (school == null) {
             return null;
         }
-        return new SchoolDTO(school.getId(), school.getName(), new UserDTO(
-                school.getAdmin().getUsername(),
-                school.getAdmin().getEmail(),
-                school.getAdmin().getPassword()), 0);
+        return new SchoolDTO(school.getId(), school.getName(), school.getAdmin(), 0);
     }
 
     public List<SchoolDTO> getYourSchools(String auth) {
@@ -82,10 +76,7 @@ public class SchoolRepository {
                 .getResultList();
 
         return schools.stream()
-                .map(school -> new SchoolDTO(school.getId(), school.getName(), new UserDTO(
-                        school.getAdmin().getUsername(),
-                        school.getAdmin().getEmail(),
-                        school.getAdmin().getPassword()), 0))
+                .map(school -> new SchoolDTO(school.getId(), school.getName(), school.getAdmin(), 0))
                 .toList();
     }
 

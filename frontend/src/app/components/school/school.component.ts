@@ -23,6 +23,7 @@ import {ConfirmDialogComponent} from '../../dialog/confirm-dialog/confirm-dialog
 import {TestOverviewDTO} from '../../model/Test'
 import {CreateTestComponent} from '../../dialog/create-test/create-test.component'
 import {TestPreviewComponent} from '../../dialog/test-preview/test-preview.component'
+import {ExamplePreviewComponent} from '../../dialog/example-preview/example-preview.component'
 
 @Component({
   selector: 'app-school',
@@ -106,9 +107,16 @@ export class SchoolComponent {
     { title: 'Letzte Änderung', value: '2 Std. zuvor', sub: 'von Admin', icon: 'history' }
   ]
 
+  currentUserId = -1;
+
+
   ngOnInit(){
     this.loadExamples()
     this.loadTests()
+
+    this.service.getUserId().subscribe(id => {
+      this.currentUserId = id as number;
+    })
   }
 
   loadExamples(){
@@ -206,6 +214,16 @@ export class SchoolComponent {
   }
 
   openSettings() { console.log('open settings'); }
+
+  openExample(e: any){
+    this.dialog.open(ExamplePreviewComponent, {
+      width: '800px',
+      maxWidth: 'none',
+      data: { schoolId: this.schoolId, exampleId: e.id }
+    }).afterClosed().subscribe(result => {
+      this.loadExamples();
+    });
+  }
 
   editExample(e: any) {
     this.dialog.open(CreateExampleComponent, {

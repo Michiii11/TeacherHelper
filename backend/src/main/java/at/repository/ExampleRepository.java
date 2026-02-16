@@ -103,8 +103,16 @@ public class ExampleRepository {
     public Response updateExample(Long exampleId, CreateExampleDTO dto) {
         Example example = em.find(Example.class, exampleId);
 
+        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
+
         if(tokenService.validateTokenAndGetUserId(dto.authToken()) == null){
             return Response.status(500).build();
+        }
+
+        if(example.getAdmin().getId() != userId && example.getSchool().getAdmin().getId() != userId){
+            return Response.status(403)
+                    .entity("Not allowed to update this Example.")
+                    .build();
         }
 
         example.setType(dto.type());
@@ -170,10 +178,6 @@ public class ExampleRepository {
         Long userId = tokenService.validateTokenAndGetUserId(authToken);
 
         Example e = em.find(Example.class, exampleId);
-
-        if(e.getAdmin().getId() != userId && e.getSchool().getAdmin().getId() != userId){
-            return null;
-        }
 
         return new CreateExampleDTO("",
                 e.getSchool().getId(),

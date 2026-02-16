@@ -98,4 +98,9 @@ export class HttpService {
   saveTest(testId: number, test: CreateTestDTO) {
     return this.http.put(`${Config.API_URL}/test/${testId}`, test, { responseType: 'text' as 'json' });
   }
+
+  getUserId() {
+    let authToken = localStorage.getItem('teacher_authToken')
+    return this.http.post(`${Config.API_URL}/user/id`, authToken);
+  }
 }

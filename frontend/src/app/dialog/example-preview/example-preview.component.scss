@@ -1,0 +1,86 @@
+.preview-panel {
+  padding: 1.25rem 1.25rem;
+  background: #fff;
+  border-radius: 10px;
+  box-sizing: border-box;
+  line-height: 1.4;
+}
+
+.preview-panel p {
+  margin: 0.35rem 0;
+}
+
+.preview-panel strong {
+  font-weight: 700;
+}
+
+/* Tabellen für Multiple Choice + Gap Fill Select */
+.preview-panel table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.75rem;
+  font-size: 0.98rem;
+}
+
+.preview-panel th,
+.preview-panel td {
+  border: 1px solid #000;
+  padding: 0.55rem 0.6rem;
+  vertical-align: top;
+}
+
+.preview-panel td.small {
+  width: 56px;
+  text-align: center;
+}
+
+/* HALF_OPEN */
+.half-open-preview p {
+  margin: 0.35rem 0;
+}
+
+/* CONSTRUCTION */
+.construction-preview {
+  margin-top: 0.75rem;
+}
+
+.image-preview {
+  display: block;
+  width: 100%;
+  max-width: 520px;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+/* ASSIGN */
+.assign-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.assign-preview table {
+  margin-top: 0;
+}
+
+.assign-preview .fill {
+  width: 56px;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* GAP_FILL SELECT: mehrere Tabellen untereinander */
+.gap-fill-preview {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 0.75rem;
+}
+
+/* Responsive */
+@media (max-width: 720px) {
+  .assign-preview {
+    grid-template-columns: 1fr;
+  }
+}

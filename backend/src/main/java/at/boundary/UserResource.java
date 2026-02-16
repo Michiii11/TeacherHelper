@@ -5,6 +5,7 @@ import at.dtos.LoginDTO;
 import at.dtos.UserDTO;
 import at.dtos.ValidateTokenDTO;
 import at.repository.UserRepository;
+import at.security.TokenService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -45,5 +46,16 @@ public class UserResource {
         }
         boolean valid = repo.validateToken(dto.token());
         return Response.ok(Map.of("valid", valid)).build();
+    }
+
+
+    @Inject
+    TokenService tokenService;
+
+    @POST
+    @Path("id")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Long getUserId(String authToken) {
+        return tokenService.validateTokenAndGetUserId(authToken);
     }
 }

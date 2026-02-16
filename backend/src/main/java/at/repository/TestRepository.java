@@ -55,6 +55,13 @@ public class TestRepository {
     public Response updateTest(Long testId, CreateTestDTO dto) {
         Test test = em.find(Test.class, testId);
 
+        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
+        if(test.getAdmin().getId() != userId && test.getSchool().getAdmin().getId() != userId){
+            return Response.status(403)
+                    .entity("Not allowed to update this Example.")
+                    .build();
+        }
+
         if(tokenService.validateTokenAndGetUserId(dto.authToken()) == null){
             return Response.status(500).build();
         }
@@ -102,10 +109,6 @@ public class TestRepository {
         Long userId = tokenService.validateTokenAndGetUserId(authToken);
 
         Test t = em.find(Test.class, testId);
-
-        if(t.getAdmin().getId() != userId && t.getSchool().getAdmin().getId() != userId){
-            return null;
-        }
 
         List<TestExampleDTO> exampleList = new LinkedList<>();
         t.getExampleList().forEach(example -> exampleList.add(new TestExampleDTO(example.getExample(), example.getPoints(), example.getTitle())));

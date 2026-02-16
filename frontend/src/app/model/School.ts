@@ -10,6 +10,6 @@ export interface School {
 export interface SchoolDTO {
   id: number;
   name: string;
-  admin: UserDTO;
+  admin: User;
   exampleCount: number;
 }

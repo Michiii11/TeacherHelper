@@ -1,0 +1,85 @@
+<div class="preview-panel">
+  <div>
+    <p style="white-space: pre-line;">{{ example.instruction }}</p>
+  </div>
+  <p><strong>Aufgabenstellung:</strong></p>
+  <div>
+    <p style="white-space: pre-line;">{{ getQuestionWithGapLabels()}}</p>
+  </div>
+
+  @if(example.type === ExampleTypes.HALF_OPEN){
+    <div class="half-open-preview">
+      @for (ans of example.answers; track ans){
+        <p>{{ ans[0] }} = ___________________</p>
+      }
+    </div>
+  }
+
+  @if(example.type === ExampleTypes.CONSTRUCTION){
+    <div class="construction-preview">
+      <img *ngIf="example.image" [src]="example.image" alt="Vorschau" class="image-preview" />
+      <p *ngIf="!example.image">Kein Bild ausgewählt.</p>
+    </div>
+  }
+
+  @if(example.type === ExampleTypes.MULTIPLE_CHOICE){
+    <div class="multiple-choice-preview">
+      <table>
+        @for (option of example.options; track option){
+          <tr>
+            <td>
+              {{ option.text }}
+            </td>
+            <td class="small">
+              <mat-pseudo-checkbox></mat-pseudo-checkbox>
+            </td>
+          </tr>
+        }
+      </table>
+    </div>
+  }
+
+  @if(example.type === ExampleTypes.GAP_FILL){
+    @if(example.gapFillType === 'SELECT'){
+      <div class="gap-fill-preview">
+        @for (gap of example.gaps; track gap){
+          <table>
+            <tr>
+              <th>({{gap.label}})</th>
+            </tr>
+
+            @for(opt of gap.options; track opt){
+              <tr>
+                <td>{{ opt.text }}</td>
+                <td class="small">
+                  <mat-pseudo-checkbox></mat-pseudo-checkbox>
+                </td>
+              </tr>
+            }
+          </table>
+        }
+      </div>
+    }
+  }
+
+  @if(example.type === ExampleTypes.ASSIGN){
+    <div class="assign-preview">
+      <table class="leftSide">
+        @for(assign of example.assigns; track assign){
+          <tr>
+            <td>{{ assign.left }}</td>
+            <td class="fill"></td>
+          </tr>
+        }
+      </table>
+
+      <table class="rightSide">
+        <tr *ngFor="let right of example.assignRightItems; let i = index">
+          <td class="fill">{{ getLetter(i) }}</td>
+          <td>{{ right }}</td>
+        </tr>
+      </table>
+    </div>
+  }
+
+</div>
