@@ -15,7 +15,8 @@ export class HttpService {
   }
 
   getSchoolById(schoolId: string) {
-    return this.http.get<SchoolDTO>(`${Config.API_URL}/school/${schoolId}`);
+    let authToken = localStorage.getItem('teacher_authToken')
+    return this.http.post<SchoolDTO>(`${Config.API_URL}/school/${schoolId}`, authToken);
   }
 
   addSchool(schoolName: string) {
@@ -102,5 +103,11 @@ export class HttpService {
   getUserId() {
     let authToken = localStorage.getItem('teacher_authToken')
     return this.http.post(`${Config.API_URL}/user/id`, authToken);
+  }
+
+  sendSchoolJoinRequest(schoolId: number, message: string) {
+    return this.http.post(`${Config.API_URL}/schools/${schoolId}/join-requests`, {
+      message
+    });
   }
 }

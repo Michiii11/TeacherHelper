@@ -187,10 +187,6 @@ export class SchoolComponent {
     });
   }
 
-  back() {
-    this.router.navigate([""])
-  }
-
   get exampleCount(): number {
     return this.exampleDataSource.data.length;
   }

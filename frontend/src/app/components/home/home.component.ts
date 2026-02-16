@@ -12,6 +12,7 @@ import {FormsModule} from '@angular/forms'
 import {NgForOf, NgIf} from '@angular/common'
 import {Router} from '@angular/router'
 import {MatIcon} from '@angular/material/icon'
+import {SchoolInvitationDialogComponent} from '../../dialog/school-invitation/school-invitation.component'
 
 @Component({
   selector: 'app-home',
@@ -85,4 +86,29 @@ export class HomeComponent {
   }
 
   protected readonly HTMLInputElement = HTMLInputElement
+
+  protected openInvitationDialog(school: SchoolDTO) {
+    const ref = this.dialog.open(SchoolInvitationDialogComponent, {
+      width: '520px',
+      data: {
+        schoolId: school.id,
+        schoolName: school.name
+      }
+    });
+
+    ref.afterClosed().subscribe((result) => {
+      if (!result) return;
+
+      // send request to backend
+      this.http.sendSchoolJoinRequest(result.schoolId, result.message).subscribe({
+        next: () => {
+          // optional: show snackbar
+          // this.snack.open('Anfrage gesendet', 'OK', { duration: 2500 });
+        },
+        error: () => {
+          // this.snack.open('Fehler beim Senden', 'OK', { duration: 2500 });
+        }
+      });
+    });
+  }
 }

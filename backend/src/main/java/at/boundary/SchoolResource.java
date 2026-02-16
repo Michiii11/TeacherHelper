@@ -50,10 +50,11 @@ public class SchoolResource {
         return schoolRepository.getYourSchools(auth);
     }
 
-    @GET
+    @POST
     @Path("{id}")
-    public SchoolDTO getYourSchools(@PathParam("id") Long id) {
-        return schoolRepository.findById(id);
+    public SchoolDTO getSchoolById(@PathParam("id") Long id, String auth) {
+        Long userId = tokenService.validateTokenAndGetUserId(auth);
+        return schoolRepository.findById(id, userId);
     }
 
     @GET

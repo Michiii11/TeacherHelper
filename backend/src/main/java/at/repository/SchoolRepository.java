@@ -52,11 +52,16 @@ public class SchoolRepository {
                 .toList();
     }
 
-    public SchoolDTO findById(Long id) {
+    public SchoolDTO findById(Long id, Long userId) {
         School school = em.find(School.class, id);
         if (school == null) {
             return null;
         }
+
+        if(userId == null || (!school.getAdmin().getId().equals(userId) && school.getUsers().stream().noneMatch(u -> u.getId().equals(userId)))){
+            return null;
+        }
+
         return new SchoolDTO(school.getId(), school.getName(), school.getAdmin(), 0);
     }
 
