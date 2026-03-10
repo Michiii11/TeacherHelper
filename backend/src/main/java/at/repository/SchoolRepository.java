@@ -1,9 +1,11 @@
 package at.repository;
 
 import at.dtos.CreateSchoolDTO;
+import at.dtos.JoinRequestDTO;
 import at.dtos.SchoolDTO;
 import at.dtos.UserDTO;
 import at.model.Example;
+import at.model.JoinRequest;
 import at.model.School;
 import at.model.User;
 import at.model.helper.Focus;
@@ -14,6 +16,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -48,7 +51,7 @@ public class SchoolRepository {
     public List<SchoolDTO> getAllSchools() {
         List<School> schools = em.createQuery("SELECT s FROM School s", School.class).getResultList();
         return schools.stream()
-                .map(school -> new SchoolDTO(school.getId(), school.getName(), school.getAdmin(), 0))
+                .map(school -> new SchoolDTO(school.getId(), school.getName(), school.getAdminDTO(), 0))
                 .toList();
     }
 
@@ -62,7 +65,7 @@ public class SchoolRepository {
             return null;
         }
 
-        return new SchoolDTO(school.getId(), school.getName(), school.getAdmin(), 0);
+        return new SchoolDTO(school.getId(), school.getName(), school.getAdminDTO(), 0);
     }
 
     public List<SchoolDTO> getYourSchools(String auth) {
@@ -81,7 +84,7 @@ public class SchoolRepository {
                 .getResultList();
 
         return schools.stream()
-                .map(school -> new SchoolDTO(school.getId(), school.getName(), school.getAdmin(), 0))
+                .map(school -> new SchoolDTO(school.getId(), school.getName(), school.getAdminDTO(), 0))
                 .toList();
     }
 
@@ -123,5 +126,56 @@ public class SchoolRepository {
         em.remove(f);
 
         return Response.ok().build();
+    }
+
+    public SchoolDTO toSchoolDTO(School school) {
+        return new SchoolDTO(school.getId(), school.getName(), school.getAdminDTO(), school.getUsers().size());
+    }
+
+    @Transactional
+    public Response sendJoinRequest(Long id, Long userId, String message) {
+        School school = em.find(School.class, id);
+        User user = em.find(User.class, userId);
+
+        if (school == null || user == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("School or User not found").build();
+        }
+
+        if (school.getAdmin().getId().equals(userId) || school.getUsers().stream().anyMatch(u -> u.getId().equals(userId))) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("You are already a member of this school").build();
+        }
+
+        if (em.createQuery("SELECT COUNT(j) FROM JoinRequest j WHERE j.school.id = :schoolId AND j.user.id = :userId", Long.class)
+                .setParameter("schoolId", id)
+                .setParameter("userId", userId)
+                .getSingleResult() > 0) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("You have already sent a join request to this school").build();
+        }
+
+        JoinRequest joinRequest = new JoinRequest(school, user, message);
+        em.persist(joinRequest);
+
+        return Response.ok().build();
+    }
+
+    public List<JoinRequestDTO> getJoinRequests(Long id, Long userId) {
+        School school = em.find(School.class, id);
+
+        List<JoinRequest> joinRequests;
+
+        if (school == null) {
+            joinRequests = em.createQuery("SELECT j FROM JoinRequest j WHERE j.school.admin.id = :userId", JoinRequest.class)
+                    .setParameter("userId", userId)
+                    .getResultList();
+        } else {
+            joinRequests = em.createQuery("SELECT j FROM JoinRequest j WHERE j.school.id = :schoolId AND j.school.admin.id = :userId", JoinRequest.class)
+                    .setParameter("schoolId", id)
+                    .setParameter("userId", userId)
+                    .getResultList();
+        }
+
+        return joinRequests.stream()
+                .map(j -> new JoinRequestDTO(toSchoolDTO(j.getSchool()), j.getUser().toUserDTO(), j.getMessage(), j.getAccepted(), j.getDone()))
+                .toList();
     }
 }

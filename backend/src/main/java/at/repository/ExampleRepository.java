@@ -1,6 +1,7 @@
 package at.repository;
 
 import at.dtos.CreateExampleDTO;
+import at.dtos.ExampleDTO;
 import at.dtos.ExampleOverviewDTO;
 import at.dtos.GapDTO;
 import at.model.Example;
@@ -50,11 +51,29 @@ public class ExampleRepository {
         ).collect(Collectors.toList());
     }
 
-    public List<Example> getFullExamples(Long schoolId) {
-        return em.createQuery(
-                "SELECT e FROM Example e WHERE e.school.id = :schoolId ORDER BY e.id",
-                Example.class
-        ).setParameter("schoolId", schoolId).getResultList();
+    public List<ExampleDTO> getFullExamples(Long schoolId) {
+        return getAllExamples(schoolId).stream().map(e -> {
+            Example example = em.find(Example.class, e.id());
+            return new ExampleDTO(
+                    example.getId(),
+                    new UserRepository().toUserDTO(example.getAdmin()),
+                    example.getType(),
+                    example.getInstruction(),
+                    example.getQuestion(),
+                    example.getDifficulty(),
+                    example.getSolution(),
+                    example.getSolutionUrl(),
+                    example.getImageUrl(),
+                    example.getFocusList(),
+                    new SchoolRepository().toSchoolDTO(example.getSchool()),
+                    example.getAnswers(),
+                    example.getOptions(),
+                    example.getGapFillType(),
+                    example.getGaps(),
+                    example.getAssigns(),
+                    example.getAssignRightItems()
+            );
+        }).collect(Collectors.toList());
     }
 
     @Transactional

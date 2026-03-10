@@ -4,6 +4,7 @@ import at.dtos.AuthResult;
 import at.dtos.LoginDTO;
 import at.dtos.UserDTO;
 import at.dtos.ValidateTokenDTO;
+import at.model.User;
 import at.repository.UserRepository;
 import at.security.TokenService;
 import jakarta.inject.Inject;
@@ -48,7 +49,6 @@ public class UserResource {
         return Response.ok(Map.of("valid", valid)).build();
     }
 
-
     @Inject
     TokenService tokenService;
 
@@ -57,5 +57,14 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Long getUserId(String authToken) {
         return tokenService.validateTokenAndGetUserId(authToken);
+    }
+
+    @POST
+    public User getUser(String authToken) {
+        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        if (userId == null) {
+            throw new WebApplicationException("Invalid token", Response.Status.UNAUTHORIZED);
+        }
+        return repo.findById(userId);
     }
 }

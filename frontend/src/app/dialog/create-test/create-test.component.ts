@@ -18,7 +18,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import {BehaviorSubject, combineLatest, Observable, Subject} from 'rxjs';
 import {map, startWith, takeUntil} from 'rxjs/operators';
 
-import { Example, ExampleTypes } from '../../model/Example';
+import {Example, ExampleDTO, ExampleTypes} from '../../model/Example';
 import {CreateTestDTO, TestCreationStates, TestExample, TestExampleDTO} from '../../model/Test';
 import { HttpService } from '../../service/http.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
@@ -76,14 +76,14 @@ export class CreateTestComponent implements OnInit {
   // -----------------------------
   // Examples (available + selected)
   // -----------------------------
-  private allExamplesSubject = new BehaviorSubject<Example[]>([]);
+  private allExamplesSubject = new BehaviorSubject<ExampleDTO[]>([]);
   private selectedExamplesSubject = new BehaviorSubject<TestExampleDTO[]>([]);
 
   /** Input control for autocomplete */
   exampleCtrl = new FormControl<string | Example>('');
 
   /** Filtered list for autocomplete (excludes selected) */
-  filteredExamples$: Observable<Example[]> = combineLatest([
+  filteredExamples$: Observable<ExampleDTO[]> = combineLatest([
     this.allExamplesSubject.asObservable(),
     this.selectedExamplesSubject.asObservable(),
     this.exampleCtrl.valueChanges.pipe(startWith('')),
@@ -127,7 +127,7 @@ export class CreateTestComponent implements OnInit {
     }
 
     this.service.getFullExamples(this.data.schoolId).subscribe((examples) => {
-      this.allExamplesSubject.next(examples as Example[]);
+      this.allExamplesSubject.next(examples as ExampleDTO[]);
     });
   }
 
@@ -249,7 +249,7 @@ export class CreateTestComponent implements OnInit {
     return (v ?? '').toString().trim().toLowerCase();
   }
 
-  private matchesQuery(e: Example, query: string): boolean {
+  private matchesQuery(e: ExampleDTO, query: string): boolean {
     const haystack = this.normalize(
       [
         e.question,

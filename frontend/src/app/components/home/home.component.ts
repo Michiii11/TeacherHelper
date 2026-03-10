@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {MatButton} from '@angular/material/button'
 import {MatDialog} from '@angular/material/dialog'
 import {HttpClient} from '@angular/common/http'
@@ -13,6 +13,7 @@ import {NgForOf, NgIf} from '@angular/common'
 import {Router} from '@angular/router'
 import {MatIcon} from '@angular/material/icon'
 import {SchoolInvitationDialogComponent} from '../../dialog/school-invitation/school-invitation.component'
+import {MatSnackBar} from '@angular/material/snack-bar'
 
 @Component({
   selector: 'app-home',
@@ -35,6 +36,8 @@ export class HomeComponent {
   yourSchools : SchoolDTO[] = [];
   allOtherSchools : SchoolDTO[] = [];
   otherSchools : SchoolDTO[] = [];
+
+  snack = inject(MatSnackBar);
 
   constructor(private dialog: MatDialog, private http: HttpService, private router: Router) {}
 
@@ -87,6 +90,7 @@ export class HomeComponent {
 
   protected readonly HTMLInputElement = HTMLInputElement
 
+
   protected openInvitationDialog(school: SchoolDTO) {
     const ref = this.dialog.open(SchoolInvitationDialogComponent, {
       width: '520px',
@@ -99,14 +103,12 @@ export class HomeComponent {
     ref.afterClosed().subscribe((result) => {
       if (!result) return;
 
-      // send request to backend
       this.http.sendSchoolJoinRequest(result.schoolId, result.message).subscribe({
         next: () => {
-          // optional: show snackbar
-          // this.snack.open('Anfrage gesendet', 'OK', { duration: 2500 });
+          this.snack.open('Anfrage gesendet', 'OK', { duration: 2500 });
         },
         error: () => {
-          // this.snack.open('Fehler beim Senden', 'OK', { duration: 2500 });
+          this.snack.open('Fehler beim Senden', 'OK', { duration: 2500 });
         }
       });
     });

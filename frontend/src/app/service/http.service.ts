@@ -1,9 +1,10 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Config } from '../config';
-import {School, SchoolDTO} from '../model/School'
+import {JoinRequestDTO, School, SchoolDTO} from '../model/School'
 import {CreateExampleDTO, Focus} from '../model/Example'
 import {CreateTestDTO} from '../model/Test'
+import {User} from '../model/User'
 
 @Injectable({ providedIn: 'root' })
 export class HttpService {
@@ -106,8 +107,20 @@ export class HttpService {
   }
 
   sendSchoolJoinRequest(schoolId: number, message: string) {
-    return this.http.post(`${Config.API_URL}/schools/${schoolId}/join-requests`, {
+    return this.http.post(`${Config.API_URL}/school/${schoolId}/join-request`, {
+      userToken: localStorage.getItem('teacher_authToken'),
       message
     });
+  }
+
+  getUser() {
+    let authToken = localStorage.getItem('teacher_authToken')
+    return this.http.post<User>(`${Config.API_URL}/user`, authToken);
+  }
+
+  getJoinRequests() {
+    let authToken = localStorage.getItem('teacher_authToken')
+
+    return this.http.post<JoinRequestDTO[]>(`${Config.API_URL}/school/0/join-requests`, authToken);
   }
 }

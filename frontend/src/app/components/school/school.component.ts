@@ -24,6 +24,7 @@ import {TestOverviewDTO} from '../../model/Test'
 import {CreateTestComponent} from '../../dialog/create-test/create-test.component'
 import {TestPreviewComponent} from '../../dialog/test-preview/test-preview.component'
 import {ExamplePreviewComponent} from '../../dialog/example-preview/example-preview.component'
+import {SchoolInvitationDialogComponent} from '../../dialog/school-invitation/school-invitation.component'
 
 @Component({
   selector: 'app-school',
@@ -252,7 +253,9 @@ export class SchoolComponent {
     });
   }
 
-  openAddTeacher() { console.log('add teacher'); }
+  openAddTeacher(){
+
+  }
   deleteSchool() { if(confirm(`Schule "${this.school.name}" wirklich löschen?`)) { console.log('delete school'); } }
   exportCsv() { console.log('export csv'); }
 

@@ -1,6 +1,7 @@
 package at.boundary;
 
 import at.dtos.CreateExampleDTO;
+import at.dtos.ExampleDTO;
 import at.dtos.ExampleOverviewDTO;
 import at.model.Example;
 import at.model.helper.Focus;
@@ -26,7 +27,7 @@ public class ExampleResource {
 
     @GET
     @Path("/school/{schoolId}/full")
-    public List<Example> getFullExamples(@PathParam("schoolId") Long schoolId) {
+    public List<ExampleDTO> getFullExamples(@PathParam("schoolId") Long schoolId) {
         return repo.getFullExamples(schoolId);
     }
 

@@ -1,5 +1,6 @@
 package at.model;
 
+import at.dtos.UserDTO;
 import at.model.helper.Focus;
 import jakarta.persistence.*;
 
@@ -62,6 +63,13 @@ public class School {
 
     public User getAdmin() {
         return admin;
+    }
+
+    public UserDTO getAdminDTO() {
+        if (admin == null) {
+            return null;
+        }
+        return new UserDTO(admin.getUsername(), admin.getEmail(), admin.getPassword());
     }
 
     public void setAdmin(User admin) {

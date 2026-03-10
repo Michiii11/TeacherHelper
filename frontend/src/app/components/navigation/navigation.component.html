@@ -14,12 +14,12 @@
       <a mat-button routerLink="/contact" routerLinkActive="active-link">Kontakt</a>
       <button mat-icon-button class="icon-btn" [matMenuTriggerFor]="notificationMenu">
         <mat-icon>notifications</mat-icon>
-        <span class="notif-badge">3</span>
+        <span class="notif-badge">{{requests.length}}</span>
       </button>
 
       <!-- Avatar Dropdown -->
       <button mat-button class="avatar-btn" [matMenuTriggerFor]="profileMenu">
-        <div class="avatar-circle">JD</div>
+        <div class="avatar-circle">{{ getInitials() }}</div>
       </button>
     </nav>
 
@@ -51,18 +51,10 @@
 
 <!-- Notification Menu -->
 <mat-menu #notificationMenu="matMenu" class="notification-menu">
-  <button mat-menu-item>
-    <mat-icon>quiz</mat-icon>
-    Neuer Test erstellt
-  </button>
-
-  <button mat-menu-item>
-    <mat-icon>school</mat-icon>
-    Neue Schule beigetreten
-  </button>
-
-  <button mat-menu-item>
-    <mat-icon>info</mat-icon>
-    System Update verfügbar
-  </button>
+  @for (request of requests; track request){
+    <button mat-menu-item>
+      <mat-icon>person_add</mat-icon>
+      {{ request.user.username }} möchte Ihrer Schule beitreten
+    </button>
+  }
 </mat-menu>

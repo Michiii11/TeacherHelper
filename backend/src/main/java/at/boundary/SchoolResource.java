@@ -1,12 +1,14 @@
 package at.boundary;
 
 import at.dtos.CreateSchoolDTO;
+import at.dtos.JoinRequestDTO;
 import at.dtos.SchoolDTO;
 import at.model.School;
 import at.model.helper.Focus;
 import at.repository.SchoolRepository;
 import at.security.TokenService;
 import jakarta.inject.Inject;
+import jakarta.json.JsonObject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 
@@ -73,5 +75,23 @@ public class SchoolResource {
     @Path("{id}/focus/{focusId}")
     public Response deleteFocus(@PathParam("id") Long id, @PathParam("focusId") Long focusId){
         return schoolRepository.deleteFocus(id, focusId);
+    }
+
+    @POST
+    @Path("{id}/join-request")
+    public Response sendJoinRequest(@PathParam("id") Long id, JsonObject request) {
+        Long userId = tokenService.validateTokenAndGetUserId(request.getString("userToken"));
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
+        }
+
+        return schoolRepository.sendJoinRequest(id, userId, request.getString("message"));
+    }
+
+    @POST
+    @Path("{id}/join-requests")
+    public List<JoinRequestDTO> getJoinRequests(@PathParam("id") Long id, String auth) {
+        Long userId = tokenService.validateTokenAndGetUserId(auth);
+        return schoolRepository.getJoinRequests(id, userId);
     }
 }

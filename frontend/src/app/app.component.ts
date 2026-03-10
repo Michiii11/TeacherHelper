@@ -28,16 +28,14 @@ export class AppComponent{
 
   isLoggedIn = false;
 
-  isLoading = false;
+  isLoading = true;
 
   constructor(private authService: AuthService) {
     this.authService.loggedIn$.subscribe(status => {
       this.isLoggedIn = status;
     });
-  }
 
-
-    /*this.service.getAllReservations().subscribe({
+    this.service.getSchools().subscribe({
       next: () => {
         this.isLoading = false;
       }
@@ -45,11 +43,12 @@ export class AppComponent{
 
     if(this.isLoading){
       interval(2000).pipe(
-        switchMap(() => this.service.getAllReservations())
+        switchMap(() => this.service.getSchools())
       ).subscribe({
         next: () => {
           this.isLoading = false;
         }
       });
-    }*/
+    }
+  }
 }

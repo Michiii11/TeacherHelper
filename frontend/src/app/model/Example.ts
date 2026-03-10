@@ -1,4 +1,5 @@
-import {User} from './User'
+import {User, UserDTO} from './User'
+import {SchoolDTO} from './School'
 
 export enum ExampleDifficulty {
   EASY = 'EASY',
@@ -44,6 +45,26 @@ export interface Example {
   assigns: Assign[]
   assignRightItems: string[]
   difficulty: ExampleDifficulty;
+}
+
+export interface ExampleDTO {
+  id: number;
+  admin: UserDTO;
+  type: ExampleTypes;
+  instruction: string;
+  question: string;
+  difficulty: ExampleDifficulty;
+  solution: string | null;
+  solutionUrl: string | null;
+  imageUrl: string | null;
+  focusList: Focus[];
+  school: SchoolDTO;
+  answers: string[][];
+  options: Option[];
+  gapFillType: 'INPUT' | 'SELECT'
+  gaps: Gap[];
+  assigns: Assign[];
+  assignRightItems: string[];
 }
 
 export interface CreateExampleDTO {

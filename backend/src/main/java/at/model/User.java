@@ -1,5 +1,6 @@
 package at.model;
 
+import at.dtos.UserDTO;
 import jakarta.persistence.*;
 
 @Entity
@@ -63,4 +64,8 @@ public class User {
 
     public School getSchool() { return school; }
     public void setSchool(School school) { this.school = school; }
+
+    public UserDTO toUserDTO() {
+        return new UserDTO(username, email, password);
+    }
 }

@@ -110,4 +110,14 @@ public class UserRepository {
             return false;
         }
     }
+
+    public UserDTO toUserDTO(User admin) {
+        if (admin == null) return null;
+        return new UserDTO(admin.getUsername(), admin.getEmail(), admin.getPassword());
+    }
+
+    public User findById(Long userId) {
+        if (userId == null) return null;
+        return em.find(User.class, userId);
+    }
 }
