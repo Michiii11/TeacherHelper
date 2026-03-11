@@ -1,4 +1,6 @@
 package at.dtos;
 
-public record SchoolDTO(Long id, String name, UserDTO admin, int exampleCount) {
+import java.util.List;
+
+public record SchoolDTO(Long id, String name, UserDTO admin, int exampleCount, List<String> members) {
 }

@@ -113,7 +113,7 @@ public class UserRepository {
 
     public UserDTO toUserDTO(User admin) {
         if (admin == null) return null;
-        return new UserDTO(admin.getUsername(), admin.getEmail(), admin.getPassword());
+        return new UserDTO(admin.getId(), admin.getUsername(), admin.getEmail(), admin.getPassword());
     }
 
     public User findById(Long userId) {

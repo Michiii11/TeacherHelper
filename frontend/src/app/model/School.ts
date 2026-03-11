@@ -10,23 +10,33 @@ export interface School {
 export interface SchoolDTO {
   id: number;
   name: string;
-  admin: User;
+  admin: UserDTO;
   exampleCount: number;
+  members: UserDTO[]
+}
+
+export enum RequestType{
+  JOIN = 'JOIN',
+  INVITE = 'INVITE'
 }
 
 export interface JoinRequest{
   id: number;
   school: School;
-  user: User;
+  transmitter: User;
+  recipient: User;
   message: string;
   accepted: boolean;
   done: boolean;
+  type: RequestType;
 }
 
 export interface JoinRequestDTO{
   school: SchoolDTO;
-  user: UserDTO;
+  transmitter: UserDTO;
+  recipient: UserDTO;
   message: string;
   accepted: boolean;
   done: boolean;
+  type: RequestType;
 }

@@ -118,9 +118,21 @@ export class HttpService {
     return this.http.post<User>(`${Config.API_URL}/user`, authToken);
   }
 
-  getJoinRequests() {
+  getJoinRequests(schoolId: number) {
     let authToken = localStorage.getItem('teacher_authToken')
 
-    return this.http.post<JoinRequestDTO[]>(`${Config.API_URL}/school/0/join-requests`, authToken);
+    return this.http.post<JoinRequestDTO[]>(`${Config.API_URL}/school/${schoolId}/get-join-requests`, authToken);
+  }
+
+  getAllTeachers(schoolId: number | string) {
+    return this.http.get(`${Config.API_URL}/school/${schoolId}/rest`);
+  }
+
+  inviteTeacherToSchool(schoolId: string, id:number) {
+    console.log(id)
+    return this.http.post(`${Config.API_URL}/school/${schoolId}/invite-teacher`, {
+      teacherId: id,
+      authToken: localStorage.getItem('teacher_authToken')
+    });
   }
 }

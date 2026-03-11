@@ -1,0 +1,205 @@
+:host {
+  display: block;
+}
+
+.dialog-title {
+  padding: 1.25rem 1.25rem 0.5rem 1.25rem;
+}
+
+.title-content {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.title-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.22);
+}
+
+.title-icon mat-icon {
+  font-size: 26px;
+  width: 26px;
+  height: 26px;
+}
+
+.title-main {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.title-sub {
+  font-size: 0.92rem;
+  color: #64748b;
+  margin-top: 0.2rem;
+}
+
+.invite-dialog-content {
+  padding: 0.75rem 1.25rem 0.5rem 1.25rem;
+  min-width: 620px;
+  max-width: 100%;
+}
+
+.search-field {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.teacher-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 0.15rem;
+}
+
+.teacher-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  background: #ffffff;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.teacher-card:hover {
+  transform: translateY(-1px);
+  border-color: #bfdbfe;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.teacher-left {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
+.teacher-avatar {
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  color: #1d4ed8;
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: inset 0 0 0 1px rgba(29, 78, 216, 0.08);
+}
+
+.teacher-info {
+  min-width: 0;
+}
+
+.teacher-name {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.2rem;
+}
+
+.teacher-mail {
+  font-size: 0.88rem;
+  color: #64748b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 280px;
+}
+
+.invite-btn {
+  border-radius: 12px;
+  padding: 0 1rem;
+  height: 40px;
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+.invite-btn mat-icon {
+  margin-right: 0.35rem;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 20px;
+  padding: 2rem 1rem;
+  margin-top: 0.5rem;
+}
+
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.85rem;
+}
+
+.empty-icon mat-icon {
+  font-size: 30px;
+  width: 30px;
+  height: 30px;
+}
+
+.empty-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.empty-text {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-top: 0.35rem;
+  max-width: 320px;
+}
+
+.dialog-actions {
+  padding: 0.75rem 1.25rem 1.25rem 1.25rem;
+}
+
+@media (max-width: 720px) {
+  .invite-dialog-content {
+    min-width: unset;
+  }
+
+  .teacher-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .teacher-mail {
+    max-width: 100%;
+  }
+
+  .invite-btn {
+    width: 100%;
+  }
+}

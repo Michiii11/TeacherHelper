@@ -7,7 +7,7 @@ import {MatIcon} from '@angular/material/icon'
 import {MatDivider} from '@angular/material/list'
 import {HttpService} from '../../service/http.service'
 import {User} from '../../model/User'
-import {JoinRequestDTO} from '../../model/School'
+import {JoinRequest, JoinRequestDTO, RequestType} from '../../model/School'
 
 @Component({
   selector: 'app-navigation',
@@ -42,7 +42,7 @@ export class NavigationComponent {
       this.user = user;
     })
 
-    this.service.getJoinRequests().subscribe(requests => {
+    this.service.getJoinRequests(0).subscribe(requests => {
         if(requests.length > 0) {
           console.log("Received join requests: ", requests);
           this.requests = requests;
@@ -85,4 +85,14 @@ export class NavigationComponent {
 
     return initials;
   }
+
+  acceptRequest(request: JoinRequestDTO) {
+    console.log("Accepted", request);
+  }
+
+  declineRequest(request: JoinRequestDTO) {
+    console.log("Declined", request);
+  }
+
+  protected readonly RequestType = RequestType
 }

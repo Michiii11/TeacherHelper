@@ -1,0 +1,65 @@
+<h2 mat-dialog-title class="dialog-title">
+  <div class="title-content">
+    <div class="title-icon">
+      <mat-icon>group_add</mat-icon>
+    </div>
+    <div>
+      <div class="title-main">Lehrer einladen</div>
+      <div class="title-sub">Suche nach Lehrkräften und sende eine Einladung</div>
+    </div>
+  </div>
+</h2>
+
+<mat-dialog-content class="invite-dialog-content">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>Lehrer suchen</mat-label>
+    <input
+      matInput
+      [(ngModel)]="searchTerm"
+      (input)="filterTeachers()"
+      placeholder="Name oder E-Mail eingeben">
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  @if (filteredTeachers.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <mat-icon>person_search</mat-icon>
+      </div>
+      <div class="empty-title">Keine Lehrer gefunden</div>
+      <div class="empty-text">
+        Versuche einen anderen Namen oder eine andere E-Mail-Adresse.
+      </div>
+    </div>
+  }
+
+  <div class="teacher-list">
+    @for (teacher of filteredTeachers; track teacher.username) {
+      <div class="teacher-card">
+        <div class="teacher-left">
+          <div class="teacher-avatar">
+            {{ teacher.username?.charAt(0)?.toUpperCase() }}
+          </div>
+
+          <div class="teacher-info">
+            <div class="teacher-name">{{ teacher.username }}</div>
+            <div class="teacher-mail">{{ teacher.email }}</div>
+          </div>
+        </div>
+
+        <button
+          mat-flat-button
+          color="primary"
+          class="invite-btn"
+          (click)="inviteTeacher(teacher)">
+          <mat-icon>send</mat-icon>
+          Einladung senden
+        </button>
+      </div>
+    }
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-stroked-button mat-dialog-close>Schließen</button>
+</mat-dialog-actions>

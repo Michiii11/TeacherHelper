@@ -1,4 +1,4 @@
 package at.dtos;
 
-public record UserDTO(String username, String email, String password) {
+public record UserDTO(Long userId, String username, String email, String password) {
 }

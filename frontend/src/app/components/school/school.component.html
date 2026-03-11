@@ -163,7 +163,9 @@
 
       </div>
     </article>
+  </section>
 
+  <section class="content-area three">
     <article class="panel teachers">
       <div class="panel-header">
         <h2 class="panel-title">Lehrer</h2>
@@ -173,11 +175,11 @@
       </div>
 
       <div class="panel-body teachers-list">
-        <div *ngFor="let t of teachers" class="teacher-card mat-elevation-z1">
+        <div *ngFor="let t of school.members" class="teacher-card mat-elevation-z1">
           <div class="teacher-info">
             <div class="teacher-text">
-              <div class="name">{{ t.name }}</div>
-              <div class="role">{{ t.role }}</div>
+              <div class="name">{{ t.username }}</div>
+              <div class="role">{{ school.admin.username == t.username ? 'Admin' : 'Lehrer' }}</div>
             </div>
           </div>
           <div class="teacher-actions">
@@ -187,6 +189,14 @@
           </div>
         </div>
       </div>
+    </article>
+
+    <article class="panel teacherRequests">
+
+    </article>
+
+    <article class="panel teacherRequests">
+
     </article>
   </section>
 </main>

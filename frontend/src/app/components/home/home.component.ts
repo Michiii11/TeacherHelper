@@ -12,8 +12,8 @@ import {FormsModule} from '@angular/forms'
 import {NgForOf, NgIf} from '@angular/common'
 import {Router} from '@angular/router'
 import {MatIcon} from '@angular/material/icon'
-import {SchoolInvitationDialogComponent} from '../../dialog/school-invitation/school-invitation.component'
 import {MatSnackBar} from '@angular/material/snack-bar'
+import {SchoolInvitationComponent} from '../../dialog/school-invitation/school-invitation.component'
 
 @Component({
   selector: 'app-home',
@@ -92,7 +92,7 @@ export class HomeComponent {
 
 
   protected openInvitationDialog(school: SchoolDTO) {
-    const ref = this.dialog.open(SchoolInvitationDialogComponent, {
+    const ref = this.dialog.open(SchoolInvitationComponent, {
       width: '520px',
       data: {
         schoolId: school.id,

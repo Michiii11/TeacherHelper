@@ -3,6 +3,7 @@ package at.boundary;
 import at.dtos.CreateSchoolDTO;
 import at.dtos.JoinRequestDTO;
 import at.dtos.SchoolDTO;
+import at.dtos.UserDTO;
 import at.model.School;
 import at.model.helper.Focus;
 import at.repository.SchoolRepository;
@@ -89,9 +90,26 @@ public class SchoolResource {
     }
 
     @POST
-    @Path("{id}/join-requests")
+    @Path("{id}/get-join-requests")
     public List<JoinRequestDTO> getJoinRequests(@PathParam("id") Long id, String auth) {
         Long userId = tokenService.validateTokenAndGetUserId(auth);
         return schoolRepository.getJoinRequests(id, userId);
+    }
+
+    @GET
+    @Path("{id}/rest")
+    public List<UserDTO> getAllTeachers(@PathParam("id") Long id) {
+        return schoolRepository.getAllTeachers(id);
+    }
+
+    @POST
+    @Path("{id}/invite-teacher")
+    public Response inviteTeacher(@PathParam("id") Long id, JsonObject request) {
+        Long userId = tokenService.validateTokenAndGetUserId(request.getString("authToken"));
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
+        }
+
+        return schoolRepository.inviteTeacher(id, userId, request.getInt("teacherId"));
     }
 }

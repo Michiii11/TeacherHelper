@@ -17,10 +17,6 @@ public class User {
     private String email;
     private String password;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "school_id")
-    private School school;
-
     public User() {
     }
 
@@ -28,6 +24,16 @@ public class User {
         this.username = username;
         this.email = email;
         this.password = password;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                '}';
     }
 
     public Long getId() {
@@ -62,10 +68,7 @@ public class User {
         this.password = password;
     }
 
-    public School getSchool() { return school; }
-    public void setSchool(School school) { this.school = school; }
-
     public UserDTO toUserDTO() {
-        return new UserDTO(username, email, password);
+        return new UserDTO(id, username, email, password);
     }
 }

@@ -50,9 +50,9 @@ type InvitationDialogData = {
     p { margin: 0 0 12px; }
   `]
 })
-export class SchoolInvitationDialogComponent {
+export class SchoolInvitationComponent {
   readonly data = inject<InvitationDialogData>(MAT_DIALOG_DATA);
-  private readonly dialogRef = inject(MatDialogRef<SchoolInvitationDialogComponent>);
+  private readonly dialogRef = inject(MatDialogRef<SchoolInvitationComponent>);
 
   message = new FormControl<string>('', { nonNullable: true, validators: [Validators.maxLength(500)] });
 

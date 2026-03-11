@@ -137,9 +137,12 @@
 }
 
 /* === Content === */
+.content-area.three{
+  grid-template-columns: repeat(3, 1fr);
+}
 .content-area {
   display: grid;
-  grid-template-columns: 4fr 2fr 1.5fr;
+  grid-template-columns: 4fr 2fr;
   gap: 1.5rem;
 
   @media (max-width: 1024px) {

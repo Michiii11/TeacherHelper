@@ -1,9 +1,7 @@
 package at.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import at.enums.RequestType;
+import jakarta.persistence.*;
 
 @Entity
 public class JoinRequest {
@@ -15,7 +13,10 @@ public class JoinRequest {
     private School school;
 
     @ManyToOne
-    private User user;
+    private User transmitter;
+
+    @ManyToOne
+    private User recipient;
 
     private String message;
 
@@ -23,13 +24,18 @@ public class JoinRequest {
 
     private boolean done = false;
 
+    @Enumerated(EnumType.STRING)
+    private RequestType type;
+
     public JoinRequest() {
     }
 
-    public JoinRequest(School school, User user, String message) {
+    public JoinRequest(School school, User transmitter, User recipient, String message, RequestType type) {
         this.school = school;
-        this.user = user;
+        this.transmitter = transmitter;
+        this.recipient = recipient;
         this.message = message;
+        this.type = type;
     }
 
     public Long getId() {
@@ -48,12 +54,20 @@ public class JoinRequest {
         this.school = school;
     }
 
-    public User getUser() {
-        return user;
+    public User getTransmitter() {
+        return transmitter;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setTransmitter(User transmitter) {
+        this.transmitter = transmitter;
+    }
+
+    public User getRecipient() {
+        return recipient;
+    }
+
+    public void setRecipient(User recipient) {
+        this.recipient = recipient;
     }
 
     public String getMessage() {
@@ -64,7 +78,7 @@ public class JoinRequest {
         this.message = message;
     }
 
-    public boolean getAccepted() {
+    public boolean isAccepted() {
         return accepted;
     }
 
@@ -72,11 +86,19 @@ public class JoinRequest {
         this.accepted = accepted;
     }
 
-    public boolean getDone() {
+    public boolean isDone() {
         return done;
     }
 
     public void setDone(boolean done) {
         this.done = done;
+    }
+
+    public RequestType getType() {
+        return type;
+    }
+
+    public void setType(RequestType type) {
+        this.type = type;
     }
 }

@@ -24,7 +24,7 @@ import {TestOverviewDTO} from '../../model/Test'
 import {CreateTestComponent} from '../../dialog/create-test/create-test.component'
 import {TestPreviewComponent} from '../../dialog/test-preview/test-preview.component'
 import {ExamplePreviewComponent} from '../../dialog/example-preview/example-preview.component'
-import {SchoolInvitationDialogComponent} from '../../dialog/school-invitation/school-invitation.component'
+import {SchoolInvitationDialogComponent} from '../../dialog/school-invitation-dialog/school-invitation-dialog.component'
 
 @Component({
   selector: 'app-school',
@@ -166,6 +166,7 @@ export class SchoolComponent {
 
       this.service.getSchoolById(this.schoolId!).subscribe(school => {
         this.school = school;
+        console.log(this.school)
       })
     });
   }
@@ -253,9 +254,23 @@ export class SchoolComponent {
     });
   }
 
-  openAddTeacher(){
-
+  openAddTeacher() {
+    this.dialog.open(SchoolInvitationDialogComponent, {
+      width: '700px',
+      maxWidth: '95vw',
+      data: {
+        schoolId: this.schoolId
+      }
+    }).afterClosed().subscribe(result => {
+      if (result) {
+        // optional neu laden
+        this.service.getSchoolById(this.schoolId!).subscribe(school => {
+          this.school = school;
+        });
+      }
+    });
   }
+
   deleteSchool() { if(confirm(`Schule "${this.school.name}" wirklich löschen?`)) { console.log('delete school'); } }
   exportCsv() { console.log('export csv'); }
 

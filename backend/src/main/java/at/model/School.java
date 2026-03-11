@@ -18,10 +18,16 @@ public class School {
     @Column(nullable = false, unique = true)
     private String name;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id")
     private User admin;
 
-    @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToMany
+    @JoinTable(
+            name = "school_members",
+            joinColumns = @JoinColumn(name = "school_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
     private List<User> users = new ArrayList<>();
 
     @OneToMany
@@ -37,12 +43,13 @@ public class School {
     }
 
     public void addUser(User user) {
-        users.add(user);
-        user.setSchool(this);
+        if (user != null && !users.contains(user)) {
+            users.add(user);
+        }
     }
+
     public void removeUser(User user) {
         users.remove(user);
-        user.setSchool(null);
     }
 
     public Long getId() {
@@ -69,7 +76,7 @@ public class School {
         if (admin == null) {
             return null;
         }
-        return new UserDTO(admin.getUsername(), admin.getEmail(), admin.getPassword());
+        return new UserDTO(admin.getId(), admin.getUsername(), admin.getEmail(), admin.getPassword());
     }
 
     public void setAdmin(User admin) {

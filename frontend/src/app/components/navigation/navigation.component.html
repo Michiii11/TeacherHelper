@@ -10,7 +10,7 @@
     <!-- Desktop Navigation -->
     <nav class="navbar-right">
       <a mat-button routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">Home</a>
-      <a mat-button (click)="goToSchool()" routerLinkActive="active-link">Schule</a>
+      <a mat-button (click)="goToSchool()" routerLink="/school" routerLinkActive="active-link">Schule</a>
       <a mat-button routerLink="/contact" routerLinkActive="active-link">Kontakt</a>
       <button mat-icon-button class="icon-btn" [matMenuTriggerFor]="notificationMenu">
         <mat-icon>notifications</mat-icon>
@@ -51,10 +51,45 @@
 
 <!-- Notification Menu -->
 <mat-menu #notificationMenu="matMenu" class="notification-menu">
-  @for (request of requests; track request){
-    <button mat-menu-item>
-      <mat-icon>person_add</mat-icon>
-      {{ request.user.username }} möchte Ihrer Schule beitreten
-    </button>
+
+  @if (requests.length === 0) {
+    <div class="no-notifications">
+      <mat-icon>notifications_off</mat-icon>
+      Keine neuen Nachrichten
+    </div>
   }
+
+  @for (request of requests; track request) {
+    <div class="notification-item">
+      <div class="notification-text">
+        <mat-icon>person_add</mat-icon>
+
+        <div>
+          <div class="notification-title">
+            {{ request.transmitter.username }}
+          </div>
+
+          <div class="notification-message">
+            @if(request.type == RequestType.INVITE){
+              möchte Sie zu Ihrer Schule ({{request.school.name}} einladen
+            } @else {
+              möchte Ihrer Schule ({{request.school.name}}) beitreten
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="notification-actions">
+        <button mat-icon-button color="primary" (click)="acceptRequest(request)">
+          <mat-icon>check</mat-icon>
+        </button>
+
+        <button mat-icon-button color="warn" (click)="declineRequest(request)">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+    </div>
+  }
+
 </mat-menu>
