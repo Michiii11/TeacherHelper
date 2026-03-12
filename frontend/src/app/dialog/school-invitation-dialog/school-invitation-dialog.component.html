@@ -51,9 +51,10 @@
           mat-flat-button
           color="primary"
           class="invite-btn"
+          [disabled]="isInviting(teacher)"
           (click)="inviteTeacher(teacher)">
-          <mat-icon>send</mat-icon>
-          Einladung senden
+          <mat-icon>{{ isInviting(teacher) ? 'hourglass_top' : 'send' }}</mat-icon>
+          {{ isInviting(teacher) ? 'Wird gesendet...' : 'Einladung senden' }}
         </button>
       </div>
     }

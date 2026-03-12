@@ -274,4 +274,47 @@ public class SchoolRepository {
 
         return Response.ok().build();
     }
+
+    public Response leaveSchool(Long id, Long userId) {
+        School school = em.find(School.class, id);
+        User user = em.find(User.class, userId);
+
+        if (school == null || user == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("School or User not found").build();
+        }
+
+        if (school.getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("The admin cannot leave the school").build();
+        }
+
+        if (!school.getUsers().removeIf(u -> u.getId().equals(userId))) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("You are not a member of this school").build();
+        }
+
+        em.merge(school);
+
+        return Response.ok().build();
+    }
+
+    public Response removeTeacher(Long id, Long userId, int teacherId) {
+        School school = em.find(School.class, id);
+        User user = em.find(User.class, userId);
+        User teacher = em.find(User.class, (long) teacherId);
+
+        if (school == null || user == null || teacher == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("School, User or Teacher not found").build();
+        }
+
+        if (!school.getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Only the school admin can remove teachers").build();
+        }
+
+        if (!school.getUsers().removeIf(u -> u.getId().equals(teacherId))) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("This teacher is not a member of the school").build();
+        }
+
+        em.merge(school);
+
+        return Response.ok().build();
+    }
 }

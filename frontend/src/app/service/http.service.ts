@@ -147,4 +147,11 @@ export class HttpService {
       authToken: localStorage.getItem('teacher_authToken')
     });
   }
+
+  kickTeacherFromSchool(s: string, id: number) {
+    return this.http.post(`${Config.API_URL}/school/${s}/remove-teacher`, {
+      teacherId: id,
+      authToken: localStorage.getItem('teacher_authToken')
+    });
+  }
 }

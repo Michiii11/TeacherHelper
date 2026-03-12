@@ -20,7 +20,7 @@
       <div class="actions" [class.show]="menuOpen">
         <button mat-stroked-button color="primary" (click)="openCreateExample()">
           <mat-icon>post_add</mat-icon>
-          Neue Frage
+          Neues Beispiel
         </button>
 
         <button mat-flat-button color="primary" (click)="createTest()">
@@ -182,11 +182,6 @@
               <div class="role">Admin</div>
             </div>
           </div>
-          <div class="teacher-actions">
-            <button mat-icon-button (click)="editTeacher(school.admin)" aria-label="Bearbeiten">
-              <mat-icon>edit</mat-icon>
-            </button>
-          </div>
         </div>
 
         <div *ngFor="let t of school.members" class="teacher-card mat-elevation-z1">
@@ -197,9 +192,11 @@
             </div>
           </div>
           <div class="teacher-actions">
-            <button mat-icon-button (click)="editTeacher(t)" aria-label="Bearbeiten">
-              <mat-icon>edit</mat-icon>
-            </button>
+            @if(school.admin.id == currentUserId){
+              <button mat-icon-button (click)="kickTeacher(t)" aria-label="Kick">
+                <mat-icon>delete</mat-icon>
+              </button>
+            }
           </div>
         </div>
       </div>

@@ -15,14 +15,24 @@ import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/ma
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 
-import {BehaviorSubject, combineLatest, Observable, Subject} from 'rxjs';
-import {map, startWith, takeUntil} from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
+import { map, startWith, takeUntil } from 'rxjs/operators';
 
-import {Example, ExampleDTO, ExampleTypes} from '../../model/Example';
-import {CreateTestDTO, TestCreationStates, TestExample, TestExampleDTO} from '../../model/Test';
+import { Example, ExampleDTO, ExampleTypes } from '../../model/Example';
+import { CreateTestDTO, TestCreationStates, TestExample, TestExampleDTO } from '../../model/Test';
 import { HttpService } from '../../service/http.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { MatPseudoCheckbox } from '@angular/material/core';
+
+type GradeMode = 'auto' | 'manual';
+
+type PersistedTestSettings = {
+  defaultTaskSpacing?: number;
+  taskSpacingMap?: Record<number, number> | Record<string, number>;
+  gradingMode?: GradeMode;
+  gradePercentages?: Record<number, number> | Record<string, number>;
+  manualGradeMinimums?: Record<number, number> | Record<string, number>;
+};
 
 @Component({
   selector: 'app-create-test',
@@ -57,10 +67,7 @@ export class CreateTestComponent implements OnInit {
   private service = inject(HttpService);
   private readonly destroy$ = new Subject<void>();
 
-  // -----------------------------
-  // Test model
-  // -----------------------------
-  test: CreateTestDTO = {
+  test: CreateTestDTO & PersistedTestSettings = {
     authToken: '',
     schoolId: this.data.schoolId,
     name: '',
@@ -68,21 +75,31 @@ export class CreateTestComponent implements OnInit {
     exampleList: [] as TestExample[],
     duration: 0,
     state: TestCreationStates.DRAFT,
+    defaultTaskSpacing: 48,
+    taskSpacingMap: {},
+    gradingMode: 'auto',
+    gradePercentages: {
+      1: 90,
+      2: 78,
+      3: 65,
+      4: 50,
+    },
+    manualGradeMinimums: {
+      1: 18,
+      2: 16,
+      3: 13,
+      4: 10,
+    }
   };
 
   hasUnsavedChanges = false;
   isEditMode = false;
 
-  // -----------------------------
-  // Examples (available + selected)
-  // -----------------------------
   private allExamplesSubject = new BehaviorSubject<ExampleDTO[]>([]);
   private selectedExamplesSubject = new BehaviorSubject<TestExampleDTO[]>([]);
 
-  /** Input control for autocomplete */
   exampleCtrl = new FormControl<string | Example>('');
 
-  /** Filtered list for autocomplete (excludes selected) */
   filteredExamples$: Observable<ExampleDTO[]> = combineLatest([
     this.allExamplesSubject.asObservable(),
     this.selectedExamplesSubject.asObservable(),
@@ -91,17 +108,44 @@ export class CreateTestComponent implements OnInit {
     map(([all, selected, raw]) => {
       const selectedIds = new Set(selected.map((s) => s.example.id));
       const query = this.normalize(typeof raw === 'string' ? raw : this.displayExample(raw));
-
-      // available = all - selected
       const available = all.filter((e) => !selectedIds.has(e.id));
-
-      // if empty -> show ALL available
       if (!query) return available;
-
-      // else filter
       return available.filter((e) => this.matchesQuery(e, query));
     })
   );
+
+  defaultTaskSpacing = 48;
+  spacingForAll = 48;
+  taskSpacingMap: Record<number, number> = {};
+
+  useAutomaticGrading = true;
+  gradePercentages: Record<number, number> = {
+    1: 90,
+    2: 78,
+    3: 65,
+    4: 50,
+  };
+  manualGradeMinimums: Record<number, number> = {
+    1: 18,
+    2: 16,
+    3: 13,
+    4: 10,
+  };
+
+  readonly defaultGradePercentages: Record<number, number> = {
+    1: 90,
+    2: 78,
+    3: 65,
+    4: 50,
+  };
+
+  readonly gradeLabels: Record<number, string> = {
+    1: 'Sehr gut',
+    2: 'Gut',
+    3: 'Befriedigend',
+    4: 'Genügend',
+    5: 'Nicht genügend',
+  };
 
   constructor() {
     this.dialogRef.disableClose = true;
@@ -113,15 +157,20 @@ export class CreateTestComponent implements OnInit {
 
   ngOnInit() {
     if (this.data.testId) {
-      console.log(`Loading test with ID ${this.data.testId} for editing...`);
       this.service.getCreateTest(this.data.testId).subscribe({
-        next: (response) => {
-          this.test = response;
-          console.log(this.test)
+        next: (response: any) => {
+          this.test = {
+            ...this.test,
+            ...response,
+          };
           this.isEditMode = true;
-
-          // Keep UI selection in sync with backend payload (TestExample[])
           this.selectedExamplesSubject.next(this.test.exampleList ?? []);
+          this.hydratePersistedSettings(response);
+          this.initializeTaskSpacing();
+          if (this.useAutomaticGrading) {
+            this.syncManualGradeMinimumsWithAuto();
+          }
+          this.hasUnsavedChanges = false;
         },
       });
     }
@@ -131,9 +180,6 @@ export class CreateTestComponent implements OnInit {
     });
   }
 
-  // -----------------------------
-  // Autocomplete display + selection
-  // -----------------------------
   displayExample = (value: Example | string | null): string => {
     if (!value) return '';
     if (typeof value === 'string') return value;
@@ -148,7 +194,6 @@ export class CreateTestComponent implements OnInit {
 
   addExampleToSelection(example: Example) {
     const current = this.selectedExamplesSubject.value;
-
     if (current.some((x) => x.example?.id === example.id)) return;
 
     const newEntry: TestExample = {
@@ -161,14 +206,22 @@ export class CreateTestComponent implements OnInit {
 
     const next: TestExampleDTO[] = [...current, newEntry];
     this.selectedExamplesSubject.next(next);
-    this.test.exampleList = [...next];
+    this.syncSelectionToTest(next);
+    this.taskSpacingMap[example.id] = this.defaultTaskSpacing;
+    if (this.useAutomaticGrading) {
+      this.syncManualGradeMinimumsWithAuto();
+    }
     this.markDirty();
   }
 
   removeSelectedExample(entry: TestExampleDTO) {
     const next = this.selectedExamplesSubject.value.filter((x) => x.example.id !== entry.example.id);
     this.selectedExamplesSubject.next(next);
-    this.test.exampleList = [...next];
+    this.syncSelectionToTest(next);
+    delete this.taskSpacingMap[entry.example.id];
+    if (this.useAutomaticGrading) {
+      this.syncManualGradeMinimumsWithAuto();
+    }
     this.markDirty();
   }
 
@@ -176,25 +229,18 @@ export class CreateTestComponent implements OnInit {
     return this.selectedExamplesSubject.value;
   }
 
-  // -----------------------------
-  // Persist / mapping
-  // -----------------------------
-  /**
-   * Keep test.exampleList in sync.
-   */
   private syncSelectionToTest(selected: TestExampleDTO[]) {
-    // CreateTestDTO expects TestExampleDTO[] => { example: Example, points: number }
     this.test.exampleList = [...selected];
   }
 
   protected saveTest() {
     this.hasUnsavedChanges = false;
-    this.dialogRef.close(this.test);
 
     this.test.authToken = localStorage.getItem('teacher_authToken') || '';
     this.test.schoolId = Number(this.test.schoolId || this.data.schoolId);
     this.test.exampleList = this.selectedExamplesSubject.value;
 
+    this.attachPersistedSettingsToPayload();
 
     const request = this.isEditMode
       ? this.service.saveTest(this.data.testId, this.test)
@@ -204,16 +250,13 @@ export class CreateTestComponent implements OnInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.snackBar.open('Test erfolgreich erstellt', 'OK', { duration: 3000 });
+          this.snackBar.open(this.isEditMode ? 'Test erfolgreich gespeichert' : 'Test erfolgreich erstellt', 'OK', { duration: 3000 });
           this.hasUnsavedChanges = false;
           this.dialogRef.close(this.test);
         }
       });
   }
 
-  // -----------------------------
-  // Close / dirty handling
-  // -----------------------------
   async closeDialog() {
     if (this.hasUnsavedChanges) {
       const confirmRef = this.dialog.open(ConfirmDialogComponent, {
@@ -240,11 +283,216 @@ export class CreateTestComponent implements OnInit {
 
   markDirty() {
     this.hasUnsavedChanges = true;
+    this.attachPersistedSettingsToPayload();
   }
 
-  // -----------------------------
-  // Filtering helpers
-  // -----------------------------
+  onPointsChanged() {
+    if (this.useAutomaticGrading) {
+      this.syncManualGradeMinimumsWithAuto();
+    }
+    this.markDirty();
+  }
+
+  onTaskSpacingChange(exampleId: number, value: number | string | null) {
+    const numeric = this.normalizeSpacingValue(value);
+    this.taskSpacingMap[exampleId] = numeric;
+    this.markDirty();
+  }
+
+  onDefaultSpacingChanged(value: number | string | null) {
+    this.defaultTaskSpacing = this.normalizeSpacingValue(value);
+    this.spacingForAll = this.defaultTaskSpacing;
+    this.markDirty();
+  }
+
+  applySpacingToAll() {
+    const spacing = this.normalizeSpacingValue(this.spacingForAll);
+    for (const entry of this.selectedExamples) {
+      this.taskSpacingMap[entry.example.id] = spacing;
+    }
+    this.defaultTaskSpacing = spacing;
+    this.spacingForAll = spacing;
+    this.markDirty();
+  }
+
+  getTaskSpacing(exampleId: number): number {
+    return this.taskSpacingMap[exampleId] ?? this.defaultTaskSpacing;
+  }
+
+  resetTaskSpacing() {
+    for (const entry of this.selectedExamples) {
+      this.taskSpacingMap[entry.example.id] = this.defaultTaskSpacing;
+    }
+    this.spacingForAll = this.defaultTaskSpacing;
+    this.markDirty();
+  }
+
+  get totalPoints(): number {
+    return this.selectedExamples.reduce((sum, entry) => sum + (Number(entry.points) || 0), 0);
+  }
+
+  getGradeMinimum(grade: number): number {
+    if (grade === 5) return 0;
+    if (this.useAutomaticGrading) {
+      return this.getAutomaticGradeMinimum(grade);
+    }
+    return Math.max(0, Math.min(this.totalPoints, Math.round(Number(this.manualGradeMinimums[grade] ?? 0))));
+  }
+
+  getGradeRangeLabel(grade: number): string {
+    const total = this.totalPoints;
+    if (total <= 0) return '–';
+
+    const min = this.getGradeMinimum(grade);
+    const upper = grade === 1 ? total : this.getGradeMinimum(grade - 1) - 1;
+
+    if (upper < min) return `${min}`;
+    if (min === upper) return `${min}`;
+    return `${upper}-${min}`;
+  }
+
+  getAutomaticGradeMinimum(grade: number): number {
+    const total = this.totalPoints;
+    if (grade === 5) return 0;
+    const percentage = Number(this.gradePercentages[grade] ?? 0);
+    return Math.max(0, Math.min(total, Math.ceil(total * (percentage / 100))));
+  }
+
+  onGradingModeChange(mode: GradeMode) {
+    this.useAutomaticGrading = mode === 'auto';
+    if (this.useAutomaticGrading) {
+      this.syncManualGradeMinimumsWithAuto();
+    }
+    this.markDirty();
+  }
+
+  syncManualGradeMinimumsWithAuto() {
+    this.manualGradeMinimums = {
+      1: this.getAutomaticGradeMinimum(1),
+      2: this.getAutomaticGradeMinimum(2),
+      3: this.getAutomaticGradeMinimum(3),
+      4: this.getAutomaticGradeMinimum(4),
+    };
+    this.attachPersistedSettingsToPayload();
+  }
+
+  resetGrading() {
+    this.gradePercentages = { ...this.defaultGradePercentages };
+    if (this.useAutomaticGrading) {
+      this.syncManualGradeMinimumsWithAuto();
+    } else {
+      this.manualGradeMinimums = {
+        1: this.getAutomaticGradeMinimum(1),
+        2: this.getAutomaticGradeMinimum(2),
+        3: this.getAutomaticGradeMinimum(3),
+        4: this.getAutomaticGradeMinimum(4),
+      };
+    }
+    this.markDirty();
+  }
+
+  normalizeManualGradeMinimums() {
+    const total = this.totalPoints;
+    let last = total;
+
+    for (const grade of [1, 2, 3, 4]) {
+      const raw = Number(this.manualGradeMinimums[grade] ?? 0);
+      const normalized = Math.max(0, Math.min(last, Math.round(raw)));
+      this.manualGradeMinimums[grade] = normalized;
+      last = normalized;
+    }
+
+    this.markDirty();
+  }
+
+  getGradePercentage(grade: number): number {
+    return Number(this.gradePercentages[grade] ?? 0);
+  }
+
+  normalizePercentages() {
+    let last = 100;
+
+    for (const grade of [1, 2, 3, 4]) {
+      const raw = Number(this.gradePercentages[grade] ?? 0);
+      const normalized = Math.max(0, Math.min(last, Math.round(raw)));
+      this.gradePercentages[grade] = normalized;
+      last = normalized;
+    }
+
+    if (this.useAutomaticGrading) {
+      this.syncManualGradeMinimumsWithAuto();
+    }
+
+    this.markDirty();
+  }
+
+  private initializeTaskSpacing() {
+    for (const entry of this.selectedExamples) {
+      if (this.taskSpacingMap[entry.example.id] == null) {
+        this.taskSpacingMap[entry.example.id] = this.defaultTaskSpacing;
+      }
+    }
+    this.spacingForAll = this.defaultTaskSpacing;
+  }
+
+  private attachPersistedSettingsToPayload() {
+    this.test.defaultTaskSpacing = this.defaultTaskSpacing;
+    this.test.taskSpacingMap = { ...this.taskSpacingMap };
+    this.test.gradingMode = this.useAutomaticGrading ? 'auto' : 'manual';
+    this.test.gradePercentages = { ...this.gradePercentages };
+    this.test.manualGradeMinimums = { ...this.manualGradeMinimums };
+  }
+
+  private hydratePersistedSettings(response: any) {
+    const defaultSpacing = Number(response?.defaultTaskSpacing ?? response?.layoutSettings?.defaultTaskSpacing ?? this.defaultTaskSpacing);
+    this.defaultTaskSpacing = this.normalizeSpacingValue(defaultSpacing);
+    this.spacingForAll = this.defaultTaskSpacing;
+
+    this.taskSpacingMap = this.normalizeNumberMap(response?.taskSpacingMap ?? response?.layoutSettings?.taskSpacingMap ?? {});
+
+    const gradingMode = response?.gradingMode ?? response?.gradingSettings?.mode ?? 'auto';
+    this.useAutomaticGrading = gradingMode !== 'manual';
+
+    const percentages = this.normalizeNumberMap(response?.gradePercentages ?? response?.gradingSettings?.gradePercentages ?? this.defaultGradePercentages);
+    this.gradePercentages = {
+      1: percentages[1] ?? this.defaultGradePercentages[1],
+      2: percentages[2] ?? this.defaultGradePercentages[2],
+      3: percentages[3] ?? this.defaultGradePercentages[3],
+      4: percentages[4] ?? this.defaultGradePercentages[4],
+    };
+
+    const manualMinimums = this.normalizeNumberMap(response?.manualGradeMinimums ?? response?.gradingSettings?.manualGradeMinimums ?? {});
+    this.manualGradeMinimums = {
+      1: manualMinimums[1] ?? this.manualGradeMinimums[1],
+      2: manualMinimums[2] ?? this.manualGradeMinimums[2],
+      3: manualMinimums[3] ?? this.manualGradeMinimums[3],
+      4: manualMinimums[4] ?? this.manualGradeMinimums[4],
+    };
+
+    this.attachPersistedSettingsToPayload();
+  }
+
+  private normalizeNumberMap(input: Record<number, number> | Record<string, number> | null | undefined): Record<number, number> {
+    const normalized: Record<number, number> = {};
+
+    for (const [key, value] of Object.entries(input ?? {})) {
+      const numericKey = Number(key);
+      const numericValue = Number(value);
+
+      if (Number.isFinite(numericKey) && Number.isFinite(numericValue)) {
+        normalized[numericKey] = numericValue;
+      }
+    }
+
+    return normalized;
+  }
+
+  private normalizeSpacingValue(value: number | string | null | undefined): number {
+    const numeric = Math.round(Number(value ?? 0));
+    if (!Number.isFinite(numeric)) return 0;
+    return Math.max(0, Math.min(240, numeric));
+  }
+
   private normalize(v: string): string {
     return (v ?? '').toString().trim().toLowerCase();
   }

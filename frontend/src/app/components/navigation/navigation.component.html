@@ -18,11 +18,7 @@
         Kontakt
       </a>
 
-      <button
-        mat-icon-button
-        class="icon-btn notification-trigger"
-        [matMenuTriggerFor]="notificationMenu"
-        [matMenuTriggerData]="{ keepOpen: true }">
+      <button mat-icon-button class="icon-btn" [matMenuTriggerFor]="notificationMenu">
         <mat-icon>notifications</mat-icon>
         @if (openRequests.length > 0) {
           <span class="notif-badge">{{ openRequests.length }}</span>
@@ -57,25 +53,23 @@
 
 <mat-menu
   #notificationMenu="matMenu"
-  panelClass="notification-menu-panel"
-  xPosition="before"
-  yPosition="below">
+  panelClass="notification-menu-panel">
 
   <div class="notification-panel" (click)="$event.stopPropagation()">
     <div class="notification-header">
-      <div>
-        <div class="notification-heading">Benachrichtigungen</div>
-        <div class="notification-subheading">
-          @if (openRequests.length > 0) {
-            {{ openRequests.length }} offene Anfrage(n)
-          } @else {
-            Alles erledigt
-          }
-        </div>
+      <div class="notification-heading-row">
+        <div class="notification-heading">Nachrichten</div>
+        @if (openRequests.length > 0) {
+          <span class="notification-counter">{{ openRequests.length }}</span>
+        }
       </div>
 
-      <div class="notification-header-icon">
-        <mat-icon>notifications_active</mat-icon>
+      <div class="notification-subheading">
+        @if (openRequests.length > 0) {
+          Einladungen und Beitrittsanfragen warten auf deine Antwort.
+        } @else {
+          Keine offenen Nachrichten
+        }
       </div>
     </div>
 
@@ -92,19 +86,42 @@
     } @else {
       <div class="notification-list">
         @for (request of openRequests; track request.id) {
-          <div class="notification-item" [class.processing]="request._processing">
+          <div
+            class="notification-item"
+            (click)="$event.stopPropagation()"
+            [class.processing]="request._processing"
+            [class.accepted]="request._status === 'accepted'"
+            [class.declined]="request._status === 'declined'">
+
             <div class="notification-top">
               <div class="notification-avatar">
                 {{ getRequestInitial(request) }}
               </div>
 
               <div class="notification-content">
-                <div class="notification-meta">{{ getRequestCategoryLabel(request) }}</div>
-
                 <div class="notification-title-row">
-                  <div class="notification-title">
-                    {{ getRequestTitle(request) }}
+                  <div class="notification-title-main">
+                    <div class="notification-title">
+                      {{ getRequestTitle(request) }}
+                    </div>
+                    <div class="notification-school">
+                      {{ request.school?.name || 'Unbekannte Schule' }}
+                    </div>
                   </div>
+
+                  @if (request._status === 'accepted') {
+                    <span class="status-chip accepted-chip">
+                      <mat-icon>check_circle</mat-icon>
+                      Ok
+                    </span>
+                  }
+
+                  @if (request._status === 'declined') {
+                    <span class="status-chip declined-chip">
+                      <mat-icon>cancel</mat-icon>
+                      Nein
+                    </span>
+                  }
                 </div>
 
                 <div class="notification-message">
@@ -113,39 +130,37 @@
 
                 @if (request.message && request.message.trim().length > 0) {
                   <div class="notification-user-message">
-                    <mat-icon>format_quote</mat-icon>
-                    <span>{{ request.message }}</span>
+                    {{ request.message }}
                   </div>
                 }
               </div>
             </div>
 
-            <div class="notification-actions">
-              <button
-                mat-flat-button
-                color="primary"
-                class="accept-btn"
-                [disabled]="request._processing"
-                (click)="onNotificationAction($event, request, true)">
-                <mat-icon>check</mat-icon>
-                Akzeptieren
-              </button>
+            @if (!request._status) {
+              <div class="notification-actions">
+                <button
+                  mat-flat-button
+                  color="primary"
+                  class="accept-btn"
+                  [disabled]="request._processing"
+                  (click)="$event.stopPropagation(); acceptRequest(request)">
+                  <mat-icon>check</mat-icon>
+                  Akzeptieren
+                </button>
 
-              <button
-                mat-stroked-button
-                class="decline-btn"
-                [disabled]="request._processing"
-                (click)="onNotificationAction($event, request, false)">
-                <mat-icon>close</mat-icon>
-                Ablehnen
-              </button>
-            </div>
+                <button
+                  mat-stroked-button
+                  class="decline-btn"
+                  [disabled]="request._processing"
+                  (click)="$event.stopPropagation(); declineRequest(request)">
+                  <mat-icon>close</mat-icon>
+                  Ablehnen
+                </button>
+              </div>
+            }
 
             @if (request._processing) {
-              <div class="notification-loading">
-                <mat-icon>hourglass_top</mat-icon>
-                Wird verarbeitet...
-              </div>
+              <div class="notification-loading">Wird verarbeitet...</div>
             }
           </div>
         }

@@ -3,7 +3,6 @@ import {
   MAT_DIALOG_DATA,
   MatDialogActions, MatDialogClose,
   MatDialogContent,
-  MatDialogRef,
   MatDialogTitle
 } from '@angular/material/dialog';
 import { HttpService } from '../../service/http.service';
@@ -11,6 +10,7 @@ import {MatFormField, MatInput, MatLabel} from '@angular/material/input'
 import {MatIcon} from '@angular/material/icon'
 import {FormsModule} from '@angular/forms'
 import {MatButton} from '@angular/material/button'
+import {UserDTO} from '../../model/User'
 
 @Component({
   selector: 'app-school-invitation-dialog',
@@ -35,10 +35,10 @@ export class SchoolInvitationDialogComponent {
   teachers: any[] = [];
   filteredTeachers: any[] = [];
   searchTerm = '';
+  invitingTeacherIds = new Set<number>();
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: { schoolId: string },
-    private dialogRef: MatDialogRef<SchoolInvitationDialogComponent>
+    @Inject(MAT_DIALOG_DATA) public data: { schoolId: string }
   ) {}
 
   ngOnInit() {
@@ -62,9 +62,28 @@ export class SchoolInvitationDialogComponent {
     );
   }
 
-  inviteTeacher(teacher: any) {
-    this.service.inviteTeacherToSchool(this.data.schoolId, teacher.userId).subscribe(() => {
-      this.dialogRef.close(true);
+  inviteTeacher(teacher: UserDTO) {
+    if (!teacher.id || this.invitingTeacherIds.has(teacher.id)) {
+      return;
+    }
+
+    this.invitingTeacherIds.add(teacher.id);
+
+    this.service.inviteTeacherToSchool(this.data.schoolId, teacher.id).subscribe({
+      next: () => {
+        this.teachers = this.teachers.filter(t => t.id !== teacher.id);
+        this.filteredTeachers = this.filteredTeachers.filter(t => t.id !== teacher.id);
+      },
+      error: () => {
+        this.invitingTeacherIds.delete(teacher.id!);
+      },
+      complete: () => {
+        this.invitingTeacherIds.delete(teacher.id!);
+      }
     });
+  }
+
+  isInviting(teacher: UserDTO) {
+    return !!teacher.id && this.invitingTeacherIds.has(teacher.id);
   }
 }

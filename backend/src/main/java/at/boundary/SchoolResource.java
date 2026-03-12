@@ -134,4 +134,26 @@ public class SchoolResource {
 
         return schoolRepository.respondJoinRequest(requestId, userId, false);
     }
+
+    @POST
+    @Path("{id}/leave")
+    public Response leaveSchool(@PathParam("id") Long id, String auth) {
+        Long userId = tokenService.validateTokenAndGetUserId(auth);
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
+        }
+
+        return schoolRepository.leaveSchool(id, userId);
+    }
+
+    @POST
+    @Path("{id}/remove-teacher")
+    public Response removeTeacher(@PathParam("id") Long id, JsonObject request) {
+        Long userId = tokenService.validateTokenAndGetUserId(request.getString("authToken"));
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
+        }
+
+        return schoolRepository.removeTeacher(id, userId, request.getInt("teacherId"));
+    }
 }

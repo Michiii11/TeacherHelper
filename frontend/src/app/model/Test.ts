@@ -6,6 +6,8 @@ export enum TestCreationStates {
   DRAFT = 'DRAFT', DONE = 'DONE', USED = 'USED'
 }
 
+export type TestGradingMode = 'auto' | 'manual';
+
 export interface Test {
   id: number;
   admin: User;
@@ -15,6 +17,11 @@ export interface Test {
   state: TestCreationStates;
   exampleList: TestExample[];
   school: School;
+  defaultTaskSpacing?: number;
+  taskSpacingMap?: Record<number, number>;
+  gradingMode?: TestGradingMode;
+  gradePercentages?: Record<number, number>;
+  manualGradeMinimums?: Record<number, number>;
 }
 
 export interface TestExample{
@@ -49,4 +56,9 @@ export interface CreateTestDTO {
   exampleList: TestExampleDTO[];
   duration: number;
   state: TestCreationStates;
+  defaultTaskSpacing?: number;
+  taskSpacingMap?: Record<number, number>;
+  gradingMode?: TestGradingMode;
+  gradePercentages?: Record<number, number>;
+  manualGradeMinimums?: Record<number, number>;
 }

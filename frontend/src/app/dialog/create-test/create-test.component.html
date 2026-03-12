@@ -1,15 +1,14 @@
 <main>
   <mat-dialog-content class="create-example-dialog">
-    <h1>Test Erstellen</h1>
+    <h1>Test erstellen</h1>
 
     <form class="example-form" (ngSubmit)="saveTest()">
-
       <div class="row">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Titel</mat-label>
           <textarea
             matInput
-            [(ngModel)]="this.test.name"
+            [(ngModel)]="test.name"
             name="testName"
             (input)="markDirty()"
             placeholder="1. Schularbeit ..."
@@ -25,7 +24,7 @@
           <mat-label>Notiz</mat-label>
           <textarea
             matInput
-            [(ngModel)]="this.test.note"
+            [(ngModel)]="test.note"
             name="testNote"
             (input)="markDirty()"
             placeholder="Rechne sorgfältig, schreibe sauber, ..."
@@ -51,42 +50,163 @@
             #exampleAuto="matAutocomplete"
             [displayWith]="displayExample"
             autoActiveFirstOption
-            (optionSelected)="onExampleSelected($event)"
-          >
+            (optionSelected)="onExampleSelected($event)">
             <mat-option *ngFor="let ex of filteredExamples$ | async" [value]="ex">
-              <div style="display:flex; flex-direction:column; gap:2px;">
+              <div class="autocomplete-option">
                 <strong>{{ ex.question }}</strong>
-                <small style="opacity:.75;">{{ ex.instruction }}</small>
+                <small>{{ ex.instruction }}</small>
               </div>
             </mat-option>
           </mat-autocomplete>
         </mat-form-field>
       </div>
 
-      <div *ngIf="selectedExamples.length > 0">
-        <h3 style="margin: 0 0 8px;">Ausgewählte Fragen</h3>
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="summary-label">Ausgewählte Aufgaben</div>
+          <div class="summary-value">{{ selectedExamples.length }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Maximale Punkte</div>
+          <div class="summary-value">{{ totalPoints }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Standard-Abstand</div>
+          <div class="summary-value">{{ defaultTaskSpacing }} px</div>
+        </div>
+      </div>
 
-        <div *ngFor="let entry of selectedExamples"
-             style="display:flex; align-items:flex-start; gap:8px; margin-bottom:8px;">
+      <div class="settings-card spacing-card">
+        <div class="settings-head">
+          <div>
+            <h3>Abstände & Layout</h3>
+            <p>Lege einen Standard fest, verteile ihn auf alle Aufgaben oder passe einzelne Aufgaben separat an.</p>
+          </div>
+        </div>
 
-          <div style="flex:1;">
-            <strong>{{ entry.example.question }}</strong>
-            <div style="opacity:.75; font-size: 12px;">{{ entry.example.instruction }}</div>
+        <div class="layout-toolbar">
+          <mat-form-field appearance="outline">
+            <mat-label>Standard-Abstand</mat-label>
+            <input
+              matInput
+              type="number"
+              min="0"
+              max="240"
+              name="defaultTaskSpacing"
+              [ngModel]="defaultTaskSpacing"
+              (ngModelChange)="onDefaultSpacingChanged($event)" />
+          </mat-form-field>
 
-            <mat-form-field style="width:100%; margin-top:6px;">
-              <mat-label>Aufgabentitel (optional)</mat-label>
+          <mat-form-field appearance="outline">
+            <mat-label>Abstand für alle</mat-label>
+            <input
+              matInput
+              type="number"
+              min="0"
+              max="240"
+              name="spacingForAll"
+              [(ngModel)]="spacingForAll" />
+          </mat-form-field>
+
+          <div class="toolbar-actions">
+            <button mat-stroked-button type="button" (click)="applySpacingToAll()">Für alle übernehmen</button>
+            <button mat-stroked-button type="button" (click)="resetTaskSpacing()">Einzelabstände zurücksetzen</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-card grading-card">
+        <div class="settings-head">
+          <div>
+            <h3>Notenschlüssel</h3>
+            <p>Der Notenschlüssel passt sich automatisch an die Gesamtpunkte an, kann aber manuell überschrieben und wieder zurückgesetzt werden.</p>
+          </div>
+          <div class="mode-switch">
+            <button
+              mat-stroked-button
+              type="button"
+              [class.active]="useAutomaticGrading"
+              (click)="onGradingModeChange('auto')">
+              Automatisch
+            </button>
+            <button
+              mat-stroked-button
+              type="button"
+              [class.active]="!useAutomaticGrading"
+              (click)="onGradingModeChange('manual')">
+              Manuell
+            </button>
+            <button mat-stroked-button type="button" (click)="resetGrading()">Zurücksetzen</button>
+          </div>
+        </div>
+
+        @if (useAutomaticGrading) {
+          <div class="grading-editor-grid">
+            @for (grade of [1, 2, 3, 4]; track grade) {
+              <mat-form-field appearance="outline">
+                <mat-label>{{ gradeLabels[grade] }} ab %</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  min="0"
+                  max="100"
+                  name="grade-percentage-{{ grade }}"
+                  [(ngModel)]="gradePercentages[grade]"
+                  (ngModelChange)="normalizePercentages()" />
+              </mat-form-field>
+            }
+          </div>
+        } @else {
+          <div class="grading-editor-grid">
+            @for (grade of [1, 2, 3, 4]; track grade) {
+              <mat-form-field appearance="outline">
+                <mat-label>{{ gradeLabels[grade] }} ab Punkten</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  min="0"
+                  [max]="totalPoints"
+                  name="grade-minimum-{{ grade }}"
+                  [(ngModel)]="manualGradeMinimums[grade]"
+                  (ngModelChange)="normalizeManualGradeMinimums()" />
+              </mat-form-field>
+            }
+          </div>
+        }
+      </div>
+
+      <div *ngIf="selectedExamples.length > 0" class="selected-section">
+        <div class="section-head">
+          <h3>Ausgewählte Fragen</h3>
+          <div class="section-actions">
+            <span class="section-note">Jede Aufgabe kann ihren eigenen Abstand behalten.</span>
+          </div>
+        </div>
+
+        <div *ngFor="let entry of selectedExamples" class="selected-task-card">
+          <div class="selected-task-main">
+            <div class="task-copy">
+              <strong>{{ entry.example.question }}</strong>
+              <div class="task-subline">{{ entry.example.instruction }}</div>
+            </div>
+
+            <button mat-icon-button color="warn" type="button" (click)="removeSelectedExample(entry)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+
+          <div class="task-settings-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Aufgabentitel</mat-label>
               <input
                 matInput
                 name="title-{{ entry.example.id }}"
                 [(ngModel)]="entry.title"
                 (ngModelChange)="markDirty()"
-                placeholder="z.B. Gewinde berechnen"
-              />
+                placeholder="z. B. Gewinde berechnen" />
             </mat-form-field>
-          </div>
 
-          <div style="min-width:180px;">
-            <mat-form-field style="width:100%;">
+            <mat-form-field appearance="outline">
               <mat-label>Erreichbare Punkte</mat-label>
               <input
                 matInput
@@ -94,18 +214,24 @@
                 min="0"
                 name="points-{{ entry.example.id }}"
                 [(ngModel)]="entry.points"
-                (ngModelChange)="markDirty()"
-              />
+                (ngModelChange)="onPointsChanged()" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Abstand nach Aufgabe (px)</mat-label>
+              <input
+                matInput
+                type="number"
+                min="0"
+                max="240"
+                name="spacing-{{ entry.example.id }}"
+                [ngModel]="getTaskSpacing(entry.example.id)"
+                (ngModelChange)="onTaskSpacingChange(entry.example.id, $event)" />
             </mat-form-field>
           </div>
-
-          <button mat-icon-button color="warn" type="button" (click)="removeSelectedExample(entry)">
-            <mat-icon>delete</mat-icon>
-          </button>
         </div>
       </div>
 
-      <!-- Dialog Actions -->
       <mat-dialog-actions align="end">
         <button mat-stroked-button type="button" (click)="closeDialog()">Abbrechen</button>
         <button mat-flat-button color="primary" type="submit">Speichern</button>
@@ -116,20 +242,18 @@
   <mat-dialog-content class="create-example-layout">
     <h1>Vorschau</h1>
 
-    <!-- NUR DIESER BEREICH WIRD GEDRUCKT -->
     <div class="print-area">
-
-      <!-- HEADER: so wie du es hast -->
       <div class="test-header">
         <h2 class="test-title">{{ test.name }}</h2>
 
-        <div class="meta">
-          <p>Name:   _________________________</p>
+        <div class="meta-grid">
+          <p>Name: _________________________</p>
           <p>Klasse: _________________________</p>
-          <p>Datum:  _________________________</p>
+          <p>Datum: _________________________</p>
+          <p>Dauer: {{ test.duration || '___' }} Minuten</p>
         </div>
 
-        <table class="result-table">
+        <table class="result-table compact-table">
           <tr>
             <th>Erreichte Punkte</th>
             <th>Note</th>
@@ -141,23 +265,23 @@
         </table>
 
         <div class="grading">
-          <p class="grading-title">Notenschlüssel</p>
-          <table class="grading-table">
+          <p class="grading-title">Notenschlüssel · maximal {{ totalPoints }} Punkte</p>
+          <table class="grading-table compact-table">
             <tr>
               <td>Punkte:</td>
-              <td>20-18</td>
-              <td>17-16</td>
-              <td>15-13</td>
-              <td>12-10</td>
-              <td>9-0</td>
+              <td>{{ getGradeRangeLabel(1) }}</td>
+              <td>{{ getGradeRangeLabel(2) }}</td>
+              <td>{{ getGradeRangeLabel(3) }}</td>
+              <td>{{ getGradeRangeLabel(4) }}</td>
+              <td>{{ getGradeRangeLabel(5) }}</td>
             </tr>
             <tr>
               <td>Note:</td>
-              <td>Sehr gut</td>
-              <td>Gut</td>
-              <td>Befriedigend</td>
-              <td>Genügend</td>
-              <td>Nicht genügend</td>
+              <td>{{ gradeLabels[1] }}</td>
+              <td>{{ gradeLabels[2] }}</td>
+              <td>{{ gradeLabels[3] }}</td>
+              <td>{{ gradeLabels[4] }}</td>
+              <td>{{ gradeLabels[5] }}</td>
             </tr>
           </table>
         </div>
@@ -169,12 +293,13 @@
         <hr class="header-divider" />
       </div>
 
-      <!-- AUFGABEN: loop wie du es hast -->
-      <div *ngFor="let entry of selectedExamples; let i = index" class="task">
+      <div
+        *ngFor="let entry of selectedExamples; let i = index"
+        class="task"
+        [style.margin-bottom.px]="getTaskSpacing(entry.example.id)">
         <div class="task-head">
           <div class="task-title">
-            Aufgabe {{ i + 1 }}:
-            {{ entry.title ? entry.title : ''}}
+            Aufgabe {{ i + 1 }}{{ entry.title ? ': ' + entry.title : '' }}
           </div>
 
           <div class="task-points">
@@ -255,19 +380,14 @@
               </table>
             </div>
           }
-
-          <mat-divider class="task-divider"></mat-divider>
         </div>
       </div>
-
     </div>
 
-    <!-- BUTTONS: NICHT DRUCKEN -->
     <div class="print-actions">
       <button mat-flat-button color="primary" type="button" (click)="printPreview()">
         Drucken
       </button>
     </div>
   </mat-dialog-content>
-
 </main>

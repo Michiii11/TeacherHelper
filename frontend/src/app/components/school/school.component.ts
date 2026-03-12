@@ -25,6 +25,7 @@ import {CreateTestComponent} from '../../dialog/create-test/create-test.componen
 import {TestPreviewComponent} from '../../dialog/test-preview/test-preview.component'
 import {ExamplePreviewComponent} from '../../dialog/example-preview/example-preview.component'
 import {SchoolInvitationDialogComponent} from '../../dialog/school-invitation-dialog/school-invitation-dialog.component'
+import {UserDTO} from '../../model/User'
 
 @Component({
   selector: 'app-school',
@@ -171,14 +172,6 @@ export class SchoolComponent {
     });
   }
 
-  promoteTeacher(teacher: any) {
-
-  }
-
-  editTeacher(teacher: any) {
-
-  }
-
   openCreateExample() {
     this.dialog.open(CreateExampleComponent, {
       width: '1000px',
@@ -314,5 +307,27 @@ export class SchoolComponent {
 
   protected getFocusList(focus: Focus[]) {
     return focus.map(f => f.label).join(', ');
+  }
+
+  protected kickTeacher(t: UserDTO) {
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      data: {
+        title: 'Lehrer entfernen',
+        message: `Lehrer "${t.username}" wirklich entfernen?`,
+        confirmText: 'Entfernen',
+        cancelText: 'Abbrechen'
+      }
+    });
+
+    ref.afterClosed().subscribe(confirmed => {
+      if (!confirmed) return;
+      this.service.kickTeacherFromSchool(this.schoolId!, t.id).subscribe(() => {
+        // optional neu laden
+        this.service.getSchoolById(this.schoolId!).subscribe(school => {
+          this.school = school;
+        })
+      })
+    })
   }
 }
