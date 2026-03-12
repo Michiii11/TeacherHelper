@@ -175,6 +175,20 @@
       </div>
 
       <div class="panel-body teachers-list">
+        <div class="teacher-card mat-elevation-z1">
+          <div class="teacher-info">
+            <div class="teacher-text">
+              <div class="name">{{ school.admin.username }}</div>
+              <div class="role">Admin</div>
+            </div>
+          </div>
+          <div class="teacher-actions">
+            <button mat-icon-button (click)="editTeacher(school.admin)" aria-label="Bearbeiten">
+              <mat-icon>edit</mat-icon>
+            </button>
+          </div>
+        </div>
+
         <div *ngFor="let t of school.members" class="teacher-card mat-elevation-z1">
           <div class="teacher-info">
             <div class="teacher-text">

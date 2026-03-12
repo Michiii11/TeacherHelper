@@ -1,10 +1,8 @@
 import {Component, inject} from '@angular/core';
 import {MatButton} from '@angular/material/button'
 import {MatDialog} from '@angular/material/dialog'
-import {HttpClient} from '@angular/common/http'
 import {AddSchoolDialogComponent} from '../../dialog/add-school-dialog/add-school-dialog.component'
-import {Config} from '../../config'
-import {School, SchoolDTO} from '../../model/School'
+import {SchoolDTO} from '../../model/School'
 import {HttpService} from '../../service/http.service'
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card'
 import {MatFormField, MatInput, MatLabel} from '@angular/material/input'
@@ -33,21 +31,35 @@ import {SchoolInvitationComponent} from '../../dialog/school-invitation/school-i
   styleUrl: './home.component.scss'
 })
 export class HomeComponent {
-  yourSchools : SchoolDTO[] = [];
-  allOtherSchools : SchoolDTO[] = [];
-  otherSchools : SchoolDTO[] = [];
+  adminSchools: SchoolDTO[] = [];
+  memberSchools: SchoolDTO[] = [];
+  allOtherSchools: SchoolDTO[] = [];
+  otherSchools: SchoolDTO[] = [];
+
+  userId: number = 0;
 
   snack = inject(MatSnackBar);
 
   constructor(private dialog: MatDialog, private http: HttpService, private router: Router) {}
 
   ngOnInit() {
-    this.http.getYourSchools().subscribe((schools: SchoolDTO[]) => {
-      this.yourSchools = schools;
+    this.loadSchools();
+  }
 
-      this.http.getSchools().subscribe((schools: SchoolDTO[]) => {
-        this.allOtherSchools = schools.filter(school => !this.yourSchools.some(yourSchool => yourSchool.id === school.id));
-        this.otherSchools = [...this.allOtherSchools];
+  loadSchools() {
+    this.http.getYourSchools().subscribe((schools: SchoolDTO[]) => {
+      this.http.getUserId().subscribe((id: number) => {
+        this.userId = id;
+
+        this.adminSchools = schools.filter((school) => this.isAdminSchool(school, this.userId));
+        this.memberSchools = schools.filter((school) => !this.isAdminSchool(school, this.userId));
+
+        this.http.getSchools().subscribe((allSchools: SchoolDTO[]) => {
+          this.allOtherSchools = allSchools.filter(
+            school => !schools.some(yourSchool => yourSchool.id === school.id)
+          );
+          this.otherSchools = [...this.allOtherSchools];
+        })
       })
     })
   }
@@ -59,10 +71,11 @@ export class HomeComponent {
     }
 
     const search = (e.target as HTMLInputElement).value;
+    const term = search?.toLowerCase().trim() || '';
 
-    const term = search?.toLowerCase() || '';
     this.otherSchools = this.allOtherSchools.filter(school =>
-      school.name.toLowerCase().includes(term)
+      school.name?.toLowerCase().includes(term) ||
+      school.admin?.username?.toLowerCase().includes(term)
     );
   }
 
@@ -71,10 +84,8 @@ export class HomeComponent {
     dialogRef.afterClosed().subscribe(schoolName => {
       if (schoolName) {
         this.http.addSchool(schoolName).subscribe({
-          next: (value) => {
-            this.http.getYourSchools().subscribe((schools: SchoolDTO[]) => {
-              this.yourSchools = schools;
-            });
+          next: () => {
+            this.loadSchools();
           },
           error: (err) => {
             console.log('Fehler beim Hinzufügen:', err.error);
@@ -87,9 +98,6 @@ export class HomeComponent {
   openSchool(school: SchoolDTO) {
     this.router.navigate(['/school', school.id]);
   }
-
-  protected readonly HTMLInputElement = HTMLInputElement
-
 
   protected openInvitationDialog(school: SchoolDTO) {
     const ref = this.dialog.open(SchoolInvitationComponent, {
@@ -112,5 +120,30 @@ export class HomeComponent {
         }
       });
     });
+  }
+
+  getSchoolInitials(name?: string): string {
+    if (!name) return 'S';
+
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(part => part[0]?.toUpperCase())
+      .join('');
+  }
+
+  getSchoolRoleLabel(type: 'admin' | 'member'): string {
+    return type === 'admin' ? 'Admin' : 'Mitglied';
+  }
+
+  private isAdminSchool(school: SchoolDTO, userId: number): boolean {
+    console.log(school)
+    console.log(`Überprüfe Admin-Status für Schule: ${school.name}, Admin ID: ${school.admin?.id}, User ID: ${userId}`);
+
+    if (!school?.admin) return false;
+    if (!userId) return false;
+
+    return school.admin.id === userId;
   }
 }

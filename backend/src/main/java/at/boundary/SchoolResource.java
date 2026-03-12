@@ -112,4 +112,26 @@ public class SchoolResource {
 
         return schoolRepository.inviteTeacher(id, userId, request.getInt("teacherId"));
     }
+
+    @POST
+    @Path("join-request/{requestId}/accept")
+    public Response acceptJoinRequest(@PathParam("requestId") Long requestId, JsonObject request) {
+        Long userId = tokenService.validateTokenAndGetUserId(request.getString("authToken"));
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
+        }
+
+        return schoolRepository.respondJoinRequest(requestId, userId, true);
+    }
+
+    @POST
+    @Path("join-request/{requestId}/decline")
+    public Response declineJoinRequest(@PathParam("requestId") Long requestId, JsonObject request) {
+        Long userId = tokenService.validateTokenAndGetUserId(request.getString("authToken"));
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
+        }
+
+        return schoolRepository.respondJoinRequest(requestId, userId, false);
+    }
 }

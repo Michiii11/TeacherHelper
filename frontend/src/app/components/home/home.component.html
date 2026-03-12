@@ -1,9 +1,15 @@
 <main class="schools-dashboard" aria-label="School Overview">
-
-  <header class="page-header mat-elevation-z2">
-    <div class="header-left">
-      <h1 class="page-title">Schulen</h1>
-      <p class="page-subtitle">Verwalte deine Schulen oder entdecke neue</p>
+  <header class="page-header">
+    <div class="header-copy">
+      <div class="title-row">
+        <div class="title-icon">
+          <mat-icon>school</mat-icon>
+        </div>
+        <div>
+          <h1 class="page-title">Meine Schulen</h1>
+          <p class="page-subtitle">Hier siehst du auf einen Blick, wo du Admin bist und wo du einfach Mitglied bist.</p>
+        </div>
+      </div>
     </div>
 
     <div class="header-actions">
@@ -14,37 +20,118 @@
     </div>
   </header>
 
-  <!-- Deine Schulen -->
+  <section class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-label">Admin-Schulen</span>
+      <strong class="stat-value">{{ adminSchools.length }}</strong>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Mitgliedschaften</span>
+      <strong class="stat-value">{{ memberSchools.length }}</strong>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Weitere Schulen</span>
+      <strong class="stat-value">{{ otherSchools.length }}</strong>
+    </div>
+  </section>
+
   <section class="section">
     <div class="section-header">
-      <h2 class="section-title">Deine Schulen</h2>
+      <div>
+        <h2 class="section-title">Schulen, die du verwaltest</h2>
+        <p class="section-subtitle">Du bist hier als Admin eingetragen.</p>
+      </div>
     </div>
 
     <div class="school-grid">
       <mat-card
-        *ngFor="let school of yourSchools"
-        class="school-card mat-elevation-z2"
+        *ngFor="let school of adminSchools"
+        class="school-card admin-card"
         (click)="openSchool(school)"
       >
-        <div class="school-header">
-          <mat-icon class="school-icon">school</mat-icon>
-          <h3 class="school-name">{{ school.name }}</h3>
+        <div class="card-top-row">
+          <div class="school-avatar">{{ getSchoolInitials(school.name) }}</div>
+          <span class="role-badge admin-badge">{{ getSchoolRoleLabel('admin') }}</span>
         </div>
-        <p class="school-meta">Admin: {{ school.admin.username }}</p>
-        <p class="school-meta">Beispiele: {{ school.exampleCount }}</p>
+
+        <h3 class="school-name">{{ school.name }}</h3>
+
+        <div class="school-info-list">
+          <div class="info-row">
+            <mat-icon>person</mat-icon>
+            <span>Admin: {{ school.admin.username }}</span>
+          </div>
+          <div class="info-row">
+            <mat-icon>auto_stories</mat-icon>
+            <span>Beispiele: {{ school.exampleCount }}</span>
+          </div>
+        </div>
+
+        <div class="card-action-hint">
+          <span>Schule öffnen</span>
+          <mat-icon>arrow_forward</mat-icon>
+        </div>
       </mat-card>
 
-      <mat-card *ngIf="!yourSchools?.length" class="empty-card mat-elevation-z1">
-        <mat-icon>info</mat-icon>
-        <p>Du hast noch keine Schulen erstellt.</p>
+      <mat-card *ngIf="!adminSchools?.length" class="empty-card">
+        <mat-icon>admin_panel_settings</mat-icon>
+        <p>Du bist aktuell bei keiner Schule als Admin eingetragen.</p>
       </mat-card>
     </div>
   </section>
 
-  <!-- Andere Schulen -->
   <section class="section">
     <div class="section-header">
-      <h2 class="section-title">Andere Schulen</h2>
+      <div>
+        <h2 class="section-title">Schulen, bei denen du Mitglied bist</h2>
+        <p class="section-subtitle">Du hast Zugriff, bist aber nicht Admin.</p>
+      </div>
+    </div>
+
+    <div class="school-grid">
+      <mat-card
+        *ngFor="let school of memberSchools"
+        class="school-card member-card"
+        (click)="openSchool(school)"
+      >
+        <div class="card-top-row">
+          <div class="school-avatar member-avatar">{{ getSchoolInitials(school.name) }}</div>
+          <span class="role-badge member-badge">{{ getSchoolRoleLabel('member') }}</span>
+        </div>
+
+        <h3 class="school-name">{{ school.name }}</h3>
+
+        <div class="school-info-list">
+          <div class="info-row">
+            <mat-icon>person</mat-icon>
+            <span>Admin: {{ school.admin.username }}</span>
+          </div>
+          <div class="info-row">
+            <mat-icon>auto_stories</mat-icon>
+            <span>Beispiele: {{ school.exampleCount }}</span>
+          </div>
+        </div>
+
+        <div class="card-action-hint">
+          <span>Schule öffnen</span>
+          <mat-icon>arrow_forward</mat-icon>
+        </div>
+      </mat-card>
+
+      <mat-card *ngIf="!memberSchools?.length" class="empty-card">
+        <mat-icon>groups</mat-icon>
+        <p>Du bist aktuell in keiner weiteren Schule Mitglied.</p>
+      </mat-card>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header section-header-with-search">
+      <div>
+        <h2 class="section-title">Weitere Schulen entdecken</h2>
+        <p class="section-subtitle">Suche nach Schulen und sende eine Beitrittsanfrage.</p>
+      </div>
+
       <mat-form-field appearance="outline" class="school-search">
         <mat-label>Schule suchen</mat-label>
         <input matInput (input)="filterSchools($event)" />
@@ -55,20 +142,36 @@
     <div class="school-grid">
       <mat-card
         *ngFor="let school of otherSchools"
-        class="school-card mat-elevation-z1"
+        class="school-card discover-card"
         (click)="openInvitationDialog(school)"
       >
-        <div class="school-header">
-          <mat-icon class="school-icon alt">domain</mat-icon>
-          <h3 class="school-name">{{ school.name }}</h3>
+        <div class="card-top-row">
+          <div class="school-avatar discover-avatar">{{ getSchoolInitials(school.name) }}</div>
+          <span class="role-badge discover-badge">Beitreten</span>
         </div>
-        <p class="school-meta">Admin: {{ school.admin.username }}</p>
-        <p class="school-meta">Beispiele: {{ school.exampleCount }}</p>
+
+        <h3 class="school-name">{{ school.name }}</h3>
+
+        <div class="school-info-list">
+          <div class="info-row">
+            <mat-icon>person</mat-icon>
+            <span>Admin: {{ school.admin.username }}</span>
+          </div>
+          <div class="info-row">
+            <mat-icon>auto_stories</mat-icon>
+            <span>Beispiele: {{ school.exampleCount }}</span>
+          </div>
+        </div>
+
+        <div class="card-action-hint">
+          <span>Anfrage senden</span>
+          <mat-icon>send</mat-icon>
+        </div>
       </mat-card>
 
-      <mat-card *ngIf="!otherSchools?.length" class="empty-card mat-elevation-z1">
+      <mat-card *ngIf="!otherSchools?.length" class="empty-card">
         <mat-icon>search_off</mat-icon>
-        <p>Keine Schulen gefunden.</p>
+        <p>Keine weiteren Schulen gefunden.</p>
       </mat-card>
     </div>
   </section>

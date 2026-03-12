@@ -1,35 +1,41 @@
 <mat-toolbar class="navbar">
-
   <div class="navbar-container">
 
-    <!-- Brand -->
     <div class="navbar-left">
       <span class="navbar-title">TeacherHelper</span>
     </div>
 
-    <!-- Desktop Navigation -->
     <nav class="navbar-right">
-      <a mat-button routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">Home</a>
-      <a mat-button (click)="goToSchool()" routerLink="/school" routerLinkActive="active-link">Schule</a>
-      <a mat-button routerLink="/contact" routerLinkActive="active-link">Kontakt</a>
-      <button mat-icon-button class="icon-btn" [matMenuTriggerFor]="notificationMenu">
+      <a mat-button routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
+        Home
+      </a>
+
+      <a mat-button routerLink="/school" routerLinkActive="active-link">
+        Schule
+      </a>
+
+      <a mat-button routerLink="/contact" routerLinkActive="active-link">
+        Kontakt
+      </a>
+
+      <button
+        mat-icon-button
+        class="icon-btn notification-trigger"
+        [matMenuTriggerFor]="notificationMenu"
+        [matMenuTriggerData]="{ keepOpen: true }">
         <mat-icon>notifications</mat-icon>
-        <span class="notif-badge">{{requests.length}}</span>
+        @if (openRequests.length > 0) {
+          <span class="notif-badge">{{ openRequests.length }}</span>
+        }
       </button>
 
-      <!-- Avatar Dropdown -->
       <button mat-button class="avatar-btn" [matMenuTriggerFor]="profileMenu">
         <div class="avatar-circle">{{ getInitials() }}</div>
       </button>
     </nav>
-
   </div>
-
 </mat-toolbar>
 
-<!-- ================= MENUS ================= -->
-
-<!-- Profile Menu -->
 <mat-menu #profileMenu="matMenu">
   <button mat-menu-item routerLink="/user">
     <mat-icon>person</mat-icon>
@@ -49,47 +55,101 @@
   </button>
 </mat-menu>
 
-<!-- Notification Menu -->
-<mat-menu #notificationMenu="matMenu" class="notification-menu">
+<mat-menu
+  #notificationMenu="matMenu"
+  panelClass="notification-menu-panel"
+  xPosition="before"
+  yPosition="below">
 
-  @if (requests.length === 0) {
-    <div class="no-notifications">
-      <mat-icon>notifications_off</mat-icon>
-      Keine neuen Nachrichten
-    </div>
-  }
-
-  @for (request of requests; track request) {
-    <div class="notification-item">
-      <div class="notification-text">
-        <mat-icon>person_add</mat-icon>
-
-        <div>
-          <div class="notification-title">
-            {{ request.transmitter.username }}
-          </div>
-
-          <div class="notification-message">
-            @if(request.type == RequestType.INVITE){
-              möchte Sie zu Ihrer Schule ({{request.school.name}} einladen
-            } @else {
-              möchte Ihrer Schule ({{request.school.name}}) beitreten
-            }
-          </div>
+  <div class="notification-panel" (click)="$event.stopPropagation()">
+    <div class="notification-header">
+      <div>
+        <div class="notification-heading">Benachrichtigungen</div>
+        <div class="notification-subheading">
+          @if (openRequests.length > 0) {
+            {{ openRequests.length }} offene Anfrage(n)
+          } @else {
+            Alles erledigt
+          }
         </div>
       </div>
 
-      <div class="notification-actions">
-        <button mat-icon-button color="primary" (click)="acceptRequest(request)">
-          <mat-icon>check</mat-icon>
-        </button>
-
-        <button mat-icon-button color="warn" (click)="declineRequest(request)">
-          <mat-icon>close</mat-icon>
-        </button>
+      <div class="notification-header-icon">
+        <mat-icon>notifications_active</mat-icon>
       </div>
-
     </div>
-  }
 
+    @if (openRequests.length === 0) {
+      <div class="no-notifications">
+        <div class="empty-icon">
+          <mat-icon>notifications_off</mat-icon>
+        </div>
+        <div class="empty-title">Keine neuen Nachrichten</div>
+        <div class="empty-text">
+          Neue Einladungen oder Beitrittsanfragen erscheinen hier.
+        </div>
+      </div>
+    } @else {
+      <div class="notification-list">
+        @for (request of openRequests; track request.id) {
+          <div class="notification-item" [class.processing]="request._processing">
+            <div class="notification-top">
+              <div class="notification-avatar">
+                {{ getRequestInitial(request) }}
+              </div>
+
+              <div class="notification-content">
+                <div class="notification-meta">{{ getRequestCategoryLabel(request) }}</div>
+
+                <div class="notification-title-row">
+                  <div class="notification-title">
+                    {{ getRequestTitle(request) }}
+                  </div>
+                </div>
+
+                <div class="notification-message">
+                  {{ getRequestText(request) }}
+                </div>
+
+                @if (request.message && request.message.trim().length > 0) {
+                  <div class="notification-user-message">
+                    <mat-icon>format_quote</mat-icon>
+                    <span>{{ request.message }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="notification-actions">
+              <button
+                mat-flat-button
+                color="primary"
+                class="accept-btn"
+                [disabled]="request._processing"
+                (click)="onNotificationAction($event, request, true)">
+                <mat-icon>check</mat-icon>
+                Akzeptieren
+              </button>
+
+              <button
+                mat-stroked-button
+                class="decline-btn"
+                [disabled]="request._processing"
+                (click)="onNotificationAction($event, request, false)">
+                <mat-icon>close</mat-icon>
+                Ablehnen
+              </button>
+            </div>
+
+            @if (request._processing) {
+              <div class="notification-loading">
+                <mat-icon>hourglass_top</mat-icon>
+                Wird verarbeitet...
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
 </mat-menu>

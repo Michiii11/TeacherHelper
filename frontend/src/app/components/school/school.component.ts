@@ -271,11 +271,6 @@ export class SchoolComponent {
     });
   }
 
-  deleteSchool() { if(confirm(`Schule "${this.school.name}" wirklich löschen?`)) { console.log('delete school'); } }
-  exportCsv() { console.log('export csv'); }
-
-  protected readonly ExampleTypeLabels = ExampleTypeLabels
-
   protected openTest(test: TestOverviewDTO) {
     this.dialog.open(TestPreviewComponent, {
       width: '800px',

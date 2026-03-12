@@ -49,7 +49,7 @@ public class SchoolRepository {
     public List<SchoolDTO> getAllSchools() {
         List<School> schools = em.createQuery("SELECT s FROM School s", School.class).getResultList();
         return schools.stream()
-                .map(school -> new SchoolDTO(school.getId(), school.getName(), school.getAdminDTO(), 0, school.getFocusList().stream().map(Focus::getLabel).toList()))
+                .map(school -> new SchoolDTO(school.getId(), school.getName(), school.getAdminDTO(), 0, school.getUsers().stream().map(User::toUserDTO).toList()))
                 .toList();
     }
 
@@ -63,7 +63,7 @@ public class SchoolRepository {
             return null;
         }
 
-        return new SchoolDTO(school.getId(), school.getName(), school.getAdminDTO(), 0, school.getFocusList().stream().map(Focus::getLabel).toList());
+        return new SchoolDTO(school.getId(), school.getName(), school.getAdminDTO(), 0, school.getUsers().stream().map(User::toUserDTO).toList());
     }
 
     public List<SchoolDTO> getYourSchools(String auth) {
@@ -82,7 +82,7 @@ public class SchoolRepository {
                 .getResultList();
 
         return schools.stream()
-                .map(school -> new SchoolDTO(school.getId(), school.getName(), school.getAdminDTO(), 0, school.getFocusList().stream().map(Focus::getLabel).toList()))
+                .map(school -> new SchoolDTO(school.getId(), school.getName(), school.getAdminDTO(), 0, school.getUsers().stream().map(User::toUserDTO).toList()))
                 .toList();
     }
 
@@ -125,7 +125,7 @@ public class SchoolRepository {
     }
 
     public SchoolDTO toSchoolDTO(School school) {
-        return new SchoolDTO(school.getId(), school.getName(), school.getAdminDTO(), school.getUsers().size(), school.getFocusList().stream().map(Focus::getLabel).toList());
+        return new SchoolDTO(school.getId(), school.getName(), school.getAdminDTO(), school.getUsers().size(), school.getUsers().stream().map(User::toUserDTO).toList());
     }
 
     public Response sendJoinRequest(Long id, Long userId, String message) {
@@ -170,7 +170,7 @@ public class SchoolRepository {
         }
 
         return joinRequests.stream()
-                .map(j -> new JoinRequestDTO(toSchoolDTO(j.getSchool()), j.getTransmitter().toUserDTO(), j.getRecipient().toUserDTO(), j.getMessage(), j.isAccepted(), j.isDone(), RequestType.JOIN))
+                .map(j -> new JoinRequestDTO(j.getId(), toSchoolDTO(j.getSchool()), j.getTransmitter().toUserDTO(), j.getRecipient().toUserDTO(), j.getMessage(), j.isAccepted(), j.isDone(), j.getType()))
                 .toList();
     }
 
@@ -226,6 +226,51 @@ public class SchoolRepository {
 
         JoinRequest request = new JoinRequest(school, user, teacher, "", RequestType.INVITE);
         em.persist(request);
+
+        return Response.ok().build();
+    }
+
+
+    public Response respondJoinRequest(Long requestId, Long userId, boolean b) {
+        JoinRequest request = em.find(JoinRequest.class, requestId);
+
+        if (request == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Join request not found").build();
+        }
+
+        if (!request.getRecipient().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN).entity("You are not the recipient of this join request").build();
+        }
+
+        if (request.isDone()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("This join request has already been processed").build();
+        }
+
+        if (b) {
+            School school = request.getSchool();
+
+            if(request.getType() == RequestType.JOIN){
+                User user = request.getTransmitter();
+                if (request.getSchool().getAdmin().getId().equals(request.getTransmitter().getId()) || request.getSchool().getUsers().stream().anyMatch(u -> u.getId().equals(request.getTransmitter().getId()))) {
+                    return Response.status(Response.Status.BAD_REQUEST).entity("The user is already a member of this school").build();
+                } else {
+                    school.getUsers().add(user);
+                }
+            } else {
+                User user = request.getRecipient();
+                if (request.getSchool().getAdmin().getId().equals(request.getRecipient().getId()) || request.getSchool().getUsers().stream().anyMatch(u -> u.getId().equals(request.getRecipient().getId()))) {
+                    return Response.status(Response.Status.BAD_REQUEST).entity("The user is already a member of this school").build();
+                } else {
+                    school.getUsers().add(user);
+                }
+            }
+
+            em.merge(school);
+        }
+
+        request.setAccepted(b);
+        request.setDone(true);
+        em.merge(request);
 
         return Response.ok().build();
     }

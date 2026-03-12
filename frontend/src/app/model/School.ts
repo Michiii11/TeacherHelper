@@ -32,6 +32,7 @@ export interface JoinRequest{
 }
 
 export interface JoinRequestDTO{
+  id: number;
   school: SchoolDTO;
   transmitter: UserDTO;
   recipient: UserDTO;

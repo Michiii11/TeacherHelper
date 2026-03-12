@@ -103,7 +103,7 @@ export class HttpService {
 
   getUserId() {
     let authToken = localStorage.getItem('teacher_authToken')
-    return this.http.post(`${Config.API_URL}/user/id`, authToken);
+    return this.http.post<number>(`${Config.API_URL}/user/id`, authToken);
   }
 
   sendSchoolJoinRequest(schoolId: number, message: string) {
@@ -132,6 +132,18 @@ export class HttpService {
     console.log(id)
     return this.http.post(`${Config.API_URL}/school/${schoolId}/invite-teacher`, {
       teacherId: id,
+      authToken: localStorage.getItem('teacher_authToken')
+    });
+  }
+
+  acceptRequest(id: number) {
+    return this.http.post(`${Config.API_URL}/school/join-request/${id}/accept`, {
+      authToken: localStorage.getItem('teacher_authToken')
+    });
+  }
+
+  declineRequest(id: number) {
+    return this.http.post(`${Config.API_URL}/school/join-request/${id}/decline`, {
       authToken: localStorage.getItem('teacher_authToken')
     });
   }
