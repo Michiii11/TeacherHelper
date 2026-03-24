@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 
@@ -15,12 +15,13 @@ import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/ma
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 
-import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, combineLatest } from 'rxjs';
 import { map, startWith, takeUntil } from 'rxjs/operators';
 
-import { Example, ExampleDTO, ExampleTypes } from '../../model/Example';
+import { Example, ExampleDTO, ExampleTypes, Gap, Option } from '../../model/Example';
 import { CreateTestDTO, TestCreationStates, TestExample, TestExampleDTO } from '../../model/Test';
 import { HttpService } from '../../service/http.service';
+import { TestPrintService } from '../../service/test-print.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { MatPseudoCheckbox } from '@angular/material/core';
 
@@ -36,20 +37,18 @@ type PersistedTestSettings = {
 
 @Component({
   selector: 'app-create-test',
+  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-
     MatButton,
     MatDialogActions,
     MatDialogContent,
-
     CdkTextareaAutosize,
     MatFormField,
     MatInput,
     MatLabel,
-
     MatAutocompleteModule,
     MatIconModule,
     MatDividerModule,
@@ -59,13 +58,18 @@ type PersistedTestSettings = {
   templateUrl: './create-test.component.html',
   styleUrl: './create-test.component.scss',
 })
-export class CreateTestComponent implements OnInit {
+export class CreateTestComponent implements OnInit, OnDestroy {
   data = inject<{ schoolId: number; testId: number }>(MAT_DIALOG_DATA);
   private dialogRef = inject(MatDialogRef<CreateTestComponent>);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private service = inject(HttpService);
+  private testPrintService = inject(TestPrintService);
   private readonly destroy$ = new Subject<void>();
+
+  showAdvancedSettings = false;
+  printCopies = 1;
+  includeSolutionSheet = false;
 
   test: CreateTestDTO & PersistedTestSettings = {
     authToken: '',
@@ -147,37 +151,56 @@ export class CreateTestComponent implements OnInit {
     5: 'Nicht genügend',
   };
 
+  protected readonly ExampleTypes = ExampleTypes;
+
   constructor() {
     this.dialogRef.disableClose = true;
-    this.dialogRef.backdropClick().subscribe(() => this.closeDialog());
-    this.dialogRef.keydownEvents().subscribe((event) => {
-      if (event.key === 'Escape') this.closeDialog();
-    });
+
+    this.dialogRef.backdropClick()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.closeDialog());
+
+    this.dialogRef.keydownEvents()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((event) => {
+        if (event.key === 'Escape') this.closeDialog();
+      });
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     if (this.data.testId) {
-      this.service.getCreateTest(this.data.testId).subscribe({
-        next: (response: any) => {
-          this.test = {
-            ...this.test,
-            ...response,
-          };
-          this.isEditMode = true;
-          this.selectedExamplesSubject.next(this.test.exampleList ?? []);
-          this.hydratePersistedSettings(response);
-          this.initializeTaskSpacing();
-          if (this.useAutomaticGrading) {
-            this.syncManualGradeMinimumsWithAuto();
-          }
-          this.hasUnsavedChanges = false;
-        },
-      });
+      this.service.getCreateTest(this.data.testId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response: any) => {
+            this.test = {
+              ...this.test,
+              ...response,
+            };
+            this.isEditMode = true;
+            this.selectedExamplesSubject.next(this.test.exampleList ?? []);
+            this.hydratePersistedSettings(response);
+            this.initializeTaskSpacing();
+
+            if (this.useAutomaticGrading) {
+              this.syncManualGradeMinimumsWithAuto();
+            }
+
+            this.hasUnsavedChanges = false;
+          },
+        });
     }
 
-    this.service.getFullExamples(this.data.schoolId).subscribe((examples) => {
-      this.allExamplesSubject.next(examples as ExampleDTO[]);
-    });
+    this.service.getFullExamples(this.data.schoolId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((examples) => {
+        this.allExamplesSubject.next(examples as ExampleDTO[]);
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   displayExample = (value: Example | string | null): string => {
@@ -186,13 +209,26 @@ export class CreateTestComponent implements OnInit {
     return value.question?.trim() ?? '';
   };
 
-  onExampleSelected(event: MatAutocompleteSelectedEvent) {
+  toggleAdvancedSettings(): void {
+    this.showAdvancedSettings = !this.showAdvancedSettings;
+  }
+
+  onPrintCopiesChange(value: number | string | null): void {
+    const parsed = Math.round(Number(value ?? 1));
+    this.printCopies = Number.isFinite(parsed) ? Math.min(100, Math.max(1, parsed)) : 1;
+  }
+
+  setIncludeSolutionSheet(value: boolean): void {
+    this.includeSolutionSheet = value;
+  }
+
+  onExampleSelected(event: MatAutocompleteSelectedEvent): void {
     const picked = event.option.value as Example;
     this.addExampleToSelection(picked);
     this.exampleCtrl.setValue('');
   }
 
-  addExampleToSelection(example: Example) {
+  addExampleToSelection(example: Example): void {
     const current = this.selectedExamplesSubject.value;
     if (current.some((x) => x.example?.id === example.id)) return;
 
@@ -208,20 +244,24 @@ export class CreateTestComponent implements OnInit {
     this.selectedExamplesSubject.next(next);
     this.syncSelectionToTest(next);
     this.taskSpacingMap[example.id] = this.defaultTaskSpacing;
+
     if (this.useAutomaticGrading) {
       this.syncManualGradeMinimumsWithAuto();
     }
+
     this.markDirty();
   }
 
-  removeSelectedExample(entry: TestExampleDTO) {
+  removeSelectedExample(entry: TestExampleDTO): void {
     const next = this.selectedExamplesSubject.value.filter((x) => x.example.id !== entry.example.id);
     this.selectedExamplesSubject.next(next);
     this.syncSelectionToTest(next);
     delete this.taskSpacingMap[entry.example.id];
+
     if (this.useAutomaticGrading) {
       this.syncManualGradeMinimumsWithAuto();
     }
+
     this.markDirty();
   }
 
@@ -229,13 +269,11 @@ export class CreateTestComponent implements OnInit {
     return this.selectedExamplesSubject.value;
   }
 
-  private syncSelectionToTest(selected: TestExampleDTO[]) {
-    this.test.exampleList = [...selected];
+  get totalPoints(): number {
+    return this.selectedExamples.reduce((sum, entry) => sum + (Number(entry.points) || 0), 0);
   }
 
-  protected saveTest() {
-    this.hasUnsavedChanges = false;
-
+  protected saveTest(): void {
     this.test.authToken = localStorage.getItem('teacher_authToken') || '';
     this.test.schoolId = Number(this.test.schoolId || this.data.schoolId);
     this.test.exampleList = this.selectedExamplesSubject.value;
@@ -250,14 +288,18 @@ export class CreateTestComponent implements OnInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.snackBar.open(this.isEditMode ? 'Test erfolgreich gespeichert' : 'Test erfolgreich erstellt', 'OK', { duration: 3000 });
+          this.snackBar.open(
+            this.isEditMode ? 'Test erfolgreich gespeichert' : 'Test erfolgreich erstellt',
+            'OK',
+            { duration: 3000 }
+          );
           this.hasUnsavedChanges = false;
           this.dialogRef.close(this.test);
         }
       });
   }
 
-  async closeDialog() {
+  async closeDialog(): Promise<void> {
     if (this.hasUnsavedChanges) {
       const confirmRef = this.dialog.open(ConfirmDialogComponent, {
         data: {
@@ -267,49 +309,53 @@ export class CreateTestComponent implements OnInit {
           confirmText: 'Schließen',
         },
       });
+
       const confirmed = await confirmRef.afterClosed().toPromise();
       if (!confirmed) return;
     }
+
     this.dialogRef.close();
   }
 
   @HostListener('window:beforeunload', ['$event'])
-  beforeUnloadHandler(event: BeforeUnloadEvent) {
+  beforeUnloadHandler(event: BeforeUnloadEvent): void {
     if (this.hasUnsavedChanges) {
       event.preventDefault();
       event.returnValue = '';
     }
   }
 
-  markDirty() {
+  markDirty(): void {
     this.hasUnsavedChanges = true;
     this.attachPersistedSettingsToPayload();
   }
 
-  onPointsChanged() {
+  onPointsChanged(): void {
     if (this.useAutomaticGrading) {
       this.syncManualGradeMinimumsWithAuto();
     }
     this.markDirty();
   }
 
-  onTaskSpacingChange(exampleId: number, value: number | string | null) {
+  onTaskSpacingChange(exampleId: number, value: number | string | null): void {
     const numeric = this.normalizeSpacingValue(value);
     this.taskSpacingMap[exampleId] = numeric;
     this.markDirty();
   }
 
-  onDefaultSpacingChanged(value: number | string | null) {
+  onDefaultSpacingChanged(value: number | string | null): void {
     this.defaultTaskSpacing = this.normalizeSpacingValue(value);
     this.spacingForAll = this.defaultTaskSpacing;
     this.markDirty();
   }
 
-  applySpacingToAll() {
+  applySpacingToAll(): void {
     const spacing = this.normalizeSpacingValue(this.spacingForAll);
+
     for (const entry of this.selectedExamples) {
       this.taskSpacingMap[entry.example.id] = spacing;
     }
+
     this.defaultTaskSpacing = spacing;
     this.spacingForAll = spacing;
     this.markDirty();
@@ -319,65 +365,28 @@ export class CreateTestComponent implements OnInit {
     return this.taskSpacingMap[exampleId] ?? this.defaultTaskSpacing;
   }
 
-  resetTaskSpacing() {
+  resetTaskSpacing(): void {
     for (const entry of this.selectedExamples) {
       this.taskSpacingMap[entry.example.id] = this.defaultTaskSpacing;
     }
+
     this.spacingForAll = this.defaultTaskSpacing;
     this.markDirty();
   }
 
-  get totalPoints(): number {
-    return this.selectedExamples.reduce((sum, entry) => sum + (Number(entry.points) || 0), 0);
-  }
-
-  getGradeMinimum(grade: number): number {
-    if (grade === 5) return 0;
-    if (this.useAutomaticGrading) {
-      return this.getAutomaticGradeMinimum(grade);
-    }
-    return Math.max(0, Math.min(this.totalPoints, Math.round(Number(this.manualGradeMinimums[grade] ?? 0))));
-  }
-
-  getGradeRangeLabel(grade: number): string {
-    const total = this.totalPoints;
-    if (total <= 0) return '–';
-
-    const min = this.getGradeMinimum(grade);
-    const upper = grade === 1 ? total : this.getGradeMinimum(grade - 1) - 1;
-
-    if (upper < min) return `${min}`;
-    if (min === upper) return `${min}`;
-    return `${upper}-${min}`;
-  }
-
-  getAutomaticGradeMinimum(grade: number): number {
-    const total = this.totalPoints;
-    if (grade === 5) return 0;
-    const percentage = Number(this.gradePercentages[grade] ?? 0);
-    return Math.max(0, Math.min(total, Math.ceil(total * (percentage / 100))));
-  }
-
-  onGradingModeChange(mode: GradeMode) {
+  onGradingModeChange(mode: GradeMode): void {
     this.useAutomaticGrading = mode === 'auto';
+
     if (this.useAutomaticGrading) {
       this.syncManualGradeMinimumsWithAuto();
     }
+
     this.markDirty();
   }
 
-  syncManualGradeMinimumsWithAuto() {
-    this.manualGradeMinimums = {
-      1: this.getAutomaticGradeMinimum(1),
-      2: this.getAutomaticGradeMinimum(2),
-      3: this.getAutomaticGradeMinimum(3),
-      4: this.getAutomaticGradeMinimum(4),
-    };
-    this.attachPersistedSettingsToPayload();
-  }
-
-  resetGrading() {
+  resetGrading(): void {
     this.gradePercentages = { ...this.defaultGradePercentages };
+
     if (this.useAutomaticGrading) {
       this.syncManualGradeMinimumsWithAuto();
     } else {
@@ -388,10 +397,28 @@ export class CreateTestComponent implements OnInit {
         4: this.getAutomaticGradeMinimum(4),
       };
     }
+
     this.markDirty();
   }
 
-  normalizeManualGradeMinimums() {
+  normalizePercentages(): void {
+    let last = 100;
+
+    for (const grade of [1, 2, 3, 4]) {
+      const raw = Number(this.gradePercentages[grade] ?? 0);
+      const normalized = Math.max(0, Math.min(last, Math.round(raw)));
+      this.gradePercentages[grade] = normalized;
+      last = normalized;
+    }
+
+    if (this.useAutomaticGrading) {
+      this.syncManualGradeMinimumsWithAuto();
+    }
+
+    this.markDirty();
+  }
+
+  normalizeManualGradeMinimums(): void {
     const total = this.totalPoints;
     let last = total;
 
@@ -409,24 +436,81 @@ export class CreateTestComponent implements OnInit {
     return Number(this.gradePercentages[grade] ?? 0);
   }
 
-  normalizePercentages() {
-    let last = 100;
-
-    for (const grade of [1, 2, 3, 4]) {
-      const raw = Number(this.gradePercentages[grade] ?? 0);
-      const normalized = Math.max(0, Math.min(last, Math.round(raw)));
-      this.gradePercentages[grade] = normalized;
-      last = normalized;
-    }
+  getGradeMinimum(grade: number): number {
+    if (grade === 5) return 0;
 
     if (this.useAutomaticGrading) {
-      this.syncManualGradeMinimumsWithAuto();
+      return this.getAutomaticGradeMinimum(grade);
     }
 
-    this.markDirty();
+    return Math.max(0, Math.min(this.totalPoints, Math.round(Number(this.manualGradeMinimums[grade] ?? 0))));
   }
 
-  private initializeTaskSpacing() {
+  getGradeRangeLabel(grade: number): string {
+    const total = this.totalPoints;
+    if (total <= 0) return '–';
+
+    const min = this.getGradeMinimum(grade);
+    const upper = grade === 1 ? total : this.getGradeMinimum(grade - 1) - 1;
+
+    if (upper < min) return `${min}`;
+    if (min === upper) return `${upper}`;
+    return `${upper}-${min}`;
+  }
+
+  getAutomaticGradeMinimum(grade: number): number {
+    const total = this.totalPoints;
+    if (grade === 5) return 0;
+
+    const percentage = Number(this.gradePercentages[grade] ?? 0);
+    return Math.max(0, Math.min(total, Math.ceil(total * (percentage / 100))));
+  }
+
+  syncManualGradeMinimumsWithAuto(): void {
+    this.manualGradeMinimums = {
+      1: this.getAutomaticGradeMinimum(1),
+      2: this.getAutomaticGradeMinimum(2),
+      3: this.getAutomaticGradeMinimum(3),
+      4: this.getAutomaticGradeMinimum(4),
+    };
+
+    this.attachPersistedSettingsToPayload();
+  }
+
+  getPreviewImage(example: Example): string | null {
+    return (example as any).imageUrl || (example as any).image || null;
+  }
+
+  getQuestionWithGapLabels(example: Example): string {
+    let idx = 0;
+    return example.question.replace(/\{Lücke \d+\}/g, () => {
+      const label = example.gaps[idx]?.label?.trim();
+      idx++;
+      return label ? `_____(${label})_____` : `______________`;
+    });
+  }
+
+  getLetter(i: number): string {
+    return String.fromCharCode(65 + i);
+  }
+
+  printPreview(): void {
+    this.attachPersistedSettingsToPayload();
+    this.testPrintService.printTest(this.test, this.selectedExamples, {
+      printCopies: this.printCopies,
+      includeSolutionSheet: this.includeSolutionSheet,
+      getGradeRangeLabel: (grade) => this.getGradeRangeLabel(grade),
+      getTaskSpacing: (exampleId) => this.getTaskSpacing(exampleId),
+      getQuestionWithGapLabels: (example) => this.getQuestionWithGapLabels(example),
+      getLetter: (index) => this.getLetter(index),
+    });
+  }
+
+  private syncSelectionToTest(selected: TestExampleDTO[]): void {
+    this.test.exampleList = [...selected];
+  }
+
+  private initializeTaskSpacing(): void {
     for (const entry of this.selectedExamples) {
       if (this.taskSpacingMap[entry.example.id] == null) {
         this.taskSpacingMap[entry.example.id] = this.defaultTaskSpacing;
@@ -435,7 +519,7 @@ export class CreateTestComponent implements OnInit {
     this.spacingForAll = this.defaultTaskSpacing;
   }
 
-  private attachPersistedSettingsToPayload() {
+  private attachPersistedSettingsToPayload(): void {
     this.test.defaultTaskSpacing = this.defaultTaskSpacing;
     this.test.taskSpacingMap = { ...this.taskSpacingMap };
     this.test.gradingMode = this.useAutomaticGrading ? 'auto' : 'manual';
@@ -443,17 +527,31 @@ export class CreateTestComponent implements OnInit {
     this.test.manualGradeMinimums = { ...this.manualGradeMinimums };
   }
 
-  private hydratePersistedSettings(response: any) {
-    const defaultSpacing = Number(response?.defaultTaskSpacing ?? response?.layoutSettings?.defaultTaskSpacing ?? this.defaultTaskSpacing);
+  private hydratePersistedSettings(response: any): void {
+    const defaultSpacing = Number(
+      response?.defaultTaskSpacing ??
+      response?.layoutSettings?.defaultTaskSpacing ??
+      this.defaultTaskSpacing
+    );
+
     this.defaultTaskSpacing = this.normalizeSpacingValue(defaultSpacing);
     this.spacingForAll = this.defaultTaskSpacing;
 
-    this.taskSpacingMap = this.normalizeNumberMap(response?.taskSpacingMap ?? response?.layoutSettings?.taskSpacingMap ?? {});
+    this.taskSpacingMap = this.normalizeNumberMap(
+      response?.taskSpacingMap ??
+      response?.layoutSettings?.taskSpacingMap ??
+      {}
+    );
 
     const gradingMode = response?.gradingMode ?? response?.gradingSettings?.mode ?? 'auto';
     this.useAutomaticGrading = gradingMode !== 'manual';
 
-    const percentages = this.normalizeNumberMap(response?.gradePercentages ?? response?.gradingSettings?.gradePercentages ?? this.defaultGradePercentages);
+    const percentages = this.normalizeNumberMap(
+      response?.gradePercentages ??
+      response?.gradingSettings?.gradePercentages ??
+      this.defaultGradePercentages
+    );
+
     this.gradePercentages = {
       1: percentages[1] ?? this.defaultGradePercentages[1],
       2: percentages[2] ?? this.defaultGradePercentages[2],
@@ -461,7 +559,12 @@ export class CreateTestComponent implements OnInit {
       4: percentages[4] ?? this.defaultGradePercentages[4],
     };
 
-    const manualMinimums = this.normalizeNumberMap(response?.manualGradeMinimums ?? response?.gradingSettings?.manualGradeMinimums ?? {});
+    const manualMinimums = this.normalizeNumberMap(
+      response?.manualGradeMinimums ??
+      response?.gradingSettings?.manualGradeMinimums ??
+      {}
+    );
+
     this.manualGradeMinimums = {
       1: manualMinimums[1] ?? this.manualGradeMinimums[1],
       2: manualMinimums[2] ?? this.manualGradeMinimums[2],
@@ -472,7 +575,9 @@ export class CreateTestComponent implements OnInit {
     this.attachPersistedSettingsToPayload();
   }
 
-  private normalizeNumberMap(input: Record<number, number> | Record<string, number> | null | undefined): Record<number, number> {
+  private normalizeNumberMap(
+    input: Record<number, number> | Record<string, number> | null | undefined
+  ): Record<number, number> {
     const normalized: Record<number, number> = {};
 
     for (const [key, value] of Object.entries(input ?? {})) {
@@ -505,29 +610,17 @@ export class CreateTestComponent implements OnInit {
         e.admin?.username ?? '',
         String(e.id),
         String(e.type ?? ''),
-        String(e.difficulty ?? ''),
       ].join(' ')
     );
+
     return haystack.includes(query);
   }
 
-  protected readonly ExampleTypes = ExampleTypes;
-
-  getQuestionWithGapLabels(example: Example): string {
-    let idx = 0;
-    return example.question.replace(/\{Lücke \d+\}/g, () => {
-      const label = example.gaps[idx]?.label?.trim();
-      idx++;
-      return label ? `_____(${label})_____` : `______________`;
-    });
+  increaseCount(): void {
+    this.printCopies = Math.min(20, (this.printCopies || 1) + 1);
   }
 
-  getLetter(i: number): string {
-    return String.fromCharCode(65 + i);
-  }
-
-  printPreview() {
-    document.title = this.test.name || 'Test';
-    window.print();
+  decreaseCount(): void {
+    this.printCopies = Math.max(1, (this.printCopies || 1) - 1);
   }
 }

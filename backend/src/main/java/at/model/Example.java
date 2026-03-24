@@ -2,7 +2,6 @@
 package at.model;
 
 import at.dtos.GapDTO;
-import at.enums.ExampleDifficulty;
 import at.enums.ExampleTypes;
 import at.enums.GapFillType;
 import at.model.helper.Assign;
@@ -13,7 +12,6 @@ import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 public class Example {
@@ -30,9 +28,6 @@ public class Example {
     private String instruction;
 
     private String question;
-
-    @Enumerated(EnumType.STRING)
-    private ExampleDifficulty difficulty = ExampleDifficulty.EASY;
 
     private String solution;
 
@@ -76,12 +71,11 @@ public class Example {
 
     public Example() {}
 
-    public Example(User admin, ExampleTypes type, String instruction, String question, ExampleDifficulty difficulty, String solution, School school) {
+    public Example(User admin, ExampleTypes type, String instruction, String question, String solution, School school) {
         this.admin = admin;
         this.type = type;
         this.instruction = instruction;
         this.question = question;
-        this.difficulty = difficulty;
         this.solution = solution;
         this.school = school;
     }
@@ -94,7 +88,6 @@ public class Example {
                 ", type=" + type +
                 ", instruction='" + instruction + '\'' +
                 ", question='" + question + '\'' +
-                ", difficulty=" + difficulty +
                 ", answer='" + solution + '\'' +
                 ", imageUrl='" + imageUrl + '\'' +
                 ", school=" + school +
@@ -122,9 +115,6 @@ public class Example {
 
     public String getQuestion() { return question; }
     public void setQuestion(String question) { this.question = question; }
-
-    public ExampleDifficulty getDifficulty() { return difficulty; }
-    public void setDifficulty(ExampleDifficulty difficulty) { this.difficulty = difficulty; }
 
     public String getSolution() { return solution; }
     public void setSolution(String solution) { this.solution = solution; }

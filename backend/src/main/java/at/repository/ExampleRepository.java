@@ -43,7 +43,6 @@ public class ExampleRepository {
                         e.getType(),
                         e.getInstruction(),
                         e.getQuestion(),
-                        e.getDifficulty(),
                         e.getAdmin().getUsername(),
                         e.getAdmin().getId(),
                         e.getFocusList()
@@ -60,7 +59,6 @@ public class ExampleRepository {
                     example.getType(),
                     example.getInstruction(),
                     example.getQuestion(),
-                    example.getDifficulty(),
                     example.getSolution(),
                     example.getSolutionUrl(),
                     example.getImageUrl(),
@@ -82,7 +80,7 @@ public class ExampleRepository {
         User admin = em.find(User.class, userId);
         School school = em.find(School.class, dto.schoolId());
 
-        Example example = new Example(admin, dto.type(), dto.instruction(), dto.question(), dto.difficulty(), dto.solution(), school);
+        Example example = new Example(admin, dto.type(), dto.instruction(), dto.question(), dto.solution(), school);
         example.getFocusList().clear();
         example.getFocusList().addAll(dto.focusList());
 
@@ -137,7 +135,6 @@ public class ExampleRepository {
         example.setType(dto.type());
         example.setInstruction(dto.instruction());
         example.setQuestion(dto.question());
-        example.setDifficulty(dto.difficulty());
         example.setSolution(dto.solution());
         example.getFocusList().clear();
         example.getFocusList().addAll(dto.focusList());
@@ -212,7 +209,6 @@ public class ExampleRepository {
                 e.getImageUrl(),
                 e.getSolution(),
                 e.getSolutionUrl(),
-                e.getDifficulty(),
                 e.getFocusList());
     }
 }

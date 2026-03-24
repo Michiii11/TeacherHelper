@@ -24,7 +24,6 @@ import { map, takeUntil } from 'rxjs/operators';
 import {
   Assign,
   CreateExampleDTO,
-  ExampleDifficulty,
   ExampleTypeLabels,
   ExampleTypes,
   Focus,
@@ -87,7 +86,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     image: '',
     solution: '',
     solutionUrl: '',
-    difficulty: ExampleDifficulty.EASY,
     focusList: []
   };
 
@@ -95,14 +93,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   readonly ExampleTypes = ExampleTypes;
   exampleTypes = Object.values(ExampleTypes) as ExampleTypes[];
   ExampleTypeLabels = ExampleTypeLabels;
-
-  exampleDifficulties = [
-    { value: ExampleDifficulty.EASY, label: 'Leicht' },
-    { value: ExampleDifficulty.MEDIUM, label: 'Mittel' },
-    { value: ExampleDifficulty.HARD, label: 'Schwer' },
-    { value: ExampleDifficulty.VERY_HARD, label: 'Sehr schwer' },
-    { value: ExampleDifficulty.EXPERT, label: 'Experte' }
-  ];
 
   constructor(
     private dialogRef: MatDialogRef<CreateExampleComponent>,

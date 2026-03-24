@@ -58,7 +58,6 @@ export class ExamplePreviewComponent implements OnInit, OnDestroy {
       image: '',
       solution: '',
       solutionUrl: '',
-      difficulty: (undefined as any),
       focusList: [],
     };
   }

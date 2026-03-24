@@ -1,8 +1,13 @@
 package at.repository;
 
-import at.dtos.*;
-import at.model.*;
-import at.model.helper.Gap;
+import at.dtos.CreateTestDTO;
+import at.dtos.TestExampleDTO;
+import at.dtos.TestOverviewDTO;
+import at.model.Example;
+import at.model.School;
+import at.model.Test;
+import at.model.TestExample;
+import at.model.User;
 import at.security.TokenService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -13,6 +18,7 @@ import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 @ApplicationScoped
 public class TestRepository {
@@ -36,17 +42,18 @@ public class TestRepository {
     @Transactional
     public Response createTest(CreateTestDTO dto) throws IOException {
         Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+
         User admin = em.find(User.class, userId);
         School school = em.find(School.class, dto.schoolId());
 
         Test test = new Test(dto.name(), dto.note(), admin, school, dto.duration(), dto.state());
+        applySettings(test, dto);
         em.persist(test);
 
-        dto.exampleList().forEach(example -> {
-            TestExample testExample = new TestExample(test, example.example(), example.points(), example.title());
-            em.persist(testExample);
-            test.getExampleList().add(testExample);
-        });
+        addExamplesToTest(test, dto.exampleList());
 
         return Response.ok().build();
     }
@@ -54,36 +61,36 @@ public class TestRepository {
     @Transactional
     public Response updateTest(Long testId, CreateTestDTO dto) {
         Test test = em.find(Test.class, testId);
+        if (test == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
 
         Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
-        if(test.getAdmin().getId() != userId && test.getSchool().getAdmin().getId() != userId){
-            return Response.status(403)
-                    .entity("Not allowed to update this Example.")
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+
+        if (!test.getAdmin().getId().equals(userId) && !test.getSchool().getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("Not allowed to update this test.")
                     .build();
         }
 
-        if(tokenService.validateTokenAndGetUserId(dto.authToken()) == null){
-            return Response.status(500).build();
-        }
-
         test.setName(dto.name());
-        test.getExampleList().clear();
-
-        test.getExampleList().clear();
-        List<TestExample> examplesToRemove = em.createQuery("SELECT te FROM TestExample te WHERE te.test.id = :testId", TestExample.class)
-                .setParameter("testId", testId)
-                .getResultList();
-        examplesToRemove.forEach(em::remove);
-
-        dto.exampleList().forEach(example -> {
-            TestExample testExample = new TestExample(test, example.example(), example.points(), example.title());
-            em.persist(testExample);
-            test.getExampleList().add(testExample);
-        });
+        test.setNote(dto.note());
         test.setDuration(dto.duration());
         test.setState(dto.state());
+        applySettings(test, dto);
 
-        em.persist(test);
+        List<TestExample> existingEntries = em.createQuery(
+                        "SELECT te FROM TestExample te WHERE te.test.id = :testId", TestExample.class)
+                .setParameter("testId", testId)
+                .getResultList();
+
+        existingEntries.forEach(em::remove);
+        test.getExampleList().clear();
+
+        addExamplesToTest(test, dto.exampleList());
 
         return Response.ok().build();
     }
@@ -91,34 +98,78 @@ public class TestRepository {
     @Transactional
     public Response deleteTest(String authToken, Long testId) {
         Test test = em.find(Test.class, testId);
+        if (test == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
 
         Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
 
-        if(test.getAdmin().getId() != userId && test.getSchool().getAdmin().getId() != userId){
-            return Response.status(403)
-                    .entity("Not allowed to delete this Example.")
+        if (!test.getAdmin().getId().equals(userId) && !test.getSchool().getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("Not allowed to delete this test.")
                     .build();
         }
 
         em.remove(test);
-
         return Response.ok().build();
     }
 
     public CreateTestDTO getTest(Long testId, String authToken) {
         Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        if (userId == null) {
+            return null;
+        }
 
         Test t = em.find(Test.class, testId);
+        if (t == null) {
+            return null;
+        }
 
         List<TestExampleDTO> exampleList = new LinkedList<>();
-        t.getExampleList().forEach(example -> exampleList.add(new TestExampleDTO(example.getExample(), example.getPoints(), example.getTitle())));
+        t.getExampleList().forEach(example ->
+                exampleList.add(new TestExampleDTO(example.getExample(), example.getPoints(), example.getTitle())));
 
-        return new CreateTestDTO("",
+        return new CreateTestDTO(
+                "",
                 t.getSchool().getId(),
                 t.getName(),
                 t.getNote(),
                 exampleList,
                 t.getDuration(),
-                t.getState());
+                t.getState(),
+                t.getDefaultTaskSpacing(),
+                copyMap(t.getTaskSpacingMap()),
+                t.getGradingMode(),
+                copyMap(t.getGradePercentages()),
+                copyMap(t.getManualGradeMinimums())
+        );
+    }
+
+    private void addExamplesToTest(Test test, List<TestExampleDTO> exampleDTOs) {
+        if (exampleDTOs == null) {
+            return;
+        }
+
+        for (TestExampleDTO exampleDTO : exampleDTOs) {
+            Example managedExample = em.find(Example.class, exampleDTO.example().getId());
+            TestExample testExample = new TestExample(test, managedExample, exampleDTO.points(), exampleDTO.title());
+            em.persist(testExample);
+            test.getExampleList().add(testExample);
+        }
+    }
+
+    private void applySettings(Test test, CreateTestDTO dto) {
+        test.setDefaultTaskSpacing(dto.defaultTaskSpacing());
+        test.setGradingMode(dto.gradingMode());
+        test.setTaskSpacingMap(copyMap(dto.taskSpacingMap()));
+        test.setGradePercentages(copyMap(dto.gradePercentages()));
+        test.setManualGradeMinimums(copyMap(dto.manualGradeMinimums()));
+    }
+
+    private Map<Integer, Integer> copyMap(Map<Integer, Integer> source) {
+        return source == null ? Map.of() : Map.copyOf(source);
     }
 }

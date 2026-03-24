@@ -1,34 +1,25 @@
-import { Component, HostListener, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 
-import { MAT_DIALOG_DATA, MatDialog, MatDialogActions, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
-import { MatButton, MatIconButton } from '@angular/material/button';
+import { MAT_DIALOG_DATA, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
+import { MatButton } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
-
-import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { MatIconModule } from '@angular/material/icon';
-import { MatDividerModule } from '@angular/material/divider';
-
-import {BehaviorSubject, combineLatest, Observable, Subject} from 'rxjs';
-import {map, startWith, takeUntil} from 'rxjs/operators';
-
-import { Example, ExampleTypes } from '../../model/Example';
-import {CreateTestDTO, TestCreationStates, TestExample, TestExampleDTO} from '../../model/Test';
-import { HttpService } from '../../service/http.service';
-import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { MatPseudoCheckbox } from '@angular/material/core';
 
+import { Example, ExampleTypes } from '../../model/Example';
+import { CreateTestDTO, TestCreationStates, TestExampleDTO } from '../../model/Test';
+import { HttpService } from '../../service/http.service';
+import { PersistedTestSettings, TestPrintService } from '../../service/test-print.service';
+
 @Component({
-  selector: 'app-create-test',
+  selector: 'app-test-preview',
+  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
-    ReactiveFormsModule,
+    MatDialogContent,
     MatButton,
-    MatAutocompleteModule,
-    MatIconModule,
-    MatDividerModule,
     MatPseudoCheckbox,
   ],
   templateUrl: './test-preview.component.html',
@@ -37,223 +28,99 @@ import { MatPseudoCheckbox } from '@angular/material/core';
 export class TestPreviewComponent implements OnInit {
   data = inject<{ schoolId: number; testId: number }>(MAT_DIALOG_DATA);
   private dialogRef = inject(MatDialogRef<TestPreviewComponent>);
-  private dialog = inject(MatDialog);
-  private snackBar = inject(MatSnackBar);
   private service = inject(HttpService);
-  private readonly destroy$ = new Subject<void>();
+  private snackBar = inject(MatSnackBar);
+  private testPrintService = inject(TestPrintService);
 
-  // -----------------------------
-  // Test model
-  // -----------------------------
-  test: CreateTestDTO = {
+  readonly ExampleTypes = ExampleTypes;
+
+  printCopies = 1;
+  includeSolutionSheet = false;
+
+  test: CreateTestDTO & PersistedTestSettings = {
     authToken: '',
     schoolId: this.data.schoolId,
     name: '',
     note: '',
-    exampleList: [] as TestExample[],
+    exampleList: [],
     duration: 0,
     state: TestCreationStates.DRAFT,
+    defaultTaskSpacing: 48,
+    taskSpacingMap: {},
+    gradingMode: 'auto',
+    gradePercentages: {
+      1: 90,
+      2: 78,
+      3: 65,
+      4: 50,
+    },
+    manualGradeMinimums: {
+      1: 18,
+      2: 16,
+      3: 13,
+      4: 10,
+    },
   };
 
-  hasUnsavedChanges = false;
-  isEditMode = false;
+  ngOnInit(): void {
+    if (!this.data.testId) return;
 
-  // -----------------------------
-  // Examples (available + selected)
-  // -----------------------------
-  private allExamplesSubject = new BehaviorSubject<Example[]>([]);
-  private selectedExamplesSubject = new BehaviorSubject<TestExampleDTO[]>([]);
+    this.service.getCreateTest(this.data.testId).subscribe({
+      next: (response: any) => {
+        this.test = {
+          ...this.test,
+          ...response,
+        };
 
-  /** Input control for autocomplete */
-  exampleCtrl = new FormControl<string | Example>('');
-
-  /** Filtered list for autocomplete (excludes selected) */
-  filteredExamples$: Observable<Example[]> = combineLatest([
-    this.allExamplesSubject.asObservable(),
-    this.selectedExamplesSubject.asObservable(),
-    this.exampleCtrl.valueChanges.pipe(startWith('')),
-  ]).pipe(
-    map(([all, selected, raw]) => {
-      const selectedIds = new Set(selected.map((s) => s.example.id));
-      const query = this.normalize(typeof raw === 'string' ? raw : this.displayExample(raw));
-
-      // available = all - selected
-      const available = all.filter((e) => !selectedIds.has(e.id));
-
-      // if empty -> show ALL available
-      if (!query) return available;
-
-      // else filter
-      return available.filter((e) => this.matchesQuery(e, query));
-    })
-  );
-
-  constructor() {
-    this.dialogRef.disableClose = true;
-    this.dialogRef.backdropClick().subscribe(() => this.closeDialog());
-    this.dialogRef.keydownEvents().subscribe((event) => {
-      if (event.key === 'Escape') this.closeDialog();
+        this.hydratePersistedSettings(response);
+      },
     });
-  }
-
-  ngOnInit() {
-    if (this.data.testId) {
-      console.log(`Loading test with ID ${this.data.testId} for editing...`);
-      this.service.getCreateTest(this.data.testId).subscribe({
-        next: (response) => {
-          this.test = response;
-          console.log(this.test)
-          this.isEditMode = true;
-
-          // Keep UI selection in sync with backend payload (TestExample[])
-          this.selectedExamplesSubject.next(this.test.exampleList ?? []);
-        },
-      });
-    }
-
-    this.service.getFullExamples(this.data.schoolId).subscribe((examples) => {
-      this.allExamplesSubject.next(examples as Example[]);
-    });
-  }
-
-  // -----------------------------
-  // Autocomplete display + selection
-  // -----------------------------
-  displayExample = (value: Example | string | null): string => {
-    if (!value) return '';
-    if (typeof value === 'string') return value;
-    return value.question?.trim() ?? '';
-  };
-
-  onExampleSelected(event: MatAutocompleteSelectedEvent) {
-    const picked = event.option.value as Example;
-    this.addExampleToSelection(picked);
-    this.exampleCtrl.setValue('');
-  }
-
-  addExampleToSelection(example: Example) {
-    const current = this.selectedExamplesSubject.value;
-
-    if (current.some((x) => x.example?.id === example.id)) return;
-
-    const newEntry: TestExample = {
-      id: -1,
-      example,
-      points: 0,
-      title: '',
-      test: undefined as any,
-    };
-
-    const next: TestExampleDTO[] = [...current, newEntry];
-    this.selectedExamplesSubject.next(next);
-    this.test.exampleList = [...next];
-    this.markDirty();
-  }
-
-  removeSelectedExample(entry: TestExampleDTO) {
-    const next = this.selectedExamplesSubject.value.filter((x) => x.example.id !== entry.example.id);
-    this.selectedExamplesSubject.next(next);
-    this.test.exampleList = [...next];
-    this.markDirty();
   }
 
   get selectedExamples(): TestExampleDTO[] {
-    return this.selectedExamplesSubject.value;
+    return this.test.exampleList ?? [];
   }
 
-  // -----------------------------
-  // Persist / mapping
-  // -----------------------------
-  /**
-   * Keep test.exampleList in sync.
-   */
-  private syncSelectionToTest(selected: TestExampleDTO[]) {
-    // CreateTestDTO expects TestExampleDTO[] => { example: Example, points: number }
-    this.test.exampleList = [...selected];
-  }
-
-  protected saveTest() {
-    this.hasUnsavedChanges = false;
-    this.dialogRef.close(this.test);
-
-    this.test.authToken = localStorage.getItem('teacher_authToken') || '';
-    this.test.schoolId = Number(this.test.schoolId || this.data.schoolId);
-    this.test.exampleList = this.selectedExamplesSubject.value;
-
-
-    const request = this.isEditMode
-      ? this.service.saveTest(this.data.testId, this.test)
-      : this.service.createTest(this.test);
-
-    request
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.snackBar.open('Test erfolgreich erstellt', 'OK', { duration: 3000 });
-          this.hasUnsavedChanges = false;
-          this.dialogRef.close(this.test);
-        }
-      });
-  }
-
-  // -----------------------------
-  // Close / dirty handling
-  // -----------------------------
-  async closeDialog() {
-    if (this.hasUnsavedChanges) {
-      const confirmRef = this.dialog.open(ConfirmDialogComponent, {
-        data: {
-          title: 'Warnung',
-          message: 'Möchten Sie wirklich schließen? Nicht gespeicherte Änderungen gehen verloren.',
-          cancelText: 'Abbrechen',
-          confirmText: 'Schließen',
-        },
-      });
-      const confirmed = await confirmRef.afterClosed().toPromise();
-      if (!confirmed) return;
-    }
+  close(): void {
     this.dialogRef.close();
   }
 
-  @HostListener('window:beforeunload', ['$event'])
-  beforeUnloadHandler(event: BeforeUnloadEvent) {
-    if (this.hasUnsavedChanges) {
-      event.preventDefault();
-      event.returnValue = '';
+  onPrintCopiesChange(value: number | string | null): void {
+    const parsed = Math.round(Number(value ?? 1));
+    this.printCopies = Number.isFinite(parsed) ? Math.min(100, Math.max(1, parsed)) : 1;
+  }
+
+  setIncludeSolutionSheet(value: boolean): void {
+    this.includeSolutionSheet = value;
+  }
+
+  increaseCount(): void {
+    this.printCopies = Math.min(20, (this.printCopies || 1) + 1);
+  }
+
+  decreaseCount(): void {
+    this.printCopies = Math.max(1, (this.printCopies || 1) - 1);
+  }
+
+  printPreview(): void {
+    const success = this.testPrintService.printTest(this.test, this.selectedExamples, {
+      printCopies: this.printCopies,
+      includeSolutionSheet: this.includeSolutionSheet,
+      getGradeRangeLabel: (grade) => this.getGradeRangeLabel(grade),
+      getTaskSpacing: (exampleId) => this.getTaskSpacing(exampleId),
+      getQuestionWithGapLabels: (example) => this.getQuestionWithGapLabels(example),
+      getLetter: (index) => this.getLetter(index),
+    });
+
+    if (!success) {
+      this.snackBar.open('Druckvorschau konnte nicht geöffnet werden.', 'OK', { duration: 3000 });
     }
   }
 
-  markDirty() {
-    this.hasUnsavedChanges = true;
-  }
-
-  // -----------------------------
-  // Filtering helpers
-  // -----------------------------
-  private normalize(v: string): string {
-    return (v ?? '').toString().trim().toLowerCase();
-  }
-
-  private matchesQuery(e: Example, query: string): boolean {
-    const haystack = this.normalize(
-      [
-        e.question,
-        e.instruction,
-        e.admin?.username ?? '',
-        String(e.id),
-        String(e.type ?? ''),
-        String(e.difficulty ?? ''),
-      ].join(' ')
-    );
-    return haystack.includes(query);
-  }
-
-  protected readonly ExampleTypes = ExampleTypes;
-
   getQuestionWithGapLabels(example: Example): string {
     let idx = 0;
-    return example.question.replace(/\{Lücke \d+\}/g, () => {
-      const label = example.gaps[idx]?.label?.trim();
+    return (example.question || '').replace(/\{Lücke \d+\}/g, () => {
+      const label = example.gaps?.[idx]?.label?.trim();
       idx++;
       return label ? `_____(${label})_____` : `______________`;
     });
@@ -263,8 +130,137 @@ export class TestPreviewComponent implements OnInit {
     return String.fromCharCode(65 + i);
   }
 
-  printPreview() {
-    document.title = this.test.name || 'Test';
-    window.print();
+  getTaskSpacing(exampleId: number): number {
+    return Number(this.test.taskSpacingMap?.[exampleId] ?? this.test.defaultTaskSpacing ?? 48);
+  }
+
+  getTotalPoints(): number {
+    return this.selectedExamples.reduce((sum, entry) => sum + (Number(entry.points) || 0), 0);
+  }
+
+  getGradeRangeLabel(grade: number): string {
+    const maxPoints = this.getTotalPoints();
+
+    if (this.test.gradingMode === 'manual') {
+      return this.getManualGradeRangeLabel(grade, maxPoints);
+    }
+
+    return this.getAutomaticGradeRangeLabel(grade, maxPoints);
+  }
+
+  getPreviewImage(example: Example): string | null {
+    return (example as any).imageUrl || (example as any).image || null;
+  }
+
+  private getAutomaticGradeRangeLabel(grade: number, maxPoints: number): string {
+    const thresholds = this.getAutomaticThresholds(maxPoints);
+
+    if (grade === 1) return `${thresholds[1]}–${maxPoints}`;
+    if (grade === 2) return `${thresholds[2]}–${thresholds[1] - 1}`;
+    if (grade === 3) return `${thresholds[3]}–${thresholds[2] - 1}`;
+    if (grade === 4) return `${thresholds[4]}–${thresholds[3] - 1}`;
+    return `0–${thresholds[4] - 1}`;
+  }
+
+  private getManualGradeRangeLabel(grade: number, maxPoints: number): string {
+    const thresholds = this.getManualThresholds();
+
+    if (grade === 1) return `${thresholds[1]}–${maxPoints}`;
+    if (grade === 2) return `${thresholds[2]}–${thresholds[1] - 1}`;
+    if (grade === 3) return `${thresholds[3]}–${thresholds[2] - 1}`;
+    if (grade === 4) return `${thresholds[4]}–${thresholds[3] - 1}`;
+    return `0–${thresholds[4] - 1}`;
+  }
+
+  private getAutomaticThresholds(maxPoints: number): Record<number, number> {
+    const percentages = {
+      1: Number(this.test.gradePercentages?.[1] ?? 90),
+      2: Number(this.test.gradePercentages?.[2] ?? 78),
+      3: Number(this.test.gradePercentages?.[3] ?? 65),
+      4: Number(this.test.gradePercentages?.[4] ?? 50),
+    };
+
+    return {
+      1: Math.ceil(maxPoints * percentages[1] / 100),
+      2: Math.ceil(maxPoints * percentages[2] / 100),
+      3: Math.ceil(maxPoints * percentages[3] / 100),
+      4: Math.ceil(maxPoints * percentages[4] / 100),
+    };
+  }
+
+  private getManualThresholds(): Record<number, number> {
+    return {
+      1: Number(this.test.manualGradeMinimums?.[1] ?? 18),
+      2: Number(this.test.manualGradeMinimums?.[2] ?? 16),
+      3: Number(this.test.manualGradeMinimums?.[3] ?? 13),
+      4: Number(this.test.manualGradeMinimums?.[4] ?? 10),
+    };
+  }
+
+  private hydratePersistedSettings(response: any): void {
+    this.test.defaultTaskSpacing = this.normalizeSpacingValue(
+      response?.defaultTaskSpacing ??
+      response?.layoutSettings?.defaultTaskSpacing ??
+      this.test.defaultTaskSpacing
+    );
+
+    this.test.taskSpacingMap = this.normalizeNumberMap(
+      response?.taskSpacingMap ??
+      response?.layoutSettings?.taskSpacingMap ??
+      {}
+    );
+
+    this.test.gradingMode = (response?.gradingMode ?? response?.gradingSettings?.mode ?? 'auto') === 'manual'
+      ? 'manual'
+      : 'auto';
+
+    const percentages = this.normalizeNumberMap(
+      response?.gradePercentages ??
+      response?.gradingSettings?.gradePercentages ??
+      this.test.gradePercentages
+    );
+
+    this.test.gradePercentages = {
+      1: percentages[1] ?? 90,
+      2: percentages[2] ?? 78,
+      3: percentages[3] ?? 65,
+      4: percentages[4] ?? 50,
+    };
+
+    const manualMinimums = this.normalizeNumberMap(
+      response?.manualGradeMinimums ??
+      response?.gradingSettings?.manualGradeMinimums ??
+      this.test.manualGradeMinimums
+    );
+
+    this.test.manualGradeMinimums = {
+      1: manualMinimums[1] ?? 18,
+      2: manualMinimums[2] ?? 16,
+      3: manualMinimums[3] ?? 13,
+      4: manualMinimums[4] ?? 10,
+    };
+  }
+
+  private normalizeNumberMap(
+    input: Record<number, number> | Record<string, number> | null | undefined
+  ): Record<number, number> {
+    const normalized: Record<number, number> = {};
+
+    for (const [key, value] of Object.entries(input ?? {})) {
+      const numericKey = Number(key);
+      const numericValue = Number(value);
+
+      if (Number.isFinite(numericKey) && Number.isFinite(numericValue)) {
+        normalized[numericKey] = numericValue;
+      }
+    }
+
+    return normalized;
+  }
+
+  private normalizeSpacingValue(value: number | string | null | undefined): number {
+    const numeric = Math.round(Number(value ?? 0));
+    if (!Number.isFinite(numeric)) return 0;
+    return Math.max(0, Math.min(240, numeric));
   }
 }

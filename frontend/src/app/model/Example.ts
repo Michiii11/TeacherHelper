@@ -1,14 +1,6 @@
 import {User, UserDTO} from './User'
 import {SchoolDTO} from './School'
 
-export enum ExampleDifficulty {
-  EASY = 'EASY',
-  MEDIUM = 'MEDIUM',
-  HARD = 'HARD',
-  VERY_HARD = 'VERY_HARD',
-  EXPERT = 'EXPERT'
-}
-
 
 export enum ExampleTypes {
   OPEN = 'OPEN',
@@ -18,7 +10,6 @@ export enum ExampleTypes {
   GAP_FILL = 'GAP_FILL',
   ASSIGN = 'ASSIGN'
 }
-
 
 export const ExampleTypeLabels: Record<ExampleTypes, string> = {
   [ExampleTypes.OPEN]: 'Offenes Antwortformat',
@@ -39,12 +30,12 @@ export interface Example {
   question: string;
   answers: string[];
   imageUrl: string;
+  solutionUrl: string;
   options: Option[];
   gapFillType: 'INPUT' | 'SELECT'
   gaps: Gap[]
   assigns: Assign[]
   assignRightItems: string[]
-  difficulty: ExampleDifficulty;
 }
 
 export interface ExampleDTO {
@@ -53,7 +44,6 @@ export interface ExampleDTO {
   type: ExampleTypes;
   instruction: string;
   question: string;
-  difficulty: ExampleDifficulty;
   solution: string | null;
   solutionUrl: string | null;
   imageUrl: string | null;
@@ -82,7 +72,6 @@ export interface CreateExampleDTO {
   image: string;
   solution: string;
   solutionUrl: string;
-  difficulty: ExampleDifficulty;
   focusList: Focus[];
 
   imageFile?: File;
@@ -117,7 +106,6 @@ export interface ExampleOverviewDTO{
   type: ExampleTypes;
   instruction: string;
   question: string;
-  difficulty: ExampleDifficulty;
   adminUsername: string;
   adminId: number;
   focusList: Focus[];

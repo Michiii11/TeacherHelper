@@ -1,226 +1,383 @@
-main {
-  gap: 2rem;
-  background: lightgray;
-  padding: 1rem;
-  overflow: auto;
-  height: 85vh;
+:host {
+  display: block;
+  height: 100%;
 }
 
-.assign-preview{
+.test-preview-shell {
+  height: 100%;
+}
+
+.test-preview-layout {
+  height: 100%;
+  max-height: 100%;
   display: flex;
-  gap: 1rem;
+  flex-direction: column;
+  padding: 0;
+}
 
-  .fill{
-    background-color: lightgray;
-    width: 20%;
-    text-align: center;
+.preview-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.96);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  backdrop-filter: blur(10px);
+}
+
+.preview-toolbar-text {
+  h1 {
+    margin: 0 0 6px;
+    font-size: 1.5rem;
+    line-height: 1.2;
+  }
+
+  p {
+    margin: 0;
+    color: #64748b;
   }
 }
 
-
-
-.result-table{
-  th, td {
-    width: 50%;
-  }
+.preview-toolbar-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
 }
 
+.settings-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 16px 18px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
 
+.compact-grid {
+  display: grid;
+  gap: 14px;
+}
 
+.two-cols {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
 
-/* Screen layout */
-.print-area {
+.print-controls-grid {
+  align-items: center;
+}
+
+.count-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stepper input {
+  width: 76px;
+  height: 40px;
+  text-align: center;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
   background: #fff;
-  color: #000;
+  font: inherit;
+}
+
+.print-toggle-group,
+.toolbar-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.print-toggle-group .active {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.28);
+}
+
+.print-area.preview-surface {
+  flex: 1;
+  overflow: auto;
   padding: 24px;
-  max-width: 900px;
-  border-radius: 1rem;
-  margin-bottom: 1rem;
+  background: linear-gradient(180deg, #dbe7f5 0%, #eef4fb 100%);
+}
+
+.preview-scale {
+  width: fit-content;
+  min-width: 100%;
+}
+
+.print-page {
+  width: 210mm;
+  min-height: 297mm;
+  background: #fff;
+  color: #111827;
+  padding: 14mm;
+  margin: 0 auto;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.16);
+  border-radius: 8px;
+}
+
+.test-header {
+  margin-bottom: 18px;
+}
+
+.test-title {
+  margin: 0 0 16px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.meta-lines {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.meta-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  span {
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .line {
+    width: 100%;
+    height: 16px;
+    border-bottom: 1px solid #1f2937;
+  }
+}
+
+.header-tables.stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.result-table {
+  width: 260px;
+}
+
+.compact-table,
+.answer-table-wrap table,
+.assign-preview table,
+.gap-grid table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.compact-table th,
+.compact-table td,
+.answer-table-wrap td,
+.answer-table-wrap th,
+.assign-preview td,
+.assign-preview th,
+.gap-grid td,
+.gap-grid th {
+  border: 1px solid #1f2937;
+  padding: 6px 8px;
+  vertical-align: top;
+}
+
+.grading-title {
+  margin: 0 0 6px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.teacher-note {
+  margin: 16px 0 10px;
+  white-space: pre-line;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.good-luck {
+  margin: 0;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.header-divider {
+  border: 0;
+  border-top: 1.4px solid #1f2937;
+  margin: 16px 0 0;
+}
+
+.task {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.task-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.task-points {
+  white-space: nowrap;
+}
+
+.preview-panel {
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.task-instruction,
+.task-question {
+  margin: 0 0 10px;
 }
 
 .preline {
   white-space: pre-line;
 }
 
-.test-header {
-  .test-title {
-    margin: 0 0 12px 0;
-    font-size: 22px;
-    font-weight: 700;
-  }
-
-  .meta p {
-    margin: 4px 0;
-  }
-
-  .result-table,
-  .grading-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 12px 0;
-  }
-
-  .result-table th,
-  .result-table td,
-  .grading-table th,
-  .grading-table td {
-    border: 1px solid #000;
-    padding: 6px 8px;
-    vertical-align: top;
-  }
-
-  .grading-title {
-    margin: 12px 0 6px 0;
-    font-weight: 700;
-  }
-
-  .teacher-note {
-    margin: 12px 0;
-  }
-
-  .good-luck {
-    margin: 16px 0 0 0;
-  }
-
-  .header-divider {
-    margin: 16px 0 0 0;
-  }
+.free-space {
+  width: 100%;
+  background: transparent;
 }
 
-/* Tasks */
-.task {
-  margin-top: 18px;
+.free-space.medium {
+  min-height: 90px;
 }
 
-.task-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  font-weight: 700;
-  margin-bottom: 10px;
-
-  .task-title {
-    flex: 1;
-  }
-
-  .task-points {
-    white-space: nowrap;
-  }
+.free-space.large {
+  min-height: 150px;
 }
 
-.task-divider {
-  margin-top: 10rem;
-}
-
-/* Make construction images nicer */
-.image-preview {
-  max-width: 100%;
-  height: auto;
-  border: 1px solid #000;
+.answer-table-wrap,
+.gap-grid,
+.assign-preview,
+.construction-preview {
   margin-top: 8px;
 }
 
-@media print {
-  /* Browser/Angular dürfen beim Print NICHT scrollen */
-  html, body {
-    height: auto !important;
-    overflow: visible !important;
-  }
-
-  /* Material Dialog: kein max-height/scroll */
-  .mat-mdc-dialog-container,
-  .mat-mdc-dialog-surface,
-  .mat-mdc-dialog-content {
-    max-height: none !important;
-    height: auto !important;
-    overflow: visible !important;
-  }
-
-  /* Falls du irgendwo ein Wrapper mit overflow hast */
-  .create-example-layout,
-  .create-test-layout,
-  .print-area {
-    overflow: visible !important;
-    max-height: none !important;
-    height: auto !important;
-  }
-
-  /* Print area wirklich bei 0,0 starten */
-  .print-area {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important; /* wenn du oben wirklich 0 willst */
-  }
-
-  /* Alles andere ausblenden */
-  body * { visibility: hidden !important; }
-  .print-area, .print-area * { visibility: visible !important; }
+.gap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
 }
 
-
-@media print {
-  @page {
-    size: A4;
-    margin: 14mm;  /* das ist dein "Druckrand" */
-  }
+.assign-preview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
-@media print {
-  .task { break-inside: auto; }              /* darf umbrechen */
-  .task-head { break-after: avoid; }         /* Header nicht allein am Seitenende */
-  .preview-panel { break-inside: auto; }
+.small,
+.letter-cell {
+  width: 42px;
+  text-align: center;
 }
 
+.fill {
+  width: 48px;
+}
 
-/* PRINT */
-@media print {
-  /* Hide everything except the print area */
-  body * {
-    visibility: hidden !important;
+.image-preview {
+  display: block;
+  max-width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  margin-bottom: 12px;
+}
+
+.construction-space {
+  min-height: 180px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+}
+
+@media (max-width: 1100px) {
+  .preview-toolbar {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .print-area, .print-area * {
-    visibility: visible !important;
+  .preview-toolbar-actions {
+    align-items: stretch;
   }
 
-  .print-area {
-    position: absolute;
-    left: 0;
-    top: 0;
+  .two-cols,
+  .meta-lines,
+  .assign-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .print-page {
     width: 100%;
-    padding: 0;
+    min-height: auto;
+    padding: 24px;
   }
 
-  /* Hide dialog chrome & buttons */
-  .print-actions,
-  h1 {
+  .preview-scale {
+    width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .preview-toolbar,
+  .print-area.preview-surface {
+    padding: 16px;
+  }
+
+  .settings-card {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .toolbar-buttons button,
+  .print-toggle-group button {
+    flex: 1;
+  }
+}
+
+@media print {
+  .no-print {
     display: none !important;
   }
 
-  /* A4-ish spacing */
-  @page {
-    size: A4;
-    margin: 14mm;
+  .print-area.preview-surface {
+    overflow: visible !important;
+    background: #fff !important;
+    padding: 0 !important;
   }
 
-  /* Page breaks: each task can start on a new page if it doesn’t fit */
-  .task {
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
-
-  /* Optional: force each task to new page (wenn du willst) */
-  /* .task { page-break-before: always; } */
-  /* .task:first-of-type { page-break-before: auto; } */
-
-  /* Mat pseudo checkbox might not print nicely - optional fallback */
-  mat-pseudo-checkbox {
-    display: none !important;
-  }
-  .multiple-choice-preview td.small::before,
-  .gap-fill-preview td.small::before {
-    content: "☐";
+  .print-page {
+    width: 100% !important;
+    min-height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
   }
 }

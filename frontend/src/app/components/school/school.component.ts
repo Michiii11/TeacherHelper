@@ -18,7 +18,7 @@ import {CreateExampleComponent} from '../../dialog/create-example/create-example
 import {MatIcon} from '@angular/material/icon'
 import {MatSort, MatSortHeader} from '@angular/material/sort'
 import {NgClass, NgForOf, NgIf} from '@angular/common'
-import {ExampleDifficulty, ExampleOverviewDTO, ExampleTypeLabels, ExampleTypes, Focus} from '../../model/Example'
+import {ExampleOverviewDTO, ExampleTypeLabels, ExampleTypes, Focus} from '../../model/Example'
 import {ConfirmDialogComponent} from '../../dialog/confirm-dialog/confirm-dialog.component'
 import {TestOverviewDTO} from '../../model/Test'
 import {CreateTestComponent} from '../../dialog/create-test/create-test.component'
@@ -66,23 +66,7 @@ export class SchoolComponent {
 
   exampleDataSource = new MatTableDataSource<ExampleOverviewDTO>();
 
-  exampleDifficulties = [
-    { value: 'EASY',      label: 'Leicht' },
-    { value: 'MEDIUM',    label: 'Mittel' },
-    { value: 'HARD',      label: 'Schwer' },
-    { value: 'VERY_HARD', label: 'Sehr schwer' },
-    { value: 'EXPERT',    label: 'Experte' }
-  ];
-
   tests : TestOverviewDTO[] = []
-
-
-  getDifficultyLabelFromValue(value: string | number): string {
-    if (!value && value !== 0) return '—';
-    const valStr = String(value);
-    const found = this.exampleDifficulties.find(d => d.value === valStr);
-    return found?.label ?? valStr;
-  }
 
   getExampleTypeLabel(type: ExampleTypes | string): string {
     if (type == null) return '—';
@@ -95,7 +79,7 @@ export class SchoolComponent {
     return ExampleTypeLabels[enumKey];
   }
 
-  exampleDisplayedColumns = ['type', 'instruction', 'question', 'difficulty', 'focus', 'adminUsername', 'actions'];
+  exampleDisplayedColumns = ['type', 'instruction', 'question', 'focus', 'adminUsername', 'actions'];
   teachers = [
     {"name": "Max Mustermann", "role": "teacher"},
     {"name": "Erika Musterfrau", "role": "admin"},
@@ -174,8 +158,9 @@ export class SchoolComponent {
 
   openCreateExample() {
     this.dialog.open(CreateExampleComponent, {
-      width: '1000px',
+      width: '60vw',
       maxWidth: 'none',
+      minWidth: '1000px',
       data: { schoolId: this.schoolId }
     }).afterClosed().subscribe(result => {
       this.loadExamples();
@@ -196,11 +181,57 @@ export class SchoolComponent {
 
   createTest() {
     this.dialog.open(CreateTestComponent, {
-      width: '1000px',
-      maxWidth: 'none',
+      width: 'min(96vw, 1680px)',
+      maxWidth: '96vw',
+      maxHeight: '94vh',
       data: { schoolId: this.schoolId }
-    }).afterClosed().subscribe(result => {
+    }).afterClosed().subscribe(() => {
       this.loadTests();
+    });
+  }
+
+  protected editTest(test: TestOverviewDTO) {
+    this.dialog.open(CreateTestComponent, {
+      width: 'min(96vw, 1680px)',
+      maxWidth: '96vw',
+      maxHeight: '94vh',
+      data: { schoolId: this.schoolId, testId: test.id }
+    }).afterClosed().subscribe(() => {
+      this.loadTests();
+    });
+  }
+
+  protected openTest(test: TestOverviewDTO) {
+    this.dialog.open(TestPreviewComponent, {
+      width: 'min(80vw, 950px)',
+      maxWidth: '80vw',
+      height: '92vh',
+      maxHeight: '92vh',
+      panelClass: 'test-preview-dialog',
+      data: { schoolId: this.schoolId, testId: test.id }
+    }).afterClosed().subscribe(() => {
+      this.loadTests();
+    });
+  }
+
+  protected deleteTest(test: TestOverviewDTO) {
+    const title = test.name || test.id || 'der Test';
+
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      data: {
+        title: 'Test löschen',
+        message: `Test "${title}" wirklich löschen?`,
+        confirmText: 'Löschen',
+        cancelText: 'Abbrechen'
+      }
+    });
+
+    ref.afterClosed().subscribe(confirmed => {
+      if (!confirmed) return;
+      this.service.deleteTest(test.id).subscribe(() => {
+        this.loadTests();
+      });
     });
   }
 
@@ -208,8 +239,7 @@ export class SchoolComponent {
 
   openExample(e: any){
     this.dialog.open(ExamplePreviewComponent, {
-      width: '800px',
-      maxWidth: 'none',
+      width: '10vw',
       data: { schoolId: this.schoolId, exampleId: e.id }
     }).afterClosed().subscribe(result => {
       this.loadExamples();
@@ -218,8 +248,9 @@ export class SchoolComponent {
 
   editExample(e: any) {
     this.dialog.open(CreateExampleComponent, {
-      width: '1000px',
+      width: '60vw',
       maxWidth: 'none',
+      minWidth: '1000px',
       data: { schoolId: this.schoolId, exampleId: e.id }
     }).afterClosed().subscribe(result => {
       this.loadExamples();
@@ -261,47 +292,6 @@ export class SchoolComponent {
           this.school = school;
         });
       }
-    });
-  }
-
-  protected openTest(test: TestOverviewDTO) {
-    this.dialog.open(TestPreviewComponent, {
-      width: '800px',
-      maxWidth: 'none',
-      data: { schoolId: this.schoolId, testId: test.id }
-    }).afterClosed().subscribe(result => {
-      this.loadTests();
-    });
-  }
-
-  protected editTest(test: TestOverviewDTO) {
-    this.dialog.open(CreateTestComponent, {
-      width: '1000px',
-      maxWidth: 'none',
-      data: { schoolId: this.schoolId, testId: test.id }
-    }).afterClosed().subscribe(result => {
-      this.loadTests();
-    });
-  }
-
-  protected deleteTest(test: TestOverviewDTO) {
-    const title = test.name || test.id || 'der Test';
-
-    const ref = this.dialog.open(ConfirmDialogComponent, {
-      width: '420px',
-      data: {
-        title: 'Test löschen',
-        message: `Test "${title}" wirklich löschen?`,
-        confirmText: 'Löschen',
-        cancelText: 'Abbrechen'
-      }
-    });
-
-    ref.afterClosed().subscribe(confirmed => {
-      if (!confirmed) return;
-      this.service.deleteTest(test.id).subscribe(() => {
-        this.loadTests();
-      });
     });
   }
 

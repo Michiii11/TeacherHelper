@@ -4,8 +4,9 @@ import at.enums.TestCreationStates;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 @Entity
 public class Test {
@@ -19,10 +20,12 @@ public class Test {
     @Column(nullable = false)
     private String name;
 
+    @Column(columnDefinition = "TEXT")
     private String note;
 
     private int duration;
 
+    @Enumerated(EnumType.STRING)
     private TestCreationStates state;
 
     @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -30,6 +33,30 @@ public class Test {
 
     @ManyToOne
     private School school;
+
+    @Column(name = "default_task_spacing")
+    private Integer defaultTaskSpacing;
+
+    @Column(name = "grading_mode", length = 20)
+    private String gradingMode;
+
+    @ElementCollection
+    @CollectionTable(name = "test_task_spacing", joinColumns = @JoinColumn(name = "test_id"))
+    @MapKeyColumn(name = "example_id")
+    @Column(name = "spacing_value")
+    private Map<Integer, Integer> taskSpacingMap = new HashMap<>();
+
+    @ElementCollection
+    @CollectionTable(name = "test_grade_percentages", joinColumns = @JoinColumn(name = "test_id"))
+    @MapKeyColumn(name = "grade_value")
+    @Column(name = "percentage_value")
+    private Map<Integer, Integer> gradePercentages = new HashMap<>();
+
+    @ElementCollection
+    @CollectionTable(name = "test_manual_grade_minimums", joinColumns = @JoinColumn(name = "test_id"))
+    @MapKeyColumn(name = "grade_value")
+    @Column(name = "minimum_points")
+    private Map<Integer, Integer> manualGradeMinimums = new HashMap<>();
 
     public Test() {
     }
@@ -105,5 +132,45 @@ public class Test {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public Integer getDefaultTaskSpacing() {
+        return defaultTaskSpacing;
+    }
+
+    public void setDefaultTaskSpacing(Integer defaultTaskSpacing) {
+        this.defaultTaskSpacing = defaultTaskSpacing;
+    }
+
+    public String getGradingMode() {
+        return gradingMode;
+    }
+
+    public void setGradingMode(String gradingMode) {
+        this.gradingMode = gradingMode;
+    }
+
+    public Map<Integer, Integer> getTaskSpacingMap() {
+        return taskSpacingMap;
+    }
+
+    public void setTaskSpacingMap(Map<Integer, Integer> taskSpacingMap) {
+        this.taskSpacingMap = taskSpacingMap != null ? new HashMap<>(taskSpacingMap) : new HashMap<>();
+    }
+
+    public Map<Integer, Integer> getGradePercentages() {
+        return gradePercentages;
+    }
+
+    public void setGradePercentages(Map<Integer, Integer> gradePercentages) {
+        this.gradePercentages = gradePercentages != null ? new HashMap<>(gradePercentages) : new HashMap<>();
+    }
+
+    public Map<Integer, Integer> getManualGradeMinimums() {
+        return manualGradeMinimums;
+    }
+
+    public void setManualGradeMinimums(Map<Integer, Integer> manualGradeMinimums) {
+        this.manualGradeMinimums = manualGradeMinimums != null ? new HashMap<>(manualGradeMinimums) : new HashMap<>();
     }
 }

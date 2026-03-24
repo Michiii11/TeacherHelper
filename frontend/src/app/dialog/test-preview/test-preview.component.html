@@ -1,154 +1,202 @@
-<main>
-  <!-- NUR DIESER BEREICH WIRD GEDRUCKT -->
-  <div class="print-area">
-
-    <!-- HEADER: so wie du es hast -->
-    <div class="test-header">
-      <h2 class="test-title">{{ test.name }}</h2>
-
-      <div class="meta">
-        <p>Name:   _________________________</p>
-        <p>Klasse: _________________________</p>
-        <p>Datum:  _________________________</p>
+<main class="test-preview-shell">
+  <mat-dialog-content class="test-preview-layout">
+    <div class="preview-toolbar no-print">
+      <div class="preview-toolbar-text">
+        <h1>{{ test.name || 'Testvorschau' }}</h1>
+        <p>Vorschau und Druckansicht</p>
       </div>
 
-      <table class="result-table">
-        <tr>
-          <th>Erreichte Punkte</th>
-          <th>Note</th>
-        </tr>
-        <tr>
-          <td>&nbsp;</td>
-          <td>&nbsp;</td>
-        </tr>
-      </table>
+      <div class="preview-toolbar-actions">
+        <div class="print-controls settings-card">
+          <div class="print-controls-grid compact-grid two-cols">
+            <div class="count-picker">
+              <span class="label">Anzahl</span>
+              <div class="stepper">
+                <button mat-stroked-button type="button" (click)="decreaseCount()">−</button>
+                <input
+                  type="number"
+                  min="1"
+                  max="100"
+                  [(ngModel)]="printCopies"
+                  (ngModelChange)="onPrintCopiesChange($event)">
+                <button mat-stroked-button type="button" (click)="increaseCount()">+</button>
+              </div>
+            </div>
 
-      <div class="grading">
-        <p class="grading-title">Notenschlüssel</p>
-        <table class="grading-table">
-          <tr>
-            <td>Punkte:</td>
-            <td>20-18</td>
-            <td>17-16</td>
-            <td>15-13</td>
-            <td>12-10</td>
-            <td>9-0</td>
-          </tr>
-          <tr>
-            <td>Note:</td>
-            <td>Sehr gut</td>
-            <td>Gut</td>
-            <td>Befriedigend</td>
-            <td>Genügend</td>
-            <td>Nicht genügend</td>
-          </tr>
-        </table>
+            <div class="print-toggle-group">
+              <button
+                mat-stroked-button
+                type="button"
+                [class.active]="!includeSolutionSheet"
+                (click)="setIncludeSolutionSheet(false)">
+                Nur Test
+              </button>
+              <button
+                mat-stroked-button
+                type="button"
+                [class.active]="includeSolutionSheet"
+                (click)="setIncludeSolutionSheet(true)">
+                Lösung mitdrucken
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="toolbar-buttons">
+          <button mat-stroked-button type="button" (click)="close()">Schließen</button>
+          <button mat-flat-button color="primary" type="button" (click)="printPreview()">Drucken</button>
+        </div>
       </div>
-
-      <p class="teacher-note preline">{{ test.note }}</p>
-
-      <h3 class="good-luck">Viel Erfolg!</h3>
-
-      <hr class="header-divider" />
     </div>
 
-    <!-- AUFGABEN: loop wie du es hast -->
-    <div *ngFor="let entry of selectedExamples; let i = index" class="task">
-      <div class="task-head">
-        <div class="task-title">
-          Aufgabe {{ i + 1 }}:
-          {{ entry.title ? entry.title : ''}}
-        </div>
+    <div class="print-area preview-surface">
+      <div class="preview-scale">
+        <div class="print-page">
+          <div class="test-header">
+            <h2 class="test-title">{{ test.name || 'Unbenannter Test' }}</h2>
 
-        <div class="task-points">
-          ( __ / {{ entry.points || '__' }} Punkte)
-        </div>
-      </div>
+            <div class="meta-lines">
+              <div class="meta-line"><span>Name:</span><div class="line"></div></div>
+              <div class="meta-line"><span>Klasse:</span><div class="line"></div></div>
+              <div class="meta-line"><span>Datum:</span><div class="line"></div></div>
+            </div>
 
-      <div class="preview-panel">
-        <p class="preline">{{ entry.example.instruction }}</p>
-
-        <p><strong>Aufgabenstellung:</strong></p>
-        <p class="preline">
-          {{ getQuestionWithGapLabels(entry.example) }}
-        </p>
-
-        @if(entry.example.type === ExampleTypes.HALF_OPEN){
-          <div class="half-open-preview">
-            @for (ans of entry.example.answers; track ans){
-              <p>{{ ans[0] }} = ___________________</p>
-            }
-          </div>
-        }
-
-        @if(entry.example.type === ExampleTypes.CONSTRUCTION){
-          <div class="construction-preview">
-            <img *ngIf="entry.example.imageUrl" [src]="entry.example.imageUrl" alt="Vorschau" class="image-preview" />
-            <p *ngIf="!entry.example.imageUrl">Kein Bild ausgewählt.</p>
-          </div>
-        }
-
-        @if(entry.example.type === ExampleTypes.MULTIPLE_CHOICE){
-          <div class="multiple-choice-preview">
-            <table>
-              @for (option of entry.example.options; track option){
+            <div class="header-tables stacked">
+              <table class="result-table compact-table">
                 <tr>
-                  <td>{{ option.text }}</td>
-                  <td class="small"><mat-pseudo-checkbox></mat-pseudo-checkbox></td>
+                  <th>Erreichte Punkte</th>
+                  <th>Note</th>
                 </tr>
-              }
-            </table>
-          </div>
-        }
+                <tr>
+                  <td>&nbsp;</td>
+                  <td>&nbsp;</td>
+                </tr>
+              </table>
 
-        @if(entry.example.type === ExampleTypes.GAP_FILL){
-          @if(entry.example.gapFillType === 'SELECT'){
-            <div class="gap-fill-preview">
-              @for (gap of entry.example.gaps; track gap){
-                <table>
-                  <tr><th>({{ gap.label }})</th></tr>
-                  @for(opt of gap.options; track opt){
-                    <tr>
-                      <td>{{ opt.text }}</td>
-                      <td class="small"><mat-pseudo-checkbox></mat-pseudo-checkbox></td>
-                    </tr>
-                  }
+              <div class="grading-box">
+                <p class="grading-title">Notenschlüssel</p>
+                <table class="grading-table compact-table">
+                  <tr>
+                    <td>Punkte</td>
+                    <td>{{ getGradeRangeLabel(1) }}</td>
+                    <td>{{ getGradeRangeLabel(2) }}</td>
+                    <td>{{ getGradeRangeLabel(3) }}</td>
+                    <td>{{ getGradeRangeLabel(4) }}</td>
+                    <td>{{ getGradeRangeLabel(5) }}</td>
+                  </tr>
+                  <tr>
+                    <td>Note</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>3</td>
+                    <td>4</td>
+                    <td>5</td>
+                  </tr>
                 </table>
+              </div>
+            </div>
+
+            <p class="teacher-note preline" *ngIf="test.note">{{ test.note }}</p>
+
+            <h3 class="good-luck">Viel Erfolg!</h3>
+
+            <hr class="header-divider" />
+          </div>
+
+          <div
+            *ngFor="let entry of selectedExamples; let i = index"
+            class="task print-task"
+            [style.margin-bottom.px]="getTaskSpacing(entry.example.id)">
+            <div class="task-head">
+              <div class="task-title">
+                Bsp. {{ i + 1 }}{{ entry.title ? ': ' + entry.title : '' }}
+              </div>
+
+              <div class="task-points">
+                ( __ / {{ entry.points || '__' }} P.)
+              </div>
+            </div>
+
+            <div class="preview-panel">
+              <p class="task-instruction preline" *ngIf="entry.example.instruction">{{ entry.example.instruction }}</p>
+              <p class="task-question preline">{{ getQuestionWithGapLabels(entry.example) }}</p>
+
+              @if(entry.example.type === ExampleTypes.OPEN){
+                <div class="free-space large"></div>
+              }
+
+              @if(entry.example.type === ExampleTypes.HALF_OPEN){
+                <div class="half-open-preview">
+                  @for (ans of entry.example.answers; track ans){
+                    <p>{{ ans[0] }} = _________________________________</p>
+                  }
+                </div>
+                <div class="free-space medium"></div>
+              }
+
+              @if(entry.example.type === ExampleTypes.CONSTRUCTION){
+                <div class="construction-preview">
+                  <img *ngIf="getPreviewImage(entry.example)" [src]="getPreviewImage(entry.example)!" alt="Vorschau" class="image-preview" />
+                  <div class="construction-space"></div>
+                </div>
+              }
+
+              @if(entry.example.type === ExampleTypes.MULTIPLE_CHOICE){
+                <div class="multiple-choice-preview answer-table-wrap">
+                  <table>
+                    @for (option of entry.example.options; track option){
+                      <tr>
+                        <td>{{ option.text }}</td>
+                        <td class="small"><mat-pseudo-checkbox></mat-pseudo-checkbox></td>
+                      </tr>
+                    }
+                  </table>
+                </div>
+              }
+
+              @if(entry.example.type === ExampleTypes.GAP_FILL){
+                @if(entry.example.gapFillType === 'SELECT'){
+                  <div class="gap-fill-preview gap-grid">
+                    @for (gap of entry.example.gaps; track gap){
+                      <table>
+                        <tr><th>{{ gap.label || 'Lücke' }}</th></tr>
+                        @for(opt of gap.options; track opt){
+                          <tr>
+                            <td>{{ opt.text }}</td>
+                            <td class="small"><mat-pseudo-checkbox></mat-pseudo-checkbox></td>
+                          </tr>
+                        }
+                      </table>
+                    }
+                  </div>
+                } @else {
+                  <div class="free-space medium"></div>
+                }
+              }
+
+              @if(entry.example.type === ExampleTypes.ASSIGN){
+                <div class="assign-preview">
+                  <table class="leftSide">
+                    @for(assign of entry.example.assigns; track assign){
+                      <tr>
+                        <td>{{ assign.left }}</td>
+                        <td class="fill"></td>
+                      </tr>
+                    }
+                  </table>
+
+                  <table class="rightSide">
+                    <tr *ngFor="let right of entry.example.assignRightItems; let j = index">
+                      <td class="fill letter-cell">{{ getLetter(j) }}</td>
+                      <td>{{ right }}</td>
+                    </tr>
+                  </table>
+                </div>
               }
             </div>
-          }
-        }
-
-        @if(entry.example.type === ExampleTypes.ASSIGN){
-          <div class="assign-preview">
-            <table class="leftSide">
-              @for(assign of entry.example.assigns; track assign){
-                <tr>
-                  <td>{{ assign.left }}</td>
-                  <td class="fill"></td>
-                </tr>
-              }
-            </table>
-
-            <table class="rightSide">
-              <tr *ngFor="let right of entry.example.assignRightItems; let j = index">
-                <td class="fill">{{ getLetter(j) }}</td>
-                <td>{{ right }}</td>
-              </tr>
-            </table>
           </div>
-        }
-
-        <mat-divider class="task-divider"></mat-divider>
+        </div>
       </div>
     </div>
-
-  </div>
-
-  <!-- BUTTONS: NICHT DRUCKEN -->
-  <div class="print-actions">
-    <button mat-flat-button color="primary" type="button" (click)="printPreview()">
-      Drucken
-    </button>
-  </div>
+  </mat-dialog-content>
 </main>

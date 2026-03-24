@@ -1,5 +1,5 @@
-<main>
-  <mat-dialog-content class="create-example-dialog">
+<main class="create-test-shell">
+  <mat-dialog-content class="editor-pane">
     <h1>Test erstellen</h1>
 
     <form class="example-form" (ngSubmit)="saveTest()">
@@ -14,12 +14,12 @@
             placeholder="1. Schularbeit ..."
             cdkTextareaAutosize
             cdkAutosizeMinRows="2"
-            cdkAutosizeMaxRows="10">
+            cdkAutosizeMaxRows="8">
           </textarea>
         </mat-form-field>
       </div>
 
-      <div class="row">
+      <div class="row meta-row">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Notiz</mat-label>
           <textarea
@@ -27,15 +27,15 @@
             [(ngModel)]="test.note"
             name="testNote"
             (input)="markDirty()"
-            placeholder="Rechne sorgfältig, schreibe sauber, ..."
+            placeholder="Arbeite sauber, runde sinnvoll, Rechenweg angeben ..."
             cdkTextareaAutosize
             cdkAutosizeMinRows="2"
-            cdkAutosizeMaxRows="10">
+            cdkAutosizeMaxRows="8">
           </textarea>
         </mat-form-field>
       </div>
 
-      <div class="row">
+      <div class="row search-row">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Frage hinzufügen</mat-label>
 
@@ -61,130 +61,142 @@
         </mat-form-field>
       </div>
 
-      <div class="summary-grid">
-        <div class="summary-card">
-          <div class="summary-label">Ausgewählte Aufgaben</div>
-          <div class="summary-value">{{ selectedExamples.length }}</div>
+      <div class="summary-strip">
+        <div class="summary-pill">
+          <span>Aufgaben</span>
+          <strong>{{ selectedExamples.length }}</strong>
         </div>
-        <div class="summary-card">
-          <div class="summary-label">Maximale Punkte</div>
-          <div class="summary-value">{{ totalPoints }}</div>
+
+        <div class="summary-pill">
+          <span>Max. Punkte</span>
+          <strong>{{ totalPoints }}</strong>
         </div>
-        <div class="summary-card">
-          <div class="summary-label">Standard-Abstand</div>
-          <div class="summary-value">{{ defaultTaskSpacing }} px</div>
+
+        <div class="summary-pill hide-on-small">
+          <span>Standard-Abstand</span>
+          <strong>{{ defaultTaskSpacing }} px</strong>
         </div>
+
+        <button mat-stroked-button type="button" class="advanced-toggle" (click)="toggleAdvancedSettings()">
+          <mat-icon>{{ showAdvancedSettings ? 'expand_less' : 'tune' }}</mat-icon>
+          {{ showAdvancedSettings ? 'Layout & Bewertung ausblenden' : 'Layout & Bewertung bearbeiten' }}
+        </button>
       </div>
 
-      <div class="settings-card spacing-card">
-        <div class="settings-head">
-          <div>
-            <h3>Abstände & Layout</h3>
-            <p>Lege einen Standard fest, verteile ihn auf alle Aufgaben oder passe einzelne Aufgaben separat an.</p>
+      <div class="advanced-settings" *ngIf="showAdvancedSettings">
+        <div class="settings-card spacing-card">
+          <div class="settings-head compact-head">
+            <div>
+              <h3>Abstände & Layout</h3>
+              <p>Wird im Test gespeichert und direkt für Vorschau und Druck genutzt.</p>
+            </div>
+          </div>
+
+          <div class="layout-toolbar compact-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Standard-Abstand</mat-label>
+              <input
+                matInput
+                type="number"
+                min="0"
+                max="240"
+                name="defaultTaskSpacing"
+                [ngModel]="defaultTaskSpacing"
+                (ngModelChange)="onDefaultSpacingChanged($event)" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Abstand für alle</mat-label>
+              <input
+                matInput
+                type="number"
+                min="0"
+                max="240"
+                name="spacingForAll"
+                [(ngModel)]="spacingForAll" />
+            </mat-form-field>
+
+            <div class="toolbar-actions stacked-actions">
+              <button mat-stroked-button type="button" (click)="applySpacingToAll()">Für alle übernehmen</button>
+              <button mat-stroked-button type="button" (click)="resetTaskSpacing()">Einzelabstände zurücksetzen</button>
+            </div>
           </div>
         </div>
 
-        <div class="layout-toolbar">
-          <mat-form-field appearance="outline">
-            <mat-label>Standard-Abstand</mat-label>
-            <input
-              matInput
-              type="number"
-              min="0"
-              max="240"
-              name="defaultTaskSpacing"
-              [ngModel]="defaultTaskSpacing"
-              (ngModelChange)="onDefaultSpacingChanged($event)" />
-          </mat-form-field>
+        <div class="settings-card grading-card">
+          <div class="settings-head compact-head">
+            <div>
+              <h3>Notenschlüssel</h3>
+              <p>Automatisch nach Prozent oder manuell nach Punkten.</p>
+            </div>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Abstand für alle</mat-label>
-            <input
-              matInput
-              type="number"
-              min="0"
-              max="240"
-              name="spacingForAll"
-              [(ngModel)]="spacingForAll" />
-          </mat-form-field>
-
-          <div class="toolbar-actions">
-            <button mat-stroked-button type="button" (click)="applySpacingToAll()">Für alle übernehmen</button>
-            <button mat-stroked-button type="button" (click)="resetTaskSpacing()">Einzelabstände zurücksetzen</button>
+            <div class="mode-switch">
+              <button
+                mat-stroked-button
+                type="button"
+                [class.active]="useAutomaticGrading"
+                (click)="onGradingModeChange('auto')">
+                Automatisch
+              </button>
+              <button
+                mat-stroked-button
+                type="button"
+                [class.active]="!useAutomaticGrading"
+                (click)="onGradingModeChange('manual')">
+                Manuell
+              </button>
+              <button mat-stroked-button type="button" (click)="resetGrading()">Zurücksetzen</button>
+            </div>
           </div>
+
+          @if (useAutomaticGrading) {
+            <div class="grading-editor-grid compact-grid four-cols">
+              @for (grade of [1, 2, 3, 4]; track grade) {
+                <mat-form-field appearance="outline">
+                  <mat-label>{{ gradeLabels[grade] }} ab %</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    min="0"
+                    max="100"
+                    name="grade-percentage-{{ grade }}"
+                    [(ngModel)]="gradePercentages[grade]"
+                    (ngModelChange)="normalizePercentages()" />
+                </mat-form-field>
+              }
+            </div>
+          } @else {
+            <div class="grading-editor-grid compact-grid four-cols">
+              @for (grade of [1, 2, 3, 4]; track grade) {
+                <mat-form-field appearance="outline">
+                  <mat-label>{{ gradeLabels[grade] }} ab Punkten</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    min="0"
+                    [max]="totalPoints"
+                    name="grade-minimum-{{ grade }}"
+                    [(ngModel)]="manualGradeMinimums[grade]"
+                    (ngModelChange)="normalizeManualGradeMinimums()" />
+                </mat-form-field>
+              }
+            </div>
+          }
         </div>
-      </div>
-
-      <div class="settings-card grading-card">
-        <div class="settings-head">
-          <div>
-            <h3>Notenschlüssel</h3>
-            <p>Der Notenschlüssel passt sich automatisch an die Gesamtpunkte an, kann aber manuell überschrieben und wieder zurückgesetzt werden.</p>
-          </div>
-          <div class="mode-switch">
-            <button
-              mat-stroked-button
-              type="button"
-              [class.active]="useAutomaticGrading"
-              (click)="onGradingModeChange('auto')">
-              Automatisch
-            </button>
-            <button
-              mat-stroked-button
-              type="button"
-              [class.active]="!useAutomaticGrading"
-              (click)="onGradingModeChange('manual')">
-              Manuell
-            </button>
-            <button mat-stroked-button type="button" (click)="resetGrading()">Zurücksetzen</button>
-          </div>
-        </div>
-
-        @if (useAutomaticGrading) {
-          <div class="grading-editor-grid">
-            @for (grade of [1, 2, 3, 4]; track grade) {
-              <mat-form-field appearance="outline">
-                <mat-label>{{ gradeLabels[grade] }} ab %</mat-label>
-                <input
-                  matInput
-                  type="number"
-                  min="0"
-                  max="100"
-                  name="grade-percentage-{{ grade }}"
-                  [(ngModel)]="gradePercentages[grade]"
-                  (ngModelChange)="normalizePercentages()" />
-              </mat-form-field>
-            }
-          </div>
-        } @else {
-          <div class="grading-editor-grid">
-            @for (grade of [1, 2, 3, 4]; track grade) {
-              <mat-form-field appearance="outline">
-                <mat-label>{{ gradeLabels[grade] }} ab Punkten</mat-label>
-                <input
-                  matInput
-                  type="number"
-                  min="0"
-                  [max]="totalPoints"
-                  name="grade-minimum-{{ grade }}"
-                  [(ngModel)]="manualGradeMinimums[grade]"
-                  (ngModelChange)="normalizeManualGradeMinimums()" />
-              </mat-form-field>
-            }
-          </div>
-        }
       </div>
 
       <div *ngIf="selectedExamples.length > 0" class="selected-section">
         <div class="section-head">
-          <h3>Ausgewählte Fragen</h3>
-          <div class="section-actions">
-            <span class="section-note">Jede Aufgabe kann ihren eigenen Abstand behalten.</span>
+          <div>
+            <h3>Ausgewählte Aufgaben</h3>
+            <div class="section-note">Titel, Punkte und Abstand je Aufgabe bearbeiten.</div>
           </div>
         </div>
 
-        <div *ngFor="let entry of selectedExamples" class="selected-task-card">
+        <div *ngFor="let entry of selectedExamples; let i = index" class="selected-task-card">
           <div class="selected-task-main">
+            <div class="task-index-badge">{{ i + 1 }}</div>
+
             <div class="task-copy">
               <strong>{{ entry.example.question }}</strong>
               <div class="task-subline">{{ entry.example.instruction }}</div>
@@ -195,7 +207,7 @@
             </button>
           </div>
 
-          <div class="task-settings-grid">
+          <div class="task-settings-grid compact-grid three-cols">
             <mat-form-field appearance="outline">
               <mat-label>Aufgabentitel</mat-label>
               <input
@@ -239,147 +251,187 @@
     </form>
   </mat-dialog-content>
 
-  <mat-dialog-content class="create-example-layout">
-    <h1>Vorschau</h1>
+  <mat-dialog-content class="preview-pane">
+    <div class="preview-header">
+      <h1>Vorschau</h1>
+    </div>
 
-    <div class="print-area">
-      <div class="test-header">
-        <h2 class="test-title">{{ test.name }}</h2>
-
-        <div class="meta-grid">
-          <p>Name: _________________________</p>
-          <p>Klasse: _________________________</p>
-          <p>Datum: _________________________</p>
-          <p>Dauer: {{ test.duration || '___' }} Minuten</p>
+    <div class="print-controls settings-card">
+      <div class="print-controls-grid compact-grid two-cols">
+        <div class="count-picker">
+          <span class="label">Anzahl</span>
+          <div class="stepper">
+            <button mat-stroked-button type="button" (click)="decreaseCount()">−</button>
+            <input type="number" min="1" max="100" [(ngModel)]="printCopies" (ngModelChange)="onPrintCopiesChange($event)">
+            <button mat-stroked-button type="button" (click)="increaseCount()">+</button>
+          </div>
         </div>
 
-        <table class="result-table compact-table">
-          <tr>
-            <th>Erreichte Punkte</th>
-            <th>Note</th>
-          </tr>
-          <tr>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-          </tr>
-        </table>
-
-        <div class="grading">
-          <p class="grading-title">Notenschlüssel · maximal {{ totalPoints }} Punkte</p>
-          <table class="grading-table compact-table">
-            <tr>
-              <td>Punkte:</td>
-              <td>{{ getGradeRangeLabel(1) }}</td>
-              <td>{{ getGradeRangeLabel(2) }}</td>
-              <td>{{ getGradeRangeLabel(3) }}</td>
-              <td>{{ getGradeRangeLabel(4) }}</td>
-              <td>{{ getGradeRangeLabel(5) }}</td>
-            </tr>
-            <tr>
-              <td>Note:</td>
-              <td>{{ gradeLabels[1] }}</td>
-              <td>{{ gradeLabels[2] }}</td>
-              <td>{{ gradeLabels[3] }}</td>
-              <td>{{ gradeLabels[4] }}</td>
-              <td>{{ gradeLabels[5] }}</td>
-            </tr>
-          </table>
+        <div class="print-toggle-group">
+          <button
+            mat-stroked-button
+            type="button"
+            [class.active]="!includeSolutionSheet"
+            (click)="setIncludeSolutionSheet(false)">
+            Nur Test
+          </button>
+          <button
+            mat-stroked-button
+            type="button"
+            [class.active]="includeSolutionSheet"
+            (click)="setIncludeSolutionSheet(true)">
+            Lösung mitdrucken
+          </button>
         </div>
-
-        <p class="teacher-note preline">{{ test.note }}</p>
-
-        <h3 class="good-luck">Viel Erfolg!</h3>
-
-        <hr class="header-divider" />
       </div>
+    </div>
 
-      <div
-        *ngFor="let entry of selectedExamples; let i = index"
-        class="task"
-        [style.margin-bottom.px]="getTaskSpacing(entry.example.id)">
-        <div class="task-head">
-          <div class="task-title">
-            Aufgabe {{ i + 1 }}{{ entry.title ? ': ' + entry.title : '' }}
-          </div>
+    <div class="print-area preview-surface">
+      <div class="preview-scale">
+        <div class="print-page">
+          <div class="test-header">
+            <h2 class="test-title">{{ test.name || 'Unbenannter Test' }}</h2>
 
-          <div class="task-points">
-            ( __ / {{ entry.points || '__' }} Punkte)
-          </div>
-        </div>
-
-        <div class="preview-panel">
-          <p class="preline">{{ entry.example.instruction }}</p>
-
-          <p><strong>Aufgabenstellung:</strong></p>
-          <p class="preline">
-            {{ getQuestionWithGapLabels(entry.example) }}
-          </p>
-
-          @if(entry.example.type === ExampleTypes.HALF_OPEN){
-            <div class="half-open-preview">
-              @for (ans of entry.example.answers; track ans){
-                <p>{{ ans[0] }} = ___________________</p>
-              }
+            <div class="meta-lines">
+              <div class="meta-line"><span>Name:</span><div class="line"></div></div>
+              <div class="meta-line"><span>Klasse:</span><div class="line"></div></div>
+              <div class="meta-line"><span>Datum:</span><div class="line"></div></div>
             </div>
-          }
 
-          @if(entry.example.type === ExampleTypes.CONSTRUCTION){
-            <div class="construction-preview">
-              <img *ngIf="entry.example.imageUrl" [src]="entry.example.imageUrl" alt="Vorschau" class="image-preview" />
-              <p *ngIf="!entry.example.imageUrl">Kein Bild ausgewählt.</p>
-            </div>
-          }
-
-          @if(entry.example.type === ExampleTypes.MULTIPLE_CHOICE){
-            <div class="multiple-choice-preview">
-              <table>
-                @for (option of entry.example.options; track option){
-                  <tr>
-                    <td>{{ option.text }}</td>
-                    <td class="small"><mat-pseudo-checkbox></mat-pseudo-checkbox></td>
-                  </tr>
-                }
+            <div class="header-tables stacked">
+              <table class="result-table compact-table">
+                <tr>
+                  <th>Erreichte Punkte</th>
+                  <th>Note</th>
+                </tr>
+                <tr>
+                  <td>&nbsp;</td>
+                  <td>&nbsp;</td>
+                </tr>
               </table>
-            </div>
-          }
 
-          @if(entry.example.type === ExampleTypes.GAP_FILL){
-            @if(entry.example.gapFillType === 'SELECT'){
-              <div class="gap-fill-preview">
-                @for (gap of entry.example.gaps; track gap){
+              <div class="grading-box">
+                <p class="grading-title">Notenschlüssel</p>
+                <table class="grading-table compact-table">
+                  <tr>
+                    <td>Punkte</td>
+                    <td>{{ getGradeRangeLabel(1) }}</td>
+                    <td>{{ getGradeRangeLabel(2) }}</td>
+                    <td>{{ getGradeRangeLabel(3) }}</td>
+                    <td>{{ getGradeRangeLabel(4) }}</td>
+                    <td>{{ getGradeRangeLabel(5) }}</td>
+                  </tr>
+                  <tr>
+                    <td>Note</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>3</td>
+                    <td>4</td>
+                    <td>5</td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+
+            <p class="teacher-note preline" *ngIf="test.note">{{ test.note }}</p>
+
+            <h3 class="good-luck">Viel Erfolg!</h3>
+
+            <hr class="header-divider" />
+          </div>
+
+          <div
+            *ngFor="let entry of selectedExamples; let i = index"
+            class="task print-task"
+            [style.margin-bottom.px]="getTaskSpacing(entry.example.id)">
+            <div class="task-head">
+              <div class="task-title">
+                Bsp. {{ i + 1 }}{{ entry.title ? ': ' + entry.title : '' }}
+              </div>
+
+              <div class="task-points">
+                ( __ / {{ entry.points || '__' }} P.)
+              </div>
+            </div>
+
+            <div class="preview-panel">
+              <p class="task-instruction preline" *ngIf="entry.example.instruction">{{ entry.example.instruction }}</p>
+              <p class="task-question preline">{{ getQuestionWithGapLabels(entry.example) }}</p>
+
+              @if(entry.example.type === ExampleTypes.OPEN){
+                <div class="free-space large"></div>
+              }
+
+              @if(entry.example.type === ExampleTypes.HALF_OPEN){
+                <div class="half-open-preview">
+                  @for (ans of entry.example.answers; track ans){
+                    <p>{{ ans[0] }} = _________________________________</p>
+                  }
+                </div>
+                <div class="free-space medium"></div>
+              }
+
+              @if(entry.example.type === ExampleTypes.CONSTRUCTION){
+                <div class="construction-preview">
+                  <img *ngIf="getPreviewImage(entry.example)" [src]="getPreviewImage(entry.example)!" alt="Vorschau" class="image-preview" />
+                  <div class="construction-space"></div>
+                </div>
+              }
+
+              @if(entry.example.type === ExampleTypes.MULTIPLE_CHOICE){
+                <div class="multiple-choice-preview answer-table-wrap">
                   <table>
-                    <tr><th>({{ gap.label }})</th></tr>
-                    @for(opt of gap.options; track opt){
+                    @for (option of entry.example.options; track option){
                       <tr>
-                        <td>{{ opt.text }}</td>
+                        <td>{{ option.text }}</td>
                         <td class="small"><mat-pseudo-checkbox></mat-pseudo-checkbox></td>
                       </tr>
                     }
                   </table>
-                }
-              </div>
-            }
-          }
+                </div>
+              }
 
-          @if(entry.example.type === ExampleTypes.ASSIGN){
-            <div class="assign-preview">
-              <table class="leftSide">
-                @for(assign of entry.example.assigns; track assign){
-                  <tr>
-                    <td>{{ assign.left }}</td>
-                    <td class="fill"></td>
-                  </tr>
+              @if(entry.example.type === ExampleTypes.GAP_FILL){
+                @if(entry.example.gapFillType === 'SELECT'){
+                  <div class="gap-fill-preview gap-grid">
+                    @for (gap of entry.example.gaps; track gap){
+                      <table>
+                        <tr><th>{{ gap.label || 'Lücke' }}</th></tr>
+                        @for(opt of gap.options; track opt){
+                          <tr>
+                            <td>{{ opt.text }}</td>
+                            <td class="small"><mat-pseudo-checkbox></mat-pseudo-checkbox></td>
+                          </tr>
+                        }
+                      </table>
+                    }
+                  </div>
+                } @else {
+                  <div class="free-space medium"></div>
                 }
-              </table>
+              }
 
-              <table class="rightSide">
-                <tr *ngFor="let right of entry.example.assignRightItems; let j = index">
-                  <td class="fill">{{ getLetter(j) }}</td>
-                  <td>{{ right }}</td>
-                </tr>
-              </table>
+              @if(entry.example.type === ExampleTypes.ASSIGN){
+                <div class="assign-preview">
+                  <table class="leftSide">
+                    @for(assign of entry.example.assigns; track assign){
+                      <tr>
+                        <td>{{ assign.left }}</td>
+                        <td class="fill"></td>
+                      </tr>
+                    }
+                  </table>
+
+                  <table class="rightSide">
+                    <tr *ngFor="let right of entry.example.assignRightItems; let j = index">
+                      <td class="fill letter-cell">{{ getLetter(j) }}</td>
+                      <td>{{ right }}</td>
+                    </tr>
+                  </table>
+                </div>
+              }
             </div>
-          }
+          </div>
         </div>
       </div>
     </div>

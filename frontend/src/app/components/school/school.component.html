@@ -76,10 +76,6 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Aufgabenstellung</th>
             <td mat-cell *matCellDef="let e">{{ e.question }}</td>
           </ng-container>
-          <ng-container matColumnDef="difficulty">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Schwierigkeit</th>
-            <td mat-cell *matCellDef="let e">{{ getDifficultyLabelFromValue(e.difficulty) }}</td>
-          </ng-container>
           <ng-container matColumnDef="focus">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Schwerpunkt</th>
             <td mat-cell *matCellDef="let e">{{ getFocusList(e.focusList) }}</td>
@@ -132,15 +128,10 @@
           </div>
 
           <div class="test-meta">
-        <span>
-          <mat-icon>quiz</mat-icon>
-          {{ test.amountOfQuestions }} Fragen
-        </span>
-
             <span>
-          <mat-icon>schedule</mat-icon>
-              {{ test.duration }} Min
-        </span>
+              <mat-icon>quiz</mat-icon>
+              {{ test.amountOfQuestions }} Fragen
+            </span>
           </div>
 
           <div class="test-actions">
@@ -148,7 +139,7 @@
               Öffnen
             </button>
 
-            @if(currentUserId == school.admin?.id || currentUserId == test.adminId){
+            @if(currentUserId == school.admin.id || currentUserId == test.adminId){
               <button mat-icon-button (click)="editTest(test)">
                 <mat-icon>edit</mat-icon>
               </button>
