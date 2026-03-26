@@ -1,6 +1,6 @@
 package at.model;
 
-import at.dtos.UserDTO;
+import at.dtos.User.UserDTO;
 import jakarta.persistence.*;
 
 @Entity

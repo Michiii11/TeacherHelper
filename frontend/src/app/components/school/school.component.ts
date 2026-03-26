@@ -1,4 +1,4 @@
-import {Component, inject, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, inject, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router'
 import {HttpService} from '../../service/http.service'
 import {SchoolDTO} from '../../model/School'
@@ -54,7 +54,7 @@ import {UserDTO} from '../../model/User'
   standalone: true,
   styleUrl: './school.component.scss'
 })
-export class SchoolComponent {
+export class SchoolComponent implements OnInit, AfterViewInit{
   @ViewChild(MatSort) sort!: MatSort;
 
   service = inject(HttpService)
@@ -71,7 +71,6 @@ export class SchoolComponent {
   getExampleTypeLabel(type: ExampleTypes | string): string {
     if (type == null) return '—';
 
-    // Falls es ein String ist (Backend case):
     const enumKey = typeof type === 'string'
       ? ExampleTypes[type as keyof typeof ExampleTypes]
       : type;
@@ -80,21 +79,29 @@ export class SchoolComponent {
   }
 
   exampleDisplayedColumns = ['type', 'instruction', 'question', 'focus', 'adminUsername', 'actions'];
-  teachers = [
-    {"name": "Max Mustermann", "role": "teacher"},
-    {"name": "Erika Musterfrau", "role": "admin"},
-    {"name": "Hans Meier", "role": "teacher"},
-  ]; // Array mit Lehrern
 
   kpis = [
-    { title: 'Offene Tests', value: this.tests.length.toString(), sub: 'in Bearbeitung', icon: 'assignment' },
-    { title: 'Beispiele', value: this.exampleCount.toString(), sub: 'Fragen', icon: 'library_books' },
-    { title: 'Aktive Lehrer', value: this.teachers.length.toString(), sub: 'Konten', icon: 'people' },
+    { title: 'Tests', value: this.tests.length, sub: 'Verfügbar', icon: 'assignment' },
+    { title: 'Beispiele', value: this.exampleCount, sub: 'Fragen', icon: 'library_books' },
+    { title: 'Lehrer', value: this.school.members?.length || 0, sub: 'Konten', icon: 'people' },
     { title: 'Letzte Änderung', value: '2 Std. zuvor', sub: 'von Admin', icon: 'history' }
   ]
 
   currentUserId = -1;
 
+  constructor(private route: ActivatedRoute, private router: Router) {
+    this.route.paramMap.subscribe(params => {
+      this.schoolId = params.get('id');
+
+      localStorage.setItem('lastViewedSchoolId', this.schoolId!);
+
+      this.service.getSchoolById(this.schoolId!).subscribe(school => {
+        this.school = school;
+
+        console.log(this.school)
+      })
+    });
+  }
 
   ngOnInit(){
     this.loadExamples()
@@ -143,19 +150,6 @@ export class SchoolComponent {
 
   }
 
-  constructor(private route: ActivatedRoute, private router: Router) {
-    this.route.paramMap.subscribe(params => {
-      this.schoolId = params.get('id');
-
-      localStorage.setItem('lastViewedSchoolId', this.schoolId!);
-
-      this.service.getSchoolById(this.schoolId!).subscribe(school => {
-        this.school = school;
-        console.log(this.school)
-      })
-    });
-  }
-
   openCreateExample() {
     this.dialog.open(CreateExampleComponent, {
       width: '60vw',
@@ -171,12 +165,6 @@ export class SchoolComponent {
     return this.exampleDataSource.data.length;
   }
 
-  /* small helpers */
-  initials(name: string) {
-    return (name || '').split(' ').map(n => n.charAt(0)).slice(0,2).join('').toUpperCase();
-  }
-
-  /* Actions (replace with real logic) */
   menuOpen: boolean | undefined
 
   createTest() {
@@ -287,7 +275,6 @@ export class SchoolComponent {
       }
     }).afterClosed().subscribe(result => {
       if (result) {
-        // optional neu laden
         this.service.getSchoolById(this.schoolId!).subscribe(school => {
           this.school = school;
         });
@@ -313,7 +300,6 @@ export class SchoolComponent {
     ref.afterClosed().subscribe(confirmed => {
       if (!confirmed) return;
       this.service.kickTeacherFromSchool(this.schoolId!, t.id).subscribe(() => {
-        // optional neu laden
         this.service.getSchoolById(this.schoolId!).subscribe(school => {
           this.school = school;
         })

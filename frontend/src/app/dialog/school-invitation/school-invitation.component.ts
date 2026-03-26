@@ -34,7 +34,7 @@ type InvitationDialogData = {
           [formControl]="message"
           placeholder="z.B. Hallo, ich bin Lehrling bei ... und würde gerne beitreten."
         ></textarea>
-        <mat-hint align="end">{{ message.value.length ?? 0 }}/500</mat-hint>
+        <mat-hint align="end">{{ message.value.length }}/500</mat-hint>
       </mat-form-field>
     </div>
 

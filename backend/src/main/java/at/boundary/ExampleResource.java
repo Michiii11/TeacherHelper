@@ -1,10 +1,8 @@
 package at.boundary;
 
-import at.dtos.CreateExampleDTO;
-import at.dtos.ExampleDTO;
-import at.dtos.ExampleOverviewDTO;
-import at.model.Example;
-import at.model.helper.Focus;
+import at.dtos.Example.CreateExampleDTO;
+import at.dtos.Example.ExampleDTO;
+import at.dtos.Example.ExampleOverviewDTO;
 import at.repository.ExampleRepository;
 import jakarta.inject.Inject;
 import jakarta.json.JsonObject;

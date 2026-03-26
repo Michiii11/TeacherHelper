@@ -8,7 +8,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatPseudoCheckbox } from '@angular/material/core';
 
 import { Example, ExampleTypes } from '../../model/Example';
-import { CreateTestDTO, TestCreationStates, TestExampleDTO } from '../../model/Test';
+import { CreateTestDTO, TestExampleDTO } from '../../model/Test';
 import { HttpService } from '../../service/http.service';
 import { PersistedTestSettings, TestPrintService } from '../../service/test-print.service';
 
@@ -44,7 +44,6 @@ export class TestPreviewComponent implements OnInit {
     note: '',
     exampleList: [],
     duration: 0,
-    state: TestCreationStates.DRAFT,
     defaultTaskSpacing: 48,
     taskSpacingMap: {},
     gradingMode: 'auto',

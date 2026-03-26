@@ -2,10 +2,6 @@ import {User} from './User'
 import {Example} from './Example'
 import {School} from './School'
 
-export enum TestCreationStates {
-  DRAFT = 'DRAFT', DONE = 'DONE', USED = 'USED'
-}
-
 export type TestGradingMode = 'auto' | 'manual';
 
 export interface Test {
@@ -14,7 +10,6 @@ export interface Test {
   name: string;
   note: string;
   duration: number;
-  state: TestCreationStates;
   exampleList: TestExample[];
   school: School;
   defaultTaskSpacing?: number;
@@ -43,7 +38,6 @@ export interface TestOverviewDTO {
   name: string;
   amountOfQuestions: number;
   duration: number;
-  state: TestCreationStates;
   adminUsername: string;
   adminId: number;
 }
@@ -55,7 +49,6 @@ export interface CreateTestDTO {
   note: string;
   exampleList: TestExampleDTO[];
   duration: number;
-  state: TestCreationStates;
   defaultTaskSpacing?: number;
   taskSpacingMap?: Record<number, number>;
   gradingMode?: TestGradingMode;

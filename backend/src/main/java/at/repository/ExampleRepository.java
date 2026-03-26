@@ -1,9 +1,9 @@
 package at.repository;
 
-import at.dtos.CreateExampleDTO;
-import at.dtos.ExampleDTO;
-import at.dtos.ExampleOverviewDTO;
-import at.dtos.GapDTO;
+import at.dtos.Example.CreateExampleDTO;
+import at.dtos.Example.ExampleDTO;
+import at.dtos.Example.ExampleOverviewDTO;
+import at.dtos.Example.GapDTO;
 import at.model.Example;
 import at.model.School;
 import at.model.User;
@@ -16,9 +16,6 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Base64;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;

@@ -11,6 +11,8 @@ import {MatIcon} from '@angular/material/icon'
 import {FormsModule} from '@angular/forms'
 import {MatButton} from '@angular/material/button'
 import {UserDTO} from '../../model/User'
+import {CreateSchoolInviteDTO} from '../../model/School'
+import {MatSnackBar} from '@angular/material/snack-bar'
 
 @Component({
   selector: 'app-school-invitation-dialog',
@@ -36,6 +38,8 @@ export class SchoolInvitationDialogComponent {
   filteredTeachers: any[] = [];
   searchTerm = '';
   invitingTeacherIds = new Set<number>();
+
+  snackBar = inject(MatSnackBar);
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: { schoolId: string }
@@ -68,19 +72,27 @@ export class SchoolInvitationDialogComponent {
     }
 
     this.invitingTeacherIds.add(teacher.id);
+    let dto = {
+      authToken: '',
+      teacherId: teacher.id,
+      message: ''
+    } as CreateSchoolInviteDTO
 
-    this.service.inviteTeacherToSchool(this.data.schoolId, teacher.id).subscribe({
-      next: () => {
-        this.teachers = this.teachers.filter(t => t.id !== teacher.id);
-        this.filteredTeachers = this.filteredTeachers.filter(t => t.id !== teacher.id);
-      },
-      error: () => {
-        this.invitingTeacherIds.delete(teacher.id!);
-      },
-      complete: () => {
-        this.invitingTeacherIds.delete(teacher.id!);
+    this.service.inviteTeacher(this.data.schoolId || 0, dto).subscribe({
+      next: data => {
+        this.invitingTeacherIds.delete(teacher.id);
+
+        this.snackBar.open('Invitation sent to ' + teacher.username, 'Close', { duration: 3000 });
+      }, error: (err) => {
+        this.invitingTeacherIds.delete(teacher.id);
+
+        const message = typeof err?.error === 'string'
+          ? err.error
+          : 'Einladung konnte nicht gesendet werden';
+
+        this.snackBar.open(message, 'OK', { duration: 3500 });
       }
-    });
+    })
   }
 
   isInviting(teacher: UserDTO) {

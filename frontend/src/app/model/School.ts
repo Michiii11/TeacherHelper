@@ -15,29 +15,36 @@ export interface SchoolDTO {
   members: UserDTO[]
 }
 
-export enum RequestType{
-  JOIN = 'JOIN',
-  INVITE = 'INVITE'
-}
-
-export interface JoinRequest{
-  id: number;
-  school: School;
-  transmitter: User;
-  recipient: User;
-  message: string;
-  accepted: boolean;
-  done: boolean;
-  type: RequestType;
-}
-
-export interface JoinRequestDTO{
+export interface SchoolInviteDTO {
   id: number;
   school: SchoolDTO;
-  transmitter: UserDTO;
+  sender: UserDTO;
   recipient: UserDTO;
+  type: SchoolInviteType;
+  status: SchoolInviteStatus;
   message: string;
-  accepted: boolean;
-  done: boolean;
-  type: RequestType;
+  createdAt: Date;
+  decidedAt: Date;
+}
+
+export enum SchoolInviteType {
+  JOIN_REQUEST = 'JOIN_REQUEST',
+  TEACHER_INVITATION = 'TEACHER_INVITATION',
+}
+
+export enum SchoolInviteStatus {
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  DECLINED = 'DECLINED',
+}
+
+export interface CreateSchoolInviteDTO {
+  authToken: string;
+  teacherId: number;
+  message: string;
+}
+
+export interface RespondSchoolInviteDTO {
+  authToken: string;
+  accept: boolean;
 }

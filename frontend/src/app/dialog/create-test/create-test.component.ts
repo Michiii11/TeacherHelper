@@ -18,8 +18,8 @@ import { MatDividerModule } from '@angular/material/divider';
 import { BehaviorSubject, Observable, Subject, combineLatest } from 'rxjs';
 import { map, startWith, takeUntil } from 'rxjs/operators';
 
-import { Example, ExampleDTO, ExampleTypes, Gap, Option } from '../../model/Example';
-import { CreateTestDTO, TestCreationStates, TestExample, TestExampleDTO } from '../../model/Test';
+import { Example, ExampleDTO, ExampleTypes } from '../../model/Example';
+import { CreateTestDTO, TestExample, TestExampleDTO } from '../../model/Test';
 import { HttpService } from '../../service/http.service';
 import { TestPrintService } from '../../service/test-print.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
@@ -78,7 +78,6 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     note: '',
     exampleList: [] as TestExample[],
     duration: 0,
-    state: TestCreationStates.DRAFT,
     defaultTaskSpacing: 48,
     taskSpacingMap: {},
     gradingMode: 'auto',

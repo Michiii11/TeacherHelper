@@ -1,6 +1,5 @@
 package at.model;
 
-import at.enums.TestCreationStates;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -24,9 +23,6 @@ public class Test {
     private String note;
 
     private int duration;
-
-    @Enumerated(EnumType.STRING)
-    private TestCreationStates state;
 
     @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TestExample> exampleList = new ArrayList<>();
@@ -61,21 +57,12 @@ public class Test {
     public Test() {
     }
 
-    public Test(String name, String note, User admin, School school, int duration, TestCreationStates state) {
+    public Test(String name, String note, User admin, School school, int duration) {
         this.name = name;
         this.note = note;
         this.school = school;
         this.admin = admin;
         this.duration = duration;
-        this.state = state;
-    }
-
-    public TestCreationStates getState() {
-        return state;
-    }
-
-    public void setState(TestCreationStates state) {
-        this.state = state;
     }
 
     public int getDuration() {

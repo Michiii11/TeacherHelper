@@ -1,4 +1,4 @@
-package at.dtos;
+package at.dtos.Test;
 
 import at.model.Example;
 

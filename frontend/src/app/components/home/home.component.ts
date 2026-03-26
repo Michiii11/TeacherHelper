@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {MatButton} from '@angular/material/button'
 import {MatDialog} from '@angular/material/dialog'
 import {AddSchoolDialogComponent} from '../../dialog/add-school-dialog/add-school-dialog.component'
@@ -30,7 +30,7 @@ import {SchoolInvitationComponent} from '../../dialog/school-invitation/school-i
   standalone: true,
   styleUrl: './home.component.scss'
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit{
   adminSchools: SchoolDTO[] = [];
   memberSchools: SchoolDTO[] = [];
   allOtherSchools: SchoolDTO[] = [];
@@ -99,29 +99,6 @@ export class HomeComponent {
     this.router.navigate(['/school', school.id]);
   }
 
-  protected openInvitationDialog(school: SchoolDTO) {
-    const ref = this.dialog.open(SchoolInvitationComponent, {
-      width: '520px',
-      data: {
-        schoolId: school.id,
-        schoolName: school.name
-      }
-    });
-
-    ref.afterClosed().subscribe((result) => {
-      if (!result) return;
-
-      this.http.sendSchoolJoinRequest(result.schoolId, result.message).subscribe({
-        next: () => {
-          this.snack.open('Anfrage gesendet', 'OK', { duration: 2500 });
-        },
-        error: () => {
-          this.snack.open('Fehler beim Senden', 'OK', { duration: 2500 });
-        }
-      });
-    });
-  }
-
   getSchoolInitials(name?: string): string {
     if (!name) return 'S';
 
@@ -138,12 +115,30 @@ export class HomeComponent {
   }
 
   private isAdminSchool(school: SchoolDTO, userId: number): boolean {
-    console.log(school)
-    console.log(`Überprüfe Admin-Status für Schule: ${school.name}, Admin ID: ${school.admin?.id}, User ID: ${userId}`);
-
     if (!school?.admin) return false;
     if (!userId) return false;
 
     return school.admin.id === userId;
+  }
+
+
+  protected openInvitationDialog(school: SchoolDTO) {
+    const ref = this.dialog.open(SchoolInvitationComponent, {
+      width: '520px',
+      data: {
+        schoolId: school.id,
+        schoolName: school.name
+      }
+    });
+
+    ref.afterClosed().subscribe((result) => {
+      if (!result) return;
+
+      this.http.sendJoinRequest(school.id, result).subscribe({
+        next: () => {
+          this.snack.open('Beitrittsanfrage gesendet', 'OK', { duration: 3000 });
+        }
+      })
+    });
   }
 }

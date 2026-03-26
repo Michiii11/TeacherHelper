@@ -1,8 +1,8 @@
 package at.repository;
 
-import at.dtos.AuthResult;
-import at.dtos.LoginDTO;
-import at.dtos.UserDTO;
+import at.dtos.User.AuthResult;
+import at.dtos.User.LoginDTO;
+import at.dtos.User.UserDTO;
 import at.model.User;
 import at.security.TokenService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -11,8 +11,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.transaction.Transactional;
 import org.mindrot.jbcrypt.BCrypt;
-
-import java.util.List;
 
 @ApplicationScoped
 public class UserRepository {

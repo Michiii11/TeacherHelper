@@ -1,6 +1,5 @@
 <mat-toolbar class="navbar">
   <div class="navbar-container">
-
     <div class="navbar-left">
       <span class="navbar-title">TeacherHelper</span>
     </div>
@@ -10,7 +9,7 @@
         Home
       </a>
 
-      <a mat-button routerLink="/school" routerLinkActive="active-link">
+      <a mat-button routerLink="/school" routerLinkActive="active-link" (click)="goToSchool()">
         Schule
       </a>
 
@@ -18,10 +17,10 @@
         Kontakt
       </a>
 
-      <button mat-icon-button class="icon-btn" [matMenuTriggerFor]="notificationMenu">
+      <button mat-icon-button class="icon-btn notif-trigger" [matMenuTriggerFor]="notifMenu">
         <mat-icon>notifications</mat-icon>
-        @if (openRequests.length > 0) {
-          <span class="notif-badge">{{ openRequests.length }}</span>
+        @if (unreadCount > 0) {
+          <span class="notif-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
         }
       </button>
 
@@ -51,117 +50,132 @@
   </button>
 </mat-menu>
 
-<mat-menu
-  #notificationMenu="matMenu"
-  panelClass="notification-menu-panel">
-
-  <div class="notification-panel" (click)="$event.stopPropagation()">
-    <div class="notification-header">
-      <div class="notification-heading-row">
-        <div class="notification-heading">Nachrichten</div>
-        @if (openRequests.length > 0) {
-          <span class="notification-counter">{{ openRequests.length }}</span>
-        }
+<mat-menu #notifMenu="matMenu" class="notif-menu">
+  <div class="notif-panel" (click)="$event.stopPropagation()">
+    <div class="notif-header">
+      <div class="notif-heading-row">
+        <div>
+          <div class="notif-heading">Nachrichten</div>
+          <div class="notif-subtitle">Offene Aktionen und kompletter Verlauf</div>
+        </div>
+        <div class="notif-counter">{{ visibleNotifications().length }}</div>
       </div>
 
-      <div class="notification-subheading">
-        @if (openRequests.length > 0) {
-          Einladungen und Beitrittsanfragen warten auf deine Antwort.
-        } @else {
-          Keine offenen Nachrichten
-        }
+      <div class="notif-tabs">
+        <button
+          mat-stroked-button
+          [class.active-tab]="selectedTab === 'open'"
+          (click)="setTab('open', $event)">
+          Offen
+        </button>
+
+        <button
+          mat-stroked-button
+          [class.active-tab]="selectedTab === 'history'"
+          (click)="setTab('history', $event)">
+          Verlauf
+        </button>
       </div>
     </div>
 
-    @if (openRequests.length === 0) {
-      <div class="no-notifications">
-        <div class="empty-icon">
+    @if (visibleNotifications().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon-wrap">
           <mat-icon>notifications_off</mat-icon>
         </div>
-        <div class="empty-title">Keine neuen Nachrichten</div>
+        <div class="empty-title">
+          {{ selectedTab === 'open' ? 'Keine offenen Nachrichten' : 'Kein Verlauf vorhanden' }}
+        </div>
         <div class="empty-text">
-          Neue Einladungen oder Beitrittsanfragen erscheinen hier.
+          {{ selectedTab === 'open'
+          ? 'Sobald neue Einladungen, Anfragen oder Infos kommen, erscheinen sie hier.'
+          : 'Bearbeitete Nachrichten und Ergebnisse werden hier angezeigt.' }}
         </div>
       </div>
     } @else {
-      <div class="notification-list">
-        @for (request of openRequests; track request.id) {
+      <div class="notif-list">
+        @for (n of visibleNotifications(); track n.id) {
           <div
-            class="notification-item"
-            (click)="$event.stopPropagation()"
-            [class.processing]="request._processing"
-            [class.accepted]="request._status === 'accepted'"
-            [class.declined]="request._status === 'declined'">
+            class="notif-item"
+            [class.notif-read]="n.read"
+            [class.notif-history]="isHandled(n)"
+            [class.notif-clickable]="isNavigationAllowed(n)"
+            [class.notif-processing]="isProcessing(n)"
+            [class.notif-result-accepted]="n.type === 'JOIN_REQUEST_ACCEPTED' || n.type === 'INVITATION_ACCEPTED'"
+            [class.notif-result-declined]="n.type === 'JOIN_REQUEST_DECLINED' || n.type === 'INVITATION_DECLINED'"
+            (click)="onNotificationClick(n)">
 
-            <div class="notification-top">
-              <div class="notification-avatar">
-                {{ getRequestInitial(request) }}
+            <div class="notif-top">
+              <div class="notif-icon">
+                <mat-icon>{{ getNotificationIcon(n) }}</mat-icon>
               </div>
 
-              <div class="notification-content">
-                <div class="notification-title-row">
-                  <div class="notification-title-main">
-                    <div class="notification-title">
-                      {{ getRequestTitle(request) }}
-                    </div>
-                    <div class="notification-school">
-                      {{ request.school?.name || 'Unbekannte Schule' }}
-                    </div>
+              <div class="notif-main">
+                <div class="notif-title-row">
+                  <div class="notif-title-wrap">
+                    <div class="notif-title">{{ n.title }}</div>
+                    @if (getMetaLine(n)) {
+                      <div class="notif-meta">{{ getMetaLine(n) }}</div>
+                    }
                   </div>
 
-                  @if (request._status === 'accepted') {
-                    <span class="status-chip accepted-chip">
-                      <mat-icon>check_circle</mat-icon>
-                      Ok
-                    </span>
-                  }
-
-                  @if (request._status === 'declined') {
-                    <span class="status-chip declined-chip">
-                      <mat-icon>cancel</mat-icon>
-                      Nein
-                    </span>
-                  }
+                  <div class="notif-type-badge">{{ getNotificationBadge(n) }}</div>
                 </div>
 
-                <div class="notification-message">
-                  {{ getRequestText(request) }}
-                </div>
+                <div class="notif-message">{{ n.message }}</div>
 
-                @if (request.message && request.message.trim().length > 0) {
-                  <div class="notification-user-message">
-                    {{ request.message }}
-                  </div>
-                }
+                <div class="notif-footer-row">
+                  <div class="notif-date">{{ n.createdAt | date:'dd.MM.yyyy • HH:mm' }}</div>
+
+                  @if (!n.read && !isHandled(n)) {
+                    <div class="notif-unread-dot"></div>
+                  }
+                </div>
               </div>
             </div>
 
-            @if (!request._status) {
-              <div class="notification-actions">
+            <div class="notif-actions">
+              @if (!isHandled(n) && n.primaryAction) {
                 <button
                   mat-flat-button
                   color="primary"
-                  class="accept-btn"
-                  [disabled]="request._processing"
-                  (click)="$event.stopPropagation(); acceptRequest(request)">
-                  <mat-icon>check</mat-icon>
-                  Akzeptieren
+                  [disabled]="isProcessing(n)"
+                  (click)="runAction(n, n.primaryAction, $event)">
+                  {{ getActionLabel(n.primaryAction) }}
                 </button>
+              }
 
+              @if (!isHandled(n) && n.secondaryAction) {
                 <button
                   mat-stroked-button
-                  class="decline-btn"
-                  [disabled]="request._processing"
-                  (click)="$event.stopPropagation(); declineRequest(request)">
-                  <mat-icon>close</mat-icon>
-                  Ablehnen
+                  [disabled]="isProcessing(n)"
+                  (click)="runAction(n, n.secondaryAction, $event)">
+                  {{ getActionLabel(n.secondaryAction) }}
                 </button>
-              </div>
-            }
+              }
 
-            @if (request._processing) {
-              <div class="notification-loading">Wird verarbeitet...</div>
-            }
+              @if (canMarkAsRead(n)) {
+                <button
+                  mat-icon-button
+                  type="button"
+                  [disabled]="isProcessing(n)"
+                  (click)="markAsRead(n, $event)"
+                  matTooltip="Als gelesen markieren">
+                  <mat-icon>done</mat-icon>
+                </button>
+              }
+
+              @if (canDelete(n)) {
+                <button
+                  mat-icon-button
+                  type="button"
+                  [disabled]="isProcessing(n)"
+                  (click)="deleteNotification(n, $event)"
+                  matTooltip="Löschen">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              }
+            </div>
           </div>
         }
       </div>

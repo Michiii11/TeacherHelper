@@ -87,7 +87,7 @@
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Aktionen</th>
             <td mat-cell *matCellDef="let e">
-              @if(currentUserId == school.admin?.id || currentUserId == e.adminId){
+              @if(currentUserId == school.admin.id || currentUserId == e.adminId){
                 <button mat-icon-button (click)="editExample(e)"><mat-icon>edit</mat-icon></button>
                 <button mat-icon-button color="warn" (click)="deleteExample(e)"><mat-icon>delete</mat-icon></button>
               } @else{
@@ -169,7 +169,7 @@
         <div class="teacher-card mat-elevation-z1">
           <div class="teacher-info">
             <div class="teacher-text">
-              <div class="name">{{ school.admin.username }}</div>
+              <div class="name">{{ school.admin ? school.admin.username : '-' }}</div>
               <div class="role">Admin</div>
             </div>
           </div>

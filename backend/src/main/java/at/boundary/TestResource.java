@@ -1,10 +1,7 @@
 package at.boundary;
 
-import at.dtos.CreateExampleDTO;
-import at.dtos.CreateTestDTO;
-import at.dtos.ExampleOverviewDTO;
-import at.dtos.TestOverviewDTO;
-import at.repository.ExampleRepository;
+import at.dtos.Test.CreateTestDTO;
+import at.dtos.Test.TestOverviewDTO;
 import at.repository.TestRepository;
 import jakarta.inject.Inject;
 import jakarta.json.JsonObject;

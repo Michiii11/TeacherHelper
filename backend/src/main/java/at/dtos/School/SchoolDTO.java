@@ -1,4 +1,6 @@
-package at.dtos;
+package at.dtos.School;
+
+import at.dtos.User.UserDTO;
 
 import java.util.List;
 

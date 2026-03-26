@@ -1,15 +1,14 @@
 package at.boundary;
 
-import at.dtos.AuthResult;
-import at.dtos.LoginDTO;
-import at.dtos.UserDTO;
-import at.dtos.ValidateTokenDTO;
+import at.dtos.User.AuthResult;
+import at.dtos.User.LoginDTO;
+import at.dtos.User.UserDTO;
+import at.dtos.User.ValidateTokenDTO;
 import at.model.User;
 import at.repository.UserRepository;
 import at.security.TokenService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.util.Map;
@@ -19,26 +18,23 @@ public class UserResource {
     @Inject
     UserRepository repo;
 
+    @Inject
+    TokenService tokenService;
+
     @POST
     @Path("register")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public AuthResult register(UserDTO dto) {
         return repo.register(dto);
     }
 
     @POST
     @Path("login")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public AuthResult login(LoginDTO dto) {
         return repo.login(dto);
     }
 
     @POST
     @Path("validate")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response validateToken(ValidateTokenDTO dto) {
         if (dto == null || dto.token() == null || dto.token().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -49,12 +45,8 @@ public class UserResource {
         return Response.ok(Map.of("valid", valid)).build();
     }
 
-    @Inject
-    TokenService tokenService;
-
     @POST
     @Path("id")
-    @Produces(MediaType.APPLICATION_JSON)
     public Long getUserId(String authToken) {
         return tokenService.validateTokenAndGetUserId(authToken);
     }

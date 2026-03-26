@@ -1,13 +1,11 @@
 package at.model;
 
-import at.dtos.UserDTO;
+import at.dtos.User.UserDTO;
 import at.model.helper.Focus;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 public class School {

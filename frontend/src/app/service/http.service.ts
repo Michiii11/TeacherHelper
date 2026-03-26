@@ -1,14 +1,20 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Config } from '../config';
-import {JoinRequestDTO, School, SchoolDTO} from '../model/School'
+import {CreateSchoolInviteDTO, SchoolDTO} from '../model/School'
 import {CreateExampleDTO, Focus} from '../model/Example'
 import {CreateTestDTO} from '../model/Test'
 import {User} from '../model/User'
+import {Observable} from 'rxjs'
+import {NotificationActionType, NotificationDTO} from '../model/Notification'
 
 @Injectable({ providedIn: 'root' })
 export class HttpService {
   private readonly http = inject(HttpClient);
+
+  private authToken(): string {
+    return localStorage.getItem('teacher_authToken') ?? '';
+  }
 
 
   getSchools() {
@@ -16,22 +22,54 @@ export class HttpService {
   }
 
   getSchoolById(schoolId: string) {
-    let authToken = localStorage.getItem('teacher_authToken')
-    return this.http.post<SchoolDTO>(`${Config.API_URL}/school/${schoolId}`, authToken);
+    return this.http.post<SchoolDTO>(
+      `${Config.API_URL}/school/${schoolId}`,
+      this.authToken(),
+      { headers: { 'Content-Type': 'text/plain' } }
+    );
   }
 
   addSchool(schoolName: string) {
     return this.http.post<string>(
       Config.API_URL + '/school/add',
-      { schoolName, authToken: localStorage.getItem('teacher_authToken') },
+      { schoolName, authToken: this.authToken() },
       { responseType: 'text' as 'json' }
     );
   }
 
   getYourSchools() {
     return this.http.post<SchoolDTO[]>(Config.API_URL + '/school/your-schools',
-      localStorage.getItem('teacher_authToken'));
+      this.authToken());
   }
+
+  getAllTeachers(schoolId: number | string) {
+    return this.http.get(`${Config.API_URL}/school/${schoolId}/rest`);
+  }
+
+  kickTeacherFromSchool(s: string, id: number) {
+    return this.http.delete(`${Config.API_URL}/school/${s}/remove-teacher`, {
+      body: {teacherId: id, authToken: this.authToken()},
+    });
+  }
+
+  getAllFocus(schoolId: number) {
+    return this.http.get<Focus[]>(`${Config.API_URL}/school/${schoolId}/focus`);
+  }
+
+  createFocus(schoolId: number, focus: Focus) {
+    return this.http.post<Focus>(`${Config.API_URL}/school/${schoolId}/focus`, focus);
+  }
+
+  deleteFocus(schoolId: number, id: number) {
+    return this.http.delete(`${Config.API_URL}/school/${schoolId}/focus/${id}`,
+      {
+        body: { authToken: this.authToken()},
+        responseType: 'text' as 'json'
+      });
+  }
+
+
+
 
   getExamples(schoolId: string | null | number) {
     return this.http.get(`${Config.API_URL}/example/school/${schoolId}`);
@@ -48,41 +86,29 @@ export class HttpService {
   deleteExample(id: number) {
     return this.http.delete(`${Config.API_URL}/example/${id}`,
       {
-        body: { authToken: localStorage.getItem('teacher_authToken')},
-        responseType: 'text' as 'json'
-      });
-  }
-
-  getCreateExample(exampleId: number) {
-    return this.http.post<CreateExampleDTO>(`${Config.API_URL}/example/${exampleId}`, {authToken: localStorage.getItem('teacher_authToken')});
-  }
-
-  getTests(schoolId: string | null) {
-    return this.http.get(`${Config.API_URL}/test/school/${schoolId}`);
-  }
-
-  getCreateTest(testId: number) {
-    return this.http.post<CreateTestDTO>(`${Config.API_URL}/test/${testId}`, {authToken: localStorage.getItem('teacher_authToken')});
-  }
-
-  getAllFocus(schoolId: number) {
-    return this.http.get<Focus[]>(`${Config.API_URL}/school/${schoolId}/focus`);
-  }
-
-  createFocus(schoolId: number, focus: Focus) {
-    return this.http.post<Focus>(`${Config.API_URL}/school/${schoolId}/focus`, focus);
-  }
-
-  deleteFocus(schoolId: number, id: number) {
-    return this.http.delete(`${Config.API_URL}/school/${schoolId}/focus/${id}`,
-      {
-        body: { authToken: localStorage.getItem('teacher_authToken')},
+        body: { authToken: this.authToken()},
         responseType: 'text' as 'json'
       });
   }
 
   getFullExamples(schoolId: number) {
     return this.http.get(`${Config.API_URL}/example/school/${schoolId}/full`);
+  }
+
+  getCreateExample(exampleId: number) {
+    return this.http.post<CreateExampleDTO>(`${Config.API_URL}/example/${exampleId}`, {authToken: this.authToken()});
+  }
+
+
+
+
+
+  getTests(schoolId: string | null) {
+    return this.http.get(`${Config.API_URL}/test/school/${schoolId}`);
+  }
+
+  getCreateTest(testId: number) {
+    return this.http.post<CreateTestDTO>(`${Config.API_URL}/test/${testId}`, {authToken: this.authToken()});
   }
 
   createTest(test: CreateTestDTO) {
@@ -92,7 +118,7 @@ export class HttpService {
   deleteTest(id: number) {
     return this.http.delete(`${Config.API_URL}/test/${id}`,
       {
-        body: { authToken: localStorage.getItem('teacher_authToken')},
+        body: { authToken: this.authToken()},
         responseType: 'text' as 'json'
       });
   }
@@ -101,57 +127,77 @@ export class HttpService {
     return this.http.put(`${Config.API_URL}/test/${testId}`, test, { responseType: 'text' as 'json' });
   }
 
-  getUserId() {
-    let authToken = localStorage.getItem('teacher_authToken')
-    return this.http.post<number>(`${Config.API_URL}/user/id`, authToken);
-  }
 
-  sendSchoolJoinRequest(schoolId: number, message: string) {
-    return this.http.post(`${Config.API_URL}/school/${schoolId}/join-request`, {
-      userToken: localStorage.getItem('teacher_authToken'),
-      message
-    });
+
+
+  getUserId() {
+    return this.http.post<number>(`${Config.API_URL}/user/id`, this.authToken());
   }
 
   getUser() {
-    let authToken = localStorage.getItem('teacher_authToken')
-    return this.http.post<User>(`${Config.API_URL}/user`, authToken);
+    return this.http.post<User>(`${Config.API_URL}/user`, this.authToken());
   }
 
-  getJoinRequests(schoolId: number) {
-    let authToken = localStorage.getItem('teacher_authToken')
 
-    return this.http.post<JoinRequestDTO[]>(`${Config.API_URL}/school/${schoolId}/get-join-requests`, authToken);
-  }
 
-  getAllTeachers(schoolId: number | string) {
-    return this.http.get(`${Config.API_URL}/school/${schoolId}/rest`);
-  }
 
-  inviteTeacherToSchool(schoolId: string, id:number) {
-    console.log(id)
-    return this.http.post(`${Config.API_URL}/school/${schoolId}/invite-teacher`, {
-      teacherId: id,
-      authToken: localStorage.getItem('teacher_authToken')
+
+  getMyNotifications(): Observable<NotificationDTO[]> {
+    return this.http.post<NotificationDTO[]>(`${Config.API_URL}/notification/my`, this.authToken(), {
+      headers: { 'Content-Type': 'text/plain' }
     });
   }
 
-  acceptRequest(id: number) {
-    return this.http.post(`${Config.API_URL}/school/join-request/${id}/accept`, {
-      authToken: localStorage.getItem('teacher_authToken')
+  markAsRead(id: number) {
+    return this.http.post(`${Config.API_URL}/notification/${id}/read`, this.authToken(), {
+      headers: { 'Content-Type': 'text/plain' }
     });
   }
 
-  declineRequest(id: number) {
-    return this.http.post(`${Config.API_URL}/school/join-request/${id}/decline`, {
-      authToken: localStorage.getItem('teacher_authToken')
+  archive(id: number) {
+    return this.http.post(`${Config.API_URL}/notification/${id}/archive`, this.authToken(), {
+      headers: { 'Content-Type': 'text/plain' }
     });
   }
 
-  kickTeacherFromSchool(s: string, id: number) {
-    return this.http.post(`${Config.API_URL}/school/${s}/remove-teacher`, {
-      teacherId: id,
-      authToken: localStorage.getItem('teacher_authToken')
+  deleteNotification(id: number) {
+    return this.http.delete(`${Config.API_URL}/notification/${id}`, {
+      body: this.authToken(),
+      headers: { 'Content-Type': 'text/plain' }
     });
+  }
+
+  executeAction(id: number, action: NotificationActionType) {
+    return this.http.post(`${Config.API_URL}/notification/${id}/action`, {
+      authToken: this.authToken(),
+      action
+    });
+  }
+
+  respondToInvite(inviteId: number, accept: boolean) {
+    return this.http.post(`${Config.API_URL}/school/invite/${inviteId}/respond`, {
+      authToken: this.authToken(),
+      accept
+    });
+  }
+
+  respondToJoinRequest(inviteId: number, accept: boolean) {
+    return this.http.post(`${Config.API_URL}/school/join-request/${inviteId}/respond`, {
+      authToken: this.authToken(),
+      accept
+    });
+  }
+
+
+  sendJoinRequest(id: number, result: any) {
+    return this.http.post(`${Config.API_URL}/school/${id}/join-request`, {
+      authToken: this.authToken(), message: result
+    });
+  }
+
+  inviteTeacher(id: string | number, dto: CreateSchoolInviteDTO) {
+    dto.authToken = this.authToken();
+
+    return this.http.post(`${Config.API_URL}/school/${id}/invite-teacher`, dto)
   }
 }

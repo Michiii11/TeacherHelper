@@ -1,4 +1,4 @@
-package at.dtos;
+package at.dtos.User;
 
 public record AuthResult(boolean success, String code, String message, String token, Long userId) {
     public static AuthResult success(Long userId, String token) {

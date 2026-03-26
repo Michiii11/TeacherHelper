@@ -1,6 +1,4 @@
-package at.dtos;
-
-import at.enums.TestCreationStates;
+package at.dtos.Test;
 
 import java.util.List;
 import java.util.Map;
@@ -12,7 +10,6 @@ public record CreateTestDTO(
         String note,
         List<TestExampleDTO> exampleList,
         int duration,
-        TestCreationStates state,
         Integer defaultTaskSpacing,
         Map<Integer, Integer> taskSpacingMap,
         String gradingMode,

@@ -1,13 +1,15 @@
 package at.repository;
 
-import at.dtos.CreateSchoolDTO;
-import at.dtos.JoinRequestDTO;
-import at.dtos.SchoolDTO;
-import at.dtos.UserDTO;
-import at.enums.RequestType;
+import at.dtos.Notification.SchoolInviteDTO;
+import at.dtos.School.SchoolDTO;
+import at.dtos.User.UserDTO;
+import at.enums.NotificationActionType;
+import at.enums.NotificationType;
+import at.enums.SchoolInviteStatus;
+import at.enums.SchoolInviteType;
 import at.model.Example;
-import at.model.JoinRequest;
 import at.model.School;
+import at.model.SchoolInvite;
 import at.model.User;
 import at.model.helper.Focus;
 import at.security.TokenService;
@@ -17,9 +19,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
-import java.util.LinkedList;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 @ApplicationScoped
 @Transactional
@@ -29,6 +30,9 @@ public class SchoolRepository {
 
     @Inject
     TokenService tokenService;
+
+    @Inject
+    NotificationRepository notificationRepository;
 
     public Response addSchool(String schoolName, Long userId) {
         try {
@@ -49,7 +53,13 @@ public class SchoolRepository {
     public List<SchoolDTO> getAllSchools() {
         List<School> schools = em.createQuery("SELECT s FROM School s", School.class).getResultList();
         return schools.stream()
-                .map(school -> new SchoolDTO(school.getId(), school.getName(), school.getAdminDTO(), 0, school.getUsers().stream().map(User::toUserDTO).toList()))
+                .map(school -> new SchoolDTO(
+                        school.getId(),
+                        school.getName(),
+                        school.getAdminDTO(),
+                        0,
+                        school.getUsers().stream().map(User::toUserDTO).toList()
+                ))
                 .toList();
     }
 
@@ -59,11 +69,18 @@ public class SchoolRepository {
             return null;
         }
 
-        if(userId == null || (!school.getAdmin().getId().equals(userId) && school.getUsers().stream().noneMatch(u -> u.getId().equals(userId)))){
+        if (userId == null || (!school.getAdmin().getId().equals(userId)
+                && school.getUsers().stream().noneMatch(u -> u.getId().equals(userId)))) {
             return null;
         }
 
-        return new SchoolDTO(school.getId(), school.getName(), school.getAdminDTO(), 0, school.getUsers().stream().map(User::toUserDTO).toList());
+        return new SchoolDTO(
+                school.getId(),
+                school.getName(),
+                school.getAdminDTO(),
+                0,
+                school.getUsers().stream().map(User::toUserDTO).toList()
+        );
     }
 
     public List<SchoolDTO> getYourSchools(String auth) {
@@ -82,23 +99,29 @@ public class SchoolRepository {
                 .getResultList();
 
         return schools.stream()
-                .map(school -> new SchoolDTO(school.getId(), school.getName(), school.getAdminDTO(), 0, school.getUsers().stream().map(User::toUserDTO).toList()))
+                .map(school -> new SchoolDTO(
+                        school.getId(),
+                        school.getName(),
+                        school.getAdminDTO(),
+                        0,
+                        school.getUsers().stream().map(User::toUserDTO).toList()
+                ))
                 .toList();
     }
 
     public List<Focus> getFocusList(Long id) {
-        return em.createQuery("SELECT s.focusList FROM School s WHERE s.id = :id", Focus.class).setParameter("id", id).getResultList();
+        return em.createQuery("SELECT s.focusList FROM School s WHERE s.id = :id", Focus.class)
+                .setParameter("id", id)
+                .getResultList();
     }
 
     public Focus addFocus(Long id, Focus focus) {
         School s = em.find(School.class, id);
 
         Focus f = new Focus(focus.getLabel());
-
         em.persist(f);
 
         s.getFocusList().add(f);
-
         em.merge(s);
 
         return f;
@@ -115,7 +138,7 @@ public class SchoolRepository {
                 .setParameter("f", f)
                 .getResultList();
 
-        for(Example e : exampleList){
+        for (Example e : exampleList) {
             e.getFocusList().remove(f);
         }
 
@@ -125,53 +148,13 @@ public class SchoolRepository {
     }
 
     public SchoolDTO toSchoolDTO(School school) {
-        return new SchoolDTO(school.getId(), school.getName(), school.getAdminDTO(), school.getUsers().size(), school.getUsers().stream().map(User::toUserDTO).toList());
-    }
-
-    public Response sendJoinRequest(Long id, Long userId, String message) {
-        School school = em.find(School.class, id);
-        User user = em.find(User.class, userId);
-
-        if (school == null || user == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("School or User not found").build();
-        }
-
-        if (school.getAdmin().getId().equals(userId) || school.getUsers().stream().anyMatch(u -> u.getId().equals(userId))) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("You are already a member of this school").build();
-        }
-
-        if (em.createQuery("SELECT COUNT(j) FROM JoinRequest j WHERE j.school.id = :schoolId AND j.transmitter.id = :userId", Long.class)
-                .setParameter("schoolId", id)
-                .setParameter("userId", userId)
-                .getSingleResult() > 0) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("You have already sent a join request to this school").build();
-        }
-
-        JoinRequest joinRequest = new JoinRequest(school, user, school.getAdmin(), message, RequestType.JOIN);
-        em.persist(joinRequest);
-
-        return Response.ok().build();
-    }
-
-    public List<JoinRequestDTO> getJoinRequests(Long id, Long userId) {
-        School school = em.find(School.class, id);
-
-        List<JoinRequest> joinRequests;
-
-        if (school == null) {
-            joinRequests = em.createQuery("SELECT j FROM JoinRequest j WHERE j.recipient.id = :userId", JoinRequest.class)
-                    .setParameter("userId", userId)
-                    .getResultList();
-        } else {
-            joinRequests = em.createQuery("SELECT j FROM JoinRequest j WHERE j.recipient.id = :userId AND j.school.id = :schoolId", JoinRequest.class)
-                    .setParameter("schoolId", id)
-                    .setParameter("userId", userId)
-                    .getResultList();
-        }
-
-        return joinRequests.stream()
-                .map(j -> new JoinRequestDTO(j.getId(), toSchoolDTO(j.getSchool()), j.getTransmitter().toUserDTO(), j.getRecipient().toUserDTO(), j.getMessage(), j.isAccepted(), j.isDone(), j.getType()))
-                .toList();
+        return new SchoolDTO(
+                school.getId(),
+                school.getName(),
+                school.getAdminDTO(),
+                school.getUsers().size(),
+                school.getUsers().stream().map(User::toUserDTO).toList()
+        );
     }
 
     public List<UserDTO> getAllTeachers(Long id) {
@@ -181,98 +164,44 @@ public class SchoolRepository {
             return List.of();
         }
 
-        List<Long> userIds = school.getUsers()
+        List<Long> memberIds = school.getUsers()
                 .stream()
                 .map(User::getId)
                 .toList();
 
         Long adminId = school.getAdmin().getId();
 
-        String jpql = userIds.isEmpty()
-                ? "SELECT u FROM User u WHERE u.id != :adminId"
-                : "SELECT u FROM User u WHERE u.id NOT IN :users AND u.id != :adminId";
+        List<Long> invitedUserIds = em.createQuery("""
+            SELECT i.recipient.id
+            FROM SchoolInvite i
+            WHERE i.school.id = :schoolId
+              AND i.type = :type
+              AND i.status = :status
+            """, Long.class)
+                .setParameter("schoolId", id)
+                .setParameter("type", SchoolInviteType.TEACHER_INVITATION)
+                .setParameter("status", SchoolInviteStatus.PENDING)
+                .getResultList();
 
-        var query = em.createQuery(jpql, User.class)
-                .setParameter("adminId", adminId);
+        List<Long> excludedIds = new java.util.ArrayList<>();
+        excludedIds.add(adminId);
+        excludedIds.addAll(memberIds);
+        excludedIds.addAll(invitedUserIds);
 
-        if (!userIds.isEmpty()) {
-            query.setParameter("users", userIds);
+        String jpql = excludedIds.isEmpty()
+                ? "SELECT u FROM User u"
+                : "SELECT u FROM User u WHERE u.id NOT IN :excluded";
+
+        var query = em.createQuery(jpql, User.class);
+
+        if (!excludedIds.isEmpty()) {
+            query.setParameter("excluded", excludedIds);
         }
 
         return query.getResultList()
                 .stream()
                 .map(User::toUserDTO)
                 .toList();
-    }
-
-    public Response inviteTeacher(Long id, Long userId, int teacherId) {
-        School school = em.find(School.class, id);
-        User user = em.find(User.class, userId);
-        User teacher = em.find(User.class, (long) teacherId);
-
-        if (school == null || user == null || teacher == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("School, User or Teacher not found").build();
-        }
-
-        if (!school.getAdmin().getId().equals(userId)) {
-            return Response.status(Response.Status.FORBIDDEN).entity("Only the school admin can invite teachers").build();
-        }
-
-        if (school.getUsers().stream().anyMatch(u -> u.getId().equals(teacherId))) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("This teacher is already a member of the school").build();
-        }
-
-        System.out.println(teacher);
-
-        JoinRequest request = new JoinRequest(school, user, teacher, "", RequestType.INVITE);
-        em.persist(request);
-
-        return Response.ok().build();
-    }
-
-
-    public Response respondJoinRequest(Long requestId, Long userId, boolean b) {
-        JoinRequest request = em.find(JoinRequest.class, requestId);
-
-        if (request == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Join request not found").build();
-        }
-
-        if (!request.getRecipient().getId().equals(userId)) {
-            return Response.status(Response.Status.FORBIDDEN).entity("You are not the recipient of this join request").build();
-        }
-
-        if (request.isDone()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("This join request has already been processed").build();
-        }
-
-        if (b) {
-            School school = request.getSchool();
-
-            if(request.getType() == RequestType.JOIN){
-                User user = request.getTransmitter();
-                if (request.getSchool().getAdmin().getId().equals(request.getTransmitter().getId()) || request.getSchool().getUsers().stream().anyMatch(u -> u.getId().equals(request.getTransmitter().getId()))) {
-                    return Response.status(Response.Status.BAD_REQUEST).entity("The user is already a member of this school").build();
-                } else {
-                    school.getUsers().add(user);
-                }
-            } else {
-                User user = request.getRecipient();
-                if (request.getSchool().getAdmin().getId().equals(request.getRecipient().getId()) || request.getSchool().getUsers().stream().anyMatch(u -> u.getId().equals(request.getRecipient().getId()))) {
-                    return Response.status(Response.Status.BAD_REQUEST).entity("The user is already a member of this school").build();
-                } else {
-                    school.getUsers().add(user);
-                }
-            }
-
-            em.merge(school);
-        }
-
-        request.setAccepted(b);
-        request.setDone(true);
-        em.merge(request);
-
-        return Response.ok().build();
     }
 
     public Response leaveSchool(Long id, Long userId) {
@@ -316,5 +245,361 @@ public class SchoolRepository {
         em.merge(school);
 
         return Response.ok().build();
+    }
+
+    public Response inviteTeacher(Long schoolId, Long userId, int teacherId, String message) {
+        School school = em.find(School.class, schoolId);
+        User sender = em.find(User.class, userId);
+        User teacher = em.find(User.class, (long) teacherId);
+
+        if (school == null || sender == null || teacher == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("School, sender or teacher not found").build();
+        }
+
+        if (!school.getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Only the school admin can invite teachers").build();
+        }
+
+        if (teacher.getId().equals(school.getAdmin().getId())
+                || school.getUsers().stream().anyMatch(u -> u.getId().equals(teacher.getId()))) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("This user is already part of the school").build();
+        }
+
+        Long openInviteCount = em.createQuery("""
+                SELECT COUNT(i)
+                FROM SchoolInvite i
+                WHERE i.school.id = :schoolId
+                  AND i.recipient.id = :recipientId
+                  AND i.type = :type
+                  AND i.status = :status
+                """, Long.class)
+                .setParameter("schoolId", schoolId)
+                .setParameter("recipientId", teacher.getId())
+                .setParameter("type", SchoolInviteType.TEACHER_INVITATION)
+                .setParameter("status", SchoolInviteStatus.PENDING)
+                .getSingleResult();
+
+        if (openInviteCount > 0) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("There is already an open invitation for this teacher").build();
+        }
+
+        SchoolInvite invite = new SchoolInvite(
+                school,
+                sender,
+                teacher,
+                SchoolInviteType.TEACHER_INVITATION,
+                message == null ? "" : message
+        );
+        em.persist(invite);
+        em.flush();
+
+        notificationRepository.createNotification(
+                teacher,
+                sender,
+                school,
+                NotificationType.SCHOOL_INVITATION,
+                "Einladung zu " + school.getName(),
+                appendOptionalMessage(
+                        sender.getUsername() + " hat dich eingeladen, der Schule " + school.getName() + " beizutreten.",
+                        message
+                ),
+                null,
+                invite.getId(),
+                NotificationActionType.ACCEPT_INVITATION,
+                NotificationActionType.DECLINE_INVITATION
+        );
+
+        return Response.ok(toSchoolInviteDTO(invite)).build();
+    }
+
+    public Response sendJoinRequest(Long schoolId, Long userId, String message) {
+        School school = em.find(School.class, schoolId);
+        User sender = em.find(User.class, userId);
+
+        if (school == null || sender == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("School or user not found").build();
+        }
+
+        if (sender.getId().equals(school.getAdmin().getId())
+                || school.getUsers().stream().anyMatch(u -> u.getId().equals(sender.getId()))) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("You are already part of this school").build();
+        }
+
+        Long openRequestCount = em.createQuery("""
+        SELECT COUNT(i)
+        FROM SchoolInvite i
+        WHERE i.school.id = :schoolId
+          AND i.sender.id = :senderId
+          AND i.recipient.id = :recipientId
+          AND i.type = :type
+          AND i.status = :status
+        """, Long.class)
+                .setParameter("schoolId", schoolId)
+                .setParameter("senderId", sender.getId())
+                .setParameter("recipientId", school.getAdmin().getId())
+                .setParameter("type", SchoolInviteType.JOIN_REQUEST)
+                .setParameter("status", SchoolInviteStatus.PENDING)
+                .getSingleResult();
+
+        if (openRequestCount > 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("You already have an open request for this school")
+                    .build();
+        }
+
+        Long declinedRequestCount = em.createQuery("""
+        SELECT COUNT(i)
+        FROM SchoolInvite i
+        WHERE i.school.id = :schoolId
+          AND i.sender.id = :senderId
+          AND i.recipient.id = :recipientId
+          AND i.type = :type
+          AND i.status = :status
+        """, Long.class)
+                .setParameter("schoolId", schoolId)
+                .setParameter("senderId", sender.getId())
+                .setParameter("recipientId", school.getAdmin().getId())
+                .setParameter("type", SchoolInviteType.JOIN_REQUEST)
+                .setParameter("status", SchoolInviteStatus.DECLINED)
+                .getSingleResult();
+
+        if (declinedRequestCount > 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Your request was declined before. You can only join now if the school invites you.")
+                    .build();
+        }
+
+        SchoolInvite invite = new SchoolInvite(
+                school,
+                sender,
+                school.getAdmin(),
+                SchoolInviteType.JOIN_REQUEST,
+                message == null ? "" : message
+        );
+        em.persist(invite);
+        em.flush();
+
+        notificationRepository.createNotification(
+                school.getAdmin(),
+                sender,
+                school,
+                NotificationType.JOIN_REQUEST,
+                "Beitrittsanfrage für " + school.getName(),
+                appendOptionalMessage(
+                        sender.getUsername() + " möchte der Schule " + school.getName() + " beitreten.",
+                        message
+                ),
+                null,
+                invite.getId(),
+                NotificationActionType.ACCEPT_JOIN_REQUEST,
+                NotificationActionType.DECLINE_JOIN_REQUEST
+        );
+
+        return Response.ok(toSchoolInviteDTO(invite)).build();
+    }
+
+    public Response respondToInvite(Long inviteId, Long userId, boolean accept) {
+        SchoolInvite invite = em.find(SchoolInvite.class, inviteId);
+
+        if (invite == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Invite not found").build();
+        }
+
+        if (!invite.getRecipient().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN).entity("You are not allowed to respond to this invite").build();
+        }
+
+        if (invite.getStatus() != SchoolInviteStatus.PENDING) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Invite was already processed").build();
+        }
+
+        School school = invite.getSchool();
+        User recipient = invite.getRecipient();
+        User sender = invite.getSender();
+
+        if (accept) {
+            boolean alreadyMember = school.getAdmin().getId().equals(recipient.getId())
+                    || school.getUsers().stream().anyMatch(u -> u.getId().equals(recipient.getId()));
+
+            if (!alreadyMember) {
+                school.getUsers().add(recipient);
+                em.merge(school);
+            }
+
+            invite.setStatus(SchoolInviteStatus.ACCEPTED);
+            invite.setDecidedAt(LocalDateTime.now());
+            em.merge(invite);
+
+            notificationRepository.createNotification(
+                    sender,
+                    recipient,
+                    school,
+                    NotificationType.INVITATION_ACCEPTED,
+                    "Invitation accepted",
+                    recipient.getUsername() + " accepted the invitation to " + school.getName() + ".",
+                    "/school/" + school.getId(),
+                    invite.getId(),
+                    null,
+                    null
+            );
+        } else {
+            invite.setStatus(SchoolInviteStatus.DECLINED);
+            invite.setDecidedAt(LocalDateTime.now());
+            em.merge(invite);
+
+            notificationRepository.createNotification(
+                    sender,
+                    recipient,
+                    school,
+                    NotificationType.INVITATION_DECLINED,
+                    "Invitation declined",
+                    recipient.getUsername() + " declined the invitation to " + school.getName() + ".",
+                    "/school/" + school.getId(),
+                    invite.getId(),
+                    null,
+                    null
+            );
+        }
+
+        notificationRepository.markRelatedNotificationsAsHandled(invite.getId());
+
+        return Response.ok(toSchoolInviteDTO(invite)).build();
+    }
+
+    public Response respondToJoinRequest(Long inviteId, Long userId, boolean accept) {
+        SchoolInvite invite = em.find(SchoolInvite.class, inviteId);
+
+        if (invite == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Request not found").build();
+        }
+
+        if (!invite.getRecipient().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN).entity("You are not allowed to respond to this request").build();
+        }
+
+        if (invite.getType() != SchoolInviteType.JOIN_REQUEST) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("This is not a join request").build();
+        }
+
+        if (invite.getStatus() != SchoolInviteStatus.PENDING) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Request was already processed").build();
+        }
+
+        School school = invite.getSchool();
+        User applicant = invite.getSender();
+
+        if (accept) {
+            boolean alreadyMember = school.getAdmin().getId().equals(applicant.getId())
+                    || school.getUsers().stream().anyMatch(u -> u.getId().equals(applicant.getId()));
+
+            if (!alreadyMember) {
+                school.getUsers().add(applicant);
+                em.merge(school);
+            }
+
+            invite.setStatus(SchoolInviteStatus.ACCEPTED);
+            invite.setDecidedAt(LocalDateTime.now());
+            em.merge(invite);
+
+            notificationRepository.createNotification(
+                    applicant,
+                    school.getAdmin(),
+                    school,
+                    NotificationType.JOIN_REQUEST_ACCEPTED,
+                    "Join request accepted",
+                    "Your request for " + school.getName() + " was accepted.",
+                    "/school/" + school.getId(),
+                    invite.getId(),
+                    null,
+                    null
+            );
+        } else {
+            invite.setStatus(SchoolInviteStatus.DECLINED);
+            invite.setDecidedAt(LocalDateTime.now());
+            em.merge(invite);
+
+            notificationRepository.createNotification(
+                    applicant,
+                    school.getAdmin(),
+                    school,
+                    NotificationType.JOIN_REQUEST_DECLINED,
+                    "Join request declined",
+                    "Your request for " + school.getName() + " was declined.",
+                    "/school/" + school.getId(),
+                    invite.getId(),
+                    null,
+                    null
+            );
+        }
+
+        notificationRepository.markRelatedNotificationsAsHandled(invite.getId());
+
+        return Response.ok(toSchoolInviteDTO(invite)).build();
+    }
+
+    public List<SchoolInviteDTO> getMyPendingInvites(Long userId) {
+        return em.createQuery("""
+                SELECT i
+                FROM SchoolInvite i
+                WHERE i.recipient.id = :userId
+                  AND i.status = :status
+                ORDER BY i.createdAt DESC
+                """, SchoolInvite.class)
+                .setParameter("userId", userId)
+                .setParameter("status", SchoolInviteStatus.PENDING)
+                .getResultList()
+                .stream()
+                .map(this::toSchoolInviteDTO)
+                .toList();
+    }
+
+    public List<SchoolInviteDTO> getPendingRequestsForSchool(Long schoolId, Long userId) {
+        School school = em.find(School.class, schoolId);
+        if (school == null) {
+            return List.of();
+        }
+
+        if (!school.getAdmin().getId().equals(userId)) {
+            return List.of();
+        }
+
+        return em.createQuery("""
+                SELECT i
+                FROM SchoolInvite i
+                WHERE i.school.id = :schoolId
+                  AND i.type = :type
+                  AND i.status = :status
+                ORDER BY i.createdAt DESC
+                """, SchoolInvite.class)
+                .setParameter("schoolId", schoolId)
+                .setParameter("type", SchoolInviteType.JOIN_REQUEST)
+                .setParameter("status", SchoolInviteStatus.PENDING)
+                .getResultList()
+                .stream()
+                .map(this::toSchoolInviteDTO)
+                .toList();
+    }
+
+    private SchoolInviteDTO toSchoolInviteDTO(SchoolInvite invite) {
+        return new SchoolInviteDTO(
+                invite.getId(),
+                toSchoolDTO(invite.getSchool()),
+                invite.getSender().toUserDTO(),
+                invite.getRecipient().toUserDTO(),
+                invite.getType(),
+                invite.getStatus(),
+                invite.getMessage(),
+                invite.getCreatedAt(),
+                invite.getDecidedAt()
+        );
+    }
+
+    // helper in SchoolRepository ergänzen
+    private String appendOptionalMessage(String baseMessage, String customMessage) {
+        if (customMessage == null || customMessage.isBlank()) {
+            return baseMessage;
+        }
+
+        return baseMessage + "\n\nNachricht:\n" + customMessage.trim();
     }
 }

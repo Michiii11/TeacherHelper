@@ -1,5 +1,7 @@
-package at.dtos;
+package at.dtos.Example;
 
+import at.dtos.School.SchoolDTO;
+import at.dtos.User.UserDTO;
 import at.enums.ExampleTypes;
 import at.enums.GapFillType;
 import at.model.helper.Assign;

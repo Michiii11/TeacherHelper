@@ -1,4 +1,4 @@
-package at.dtos;
+package at.dtos.Example;
 
 import at.enums.ExampleTypes;
 import at.model.helper.Focus;

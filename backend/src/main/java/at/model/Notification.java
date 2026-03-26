@@ -1,0 +1,189 @@
+package at.model;
+
+import at.enums.NotificationActionType;
+import at.enums.NotificationType;
+import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
+
+@Entity
+public class Notification {
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    @ManyToOne
+    private User recipient;
+
+    @ManyToOne
+    private User actor;
+
+    @ManyToOne
+    private School school;
+
+    @Enumerated(EnumType.STRING)
+    private NotificationType type;
+
+    private String title;
+
+    @Column(length = 2000)
+    private String message;
+
+    private String link;
+
+    private boolean read = false;
+    private boolean archived = false;
+
+    private Long relatedEntityId;
+
+    @Enumerated(EnumType.STRING)
+    private NotificationActionType primaryAction;
+
+    @Enumerated(EnumType.STRING)
+    private NotificationActionType secondaryAction;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    public Notification() {
+    }
+
+    public Notification(User recipient,
+                        User actor,
+                        School school,
+                        NotificationType type,
+                        String title,
+                        String message,
+                        String link,
+                        boolean read,
+                        boolean archived,
+                        Long relatedEntityId,
+                        NotificationActionType primaryAction,
+                        NotificationActionType secondaryAction,
+                        LocalDateTime createdAt) {
+        this.recipient = recipient;
+        this.actor = actor;
+        this.school = school;
+        this.type = type;
+        this.title = title;
+        this.message = message;
+        this.link = link;
+        this.read = read;
+        this.archived = archived;
+        this.relatedEntityId = relatedEntityId;
+        this.primaryAction = primaryAction;
+        this.secondaryAction = secondaryAction;
+        this.createdAt = createdAt;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public User getRecipient() {
+        return recipient;
+    }
+
+    public void setRecipient(User recipient) {
+        this.recipient = recipient;
+    }
+
+    public User getActor() {
+        return actor;
+    }
+
+    public void setActor(User actor) {
+        this.actor = actor;
+    }
+
+    public School getSchool() {
+        return school;
+    }
+
+    public void setSchool(School school) {
+        this.school = school;
+    }
+
+    public NotificationType getType() {
+        return type;
+    }
+
+    public void setType(NotificationType type) {
+        this.type = type;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
+    }
+
+    public boolean isRead() {
+        return read;
+    }
+
+    public void setRead(boolean read) {
+        this.read = read;
+    }
+
+    public boolean isArchived() {
+        return archived;
+    }
+
+    public void setArchived(boolean archived) {
+        this.archived = archived;
+    }
+
+    public Long getRelatedEntityId() {
+        return relatedEntityId;
+    }
+
+    public void setRelatedEntityId(Long relatedEntityId) {
+        this.relatedEntityId = relatedEntityId;
+    }
+
+    public NotificationActionType getPrimaryAction() {
+        return primaryAction;
+    }
+
+    public void setPrimaryAction(NotificationActionType primaryAction) {
+        this.primaryAction = primaryAction;
+    }
+
+    public NotificationActionType getSecondaryAction() {
+        return secondaryAction;
+    }
+
+    public void setSecondaryAction(NotificationActionType secondaryAction) {
+        this.secondaryAction = secondaryAction;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+}

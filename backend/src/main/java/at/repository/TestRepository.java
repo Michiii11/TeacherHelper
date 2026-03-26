@@ -1,8 +1,8 @@
 package at.repository;
 
-import at.dtos.CreateTestDTO;
-import at.dtos.TestExampleDTO;
-import at.dtos.TestOverviewDTO;
+import at.dtos.Test.CreateTestDTO;
+import at.dtos.Test.TestExampleDTO;
+import at.dtos.Test.TestOverviewDTO;
 import at.model.Example;
 import at.model.School;
 import at.model.Test;
@@ -30,8 +30,8 @@ public class TestRepository {
 
     public List<TestOverviewDTO> getAllTest(Long schoolId) {
         return em.createQuery(
-                        "SELECT new at.dtos.TestOverviewDTO(" +
-                                "t.id, t.name, SIZE(t.exampleList), t.duration, t.state, t.admin.username, t.admin.id) " +
+                        "SELECT new at.dtos.Test.TestOverviewDTO(" +
+                                "t.id, t.name, SIZE(t.exampleList), t.duration, t.admin.username, t.admin.id) " +
                                 "FROM Test t WHERE t.school.id = :schoolId ORDER BY t.id",
                         TestOverviewDTO.class
                 )
@@ -49,7 +49,7 @@ public class TestRepository {
         User admin = em.find(User.class, userId);
         School school = em.find(School.class, dto.schoolId());
 
-        Test test = new Test(dto.name(), dto.note(), admin, school, dto.duration(), dto.state());
+        Test test = new Test(dto.name(), dto.note(), admin, school, dto.duration());
         applySettings(test, dto);
         em.persist(test);
 
@@ -79,7 +79,6 @@ public class TestRepository {
         test.setName(dto.name());
         test.setNote(dto.note());
         test.setDuration(dto.duration());
-        test.setState(dto.state());
         applySettings(test, dto);
 
         List<TestExample> existingEntries = em.createQuery(
@@ -139,7 +138,6 @@ public class TestRepository {
                 t.getNote(),
                 exampleList,
                 t.getDuration(),
-                t.getState(),
                 t.getDefaultTaskSpacing(),
                 copyMap(t.getTaskSpacingMap()),
                 t.getGradingMode(),

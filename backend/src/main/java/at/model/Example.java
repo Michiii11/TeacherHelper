@@ -1,7 +1,7 @@
 // src/main/java/at/model/Example.java
 package at.model;
 
-import at.dtos.GapDTO;
+import at.dtos.Example.GapDTO;
 import at.enums.ExampleTypes;
 import at.enums.GapFillType;
 import at.model.helper.Assign;
