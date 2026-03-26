@@ -7,10 +7,7 @@ import at.enums.NotificationActionType;
 import at.enums.NotificationType;
 import at.enums.SchoolInviteStatus;
 import at.enums.SchoolInviteType;
-import at.model.Example;
-import at.model.School;
-import at.model.SchoolInvite;
-import at.model.User;
+import at.model.*;
 import at.model.helper.Focus;
 import at.security.TokenService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -417,6 +414,8 @@ public class SchoolRepository {
         User recipient = invite.getRecipient();
         User sender = invite.getSender();
 
+        notificationRepository.markRelatedNotificationsAsHandled(invite.getId());
+
         if (accept) {
             boolean alreadyMember = school.getAdmin().getId().equals(recipient.getId())
                     || school.getUsers().stream().anyMatch(u -> u.getId().equals(recipient.getId()));
@@ -461,8 +460,6 @@ public class SchoolRepository {
             );
         }
 
-        notificationRepository.markRelatedNotificationsAsHandled(invite.getId());
-
         return Response.ok(toSchoolInviteDTO(invite)).build();
     }
 
@@ -487,6 +484,8 @@ public class SchoolRepository {
 
         School school = invite.getSchool();
         User applicant = invite.getSender();
+
+        notificationRepository.markRelatedNotificationsAsHandled(invite.getId());
 
         if (accept) {
             boolean alreadyMember = school.getAdmin().getId().equals(applicant.getId())
@@ -531,8 +530,6 @@ public class SchoolRepository {
                     null
             );
         }
-
-        notificationRepository.markRelatedNotificationsAsHandled(invite.getId());
 
         return Response.ok(toSchoolInviteDTO(invite)).build();
     }
@@ -600,6 +597,6 @@ public class SchoolRepository {
             return baseMessage;
         }
 
-        return baseMessage + "\n\nNachricht:\n" + customMessage.trim();
+        return baseMessage + "\n\nNachricht: " + customMessage.trim();
     }
 }

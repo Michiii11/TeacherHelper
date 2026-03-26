@@ -48,7 +48,6 @@ import {UserDTO} from '../../model/User'
     NgForOf,
     NgIf,
     MatSortHeader,
-    NgClass
   ],
   templateUrl: './school.component.html',
   standalone: true,

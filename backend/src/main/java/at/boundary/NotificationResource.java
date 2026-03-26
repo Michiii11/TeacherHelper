@@ -6,6 +6,7 @@ import at.repository.NotificationRepository;
 import at.security.TokenService;
 import jakarta.inject.Inject;
 import jakarta.json.JsonObject;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -44,19 +45,8 @@ public class NotificationResource {
         return notificationRepository.markAsRead(id, userId);
     }
 
-    @POST
-    @Path("{id}/archive")
-    public Response archive(@PathParam("id") Long id, String auth) {
-        Long userId = tokenService.validateTokenAndGetUserId(auth);
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
-        }
-
-        return notificationRepository.archive(id, userId);
-    }
-
-    @POST
-    @Path("{id}/delete")
+    @DELETE
+    @Path("{id}")
     public Response delete(@PathParam("id") Long id, String auth) {
         Long userId = tokenService.validateTokenAndGetUserId(auth);
         if (userId == null) {
@@ -93,5 +83,45 @@ public class NotificationResource {
         }
 
         return notificationRepository.executeAction(id, userId, action);
+    }
+
+    @POST
+    @Path("system-info/school/{schoolId}")
+    public Response sendSystemInfoToSchool(@PathParam("schoolId") Long schoolId, JsonObject request) {
+        String authToken = request.containsKey("authToken") ? request.getString("authToken", null) : null;
+        String title = request.containsKey("title") ? request.getString("title", null) : null;
+        String message = request.containsKey("message") ? request.getString("message", null) : null;
+        String link = request.containsKey("link") ? request.getString("link", null) : null;
+
+        if (authToken == null || authToken.isBlank()) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Missing auth token").build();
+        }
+
+        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
+        }
+
+        return notificationRepository.sendSystemInfoToSchool(userId, schoolId, title, message, link);
+    }
+
+    @POST
+    @Path("system-info/all")
+    public Response sendSystemInfoToAll(JsonObject request) {
+        String authToken = request.containsKey("authToken") ? request.getString("authToken", null) : null;
+        String title = request.containsKey("title") ? request.getString("title", null) : null;
+        String message = request.containsKey("message") ? request.getString("message", null) : null;
+        String link = request.containsKey("link") ? request.getString("link", null) : null;
+
+        if (authToken == null || authToken.isBlank()) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Missing auth token").build();
+        }
+
+        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
+        }
+
+        return notificationRepository.sendSystemInfoToAll(userId, title, message, link);
     }
 }

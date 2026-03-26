@@ -16,7 +16,6 @@ public record NotificationDTO(
         String message,
         String link,
         boolean read,
-        boolean archived,
         Long relatedEntityId,
         NotificationActionType primaryAction,
         NotificationActionType secondaryAction,

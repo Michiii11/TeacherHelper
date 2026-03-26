@@ -7,6 +7,7 @@ import at.enums.NotificationType;
 import at.model.Notification;
 import at.model.School;
 import at.model.User;
+import at.websocket.NotificationSocket;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -15,10 +16,15 @@ import jakarta.ws.rs.core.Response;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @ApplicationScoped
 @Transactional
 public class NotificationRepository {
+
+    private static final Set<String> DEVELOPER_USERNAMES = Set.of(
+            "admin"
+    );
 
     @Inject
     EntityManager em;
@@ -50,23 +56,8 @@ public class NotificationRepository {
 
         notification.setRead(true);
         em.merge(notification);
-        return Response.ok().build();
-    }
+        NotificationSocket.notifyUser(userId);
 
-    public Response archive(Long id, Long userId) {
-        Notification notification = em.find(Notification.class, id);
-
-        if (notification == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity("Notification not found").build();
-        }
-
-        if (!notification.getRecipient().getId().equals(userId)) {
-            return Response.status(Response.Status.FORBIDDEN).entity("You are not allowed to modify this notification").build();
-        }
-
-        notification.setRead(true);
-        notification.setArchived(true);
-        em.merge(notification);
         return Response.ok().build();
     }
 
@@ -82,6 +73,8 @@ public class NotificationRepository {
         }
 
         em.remove(notification);
+        NotificationSocket.notifyUser(userId);
+
         return Response.ok().build();
     }
 
@@ -121,21 +114,18 @@ public class NotificationRepository {
             case MARK_AS_READ -> {
                 notification.setRead(true);
                 em.merge(notification);
-                return Response.ok().build();
-            }
-            case ARCHIVE -> {
-                notification.setRead(true);
-                notification.setArchived(true);
-                em.merge(notification);
+                NotificationSocket.notifyUser(userId);
                 return Response.ok().build();
             }
             case OPEN_LINK -> {
                 notification.setRead(true);
                 em.merge(notification);
+                NotificationSocket.notifyUser(userId);
                 return Response.ok().build();
             }
             case DELETE -> {
                 em.remove(notification);
+                NotificationSocket.notifyUser(userId);
                 return Response.ok().build();
             }
             default -> {
@@ -175,7 +165,6 @@ public class NotificationRepository {
                 message,
                 link,
                 false,
-                false,
                 relatedEntityId,
                 primaryAction,
                 secondaryAction,
@@ -183,7 +172,145 @@ public class NotificationRepository {
         );
 
         em.persist(notification);
+        em.flush();
+
+        if (recipient != null && recipient.getId() != null) {
+            NotificationSocket.notifyUser(recipient.getId());
+        }
+
         return notification;
+    }
+
+    public Response sendSystemInfoToSchool(Long senderId,
+                                           Long schoolId,
+                                           String title,
+                                           String message,
+                                           String link) {
+
+        if (title == null || title.isBlank() || message == null || message.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Title and message are required")
+                    .build();
+        }
+
+        School school = em.find(School.class, schoolId);
+        if (school == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("School not found")
+                    .build();
+        }
+
+        User sender = em.find(User.class, senderId);
+        if (sender == null) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity("Sender not found")
+                    .build();
+        }
+
+        if (!isDeveloper(sender)) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("Only developer accounts can send system infos")
+                    .build();
+        }
+
+        List<User> recipients = em.createQuery("""
+                SELECT u
+                FROM School s
+                JOIN s.users u
+                WHERE s.id = :schoolId
+                """, User.class)
+                .setParameter("schoolId", schoolId)
+                .getResultList();
+
+        int sentCount = 0;
+        String cleanLink = (link == null || link.isBlank()) ? null : link.trim();
+
+        for (User recipient : recipients) {
+            if (recipient.getId().equals(senderId)) {
+                continue;
+            }
+
+            createNotification(
+                    recipient,
+                    sender,
+                    school,
+                    NotificationType.SYSTEM_INFO,
+                    title.trim(),
+                    message.trim(),
+                    cleanLink,
+                    schoolId,
+                    null,
+                    null
+            );
+
+            sentCount++;
+        }
+
+        return Response.ok("System-Info sent to " + sentCount + " user(s)").build();
+    }
+
+    public Response sendSystemInfoToAll(Long senderId,
+                                        String title,
+                                        String message,
+                                        String link) {
+
+        if (title == null || title.isBlank() || message == null || message.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Title and message are required")
+                    .build();
+        }
+
+        User sender = em.find(User.class, senderId);
+        if (sender == null) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity("Sender not found")
+                    .build();
+        }
+
+        if (!isDeveloper(sender)) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("Only developer accounts can send system infos")
+                    .build();
+        }
+
+        List<User> recipients = em.createQuery("""
+                SELECT u
+                FROM User u
+                """, User.class).getResultList();
+
+        int sentCount = 0;
+        String cleanLink = (link == null || link.isBlank()) ? null : link.trim();
+
+        for (User recipient : recipients) {
+            if (recipient.getId().equals(senderId)) {
+                continue;
+            }
+
+            createNotification(
+                    recipient,
+                    sender,
+                    null,
+                    NotificationType.SYSTEM_INFO,
+                    title.trim(),
+                    message.trim(),
+                    cleanLink,
+                    null,
+                    null,
+                    null
+            );
+
+            sentCount++;
+        }
+
+        return Response.ok("System-Info sent to " + sentCount + " user(s)").build();
+    }
+
+    private boolean isDeveloper(User user) {
+        if (user == null || user.getUsername() == null) {
+            return false;
+        }
+
+        return DEVELOPER_USERNAMES.contains(user.getUsername().trim().toLowerCase());
     }
 
     private NotificationDTO toDTO(Notification n) {
@@ -208,7 +335,6 @@ public class NotificationRepository {
                 n.getMessage(),
                 n.getLink(),
                 n.isRead(),
-                n.isArchived(),
                 n.getRelatedEntityId(),
                 n.getPrimaryAction(),
                 n.getSecondaryAction(),

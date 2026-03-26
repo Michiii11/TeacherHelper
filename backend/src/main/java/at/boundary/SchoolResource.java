@@ -1,6 +1,5 @@
 package at.boundary;
 
-import at.dtos.*;
 import at.dtos.Notification.CreateSchoolInviteDTO;
 import at.dtos.Notification.RespondSchoolInviteDTO;
 import at.dtos.Notification.SchoolInviteDTO;

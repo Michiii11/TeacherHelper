@@ -19,7 +19,6 @@ export enum NotificationActionType {
   ACCEPT_INVITATION = 'ACCEPT_INVITATION',
   DECLINE_INVITATION = 'DECLINE_INVITATION',
   MARK_AS_READ = 'MARK_AS_READ',
-  ARCHIVE = 'ARCHIVE',
   DELETE = 'DELETE'
 }
 
@@ -32,7 +31,6 @@ export interface NotificationDTO {
   message: string;
   link?: string;
   read: boolean;
-  archived: boolean;
   relatedEntityId?: number;
   primaryAction?: NotificationActionType;
   secondaryAction?: NotificationActionType;

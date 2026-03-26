@@ -32,7 +32,6 @@ public class Notification {
     private String link;
 
     private boolean read = false;
-    private boolean archived = false;
 
     private Long relatedEntityId;
 
@@ -55,7 +54,6 @@ public class Notification {
                         String message,
                         String link,
                         boolean read,
-                        boolean archived,
                         Long relatedEntityId,
                         NotificationActionType primaryAction,
                         NotificationActionType secondaryAction,
@@ -68,11 +66,29 @@ public class Notification {
         this.message = message;
         this.link = link;
         this.read = read;
-        this.archived = archived;
         this.relatedEntityId = relatedEntityId;
         this.primaryAction = primaryAction;
         this.secondaryAction = secondaryAction;
         this.createdAt = createdAt;
+    }
+
+    @Override
+    public String toString() {
+        return "Notification{" +
+                "id=" + id +
+                ", recipient=" + recipient +
+                ", actor=" + actor +
+                ", school=" + school +
+                ", type=" + type +
+                ", title='" + title + '\'' +
+                ", message='" + message + '\'' +
+                ", link='" + link + '\'' +
+                ", read=" + read +
+                ", relatedEntityId=" + relatedEntityId +
+                ", primaryAction=" + primaryAction +
+                ", secondaryAction=" + secondaryAction +
+                ", createdAt=" + createdAt +
+                '}';
     }
 
     public Long getId() {
@@ -145,14 +161,6 @@ public class Notification {
 
     public void setRead(boolean read) {
         this.read = read;
-    }
-
-    public boolean isArchived() {
-        return archived;
-    }
-
-    public void setArchived(boolean archived) {
-        this.archived = archived;
     }
 
     public Long getRelatedEntityId() {

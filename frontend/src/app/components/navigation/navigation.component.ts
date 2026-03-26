@@ -1,6 +1,7 @@
-import { Component, HostListener, inject, OnInit } from '@angular/core';
+import { Component, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { DatePipe, NgClass } from '@angular/common';
 import { MatToolbar } from '@angular/material/toolbar';
 import { MatAnchor, MatButton, MatIconButton } from '@angular/material/button';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
@@ -19,15 +20,13 @@ import { NotificationDTO, NotificationActionType, NotificationType } from '../..
     RouterLink,
     RouterLinkActive,
     DatePipe,
-    NgClass,
+    FormsModule,
     MatToolbar,
     MatAnchor,
     MatIcon,
     MatIconButton,
-    MatMenuItem,
     MatMenu,
     MatMenuTrigger,
-    MatDivider,
     MatButton,
     MatSnackBarModule,
     MatTooltip
@@ -35,7 +34,7 @@ import { NotificationDTO, NotificationActionType, NotificationType } from '../..
   templateUrl: './navigation.component.html',
   styleUrl: './navigation.component.scss'
 })
-export class NavigationComponent implements OnInit {
+export class NavigationComponent implements OnInit, OnDestroy {
   service = inject(HttpService);
   snackBar = inject(MatSnackBar);
 
@@ -44,11 +43,38 @@ export class NavigationComponent implements OnInit {
   selectedTab: 'open' | 'history' = 'open';
   processingIds = new Set<number>();
 
+  historyExpanded = false;
+
+  showSystemInfoComposer = false;
+  isSendingSystemInfo = false;
+  systemInfoScope: 'school' | 'all' = 'school';
+  systemInfoTitle = '';
+  systemInfoMessage = '';
+  systemInfoLink = '';
+
+  private socket?: WebSocket;
+  private reconnectTimer?: ReturnType<typeof setTimeout>;
+  private socketDestroyed = false;
+
   constructor(private router: Router) {}
 
   ngOnInit(): void {
     this.loadUser();
     this.loadNotifications();
+    this.connectNotificationSocket();
+  }
+
+  ngOnDestroy(): void {
+    this.socketDestroyed = true;
+
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+    }
+
+    if (this.socket) {
+      this.socket.close();
+      this.socket = undefined;
+    }
   }
 
   private loadUser(): void {
@@ -60,8 +86,8 @@ export class NavigationComponent implements OnInit {
 
   loadNotifications(): void {
     this.service.getMyNotifications().subscribe({
-      next: (n) => {
-        this.notifications = (n ?? []).sort(
+      next: (notifications) => {
+        this.notifications = (notifications ?? []).sort(
           (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
       },
@@ -69,16 +95,68 @@ export class NavigationComponent implements OnInit {
     });
   }
 
+  private connectNotificationSocket(): void {
+    const socketUrl = this.service.getNotificationSocketUrl();
+
+    if (!socketUrl || typeof WebSocket === 'undefined') {
+      return;
+    }
+
+    if (this.socket && (
+      this.socket.readyState === WebSocket.OPEN ||
+      this.socket.readyState === WebSocket.CONNECTING
+    )) {
+      return;
+    }
+
+    try {
+      this.socket = new WebSocket(socketUrl);
+
+      this.socket.onopen = () => {
+        console.log('Notification socket verbunden');
+        if (this.reconnectTimer) {
+          clearTimeout(this.reconnectTimer);
+          this.reconnectTimer = undefined;
+        }
+      };
+
+      this.socket.onmessage = (event: MessageEvent<string>) => {
+        if (event.data === 'refresh') {
+          this.loadNotifications();
+        }
+      };
+
+      this.socket.onerror = (error) => {
+        console.error('Notification socket Fehler:', error);
+      };
+
+      this.socket.onclose = (event) => {
+        console.warn('Notification socket geschlossen:', event.code, event.reason);
+        this.socket = undefined;
+
+        if (this.socketDestroyed) {
+          return;
+        }
+
+        this.reconnectTimer = setTimeout(() => {
+          this.connectNotificationSocket();
+        }, 3000);
+      };
+    } catch (error) {
+      console.error('Notification socket konnte nicht aufgebaut werden:', error);
+    }
+  }
+
   get unreadCount(): number {
     return this.notifications.filter((n) => !n.read && !this.isHandled(n)).length;
   }
 
   get openNotifications(): NotificationDTO[] {
-    return this.notifications.filter((n) => !this.isHandled(n) && !n.archived);
+    return this.notifications.filter((n) => !this.isHandled(n) && !n.read);
   }
 
   get historyNotifications(): NotificationDTO[] {
-    return this.notifications.filter((n) => this.isHandled(n) && !n.archived);
+    return this.notifications.filter((n) => this.isHandled(n));
   }
 
   setTab(tab: 'open' | 'history', event?: MouseEvent): void {
@@ -91,7 +169,8 @@ export class NavigationComponent implements OnInit {
   }
 
   isHandled(n: NotificationDTO): boolean {
-    if (n.archived || this.isResultNotification(n)) {
+    return n.read;
+    /*if (n.read || this.isResultNotification(n)) {
       return true;
     }
 
@@ -102,7 +181,7 @@ export class NavigationComponent implements OnInit {
       );
     }
 
-    return false;
+    return false;*/
   }
 
   isResultNotification(n: NotificationDTO): boolean {
@@ -115,18 +194,15 @@ export class NavigationComponent implements OnInit {
   }
 
   hasDecisionActions(n: NotificationDTO): boolean {
-    return [
-        NotificationActionType.ACCEPT_INVITATION,
-        NotificationActionType.DECLINE_INVITATION,
-        NotificationActionType.ACCEPT_JOIN_REQUEST,
-        NotificationActionType.DECLINE_JOIN_REQUEST
-      ].includes(n.primaryAction as NotificationActionType)
-      || [
-        NotificationActionType.ACCEPT_INVITATION,
-        NotificationActionType.DECLINE_INVITATION,
-        NotificationActionType.ACCEPT_JOIN_REQUEST,
-        NotificationActionType.DECLINE_JOIN_REQUEST
-      ].includes(n.secondaryAction as NotificationActionType);
+    const decisionActions = [
+      NotificationActionType.ACCEPT_INVITATION,
+      NotificationActionType.DECLINE_INVITATION,
+      NotificationActionType.ACCEPT_JOIN_REQUEST,
+      NotificationActionType.DECLINE_JOIN_REQUEST
+    ];
+
+    return decisionActions.includes(n.primaryAction as NotificationActionType)
+      || decisionActions.includes(n.secondaryAction as NotificationActionType);
   }
 
   canMarkAsRead(n: NotificationDTO): boolean {
@@ -149,6 +225,15 @@ export class NavigationComponent implements OnInit {
     return true;
   }
 
+  toggleAllHistoryExpanded(event: MouseEvent): void {
+    event.stopPropagation();
+    this.historyExpanded = !this.historyExpanded;
+  }
+
+  isHistoryOpen(): boolean {
+    return this.selectedTab === 'history' && this.historyExpanded;
+  }
+
   onNotificationClick(n: NotificationDTO): void {
     if (this.hasDecisionActions(n)) {
       return;
@@ -156,7 +241,10 @@ export class NavigationComponent implements OnInit {
 
     if (!n.read) {
       this.service.markAsRead(n.id).subscribe({
-        next: () => (n.read = true),
+        next: () => {
+          n.read = true;
+          this.selectedTab = 'history';
+        },
         error: (err) => console.error(err)
       });
     }
@@ -188,7 +276,6 @@ export class NavigationComponent implements OnInit {
           next: () => {
             this.snackBar.open('Einladung angenommen.', 'OK', { duration: 2200 });
             this.loadNotifications();
-            this.selectedTab = 'history';
           },
           error: (err) => {
             console.error('Fehler beim Annehmen der Einladung:', err);
@@ -205,7 +292,6 @@ export class NavigationComponent implements OnInit {
           next: () => {
             this.snackBar.open('Einladung abgelehnt.', 'OK', { duration: 2200 });
             this.loadNotifications();
-            this.selectedTab = 'history';
           },
           error: (err) => {
             console.error('Fehler beim Ablehnen der Einladung:', err);
@@ -222,7 +308,6 @@ export class NavigationComponent implements OnInit {
           next: () => {
             this.snackBar.open('Anfrage bestätigt.', 'OK', { duration: 2200 });
             this.loadNotifications();
-            this.selectedTab = 'history';
           },
           error: (err) => {
             console.error('Fehler beim Annehmen der Beitrittsanfrage:', err);
@@ -239,7 +324,6 @@ export class NavigationComponent implements OnInit {
           next: () => {
             this.snackBar.open('Anfrage abgelehnt.', 'OK', { duration: 2200 });
             this.loadNotifications();
-            this.selectedTab = 'history';
           },
           error: (err) => {
             console.error('Fehler beim Ablehnen der Beitrittsanfrage:', err);
@@ -329,8 +413,6 @@ export class NavigationComponent implements OnInit {
       case NotificationActionType.OPEN_LINK:
         return 'Öffnen';
       case NotificationActionType.MARK_AS_READ:
-        return 'Gelesen';
-      case NotificationActionType.ARCHIVE:
         return 'Archivieren';
       case NotificationActionType.DELETE:
         return 'Löschen';
@@ -353,6 +435,8 @@ export class NavigationComponent implements OnInit {
         return 'Abgelehnt';
       case NotificationType.SCHOOL_NEWS:
         return 'News';
+      case NotificationType.SYSTEM_INFO:
+        return 'System';
       default:
         return 'Info';
     }
@@ -371,6 +455,7 @@ export class NavigationComponent implements OnInit {
       case NotificationType.INVITATION_DECLINED:
         return 'cancel';
       case NotificationType.SCHOOL_NEWS:
+      case NotificationType.SYSTEM_INFO:
         return 'campaign';
       default:
         return 'notifications';
@@ -396,6 +481,89 @@ export class NavigationComponent implements OnInit {
     this.router.navigate(lastId ? ['/school', lastId] : ['/school']);
   }
 
+  canSendSystemInfo(): boolean {
+    return this.isDeveloperUser();
+  }
+
+  toggleSystemInfoComposer(event: MouseEvent): void {
+    event.stopPropagation();
+    this.showSystemInfoComposer = !this.showSystemInfoComposer;
+  }
+
+  submitSystemInfo(event: MouseEvent): void {
+    event.stopPropagation();
+
+    const title = this.systemInfoTitle.trim();
+    const message = this.systemInfoMessage.trim();
+    const link = this.systemInfoLink.trim();
+
+    if (!title || !message) {
+      this.snackBar.open('Titel und Nachricht sind erforderlich.', 'Schließen', { duration: 3200 });
+      return;
+    }
+
+    if (this.systemInfoScope === 'school' && !this.getLastViewedSchoolId()) {
+      this.snackBar.open('Keine zuletzt geöffnete Schule gefunden.', 'Schließen', { duration: 3200 });
+      return;
+    }
+
+    if (this.isSendingSystemInfo) {
+      return;
+    }
+
+    this.isSendingSystemInfo = true;
+
+    const request$ = this.systemInfoScope === 'all'
+      ? this.service.sendSystemInfoToAll({
+        title,
+        message,
+        link: link || null
+      })
+      : this.service.sendSystemInfoToSchool(this.getLastViewedSchoolId()!, {
+        title,
+        message,
+        link: link || null
+      });
+
+    request$.subscribe({
+      next: () => {
+        this.snackBar.open('System-Info wurde versendet.', 'OK', { duration: 2400 });
+        this.systemInfoTitle = '';
+        this.systemInfoMessage = '';
+        this.systemInfoLink = '';
+        this.systemInfoScope = 'school';
+        this.showSystemInfoComposer = false;
+      },
+      error: (err) => {
+        console.error('Fehler beim Senden der System-Info:', err);
+        this.snackBar.open(
+          this.extractError(err, 'System-Info konnte nicht versendet werden.'),
+          'Schließen',
+          { duration: 3600 }
+        );
+      },
+      complete: () => {
+        this.isSendingSystemInfo = false;
+      }
+    });
+  }
+
+  private getLastViewedSchoolId(): number | null {
+    const raw = localStorage.getItem('lastViewedSchoolId');
+
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }
+
+  private isDeveloperUser(): boolean {
+    const username = (this.user as any)?.username?.toLowerCase?.() ?? '';
+    return ['michi', 'developer', 'admin'].includes(username);
+  }
+
   @HostListener('window:scroll')
   onScroll(): void {
     const nav = document.querySelector('.navbar');
@@ -403,7 +571,10 @@ export class NavigationComponent implements OnInit {
   }
 
   getInitials(): string {
-    if (!this.user?.username) return '?';
+    if (!this.user?.username) {
+      return '?';
+    }
+
     return this.user.username
       .split(' ')
       .filter((p) => p.trim().length > 0)

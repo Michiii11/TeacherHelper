@@ -1,12 +1,12 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { Config } from '../config';
-import {CreateSchoolInviteDTO, SchoolDTO} from '../model/School'
-import {CreateExampleDTO, Focus} from '../model/Example'
-import {CreateTestDTO} from '../model/Test'
-import {User} from '../model/User'
-import {Observable} from 'rxjs'
-import {NotificationActionType, NotificationDTO} from '../model/Notification'
+import { CreateSchoolInviteDTO, SchoolDTO } from '../model/School';
+import { CreateExampleDTO, Focus } from '../model/Example';
+import { CreateTestDTO } from '../model/Test';
+import { User } from '../model/User';
+import { NotificationActionType, NotificationDTO } from '../model/Notification';
 
 @Injectable({ providedIn: 'root' })
 export class HttpService {
@@ -16,6 +16,11 @@ export class HttpService {
     return localStorage.getItem('teacher_authToken') ?? '';
   }
 
+  getNotificationSocketUrl(): string {
+    const token = this.authToken();
+
+    return `${Config.SOCKET_URL}/notification?token=${encodeURIComponent(token)}`;
+  }
 
   getSchools() {
     return this.http.get<SchoolDTO[]>(`${Config.API_URL}/school`);
@@ -31,15 +36,17 @@ export class HttpService {
 
   addSchool(schoolName: string) {
     return this.http.post<string>(
-      Config.API_URL + '/school/add',
+      `${Config.API_URL}/school/add`,
       { schoolName, authToken: this.authToken() },
       { responseType: 'text' as 'json' }
     );
   }
 
   getYourSchools() {
-    return this.http.post<SchoolDTO[]>(Config.API_URL + '/school/your-schools',
-      this.authToken());
+    return this.http.post<SchoolDTO[]>(
+      `${Config.API_URL}/school/your-schools`,
+      this.authToken()
+    );
   }
 
   getAllTeachers(schoolId: number | string) {
@@ -48,7 +55,7 @@ export class HttpService {
 
   kickTeacherFromSchool(s: string, id: number) {
     return this.http.delete(`${Config.API_URL}/school/${s}/remove-teacher`, {
-      body: {teacherId: id, authToken: this.authToken()},
+      body: { teacherId: id, authToken: this.authToken() }
     });
   }
 
@@ -61,15 +68,11 @@ export class HttpService {
   }
 
   deleteFocus(schoolId: number, id: number) {
-    return this.http.delete(`${Config.API_URL}/school/${schoolId}/focus/${id}`,
-      {
-        body: { authToken: this.authToken()},
-        responseType: 'text' as 'json'
-      });
+    return this.http.delete(`${Config.API_URL}/school/${schoolId}/focus/${id}`, {
+      body: { authToken: this.authToken() },
+      responseType: 'text' as 'json'
+    });
   }
-
-
-
 
   getExamples(schoolId: string | null | number) {
     return this.http.get(`${Config.API_URL}/example/school/${schoolId}`);
@@ -84,11 +87,10 @@ export class HttpService {
   }
 
   deleteExample(id: number) {
-    return this.http.delete(`${Config.API_URL}/example/${id}`,
-      {
-        body: { authToken: this.authToken()},
-        responseType: 'text' as 'json'
-      });
+    return this.http.delete(`${Config.API_URL}/example/${id}`, {
+      body: { authToken: this.authToken() },
+      responseType: 'text' as 'json'
+    });
   }
 
   getFullExamples(schoolId: number) {
@@ -96,19 +98,19 @@ export class HttpService {
   }
 
   getCreateExample(exampleId: number) {
-    return this.http.post<CreateExampleDTO>(`${Config.API_URL}/example/${exampleId}`, {authToken: this.authToken()});
+    return this.http.post<CreateExampleDTO>(`${Config.API_URL}/example/${exampleId}`, {
+      authToken: this.authToken()
+    });
   }
-
-
-
-
 
   getTests(schoolId: string | null) {
     return this.http.get(`${Config.API_URL}/test/school/${schoolId}`);
   }
 
   getCreateTest(testId: number) {
-    return this.http.post<CreateTestDTO>(`${Config.API_URL}/test/${testId}`, {authToken: this.authToken()});
+    return this.http.post<CreateTestDTO>(`${Config.API_URL}/test/${testId}`, {
+      authToken: this.authToken()
+    });
   }
 
   createTest(test: CreateTestDTO) {
@@ -116,19 +118,15 @@ export class HttpService {
   }
 
   deleteTest(id: number) {
-    return this.http.delete(`${Config.API_URL}/test/${id}`,
-      {
-        body: { authToken: this.authToken()},
-        responseType: 'text' as 'json'
-      });
+    return this.http.delete(`${Config.API_URL}/test/${id}`, {
+      body: { authToken: this.authToken() },
+      responseType: 'text' as 'json'
+    });
   }
 
   saveTest(testId: number, test: CreateTestDTO) {
     return this.http.put(`${Config.API_URL}/test/${testId}`, test, { responseType: 'text' as 'json' });
   }
-
-
-
 
   getUserId() {
     return this.http.post<number>(`${Config.API_URL}/user/id`, this.authToken());
@@ -138,10 +136,6 @@ export class HttpService {
     return this.http.post<User>(`${Config.API_URL}/user`, this.authToken());
   }
 
-
-
-
-
   getMyNotifications(): Observable<NotificationDTO[]> {
     return this.http.post<NotificationDTO[]>(`${Config.API_URL}/notification/my`, this.authToken(), {
       headers: { 'Content-Type': 'text/plain' }
@@ -150,12 +144,6 @@ export class HttpService {
 
   markAsRead(id: number) {
     return this.http.post(`${Config.API_URL}/notification/${id}/read`, this.authToken(), {
-      headers: { 'Content-Type': 'text/plain' }
-    });
-  }
-
-  archive(id: number) {
-    return this.http.post(`${Config.API_URL}/notification/${id}/archive`, this.authToken(), {
       headers: { 'Content-Type': 'text/plain' }
     });
   }
@@ -174,6 +162,24 @@ export class HttpService {
     });
   }
 
+  sendSystemInfoToSchool(schoolId: number, payload: { title: string; message: string; link?: string | null }) {
+    return this.http.post(`${Config.API_URL}/notification/system-info/school/${schoolId}`, {
+      authToken: this.authToken(),
+      ...payload
+    }, {
+      responseType: 'text'
+    });
+  }
+
+  sendSystemInfoToAll(payload: { title: string; message: string; link?: string | null }) {
+    return this.http.post(`${Config.API_URL}/notification/system-info/all`, {
+      authToken: this.authToken(),
+      ...payload
+    }, {
+      responseType: 'text'
+    });
+  }
+
   respondToInvite(inviteId: number, accept: boolean) {
     return this.http.post(`${Config.API_URL}/school/invite/${inviteId}/respond`, {
       authToken: this.authToken(),
@@ -188,16 +194,15 @@ export class HttpService {
     });
   }
 
-
   sendJoinRequest(id: number, result: any) {
     return this.http.post(`${Config.API_URL}/school/${id}/join-request`, {
-      authToken: this.authToken(), message: result
+      authToken: this.authToken(),
+      message: result.message
     });
   }
 
   inviteTeacher(id: string | number, dto: CreateSchoolInviteDTO) {
     dto.authToken = this.authToken();
-
-    return this.http.post(`${Config.API_URL}/school/${id}/invite-teacher`, dto)
+    return this.http.post(`${Config.API_URL}/school/${id}/invite-teacher`, dto);
   }
 }

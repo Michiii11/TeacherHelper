@@ -1,6 +1,52 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { NavigationComponent } from './navigation.component';
+import { HttpService } from '../../service/http.service';
+
+class HttpServiceMock {
+  getUser() {
+    return of({ username: 'admin' });
+  }
+
+  getMyNotifications() {
+    return of([]);
+  }
+
+  markAsRead() {
+    return of({});
+  }
+
+  deleteNotification() {
+    return of({});
+  }
+
+  executeAction() {
+    return of({});
+  }
+
+  respondToInvite() {
+    return of({});
+  }
+
+  respondToJoinRequest() {
+    return of({});
+  }
+
+  sendSystemInfoToSchool() {
+    return of('ok');
+  }
+
+  sendSystemInfoToAll() {
+    return of('ok');
+  }
+
+  getNotificationSocketUrl() {
+    return '';
+  }
+}
 
 describe('NavigationComponent', () => {
   let component: NavigationComponent;
@@ -8,9 +54,13 @@ describe('NavigationComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NavigationComponent]
-    })
-    .compileComponents();
+      imports: [NavigationComponent],
+      providers: [
+        provideRouter([]),
+        { provide: HttpService, useClass: HttpServiceMock },
+        { provide: MatSnackBar, useValue: { open: () => undefined } }
+      ]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(NavigationComponent);
     component = fixture.componentInstance;
