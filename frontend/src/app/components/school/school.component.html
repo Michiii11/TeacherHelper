@@ -1,6 +1,5 @@
 <main class="dashboard" aria-label="School dashboard">
 
-  <!-- Responsive Top Bar -->
   <header class="topbar">
     <div class="brand">
       <div class="brand-logo" aria-hidden="true">
@@ -35,7 +34,6 @@
     </div>
   </header>
 
-  <!-- KPI cards -->
   <section class="kpis">
     <article class="kpi-card" *ngFor="let k of kpis">
       <div class="kpi-left">
@@ -51,7 +49,6 @@
     </article>
   </section>
 
-  <!-- Panels -->
   <section class="content-area">
     <article class="panel examples">
       <div class="panel-header">
@@ -63,7 +60,6 @@
 
       <div class="panel-body table-wrapper">
         <table mat-table [dataSource]="exampleDataSource" class="mat-elevation-z1 table" matSort>
-          <!-- columns -->
           <ng-container matColumnDef="type">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Typ</th>
             <td mat-cell *matCellDef="let e">{{ getExampleTypeLabel(e.type) }}</td>
@@ -95,7 +91,6 @@
                   <mat-icon>visibility</mat-icon>
                 </button>
               }
-
             </td>
           </ng-container>
           <tr mat-header-row *matHeaderRowDef="exampleDisplayedColumns"></tr>
@@ -117,9 +112,7 @@
       </div>
 
       <div class="panel-body tests-grid">
-
         <div *ngFor="let test of tests" class="test-card">
-
           <div class="test-header">
             <div class="test-title">{{ test.name }}</div>
           </div>
@@ -146,9 +139,7 @@
               </button>
             }
           </div>
-
         </div>
-
       </div>
     </article>
   </section>
@@ -163,10 +154,17 @@
       </div>
 
       <div class="panel-body teachers-list">
-        <div class="teacher-card mat-elevation-z1">
+        <div class="teacher-card mat-elevation-z1" *ngIf="school.admin">
           <div class="teacher-info">
+            <div class="avatar" *ngIf="getAvatarUrl(school.admin) as avatarUrl; else adminFallback">
+              <img [src]="avatarUrl" alt="Profilbild Admin" class="avatar-image">
+            </div>
+            <ng-template #adminFallback>
+              <div class="avatar">{{ getInitials(school.admin) }}</div>
+            </ng-template>
+
             <div class="teacher-text">
-              <div class="name">{{ school.admin ? school.admin.username : '-' }}</div>
+              <div class="name">{{ school.admin.username || '-' }}</div>
               <div class="role">Admin</div>
             </div>
           </div>
@@ -174,6 +172,13 @@
 
         <div *ngFor="let t of school.members" class="teacher-card mat-elevation-z1">
           <div class="teacher-info">
+            <div class="avatar" *ngIf="getAvatarUrl(t) as avatarUrl; else teacherFallback">
+              <img [src]="avatarUrl" alt="Profilbild {{ t.username }}" class="avatar-image">
+            </div>
+            <ng-template #teacherFallback>
+              <div class="avatar">{{ getInitials(t) }}</div>
+            </ng-template>
+
             <div class="teacher-text">
               <div class="name">{{ t.username }}</div>
               <div class="role">{{ school.admin.username == t.username ? 'Admin' : 'Lehrer' }}</div>

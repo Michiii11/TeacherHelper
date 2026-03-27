@@ -1,6 +1,34 @@
-insert into app_user (username, email, password) values
-('admin', 'admin@admin', '$2a$10$Rp61DZDWDgUwUObAkBxfYueUfvrDidwM5lILMCJ.WyiTMYonnGQKi'),
-('user', 'user@user', '$2a$10$Rp61DZDWDgUwUObAkBxfYueUfvrDidwM5lILMCJ.WyiTMYonnGQKi');
+insert into app_user (
+    username,
+    email,
+    password,
+    subscription_model,
+    email_verified,
+    allow_invitations,
+    deleted,
+    profile_image_url
+) values
+      (
+          'admin',
+          'admin@admin',
+          '$2a$10$Rp61DZDWDgUwUObAkBxfYueUfvrDidwM5lILMCJ.WyiTMYonnGQKi',
+          'ADMIN',
+          true,
+          true,
+          false,
+       'users/1/avatar/current.jpg'
+      ),
+      (
+          'user',
+          'user@user',
+          '$2a$10$Rp61DZDWDgUwUObAkBxfYueUfvrDidwM5lILMCJ.WyiTMYonnGQKi',
+          'FREE',
+          true,
+          true,
+          false,
+          'users/2/avatar/current.jpg'
+      );
+
 
 insert into School (name, admin_id) values
 ('Springfield High', 1),

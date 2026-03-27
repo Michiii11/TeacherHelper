@@ -1,0 +1,346 @@
+<main class="profile-page" aria-label="Profilseite">
+  <header class="page-header">
+    <div class="header-copy">
+      <div class="title-row">
+        <div class="title-icon">
+          <mat-icon>person</mat-icon>
+        </div>
+
+        <div>
+          <h1 class="page-title">Mein Profil</h1>
+          <p class="page-subtitle">
+            Verwalte hier Konto, Sicherheit, Einstellungen, Abo und dein Profilbild.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button mat-flat-button color="warn" type="button" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        Logout
+      </button>
+    </div>
+  </header>
+
+  @if (loading) {
+    <section class="loading-card">
+      <mat-icon>hourglass_top</mat-icon>
+      <span>Profil wird geladen...</span>
+    </section>
+  } @else {
+    <section class="hero-grid">
+      <article class="profile-hero card">
+        <div class="profile-hero-top">
+          <div class="avatar-shell">
+            @if (getAvatarUrl()) {
+              <img [src]="getAvatarUrl()!" alt="Profilbild" class="avatar-image">
+            } @else {
+              <div class="avatar-fallback">{{ getInitials() }}</div>
+            }
+          </div>
+
+          <div class="profile-main">
+            <h2 class="profile-name">{{ getDisplayName() }}</h2>
+            <p class="profile-mail">{{ getDisplayEmail() }}</p>
+
+            @if (user?.pendingEmail) {
+              <p class="profile-pending">
+                Offene E-Mail-Bestätigung: {{ user?.pendingEmail }}
+              </p>
+            }
+
+            <div class="profile-tags">
+              <span class="tag tag-plan">
+                <mat-icon>workspace_premium</mat-icon>
+                {{ getPlanLabel() }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-actions">
+          <label class="upload-button" for="avatarUpload">
+            <mat-icon>photo_camera</mat-icon>
+            Bild auswählen
+          </label>
+
+          <input id="avatarUpload" type="file" accept="image/png,image/jpeg,image/webp" (change)="onAvatarSelected($event)" hidden>
+
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            [disabled]="!selectedAvatarFile || savingAvatar"
+            (click)="saveAvatar()">
+            <mat-icon>{{ savingAvatar ? 'hourglass_top' : 'save' }}</mat-icon>
+            {{ savingAvatar ? 'Wird gespeichert...' : 'Profilbild speichern' }}
+          </button>
+
+          @if (user?.profileImageUrl && !selectedAvatarFile) {
+            <button mat-stroked-button color="warn" type="button" (click)="deleteAvatar()">
+              <mat-icon>delete</mat-icon>
+              Profilbild löschen
+            </button>
+          }
+
+          @if (selectedAvatarFile) {
+            <button mat-stroked-button type="button" (click)="clearAvatarSelection()">
+              Zurücksetzen
+            </button>
+          }
+        </div>
+
+        <div class="info-text">
+          Erlaubte Formate: JPG, PNG, WEBP • max. 2 MB
+        </div>
+      </article>
+
+      <article class="settings-hero card">
+        <div class="settings-hero-body" [formGroup]="settingsForm">
+          <div class="setting-card">
+            <div class="setting-copy">
+              <div class="setting-title">Dark Mode</div>
+            </div>
+
+            <label class="switch" aria-label="Dark Mode umschalten">
+              <input type="checkbox" formControlName="darkMode">
+              <span class="switch-track">
+                <span class="switch-thumb"></span>
+              </span>
+            </label>
+          </div>
+
+          <div class="setting-card">
+            <div class="setting-copy">
+              <div class="setting-title">Einladungen erlauben</div>
+            </div>
+
+            <label class="switch" aria-label="Einladungen umschalten">
+              <input type="checkbox" formControlName="allowInvitations">
+              <span class="switch-track">
+                <span class="switch-thumb"></span>
+              </span>
+            </label>
+          </div>
+
+          <div class="setting-language-card">
+            <div class="setting-copy">
+              <div class="setting-title">Sprache</div>
+            </div>
+
+            <select formControlName="language" class="native-select">
+              <option value="de">Deutsch</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="content-grid">
+      <article class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">
+              <mat-icon>badge</mat-icon>
+              Benutzername ändern
+            </h2>
+            <p class="panel-subtitle">So erscheinst du in der App.</p>
+          </div>
+        </div>
+
+        <form class="panel-body form-grid" [formGroup]="usernameForm" (ngSubmit)="saveUsername()">
+          <mat-form-field appearance="outline">
+            <mat-label>Benutzername</mat-label>
+            <input matInput formControlName="username" maxlength="40">
+          </mat-form-field>
+
+          @if (hasUsernameError('required')) {
+            <div class="error-text">Benutzername ist erforderlich.</div>
+          }
+          @if (hasUsernameError('minlength')) {
+            <div class="error-text">Mindestens 3 Zeichen.</div>
+          }
+
+          <div class="form-actions">
+            <button mat-flat-button color="primary" type="submit" [disabled]="usernameForm.invalid || savingUsername">
+              <mat-icon>{{ savingUsername ? 'hourglass_top' : 'save' }}</mat-icon>
+              {{ savingUsername ? 'Wird gespeichert...' : 'Benutzername speichern' }}
+            </button>
+          </div>
+        </form>
+      </article>
+
+      <article class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">
+              <mat-icon>mail</mat-icon>
+              E-Mail ändern
+            </h2>
+            <p class="panel-subtitle">Die neue E-Mail wird erst nach Bestätigung übernommen.</p>
+          </div>
+        </div>
+
+        <form class="panel-body form-grid" [formGroup]="emailForm" (ngSubmit)="saveEmail()">
+          <mat-form-field appearance="outline">
+            <mat-label>Neue E-Mail</mat-label>
+            <input matInput type="email" formControlName="email" maxlength="120">
+          </mat-form-field>
+
+          @if (hasEmailError('required')) {
+            <div class="error-text">E-Mail ist erforderlich.</div>
+          }
+          @if (hasEmailError('email')) {
+            <div class="error-text">Bitte eine gültige E-Mail eingeben.</div>
+          }
+
+          @if (user?.pendingEmail) {
+            <div class="info-text">
+              Offen zur Bestätigung: {{ user?.pendingEmail }}
+            </div>
+          }
+
+          <div class="form-actions">
+            <button mat-flat-button color="primary" type="submit" [disabled]="emailForm.invalid || savingEmail">
+              <mat-icon>{{ savingEmail ? 'hourglass_top' : 'send' }}</mat-icon>
+              {{ savingEmail ? 'Wird gesendet...' : 'Bestätigungs-Mail senden' }}
+            </button>
+
+            @if (user?.pendingEmail) {
+              <button
+                mat-stroked-button
+                color="warn"
+                type="button"
+                [disabled]="cancelingPendingEmail"
+                (click)="cancelPendingEmailChange()">
+                <mat-icon>{{ cancelingPendingEmail ? 'hourglass_top' : 'delete' }}</mat-icon>
+                {{ cancelingPendingEmail ? 'Wird gelöscht...' : 'Offene Änderung löschen' }}
+              </button>
+            }
+          </div>
+        </form>
+      </article>
+
+      <article class="panel span-2">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">
+              <mat-icon>lock</mat-icon>
+              Passwort ändern
+            </h2>
+            <p class="panel-subtitle">Für mehr Sicherheit dein Passwort regelmäßig aktualisieren.</p>
+          </div>
+        </div>
+
+        <form class="panel-body form-grid password-grid" [formGroup]="passwordForm" (ngSubmit)="savePassword()">
+          <mat-form-field appearance="outline">
+            <mat-label>Aktuelles Passwort</mat-label>
+            <input matInput type="password" formControlName="currentPassword">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Neues Passwort</mat-label>
+            <input matInput type="password" formControlName="newPassword">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Neues Passwort wiederholen</mat-label>
+            <input matInput type="password" formControlName="confirmPassword">
+          </mat-form-field>
+
+          <div class="form-actions">
+            <button mat-flat-button color="primary" type="submit" [disabled]="passwordForm.invalid || savingPassword">
+              <mat-icon>{{ savingPassword ? 'hourglass_top' : 'lock_reset' }}</mat-icon>
+              {{ savingPassword ? 'Wird gespeichert...' : 'Passwort ändern' }}
+            </button>
+          </div>
+        </form>
+      </article>
+
+      <article class="panel span-2">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">
+              <mat-icon>workspace_premium</mat-icon>
+              Abo-Modelle & Upgrade
+            </h2>
+            <p class="panel-subtitle">Hier kannst du dein Modell ändern.</p>
+          </div>
+        </div>
+
+        <div class="panel-body plan-grid">
+          @for (plan of plans; track plan.key) {
+            <div class="plan-option" [class.plan-option--active]="isCurrentPlan(plan.key)">
+              <div class="plan-option-head">
+                <div>
+                  <div class="plan-option-name">{{ plan.name }}</div>
+                  <div class="plan-option-sub">{{ plan.subtitle }}</div>
+                </div>
+
+                @if (isCurrentPlan(plan.key)) {
+                  <span class="plan-badge">Aktiv</span>
+                }
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <div class="plan-feature-list">
+                @for (feature of plan.features; track feature) {
+                  <div class="feature-row">
+                    <mat-icon>done</mat-icon>
+                    <span>{{ feature }}</span>
+                  </div>
+                }
+              </div>
+
+              <div class="form-actions">
+                @if (isCurrentPlan(plan.key)) {
+                  <button mat-stroked-button type="button" disabled>Aktueller Plan</button>
+                } @else {
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    type="button"
+                    [disabled]="savingSubscription"
+                    (click)="upgradeTo(plan.key)">
+                    {{ savingSubscription ? 'Wird gespeichert...' : 'Zu ' + plan.name + ' wechseln' }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </article>
+
+      <article class="panel span-2 danger-panel compact">
+        <div class="panel-header compact-header">
+          <h2 class="panel-title">
+            <mat-icon>delete_forever</mat-icon>
+            Account löschen
+          </h2>
+        </div>
+
+        <div class="panel-body compact-body" [formGroup]="deleteAccountForm">
+          <mat-form-field appearance="outline" class="compact-field">
+            <mat-label>Passwort bestätigen</mat-label>
+            <input matInput type="password" formControlName="currentPassword">
+          </mat-form-field>
+
+          <button
+            mat-flat-button
+            color="warn"
+            type="button"
+            class="danger-btn"
+            [disabled]="deleteAccountForm.invalid || deletingAccount"
+            (click)="confirmDeleteAccount()">
+
+            <mat-icon>{{ deletingAccount ? 'hourglass_top' : 'delete_forever' }}</mat-icon>
+            {{ deletingAccount ? 'Wird gelöscht...' : 'Account löschen' }}
+          </button>
+        </div>
+      </article>
+    </section>
+  }
+</main>

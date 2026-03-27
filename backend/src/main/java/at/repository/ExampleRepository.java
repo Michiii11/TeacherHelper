@@ -52,7 +52,7 @@ public class ExampleRepository {
             Example example = em.find(Example.class, e.id());
             return new ExampleDTO(
                     example.getId(),
-                    new UserRepository().toUserDTO(example.getAdmin()),
+                    example.getAdmin().toUserDTO(),
                     example.getType(),
                     example.getInstruction(),
                     example.getQuestion(),
@@ -207,5 +207,46 @@ public class ExampleRepository {
                 e.getSolution(),
                 e.getSolutionUrl(),
                 e.getFocusList());
+    }
+
+    @Transactional
+    public String updateConstructionImages(Long exampleId, String imageKey, String solutionKey) {
+        Example example = em.find(Example.class, exampleId);
+        if (example == null) {
+            return "EXAMPLE_NOT_FOUND";
+        }
+
+        example.setImageUrl(imageKey);
+        example.setSolutionUrl(solutionKey);
+        em.merge(example);
+        return null;
+    }
+
+    @Transactional
+    public String updateConstructionTaskImage(Long exampleId, String imageKey) {
+        Example example = em.find(Example.class, exampleId);
+        if (example == null) {
+            return "EXAMPLE_NOT_FOUND";
+        }
+
+        example.setImageUrl(imageKey);
+        em.merge(example);
+        return null;
+    }
+
+    @Transactional
+    public String updateConstructionSolutionImage(Long exampleId, String solutionKey) {
+        Example example = em.find(Example.class, exampleId);
+        if (example == null) {
+            return "EXAMPLE_NOT_FOUND";
+        }
+
+        example.setSolutionUrl(solutionKey);
+        em.merge(example);
+        return null;
+    }
+
+    public Example findById(Long exampleId) {
+        return em.find(Example.class, exampleId);
     }
 }

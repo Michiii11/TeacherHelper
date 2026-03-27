@@ -17,8 +17,17 @@
 
   @if(example.type === ExampleTypes.CONSTRUCTION){
     <div class="construction-preview">
-      <img *ngIf="example.image" [src]="example.image" alt="Vorschau" class="image-preview" />
-      <p *ngIf="!example.image">Kein Bild ausgewählt.</p>
+      <div>
+        <p><strong>Aufgabenbild</strong></p>
+        <img *ngIf="example.image" [src]="example.image" alt="Aufgabenbild Vorschau" class="image-preview" />
+        <p *ngIf="!example.image">Kein Bild ausgewählt.</p>
+      </div>
+
+      <div style="margin-top: 16px;">
+        <p><strong>Lösungsbild</strong></p>
+        <img *ngIf="example.solutionUrl" [src]="example.solutionUrl" alt="Lösungsbild Vorschau" class="image-preview" />
+        <p *ngIf="!example.solutionUrl">Kein Lösungsbild ausgewählt.</p>
+      </div>
     </div>
   }
 

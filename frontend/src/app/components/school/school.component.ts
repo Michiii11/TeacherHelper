@@ -1,31 +1,34 @@
-import {AfterViewInit, Component, inject, OnInit, ViewChild} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router'
-import {HttpService} from '../../service/http.service'
-import {SchoolDTO} from '../../model/School'
-import {MatTab, MatTabGroup} from '@angular/material/tabs'
-import {MatButton, MatIconButton, MatMiniFabButton} from '@angular/material/button'
+import { AfterViewInit, Component, inject, OnInit, ViewChild } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { HttpService } from '../../service/http.service';
+import { SchoolDTO } from '../../model/School';
+import { MatButton, MatIconButton, MatMiniFabButton } from '@angular/material/button';
 import {
   MatCell,
   MatCellDef,
   MatColumnDef,
   MatHeaderCell,
   MatHeaderCellDef,
-  MatHeaderRow, MatHeaderRowDef, MatRow, MatRowDef,
-  MatTable, MatTableDataSource
-} from '@angular/material/table'
-import {MatDialog} from '@angular/material/dialog'
-import {CreateExampleComponent} from '../../dialog/create-example/create-example.component'
-import {MatIcon} from '@angular/material/icon'
-import {MatSort, MatSortHeader} from '@angular/material/sort'
-import {NgClass, NgForOf, NgIf} from '@angular/common'
-import {ExampleOverviewDTO, ExampleTypeLabels, ExampleTypes, Focus} from '../../model/Example'
-import {ConfirmDialogComponent} from '../../dialog/confirm-dialog/confirm-dialog.component'
-import {TestOverviewDTO} from '../../model/Test'
-import {CreateTestComponent} from '../../dialog/create-test/create-test.component'
-import {TestPreviewComponent} from '../../dialog/test-preview/test-preview.component'
-import {ExamplePreviewComponent} from '../../dialog/example-preview/example-preview.component'
-import {SchoolInvitationDialogComponent} from '../../dialog/school-invitation-dialog/school-invitation-dialog.component'
-import {UserDTO} from '../../model/User'
+  MatHeaderRow,
+  MatHeaderRowDef,
+  MatRow,
+  MatRowDef,
+  MatTable,
+  MatTableDataSource
+} from '@angular/material/table';
+import { MatDialog } from '@angular/material/dialog';
+import { CreateExampleComponent } from '../../dialog/create-example/create-example.component';
+import { MatIcon } from '@angular/material/icon';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
+import { NgForOf, NgIf } from '@angular/common';
+import { ExampleOverviewDTO, ExampleTypeLabels, ExampleTypes, Focus } from '../../model/Example';
+import { ConfirmDialogComponent } from '../../dialog/confirm-dialog/confirm-dialog.component';
+import { TestOverviewDTO } from '../../model/Test';
+import { CreateTestComponent } from '../../dialog/create-test/create-test.component';
+import { TestPreviewComponent } from '../../dialog/test-preview/test-preview.component';
+import { ExamplePreviewComponent } from '../../dialog/example-preview/example-preview.component';
+import { SchoolInvitationDialogComponent } from '../../dialog/school-invitation-dialog/school-invitation-dialog.component';
+import { UserDTO } from '../../model/User';
 
 @Component({
   selector: 'app-school',
@@ -53,19 +56,99 @@ import {UserDTO} from '../../model/User'
   standalone: true,
   styleUrl: './school.component.scss'
 })
-export class SchoolComponent implements OnInit, AfterViewInit{
+export class SchoolComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
-  service = inject(HttpService)
-  dialog = inject(MatDialog)
+  service = inject(HttpService);
+  dialog = inject(MatDialog);
 
-  school:SchoolDTO = {} as SchoolDTO
-
+  school: SchoolDTO = {} as SchoolDTO;
   schoolId: string | null = null;
 
   exampleDataSource = new MatTableDataSource<ExampleOverviewDTO>();
+  tests: TestOverviewDTO[] = [];
 
-  tests : TestOverviewDTO[] = []
+  exampleDisplayedColumns = ['type', 'instruction', 'question', 'focus', 'adminUsername', 'actions'];
+
+  kpis = [
+    { title: 'Tests', value: this.tests.length, sub: 'Verfügbar', icon: 'assignment' },
+    { title: 'Beispiele', value: this.exampleCount, sub: 'Fragen', icon: 'library_books' },
+    { title: 'Lehrer', value: this.school.members?.length || 0, sub: 'Konten', icon: 'people' },
+    { title: 'Letzte Änderung', value: '2 Std. zuvor', sub: 'von Admin', icon: 'history' }
+  ];
+
+  currentUserId = -1;
+  menuOpen: boolean | undefined;
+
+  constructor(private route: ActivatedRoute, private router: Router) {
+    this.route.paramMap.subscribe(params => {
+      this.schoolId = params.get('id');
+
+      if (this.schoolId) {
+        localStorage.setItem('lastViewedSchoolId', this.schoolId);
+      }
+
+      this.loadSchool();
+    });
+  }
+
+  ngOnInit() {
+    this.loadExamples();
+    this.loadTests();
+
+    this.service.getUserId().subscribe(id => {
+      this.currentUserId = id as number;
+    });
+  }
+
+  ngAfterViewInit() {
+    this.exampleDataSource.sort = this.sort;
+
+    this.exampleDataSource.sortingDataAccessor = (item, property) => {
+      switch (property) {
+        case 'adminUsername':
+          return item.adminUsername || '';
+        case 'focusList':
+          return item.focusList?.map(f => f.label).join(', ') || '';
+        default: {
+          const value = item[property as keyof ExampleOverviewDTO];
+          if (Array.isArray(value)) {
+            return value.map(v => (v as any).toString()).join(', ');
+          }
+          return value as string | number;
+        }
+      }
+    };
+  }
+
+  private loadSchool(): void {
+    if (!this.schoolId) {
+      return;
+    }
+
+    this.service.getSchoolById(this.schoolId).subscribe(school => {
+      this.school = school;
+      this.kpis[2].value = this.getTeacherCount().toString();
+    });
+  }
+
+  loadExamples() {
+    this.service.getExamples(this.schoolId).subscribe(examples => {
+      this.exampleDataSource.data = examples as ExampleOverviewDTO[];
+      this.kpis[1].value = this.exampleCount.toString();
+    });
+  }
+
+  loadTests() {
+    this.service.getTests(this.schoolId).subscribe(tests => {
+      this.tests = tests as TestOverviewDTO[];
+      this.kpis[0].value = this.tests.length.toString();
+    });
+  }
+
+  get exampleCount(): number {
+    return this.exampleDataSource.data.length;
+  }
 
   getExampleTypeLabel(type: ExampleTypes | string): string {
     if (type == null) return '—';
@@ -77,76 +160,18 @@ export class SchoolComponent implements OnInit, AfterViewInit{
     return ExampleTypeLabels[enumKey];
   }
 
-  exampleDisplayedColumns = ['type', 'instruction', 'question', 'focus', 'adminUsername', 'actions'];
-
-  kpis = [
-    { title: 'Tests', value: this.tests.length, sub: 'Verfügbar', icon: 'assignment' },
-    { title: 'Beispiele', value: this.exampleCount, sub: 'Fragen', icon: 'library_books' },
-    { title: 'Lehrer', value: this.school.members?.length || 0, sub: 'Konten', icon: 'people' },
-    { title: 'Letzte Änderung', value: '2 Std. zuvor', sub: 'von Admin', icon: 'history' }
-  ]
-
-  currentUserId = -1;
-
-  constructor(private route: ActivatedRoute, private router: Router) {
-    this.route.paramMap.subscribe(params => {
-      this.schoolId = params.get('id');
-
-      localStorage.setItem('lastViewedSchoolId', this.schoolId!);
-
-      this.service.getSchoolById(this.schoolId!).subscribe(school => {
-        this.school = school;
-
-        console.log(this.school)
-      })
-    });
+  getAvatarUrl(user?: UserDTO | null): string | null {
+    return this.service.getAvatarUrl((user ?? null) as any);
   }
 
-  ngOnInit(){
-    this.loadExamples()
-    this.loadTests()
-
-    this.service.getUserId().subscribe(id => {
-      this.currentUserId = id as number;
-    })
+  getInitials(user?: UserDTO | null): string {
+    return this.service.getUserInitials((user ?? null) as any);
   }
 
-  loadExamples(){
-    this.service.getExamples(this.schoolId).subscribe(examples => {
-      this.exampleDataSource.data = examples as ExampleOverviewDTO[]
-
-      this.kpis[1].value = this.exampleCount.toString();
-    })
-  }
-
-  loadTests(){
-    this.service.getTests(this.schoolId).subscribe(tests => {
-      this.tests = tests as TestOverviewDTO[]
-
-      this.kpis[0].value = this.tests.length.toString();
-    })
-  }
-
-  ngAfterViewInit() {
-    this.exampleDataSource.sort = this.sort;
-
-    this.exampleDataSource.sortingDataAccessor = (item, property) => {
-      switch (property) {
-        case 'adminUsername':
-          return item.adminUsername || '';
-
-        case 'focusList': // if this is an array of Focus objects
-          return item.focusList?.map(f => f.label).join(', ') || ''; // convert to string
-
-        default:
-          const value = item[property as keyof ExampleOverviewDTO];
-          if (Array.isArray(value)) {
-            return value.map(v => (v as any).toString()).join(', '); // fallback for any array
-          }
-          return value as string | number; // safe cast
-      }
-    };
-
+  getTeacherCount(): number {
+    const memberCount = this.school.members?.length ?? 0;
+    const hasAdmin = !!this.school.admin;
+    return memberCount + (hasAdmin ? 1 : 0);
   }
 
   openCreateExample() {
@@ -155,16 +180,10 @@ export class SchoolComponent implements OnInit, AfterViewInit{
       maxWidth: 'none',
       minWidth: '1000px',
       data: { schoolId: this.schoolId }
-    }).afterClosed().subscribe(result => {
+    }).afterClosed().subscribe(() => {
       this.loadExamples();
     });
   }
-
-  get exampleCount(): number {
-    return this.exampleDataSource.data.length;
-  }
-
-  menuOpen: boolean | undefined
 
   createTest() {
     this.dialog.open(CreateTestComponent, {
@@ -222,13 +241,15 @@ export class SchoolComponent implements OnInit, AfterViewInit{
     });
   }
 
-  openSettings() { console.log('open settings'); }
+  openSettings() {
+    console.log('open settings');
+  }
 
-  openExample(e: any){
+  openExample(e: any) {
     this.dialog.open(ExamplePreviewComponent, {
       width: '10vw',
       data: { schoolId: this.schoolId, exampleId: e.id }
-    }).afterClosed().subscribe(result => {
+    }).afterClosed().subscribe(() => {
       this.loadExamples();
     });
   }
@@ -239,7 +260,7 @@ export class SchoolComponent implements OnInit, AfterViewInit{
       maxWidth: 'none',
       minWidth: '1000px',
       data: { schoolId: this.schoolId, exampleId: e.id }
-    }).afterClosed().subscribe(result => {
+    }).afterClosed().subscribe(() => {
       this.loadExamples();
     });
   }
@@ -274,9 +295,7 @@ export class SchoolComponent implements OnInit, AfterViewInit{
       }
     }).afterClosed().subscribe(result => {
       if (result) {
-        this.service.getSchoolById(this.schoolId!).subscribe(school => {
-          this.school = school;
-        });
+        this.loadSchool();
       }
     });
   }
@@ -299,10 +318,8 @@ export class SchoolComponent implements OnInit, AfterViewInit{
     ref.afterClosed().subscribe(confirmed => {
       if (!confirmed) return;
       this.service.kickTeacherFromSchool(this.schoolId!, t.id).subscribe(() => {
-        this.service.getSchoolById(this.schoolId!).subscribe(school => {
-          this.school = school;
-        })
-      })
-    })
+        this.loadSchool();
+      });
+    });
   }
 }

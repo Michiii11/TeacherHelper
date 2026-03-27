@@ -1,243 +1,248 @@
-<mat-toolbar class="navbar">
-  <div class="navbar-container">
-    <div class="navbar-left">
-      <span class="navbar-title">TeacherHelper</span>
+@if (!isAuthPage()) {
+  <mat-toolbar class="navbar">
+    <div class="navbar-container">
+      <div class="navbar-left">
+        <span class="navbar-title">TeacherHelper</span>
+      </div>
+
+      <nav class="navbar-right">
+        <a mat-button routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
+          Home
+        </a>
+
+        <a mat-button routerLink="/school" routerLinkActive="active-link" (click)="goToSchool()">
+          Schule
+        </a>
+
+        <a mat-button routerLink="/contact" routerLinkActive="active-link">
+          Kontakt
+        </a>
+
+        <button mat-icon-button class="icon-btn notif-trigger" [matMenuTriggerFor]="notifMenu">
+          <mat-icon>notifications</mat-icon>
+          @if (unreadCount > 0) {
+            <span class="notif-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+          }
+        </button>
+
+        <button mat-button class="avatar-btn" routerLink="/profile">
+          @if (getAvatarUrl()) {
+            <img class="avatar-image" [src]="getAvatarUrl()!" alt="Profilbild">
+          } @else {
+            <div class="avatar-circle">{{ getInitials() }}</div>
+          }
+        </button>
+      </nav>
     </div>
+  </mat-toolbar>
 
-    <nav class="navbar-right">
-      <a mat-button routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
-        Home
-      </a>
+  <mat-menu #notifMenu="matMenu" class="notif-menu">
+    <div class="notif-panel" (click)="$event.stopPropagation()">
+      <div class="notif-header">
+        <div class="notif-heading-row">
+          <div>
+            <div class="notif-heading">Nachrichten</div>
+            <div class="notif-subtitle">Offene Aktionen, Verlauf und System-Infos</div>
+          </div>
 
-      <a mat-button routerLink="/school" routerLinkActive="active-link" (click)="goToSchool()">
-        Schule
-      </a>
+          <div class="notif-header-tools">
+            @if (canSendSystemInfo()) {
+              <button
+                mat-icon-button
+                type="button"
+                class="notif-tool-btn"
+                (click)="toggleSystemInfoComposer($event)"
+                matTooltip="System-Info senden">
+                <mat-icon>campaign</mat-icon>
+              </button>
+            }
 
-      <a mat-button routerLink="/contact" routerLinkActive="active-link">
-        Kontakt
-      </a>
-
-      <button mat-icon-button class="icon-btn notif-trigger" [matMenuTriggerFor]="notifMenu">
-        <mat-icon>notifications</mat-icon>
-        @if (unreadCount > 0) {
-          <span class="notif-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
-        }
-      </button>
-
-      <button mat-button class="avatar-btn">
-        <div class="avatar-circle">{{ getInitials() }}</div>
-      </button>
-    </nav>
-  </div>
-</mat-toolbar>
-
-<mat-menu #notifMenu="matMenu" class="notif-menu">
-  <div class="notif-panel" (click)="$event.stopPropagation()">
-    <div class="notif-header">
-      <div class="notif-heading-row">
-        <div>
-          <div class="notif-heading">Nachrichten</div>
-          <div class="notif-subtitle">Offene Aktionen, Verlauf und System-Infos</div>
+            <div class="notif-counter">{{ visibleNotifications().length }}</div>
+          </div>
         </div>
 
-        <div class="notif-header-tools">
-
-          @if (canSendSystemInfo()) {
+        <div class="notif-tabs">
+          <div>
             <button
-              mat-icon-button
+              mat-stroked-button
+              [class.active-tab]="selectedTab === 'open'"
+              (click)="setTab('open', $event)">
+              Offen
+            </button>
+
+            <button
+              mat-stroked-button
+              [class.active-tab]="selectedTab === 'history'"
+              (click)="setTab('history', $event)">
+              Verlauf
+            </button>
+          </div>
+
+          @if (selectedTab === 'history' && historyNotifications.length > 0) {
+            <button
+              mat-stroked-button
               type="button"
-              class="notif-tool-btn"
-              (click)="toggleSystemInfoComposer($event)"
-              matTooltip="System-Info senden">
-              <mat-icon>campaign</mat-icon>
+              class="history-expand-toggle"
+              (click)="toggleAllHistoryExpanded($event)">
+              {{ historyExpanded ? 'Alle zuklappen' : 'Alle aufklappen' }}
             </button>
           }
-
-          <div class="notif-counter">{{ visibleNotifications().length }}</div>
-        </div>
-      </div>
-
-      <div class="notif-tabs">
-        <div>
-          <button
-            mat-stroked-button
-            [class.active-tab]="selectedTab === 'open'"
-            (click)="setTab('open', $event)">
-            Offen
-          </button>
-
-          <button
-            mat-stroked-button
-            [class.active-tab]="selectedTab === 'history'"
-            (click)="setTab('history', $event)">
-            Verlauf
-          </button>
         </div>
 
-        @if (selectedTab === 'history' && historyNotifications.length > 0) {
-          <button
-            mat-stroked-button
-            type="button"
-            class="history-expand-toggle"
-            (click)="toggleAllHistoryExpanded($event)">
-            {{ historyExpanded ? 'Alle zuklappen' : 'Alle aufklappen' }}
-          </button>
-        }
-      </div>
+        @if (showSystemInfoComposer) {
+          <div class="system-info-composer" (click)="$event.stopPropagation()">
+            <div class="system-info-composer-title">System-Info senden</div>
 
-      @if (showSystemInfoComposer) {
-        <div class="system-info-composer" (click)="$event.stopPropagation()">
-          <div class="system-info-composer-title">System-Info senden</div>
+            <div class="system-info-scope">
+              <label class="scope-option">
+                <input type="radio" name="scope" value="school" [(ngModel)]="systemInfoScope">
+                <span>Aktuelle Schule</span>
+              </label>
 
-          <div class="system-info-scope">
-            <label class="scope-option">
-              <input type="radio" name="scope" value="school" [(ngModel)]="systemInfoScope">
-              <span>Aktuelle Schule</span>
-            </label>
+              <label class="scope-option">
+                <input type="radio" name="scope" value="all" [(ngModel)]="systemInfoScope">
+                <span>Alle User</span>
+              </label>
+            </div>
 
-            <label class="scope-option">
-              <input type="radio" name="scope" value="all" [(ngModel)]="systemInfoScope">
-              <span>Alle User</span>
-            </label>
-          </div>
+            <input
+              type="text"
+              class="system-info-input"
+              placeholder="Titel"
+              [(ngModel)]="systemInfoTitle" />
 
-          <input
-            type="text"
-            class="system-info-input"
-            placeholder="Titel"
-            [(ngModel)]="systemInfoTitle" />
+            <textarea
+              class="system-info-textarea"
+              placeholder="Nachricht"
+              rows="4"
+              [(ngModel)]="systemInfoMessage"></textarea>
 
-          <textarea
-            class="system-info-textarea"
-            placeholder="Nachricht"
-            rows="4"
-            [(ngModel)]="systemInfoMessage"></textarea>
+            <input
+              type="text"
+              class="system-info-input"
+              placeholder="Optionaler Link, z. B. /school/12"
+              [(ngModel)]="systemInfoLink" />
 
-          <input
-            type="text"
-            class="system-info-input"
-            placeholder="Optionaler Link, z. B. /school/12"
-            [(ngModel)]="systemInfoLink" />
+            <div class="system-info-actions">
+              <button mat-stroked-button type="button" (click)="toggleSystemInfoComposer($event)">
+                Abbrechen
+              </button>
 
-          <div class="system-info-actions">
-            <button mat-stroked-button type="button" (click)="toggleSystemInfoComposer($event)">
-              Abbrechen
-            </button>
-
-            <button
-              mat-flat-button
-              color="primary"
-              type="button"
-              [disabled]="isSendingSystemInfo"
-              (click)="submitSystemInfo($event)">
-              Senden
-            </button>
-          </div>
-        </div>
-      }
-    </div>
-
-    @if (visibleNotifications().length === 0) {
-      <div class="empty-state">
-        <div class="empty-icon-wrap">
-          <mat-icon>notifications_off</mat-icon>
-        </div>
-        <div class="empty-title">
-          {{ selectedTab === 'open' ? 'Keine offenen Nachrichten' : 'Kein Verlauf vorhanden' }}
-        </div>
-        <div class="empty-text">
-          {{ selectedTab === 'open'
-          ? 'Sobald neue Einladungen, Anfragen oder Infos kommen, erscheinen sie hier.'
-          : 'Bearbeitete Nachrichten und Ergebnisse werden hier angezeigt.' }}
-        </div>
-      </div>
-    } @else {
-      <div class="notif-list">
-        @for (n of visibleNotifications(); track n.id) {
-          <div
-            class="notif-item"
-            [class.notif-read]="n.read"
-            [class.notif-history]="isHandled(n)"
-            [class.notif-history-expanded]="isHistoryOpen()"
-            [class.notif-clickable]="isNavigationAllowed(n)"
-            [class.notif-processing]="isProcessing(n)"
-            [class.notif-result-accepted]="n.type === 'JOIN_REQUEST_ACCEPTED' || n.type === 'INVITATION_ACCEPTED'"
-            [class.notif-result-declined]="n.type === 'JOIN_REQUEST_DECLINED' || n.type === 'INVITATION_DECLINED'"
-            (click)="onNotificationClick(n)">
-
-            <div class="notif-top">
-              <div class="notif-icon">
-                <mat-icon>{{ getNotificationIcon(n) }}</mat-icon>
-              </div>
-
-              <div class="notif-main">
-                <div class="notif-title-row">
-                  <div class="notif-title-wrap">
-                    <div class="notif-title">{{ n.title }}</div>
-
-                    @if (getMetaLine(n)) {
-                      <div class="notif-meta">{{ getMetaLine(n) }}</div>
-                    }
-                  </div>
-
-                  <div class="notif-title-actions">
-                    <div class="notif-type-badge">{{ getNotificationBadge(n) }}</div>
-                  </div>
-                </div>
-
-                <div class="notif-message">{{ n.message }}</div>
-
-                <div class="notif-footer-row">
-                  <div class="notif-date">{{ n.createdAt | date:'dd.MM.yyyy • HH:mm' }}</div>
-
-                  <div class="notif-actions">
-                    @if (!isHandled(n) && n.primaryAction) {
-                      <button
-                        mat-flat-button
-                        color="primary"
-                        [disabled]="isProcessing(n)"
-                        (click)="runAction(n, n.primaryAction, $event)">
-                        {{ getActionLabel(n.primaryAction) }}
-                      </button>
-                    }
-
-                    @if (!isHandled(n) && n.secondaryAction) {
-                      <button
-                        mat-stroked-button
-                        [disabled]="isProcessing(n)"
-                        (click)="runAction(n, n.secondaryAction, $event)">
-                        {{ getActionLabel(n.secondaryAction) }}
-                      </button>
-                    }
-
-                    @if (canMarkAsRead(n)) {
-                      <button
-                        mat-icon-button
-                        type="button"
-                        [disabled]="isProcessing(n)"
-                        (click)="markAsRead(n, $event)"
-                        matTooltip="Als gelesen markieren">
-                        <mat-icon>done</mat-icon>
-                      </button>
-                    }
-
-                    @if (canDelete(n)) {
-                      <button
-                        mat-icon-button
-                        type="button"
-                        [disabled]="isProcessing(n)"
-                        (click)="deleteNotification(n, $event)"
-                        matTooltip="Löschen">
-                        <mat-icon>delete</mat-icon>
-                      </button>
-                    }
-                  </div>
-                </div>
-              </div>
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                [disabled]="isSendingSystemInfo"
+                (click)="submitSystemInfo($event)">
+                Senden
+              </button>
             </div>
           </div>
         }
       </div>
-    }
-  </div>
-</mat-menu>
+
+      @if (visibleNotifications().length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon-wrap">
+            <mat-icon>notifications_off</mat-icon>
+          </div>
+          <div class="empty-title">
+            {{ selectedTab === 'open' ? 'Keine offenen Nachrichten' : 'Kein Verlauf vorhanden' }}
+          </div>
+          <div class="empty-text">
+            {{ selectedTab === 'open'
+            ? 'Sobald neue Einladungen, Anfragen oder Infos kommen, erscheinen sie hier.'
+            : 'Bearbeitete Nachrichten und Ergebnisse werden hier angezeigt.' }}
+          </div>
+        </div>
+      } @else {
+        <div class="notif-list">
+          @for (n of visibleNotifications(); track n.id) {
+            <div
+              class="notif-item"
+              [class.notif-read]="n.read"
+              [class.notif-history]="isHandled(n)"
+              [class.notif-history-expanded]="isHistoryOpen()"
+              [class.notif-clickable]="isNavigationAllowed(n)"
+              [class.notif-processing]="isProcessing(n)"
+              [class.notif-result-accepted]="n.type === 'JOIN_REQUEST_ACCEPTED' || n.type === 'INVITATION_ACCEPTED'"
+              [class.notif-result-declined]="n.type === 'JOIN_REQUEST_DECLINED' || n.type === 'INVITATION_DECLINED'"
+              (click)="onNotificationClick(n)">
+
+              <div class="notif-top">
+                <div class="notif-icon">
+                  <mat-icon>{{ getNotificationIcon(n) }}</mat-icon>
+                </div>
+
+                <div class="notif-main">
+                  <div class="notif-title-row">
+                    <div class="notif-title-wrap">
+                      <div class="notif-title">{{ n.title }}</div>
+
+                      @if (getMetaLine(n)) {
+                        <div class="notif-meta">{{ getMetaLine(n) }}</div>
+                      }
+                    </div>
+
+                    <div class="notif-title-actions">
+                      <div class="notif-type-badge">{{ getNotificationBadge(n) }}</div>
+                    </div>
+                  </div>
+
+                  <div class="notif-message">{{ n.message }}</div>
+
+                  <div class="notif-footer-row">
+                    <div class="notif-date">{{ n.createdAt | date:'dd.MM.yyyy • HH:mm' }}</div>
+
+                    <div class="notif-actions">
+                      @if (!isHandled(n) && n.primaryAction) {
+                        <button
+                          mat-flat-button
+                          color="primary"
+                          [disabled]="isProcessing(n)"
+                          (click)="runAction(n, n.primaryAction, $event)">
+                          {{ getActionLabel(n.primaryAction) }}
+                        </button>
+                      }
+
+                      @if (!isHandled(n) && n.secondaryAction) {
+                        <button
+                          mat-stroked-button
+                          [disabled]="isProcessing(n)"
+                          (click)="runAction(n, n.secondaryAction, $event)">
+                          {{ getActionLabel(n.secondaryAction) }}
+                        </button>
+                      }
+
+                      @if (canMarkAsRead(n)) {
+                        <button
+                          mat-icon-button
+                          type="button"
+                          [disabled]="isProcessing(n)"
+                          (click)="markAsRead(n, $event)"
+                          matTooltip="Als gelesen markieren">
+                          <mat-icon>done</mat-icon>
+                        </button>
+                      }
+
+                      @if (canDelete(n)) {
+                        <button
+                          mat-icon-button
+                          type="button"
+                          [disabled]="isProcessing(n)"
+                          (click)="deleteNotification(n, $event)"
+                          matTooltip="Löschen">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </mat-menu>
+}

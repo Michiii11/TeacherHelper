@@ -277,7 +277,9 @@ public class SchoolRepository {
                 .getSingleResult();
 
         if (openInviteCount > 0) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("There is already an open invitation for this teacher").build();
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("There is already an open invitation for this teacher")
+                    .build();
         }
 
         SchoolInvite invite = new SchoolInvite(
@@ -591,7 +593,6 @@ public class SchoolRepository {
         );
     }
 
-    // helper in SchoolRepository ergänzen
     private String appendOptionalMessage(String baseMessage, String customMessage) {
         if (customMessage == null || customMessage.isBlank()) {
             return baseMessage;

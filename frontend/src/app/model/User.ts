@@ -1,8 +1,11 @@
-export interface User{
+export interface User {
   id: number;
   username: string;
   email: string;
-  password: string;
+  emailVerified: boolean;
+  pendingEmail?: string | null;
+  subscriptionModel: 'FREE' | 'PRO' | 'ENTERPRISE' | 'ADMIN';
+  profileImageUrl?: string | null;
 }
 
 export interface UserDTO{
@@ -10,6 +13,7 @@ export interface UserDTO{
   username: string;
   email: string;
   password: string;
+  profileImageUrl: string;
 }
 
 export interface LoginDTO{

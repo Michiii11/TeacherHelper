@@ -1,4 +1,5 @@
 import { Component, Inject } from '@angular/core';
+import { NgIf } from '@angular/common';
 import {
   MAT_DIALOG_DATA,
   MatDialogRef
@@ -6,7 +7,7 @@ import {
 import { MatButton } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import {NgIf} from '@angular/common'
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-confirm-dialog',
@@ -15,51 +16,51 @@ import {NgIf} from '@angular/common'
     MatButton,
     FormsModule,
     MatCheckboxModule,
+    MatIconModule,
     NgIf
   ],
   template: `
+    <div class="dialog-shell">
+      <div class="dialog-header">
+        <div class="dialog-icon">
+          <mat-icon>warning_amber</mat-icon>
+        </div>
 
-    <!-- HEADER -->
-    <div class="dialog-header">
-      <div class="header-text">
-        <h2>{{ data.title }}</h2>
-        <p>{{ data.message }}</p>
+        <div class="header-text">
+          <h2>{{ data.title }}</h2>
+          <p>{{ data.message }}</p>
+        </div>
+      </div>
+
+      <div *ngIf="data.requireConfirmation" class="checkbox-wrapper">
+        <mat-checkbox [(ngModel)]="isChecked">
+          {{ data.confirmationText || 'Ich bestätige diese Aktion' }}
+        </mat-checkbox>
+      </div>
+
+      <div class="dialog-actions">
+        <button mat-stroked-button type="button" (click)="onCancel()">
+          {{ data.cancelText }}
+        </button>
+
+        <button
+          mat-flat-button
+          color="warn"
+          type="button"
+          (click)="onConfirm()"
+          [disabled]="data.requireConfirmation && !isChecked">
+          {{ data.confirmText }}
+        </button>
       </div>
     </div>
-
-    <!-- OPTIONAL CONFIRM CHECKBOX -->
-    <div *ngIf="data.requireConfirmation" class="checkbox-wrapper">
-      <mat-checkbox [(ngModel)]="isChecked">
-        {{ data.confirmationText || 'Ich bestätige diese Aktion' }}
-      </mat-checkbox>
-    </div>
-
-    <!-- ACTIONS -->
-    <div class="dialog-actions">
-
-      <button
-        mat-stroked-button
-        (click)="onCancel()"
-      >
-        {{ data.cancelText }}
-      </button>
-
-      <button
-        mat-flat-button
-        color="warn"
-        (click)="onConfirm()"
-        [disabled]="data.requireConfirmation && !isChecked"
-      >
-        {{ data.confirmText }}
-      </button>
-
-    </div>
-
   `,
   styles: [`
     :host {
       display: block;
-      padding: 1.3rem 1.5rem 1.5rem;
+    }
+
+    .dialog-shell {
+      padding: 1.35rem 1.5rem 1.45rem;
     }
 
     .dialog-header {
@@ -68,41 +69,55 @@ import {NgIf} from '@angular/common'
       align-items: flex-start;
     }
 
-    .header-text {
-      h2 {
-        margin: 0;
-        font-size: 1.1rem;
-        font-weight: 700;
-      }
+    .dialog-icon {
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: rgba(239, 68, 68, 0.12);
+      color: #dc2626;
+    }
 
-      p {
-        margin: .3rem 0 0;
-        font-size: .9rem;
-        color: #64748b;
-        line-height: 1.4;
-      }
+    .header-text h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .header-text p {
+      margin: .35rem 0 0;
+      font-size: .92rem;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    .checkbox-wrapper {
+      margin-top: 1rem;
+      padding: .9rem 1rem;
+      border-radius: 14px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
     }
 
     .dialog-actions {
       display: flex;
       justify-content: flex-end;
-      gap: .6rem;
+      gap: .65rem;
       margin-top: 1.2rem;
-
-      button {
-        min-width: 110px;
-        font-weight: 600;
-        border-radius: 10px;
-      }
+      flex-wrap: wrap;
     }
 
-    .checkbox-wrapper {
-      margin-top: 1rem;
+    .dialog-actions button {
+      min-width: 120px;
+      font-weight: 600;
+      border-radius: 10px;
     }
   `]
 })
 export class ConfirmDialogComponent {
-
   isChecked = false;
 
   constructor(
@@ -113,17 +128,16 @@ export class ConfirmDialogComponent {
       message: string;
       confirmText: string;
       cancelText: string;
-      requireConfirmation?: boolean;      // neu: Checkbox optional
-      confirmationText?: string;          // optionaler Text für Checkbox
+      requireConfirmation?: boolean;
+      confirmationText?: string;
     }
   ) {}
 
-  onConfirm() {
+  onConfirm(): void {
     this.dialogRef.close(true);
   }
 
-  onCancel() {
+  onCancel(): void {
     this.dialogRef.close(false);
   }
-
 }

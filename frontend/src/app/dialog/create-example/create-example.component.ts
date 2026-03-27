@@ -18,7 +18,7 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { MatAutocomplete, MatAutocompleteSelectedEvent, MatAutocompleteTrigger } from '@angular/material/autocomplete';
 
-import { BehaviorSubject, Subject, combineLatest, startWith } from 'rxjs';
+import { BehaviorSubject, Subject, combineLatest, firstValueFrom, startWith } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 
 import {
@@ -69,6 +69,16 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   // ------- UI state -------
   hasUnsavedChanges = false;
   isEditMode = false;
+  isSaving = false;
+
+  selectedConstructionImageFile: File | null = null;
+  selectedConstructionSolutionFile: File | null = null;
+
+  constructionImagePreviewUrl: string | null = null;
+  constructionSolutionPreviewUrl: string | null = null;
+
+  readonly maxImageBytes = 5 * 1024 * 1024;
+  readonly allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
 
   // ------- form model -------
   example: CreateExampleDTO = {
@@ -163,6 +173,14 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
           next: (response) => {
             this.example = response;
             this.isEditMode = true;
+
+            if (this.example.type === ExampleTypes.CONSTRUCTION && this.data.exampleId) {
+              this.constructionImagePreviewUrl = this.http.getConstructionImageUrl(this.data.exampleId);
+              this.constructionSolutionPreviewUrl = this.http.getConstructionSolutionImageUrl(this.data.exampleId);
+              this.example.image = this.constructionImagePreviewUrl ?? '';
+              this.example.solutionUrl = this.constructionSolutionPreviewUrl ?? '';
+            }
+
             this.emitSelectedFocus();
           }
         });
@@ -331,25 +349,90 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   // Construction image
   // ----------------------
   onImageSelected(event: Event, type: 'solution' | 'preview'): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) return;
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+
+    if (!file) {
+      return;
+    }
+
+    if (!this.allowedImageTypes.includes(file.type)) {
+      this.snackBar.open('Bitte nur JPG, PNG oder WEBP hochladen.', 'OK', { duration: 3000 });
+      input.value = '';
+      return;
+    }
+
+    if (file.size > this.maxImageBytes) {
+      this.snackBar.open('Das Bild darf maximal 5 MB groß sein.', 'OK', { duration: 3200 });
+      input.value = '';
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = () => {
       if (type === 'solution') {
-        this.example.solutionUrl = reader.result as string;
+        this.selectedConstructionSolutionFile = file;
+        this.constructionSolutionPreviewUrl = reader.result as string;
+        this.example.solutionUrl = this.constructionSolutionPreviewUrl;
       } else {
-        this.example.image = reader.result as string;
+        this.selectedConstructionImageFile = file;
+        this.constructionImagePreviewUrl = reader.result as string;
+        this.example.image = this.constructionImagePreviewUrl;
       }
       this.markDirty();
     };
     reader.readAsDataURL(file);
   }
 
+  removeSelectedImage(type: 'solution' | 'preview'): void {
+    if (type === 'solution') {
+      this.selectedConstructionSolutionFile = null;
+      this.constructionSolutionPreviewUrl = this.isEditMode && this.data.exampleId
+        ? this.http.getConstructionSolutionImageUrl(this.data.exampleId)
+        : null;
+      this.example.solutionUrl = this.constructionSolutionPreviewUrl ?? '';
+    } else {
+      this.selectedConstructionImageFile = null;
+      this.constructionImagePreviewUrl = this.isEditMode && this.data.exampleId
+        ? this.http.getConstructionImageUrl(this.data.exampleId)
+        : null;
+      this.example.image = this.constructionImagePreviewUrl ?? '';
+    }
+
+    this.markDirty();
+  }
+
+  private buildExamplePayload(): CreateExampleDTO {
+    return {
+      ...this.example,
+      authToken: localStorage.getItem('teacher_authToken') || '',
+      schoolId: Number(this.example.schoolId || this.data.schoolId),
+      image: '',
+      solutionUrl: ''
+    };
+  }
+
+  private async uploadConstructionAssets(exampleId: number): Promise<void> {
+    if (this.selectedConstructionImageFile) {
+      await firstValueFrom(this.http.uploadConstructionImage(exampleId, this.selectedConstructionImageFile));
+    }
+
+    if (this.selectedConstructionSolutionFile) {
+      await firstValueFrom(this.http.uploadConstructionSolutionImage(exampleId, this.selectedConstructionSolutionFile));
+    }
+
+    this.constructionImagePreviewUrl = this.http.getConstructionImageUrl(exampleId);
+    this.constructionSolutionPreviewUrl = this.http.getConstructionSolutionImageUrl(exampleId);
+    this.example.image = this.constructionImagePreviewUrl ?? '';
+    this.example.solutionUrl = this.constructionSolutionPreviewUrl ?? '';
+    this.selectedConstructionImageFile = null;
+    this.selectedConstructionSolutionFile = null;
+  }
+
   // ----------------------
   // Save & close
   // ----------------------
-  saveExample(): void {
+  async saveExample(): Promise<void> {
     if (!this.example.instruction.trim() || !this.example.question.trim()) {
       this.snackBar.open('Bitte füllen Sie sowohl die Aufgabenstellung als auch die Angabe aus.', 'OK', {
         duration: 3000
@@ -357,22 +440,46 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.example.authToken = localStorage.getItem('teacher_authToken') || '';
-    this.example.schoolId = Number(this.example.schoolId || this.data.schoolId);
+    if (this.isSaving) {
+      return;
+    }
 
-    const request = this.isEditMode
-      ? this.http.saveExample(this.data.exampleId, this.example)
-      : this.http.createExample(this.example);
+    if (this.example.type === ExampleTypes.CONSTRUCTION && !this.isEditMode && !this.selectedConstructionImageFile) {
+      this.snackBar.open('Bitte ein Aufgabenbild auswählen.', 'OK', { duration: 3000 });
+      return;
+    }
 
-    request
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.snackBar.open('Beispiel erfolgreich erstellt', 'OK', { duration: 3000 });
-          this.hasUnsavedChanges = false;
-          this.dialogRef.close(this.example);
+    this.isSaving = true;
+
+    try {
+      const payload = this.buildExamplePayload();
+
+      if (this.isEditMode) {
+        await firstValueFrom(this.http.saveExample(this.data.exampleId, payload));
+
+        if (this.example.type === ExampleTypes.CONSTRUCTION) {
+          await this.uploadConstructionAssets(this.data.exampleId);
         }
-      });
+
+        this.snackBar.open('Beispiel erfolgreich gespeichert', 'OK', { duration: 3000 });
+      } else {
+        const createdIdRaw = await firstValueFrom(this.http.createExample(payload));
+        const createdId = Number(createdIdRaw);
+
+        if (this.example.type === ExampleTypes.CONSTRUCTION && createdId) {
+          await this.uploadConstructionAssets(createdId);
+        }
+
+        this.snackBar.open('Beispiel erfolgreich erstellt', 'OK', { duration: 3000 });
+      }
+
+      this.hasUnsavedChanges = false;
+      this.dialogRef.close(true);
+    } catch (error) {
+      this.snackBar.open('Beispiel konnte nicht gespeichert werden.', 'OK', { duration: 3500 });
+    } finally {
+      this.isSaving = false;
+    }
   }
 
   async closeDialog(): Promise<void> {

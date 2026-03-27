@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { NgIf, NgForOf } from '@angular/common';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatPseudoCheckbox } from '@angular/material/core';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject } from 'rxjs';
 
 import { HttpService } from '../../service/http.service';
 import { CreateExampleDTO, ExampleTypes } from '../../model/Example';
@@ -34,14 +34,26 @@ export class ExamplePreviewComponent implements OnInit, OnDestroy {
   example!: CreateExampleDTO;
 
   ngOnInit(): void {
+    if (this.data?.example) {
+      this.example = this.data.example;
+      return;
+    }
+
     const id = this.data?.exampleId;
     if (id) {
       this.http.getCreateExample(id).subscribe(example => {
         this.example = example;
-      })
-    }
 
-    console.log(this.example)
+        if (example.type === ExampleTypes.CONSTRUCTION) {
+          this.example = {
+            ...example,
+            image: this.http.getConstructionImageUrl(id) ?? '',
+            solutionUrl: this.http.getConstructionSolutionImageUrl(id) ?? ''
+          };
+        }
+      });
+      return;
+    }
 
     this.example = {
       authToken: '',

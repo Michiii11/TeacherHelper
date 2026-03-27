@@ -1,12 +1,12 @@
 import { Component, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter, Subscription } from 'rxjs';
 import { MatToolbar } from '@angular/material/toolbar';
 import { MatAnchor, MatButton, MatIconButton } from '@angular/material/button';
-import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
+import { MatMenu, MatMenuTrigger } from '@angular/material/menu';
 import { MatIcon } from '@angular/material/icon';
-import { MatDivider } from '@angular/material/list';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltip } from '@angular/material/tooltip';
 import { HttpService } from '../../service/http.service';
@@ -55,17 +55,30 @@ export class NavigationComponent implements OnInit, OnDestroy {
   private socket?: WebSocket;
   private reconnectTimer?: ReturnType<typeof setTimeout>;
   private socketDestroyed = false;
+  private routerSub?: Subscription;
 
   constructor(private router: Router) {}
 
   ngOnInit(): void {
-    this.loadUser();
-    this.loadNotifications();
+    this.refreshNavigationState();
+
+    this.routerSub = this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => {
+        this.refreshNavigationState();
+      });
+
+    window.addEventListener('focus', this.handleWindowFocus);
+    window.addEventListener('storage', this.handleStorageRefresh);
     this.connectNotificationSocket();
   }
 
   ngOnDestroy(): void {
     this.socketDestroyed = true;
+    this.routerSub?.unsubscribe();
+
+    window.removeEventListener('focus', this.handleWindowFocus);
+    window.removeEventListener('storage', this.handleStorageRefresh);
 
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
@@ -75,6 +88,35 @@ export class NavigationComponent implements OnInit, OnDestroy {
       this.socket.close();
       this.socket = undefined;
     }
+  }
+
+  private handleWindowFocus = () => {
+    if (!this.isAuthPage()) {
+      this.loadUser();
+      this.loadNotifications();
+    }
+  };
+
+  private handleStorageRefresh = () => {
+    if (!this.isAuthPage()) {
+      this.loadUser();
+      this.loadNotifications();
+    }
+  };
+
+  private refreshNavigationState(): void {
+    if (this.isAuthPage()) {
+      this.user = {} as User;
+      this.notifications = [];
+      return;
+    }
+
+    this.loadUser();
+    this.loadNotifications();
+  }
+
+  isAuthPage(): boolean {
+    return this.router.url.startsWith('/login');
   }
 
   private loadUser(): void {
@@ -121,8 +163,9 @@ export class NavigationComponent implements OnInit, OnDestroy {
       };
 
       this.socket.onmessage = (event: MessageEvent<string>) => {
-        if (event.data === 'refresh') {
+        if (event.data === 'refresh' && !this.isAuthPage()) {
           this.loadNotifications();
+          this.loadUser();
         }
       };
 
@@ -170,18 +213,6 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
   isHandled(n: NotificationDTO): boolean {
     return n.read;
-    /*if (n.read || this.isResultNotification(n)) {
-      return true;
-    }
-
-    if (this.hasDecisionActions(n) && n.relatedEntityId != null) {
-      return this.notifications.some(
-        (candidate) =>
-          candidate.relatedEntityId === n.relatedEntityId && this.isResultNotification(candidate)
-      );
-    }
-
-    return false;*/
   }
 
   isResultNotification(n: NotificationDTO): boolean {
@@ -276,6 +307,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
           next: () => {
             this.snackBar.open('Einladung angenommen.', 'OK', { duration: 2200 });
             this.loadNotifications();
+            this.loadUser();
           },
           error: (err) => {
             console.error('Fehler beim Annehmen der Einladung:', err);
@@ -292,6 +324,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
           next: () => {
             this.snackBar.open('Einladung abgelehnt.', 'OK', { duration: 2200 });
             this.loadNotifications();
+            this.loadUser();
           },
           error: (err) => {
             console.error('Fehler beim Ablehnen der Einladung:', err);
@@ -308,6 +341,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
           next: () => {
             this.snackBar.open('Anfrage bestätigt.', 'OK', { duration: 2200 });
             this.loadNotifications();
+            this.loadUser();
           },
           error: (err) => {
             console.error('Fehler beim Annehmen der Beitrittsanfrage:', err);
@@ -324,6 +358,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
           next: () => {
             this.snackBar.open('Anfrage abgelehnt.', 'OK', { duration: 2200 });
             this.loadNotifications();
+            this.loadUser();
           },
           error: (err) => {
             console.error('Fehler beim Ablehnen der Beitrittsanfrage:', err);
@@ -337,7 +372,10 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
       default:
         this.service.executeAction(n.id, action).subscribe({
-          next: () => this.loadNotifications(),
+          next: () => {
+            this.loadNotifications();
+            this.loadUser();
+          },
           error: (err) => {
             console.error('Fehler bei Notification-Aktion:', err);
             this.snackBar.open(this.extractError(err, 'Aktion konnte nicht ausgeführt werden.'), 'Schließen', {
@@ -571,16 +609,11 @@ export class NavigationComponent implements OnInit, OnDestroy {
   }
 
   getInitials(): string {
-    if (!this.user?.username) {
-      return '?';
-    }
+    return this.service.getUserInitials(this.user);
+  }
 
-    return this.user.username
-      .split(' ')
-      .filter((p) => p.trim().length > 0)
-      .map((p) => p[0])
-      .join('')
-      .toUpperCase();
+  getAvatarUrl(): string | null {
+    return this.service.getAvatarUrl(this.user);
   }
 
   private extractError(err: any, fallback: string): string {

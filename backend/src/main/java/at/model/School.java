@@ -74,7 +74,7 @@ public class School {
         if (admin == null) {
             return null;
         }
-        return new UserDTO(admin.getId(), admin.getUsername(), admin.getEmail(), admin.getPassword());
+        return admin.toUserDTO();
     }
 
     public void setAdmin(User admin) {

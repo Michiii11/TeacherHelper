@@ -5,7 +5,7 @@ import { Config } from '../config';
 import { CreateSchoolInviteDTO, SchoolDTO } from '../model/School';
 import { CreateExampleDTO, Focus } from '../model/Example';
 import { CreateTestDTO } from '../model/Test';
-import { User } from '../model/User';
+import { AuthResult, User, UserDTO } from '../model/User';
 import { NotificationActionType, NotificationDTO } from '../model/Notification';
 
 @Injectable({ providedIn: 'root' })
@@ -18,7 +18,6 @@ export class HttpService {
 
   getNotificationSocketUrl(): string {
     const token = this.authToken();
-
     return `${Config.SOCKET_URL}/notification?token=${encodeURIComponent(token)}`;
   }
 
@@ -50,7 +49,7 @@ export class HttpService {
   }
 
   getAllTeachers(schoolId: number | string) {
-    return this.http.get(`${Config.API_URL}/school/${schoolId}/rest`);
+    return this.http.get<UserDTO[]>(`${Config.API_URL}/school/${schoolId}/rest`);
   }
 
   kickTeacherFromSchool(s: string, id: number) {
@@ -103,6 +102,46 @@ export class HttpService {
     });
   }
 
+  uploadConstructionImage(exampleId: number, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('authToken', this.authToken());
+
+    return this.http.post(
+      `${Config.API_URL}/example/${exampleId}/construction-image`,
+      formData,
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  uploadConstructionSolutionImage(exampleId: number, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('authToken', this.authToken());
+
+    return this.http.post(
+      `${Config.API_URL}/example/${exampleId}/construction-solution-image`,
+      formData,
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  getConstructionImageUrl(exampleId: number | null | undefined): string | null {
+    if (!exampleId) {
+      return null;
+    }
+
+    return `${Config.API_URL}/example/${exampleId}/construction-image`;
+  }
+
+  getConstructionSolutionImageUrl(exampleId: number | null | undefined): string | null {
+    if (!exampleId) {
+      return null;
+    }
+
+    return `${Config.API_URL}/example/${exampleId}/construction-solution-image`;
+  }
+
   getTests(schoolId: string | null) {
     return this.http.get(`${Config.API_URL}/test/school/${schoolId}`);
   }
@@ -134,6 +173,95 @@ export class HttpService {
 
   getUser() {
     return this.http.post<User>(`${Config.API_URL}/user`, this.authToken());
+  }
+
+  updateUsername(username: string) {
+    return this.http.put(
+      `${Config.API_URL}/user/username`,
+      {
+        authToken: this.authToken(),
+        username
+      },
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  updateEmail(email: string) {
+    return this.http.put<string>(
+      `${Config.API_URL}/user/email`,
+      {
+        authToken: this.authToken(),
+        email
+      },
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  changePassword(payload: { currentPassword: string; newPassword: string }) {
+    return this.http.put(
+      `${Config.API_URL}/user/password`,
+      {
+        authToken: this.authToken(),
+        currentPassword: payload.currentPassword,
+        newPassword: payload.newPassword
+      },
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  uploadProfileImage(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('authToken', this.authToken());
+
+    return this.http.post(`${Config.API_URL}/user/profile-image`, formData, {
+      responseType: 'text'
+    });
+  }
+
+  verifyEmail(token: string) {
+    return this.http.get(`${Config.API_URL}/user/verify-email`, {
+      params: { token },
+      responseType: 'text'
+    });
+  }
+
+  resendVerification(email: string) {
+    return this.http.post(`${Config.API_URL}/user/email/resend-verification`, { email }, {
+      responseType: 'text'
+    });
+  }
+
+  forgotPassword(email: string) {
+    return this.http.post(`${Config.API_URL}/user/password/forgot`, { email }, {
+      responseType: 'text'
+    });
+  }
+
+  resetPassword(token: string, newPassword: string) {
+    return this.http.post(`${Config.API_URL}/user/password/reset`, {
+      token,
+      newPassword
+    }, {
+      responseType: 'text'
+    });
+  }
+
+  updateSubscription(subscriptionModel: 'FREE' | 'PRO' | 'ENTERPRISE') {
+    return this.http.put(`${Config.API_URL}/user/subscription`, {
+      authToken: this.authToken(),
+      subscriptionModel
+    }, {
+      responseType: 'text'
+    });
+  }
+
+  login(payload: { email: string; password: string }) {
+    return this.http.post<AuthResult>(`${Config.API_URL}/user/login`, payload);
+  }
+
+  register(payload: { username: string; email: string; password: string }) {
+    return this.http.post<AuthResult>(`${Config.API_URL}/user/register`, payload);
   }
 
   getMyNotifications(): Observable<NotificationDTO[]> {
@@ -204,5 +332,66 @@ export class HttpService {
   inviteTeacher(id: string | number, dto: CreateSchoolInviteDTO) {
     dto.authToken = this.authToken();
     return this.http.post(`${Config.API_URL}/school/${id}/invite-teacher`, dto);
+  }
+
+  cancelPendingEmailChange() {
+    const authToken = localStorage.getItem('teacher_authToken') ?? '';
+    return this.http.post(`${Config.API_URL}/user/email/cancel-pending`, authToken, {
+      responseType: 'text'
+    });
+  }
+
+  updateAllowInvitations(allowInvitations: boolean) {
+    return this.http.post(`${Config.API_URL}/user/settings/allow-invitations`, {
+      authToken: localStorage.getItem('teacher_authToken') ?? '',
+      allowInvitations
+    }, {
+      responseType: 'text'
+    });
+  }
+
+  deleteAccount(currentPassword: string) {
+    return this.http.post(`${Config.API_URL}/user/delete-account`, {
+      authToken: localStorage.getItem('teacher_authToken') ?? '',
+      currentPassword
+    }, {
+      responseType: 'text'
+    });
+  }
+
+  getAvatarUrl(user: User | UserDTO | null): string | null {
+    if (!user?.profileImageUrl) {
+      return null;
+    }
+
+    const token = this.authToken();
+    if (!token) {
+      return null;
+    }
+
+    return `${Config.API_URL}/user/profile-image/${user?.id}`;
+  }
+
+  getUserInitials(user: User | null): string {
+    const username = user?.username?.trim();
+
+    if (username) {
+      return username
+        .split(' ')
+        .filter(part => part.trim().length > 0)
+        .slice(0, 2)
+        .map(part => part[0]?.toUpperCase() ?? '')
+        .join('');
+    }
+
+    return '?';
+  }
+
+  deleteProfileImage() {
+    return this.http.delete<string>(`${Config.API_URL}/user/profile-image`, {
+      body: this.authToken(),
+      headers: { 'Content-Type': 'text/plain' },
+      responseType: 'text' as 'json'
+    });
   }
 }
