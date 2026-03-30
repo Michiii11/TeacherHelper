@@ -4,7 +4,7 @@ import {MatDialog} from '@angular/material/dialog'
 import {AddSchoolDialogComponent} from '../../dialog/add-school-dialog/add-school-dialog.component'
 import {SchoolDTO} from '../../model/School'
 import {HttpService} from '../../service/http.service'
-import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card'
+import {MatCard} from '@angular/material/card'
 import {MatFormField, MatInput, MatLabel} from '@angular/material/input'
 import {FormsModule} from '@angular/forms'
 import {NgForOf, NgIf} from '@angular/common'
@@ -120,7 +120,6 @@ export class HomeComponent implements OnInit{
 
     return school.admin.id === userId;
   }
-
 
   protected openInvitationDialog(school: SchoolDTO) {
     const ref = this.dialog.open(SchoolInvitationComponent, {

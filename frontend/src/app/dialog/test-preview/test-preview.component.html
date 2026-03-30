@@ -136,8 +136,12 @@
 
               @if(entry.example.type === ExampleTypes.CONSTRUCTION){
                 <div class="construction-preview">
-                  <img *ngIf="getPreviewImage(entry.example)" [src]="getPreviewImage(entry.example)!" alt="Vorschau" class="image-preview" />
-                  <div class="construction-space"></div>
+                  <img
+                    *ngIf="getPreviewImage(entry.example)"
+                    [src]="getPreviewImage(entry.example)!"
+                    alt="Vorschau"
+                    class="image-preview"
+                    [style.width.px]="getImageWidth(entry.example)" />
                 </div>
               }
 

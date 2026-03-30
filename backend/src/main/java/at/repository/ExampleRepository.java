@@ -15,7 +15,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -59,6 +58,8 @@ public class ExampleRepository {
                     example.getSolution(),
                     example.getSolutionUrl(),
                     example.getImageUrl(),
+                    example.getImageWidth(),
+                    example.getSolutionImageWidth(),
                     example.getFocusList(),
                     new SchoolRepository().toSchoolDTO(example.getSchool()),
                     example.getAnswers(),
@@ -72,8 +73,12 @@ public class ExampleRepository {
     }
 
     @Transactional
-    public Response createExample(CreateExampleDTO dto) throws IOException {
+    public Response createExample(CreateExampleDTO dto) {
         Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+
         User admin = em.find(User.class, userId);
         School school = em.find(School.class, dto.schoolId());
 
@@ -81,18 +86,12 @@ public class ExampleRepository {
         example.getFocusList().clear();
         example.getFocusList().addAll(dto.focusList());
 
-        System.out.println(dto);
-
-        switch (dto.type()){
-            case HALF_OPEN -> {
-                example.setAnswers(dto.answers());
-            }
-            case MULTIPLE_CHOICE -> {
-                example.setOptions(dto.options());
-            }
+        switch (dto.type()) {
+            case HALF_OPEN -> example.setAnswers(dto.answers());
+            case MULTIPLE_CHOICE -> example.setOptions(dto.options());
             case GAP_FILL -> {
                 List<Gap> gaps = new LinkedList<>();
-                for(GapDTO g : dto.gaps()){
+                for (GapDTO g : dto.gaps()) {
                     gaps.add(new Gap(g.label(), g.solution(), g.options(), example));
                 }
                 example.setGaps(gaps);
@@ -101,30 +100,37 @@ public class ExampleRepository {
             case CONSTRUCTION -> {
                 example.setImageUrl(dto.image());
                 example.setSolutionUrl(dto.solutionUrl());
+                example.setImageWidth(dto.imageWidth());
+                example.setSolutionImageWidth(dto.solutionImageWidth());
             }
             case ASSIGN -> {
                 example.setAssigns(dto.assigns());
                 example.setAssignRightItems(dto.assignRightItems());
             }
+            case OPEN -> {
+            }
         }
 
         em.persist(example);
+        em.flush();
 
-        return Response.ok().build();
+        return Response.ok(example.getId()).build();
     }
 
     @Transactional
     public Response updateExample(Long exampleId, CreateExampleDTO dto) {
         Example example = em.find(Example.class, exampleId);
-
-        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
-
-        if(tokenService.validateTokenAndGetUserId(dto.authToken()) == null){
-            return Response.status(500).build();
+        if (example == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        if(example.getAdmin().getId() != userId && example.getSchool().getAdmin().getId() != userId){
-            return Response.status(403)
+        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+
+        if (!example.getAdmin().getId().equals(userId) && !example.getSchool().getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN)
                     .entity("Not allowed to update this Example.")
                     .build();
         }
@@ -136,21 +142,14 @@ public class ExampleRepository {
         example.getFocusList().clear();
         example.getFocusList().addAll(dto.focusList());
 
-        System.out.println(dto);
-
-        switch (dto.type()){
-            case HALF_OPEN -> {
-                example.setAnswers(dto.answers());
-            }
-            case MULTIPLE_CHOICE -> {
-                example.setOptions(dto.options());
-            }
+        switch (dto.type()) {
+            case HALF_OPEN -> example.setAnswers(dto.answers());
+            case MULTIPLE_CHOICE -> example.setOptions(dto.options());
             case GAP_FILL -> {
                 List<Gap> gaps = new LinkedList<>();
-                for(GapDTO g : dto.gaps()){
+                for (GapDTO g : dto.gaps()) {
                     gaps.add(new Gap(g.label(), g.solution(), g.options(), example));
                 }
-
                 example.getGaps().clear();
                 example.getGaps().addAll(gaps);
                 example.setGapFillType(dto.gapFillType());
@@ -158,16 +157,19 @@ public class ExampleRepository {
             case CONSTRUCTION -> {
                 example.setImageUrl(dto.image());
                 example.setSolutionUrl(dto.solutionUrl());
+                example.setImageWidth(dto.imageWidth());
+                example.setSolutionImageWidth(dto.solutionImageWidth());
             }
             case ASSIGN -> {
                 example.setAssigns(dto.assigns());
                 example.setAssignRightItems(dto.assignRightItems());
             }
+            case OPEN -> {
+            }
         }
 
-        em.persist(example);
-
-        return Response.ok().build();
+        em.merge(example);
+        return Response.ok(example.getId()).build();
     }
 
     @Transactional
@@ -176,7 +178,7 @@ public class ExampleRepository {
 
         Long userId = tokenService.validateTokenAndGetUserId(authToken);
 
-        if(example.getAdmin().getId() != userId && example.getSchool().getAdmin().getId() != userId){
+        if (!example.getAdmin().getId().equals(userId) && !example.getSchool().getAdmin().getId().equals(userId)) {
             return Response.status(403)
                     .entity("Not allowed to delete this Example.")
                     .build();
@@ -188,11 +190,12 @@ public class ExampleRepository {
     }
 
     public CreateExampleDTO getExample(Long exampleId, String authToken) {
-        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        tokenService.validateTokenAndGetUserId(authToken);
 
         Example e = em.find(Example.class, exampleId);
 
-        return new CreateExampleDTO("",
+        return new CreateExampleDTO(
+                "",
                 e.getSchool().getId(),
                 e.getType(),
                 e.getInstruction(),
@@ -206,20 +209,10 @@ public class ExampleRepository {
                 e.getImageUrl(),
                 e.getSolution(),
                 e.getSolutionUrl(),
-                e.getFocusList());
-    }
-
-    @Transactional
-    public String updateConstructionImages(Long exampleId, String imageKey, String solutionKey) {
-        Example example = em.find(Example.class, exampleId);
-        if (example == null) {
-            return "EXAMPLE_NOT_FOUND";
-        }
-
-        example.setImageUrl(imageKey);
-        example.setSolutionUrl(solutionKey);
-        em.merge(example);
-        return null;
+                e.getFocusList(),
+                e.getImageWidth(),
+                e.getSolutionImageWidth()
+        );
     }
 
     @Transactional

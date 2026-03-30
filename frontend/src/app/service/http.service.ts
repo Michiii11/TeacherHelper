@@ -77,12 +77,12 @@ export class HttpService {
     return this.http.get(`${Config.API_URL}/example/school/${schoolId}`);
   }
 
-  createExample(payload: any) {
-    return this.http.post(`${Config.API_URL}/example`, payload, { responseType: 'text' as 'json' });
+  createExample(dto: CreateExampleDTO) {
+    return this.http.post(`${Config.API_URL}/example`, dto, { responseType: 'text' });
   }
 
-  saveExample(id: number, payload: any) {
-    return this.http.put(`${Config.API_URL}/example/${id}`, payload, { responseType: 'text' as 'json' });
+  saveExample(exampleId: number, dto: CreateExampleDTO) {
+    return this.http.put(`${Config.API_URL}/example/${exampleId}`, dto, { responseType: 'text' });
   }
 
   deleteExample(id: number) {
@@ -106,24 +106,28 @@ export class HttpService {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('authToken', this.authToken());
-
-    return this.http.post(
-      `${Config.API_URL}/example/${exampleId}/construction-image`,
-      formData,
-      { responseType: 'text' as 'json' }
-    );
+    return this.http.post(`${Config.API_URL}/example/${exampleId}/construction-image`, formData, { responseType: 'text' });
   }
 
   uploadConstructionSolutionImage(exampleId: number, file: File) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('authToken', this.authToken());
+    return this.http.post(`${Config.API_URL}/example/${exampleId}/construction-solution-image`, formData, { responseType: 'text' });
+  }
 
-    return this.http.post(
-      `${Config.API_URL}/example/${exampleId}/construction-solution-image`,
-      formData,
-      { responseType: 'text' as 'json' }
-    );
+  deleteConstructionImage(exampleId: number) {
+    return this.http.delete(`${Config.API_URL}/example/${exampleId}/construction-image`, {
+      body: { authToken: this.authToken() },
+      responseType: 'text'
+    });
+  }
+
+  deleteConstructionSolutionImage(exampleId: number) {
+    return this.http.delete(`${Config.API_URL}/example/${exampleId}/construction-solution-image`, {
+      body: { authToken: this.authToken() },
+      responseType: 'text'
+    });
   }
 
   getConstructionImageUrl(exampleId: number | null | undefined): string | null {

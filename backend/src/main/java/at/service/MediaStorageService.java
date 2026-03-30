@@ -5,8 +5,8 @@ import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import jakarta.enterprise.context.ApplicationScoped;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import net.coobird.thumbnailator.Thumbnails;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

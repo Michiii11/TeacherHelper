@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 
 import { Example, ExampleTypes, Gap, Option } from '../model/Example';
 import { CreateTestDTO, TestExampleDTO } from '../model/Test';
+import { Config } from '../config';
 
 export type GradeMode = 'auto' | 'manual';
 
@@ -26,6 +27,8 @@ export type TestPrintOptions = {
 
 @Injectable({ providedIn: 'root' })
 export class TestPrintService {
+  private readonly defaultImageWidth = 320;
+
   printTest(test: PrintableTest, selectedExamples: TestExampleDTO[], options: TestPrintOptions): boolean {
     const printFrame = document.createElement('iframe');
     printFrame.style.position = 'fixed';
@@ -261,12 +264,14 @@ export class TestPrintService {
 
       case ExampleTypes.CONSTRUCTION: {
         const image = isSolution
-          ? ((example as any).solutionUrl || (example as any).imageUrl || (example as any).image)
-          : ((example as any).imageUrl || (example as any).image);
+          ? this.getConstructionSolutionImage(example)
+          : this.getConstructionTaskImage(example);
+
+        const width = this.normalizeImageWidth((example as any).imageWidth);
 
         return `
           <div class="construction-preview">
-            ${image ? `<img src="${this.escapeHtml(image)}" alt="Vorschau" class="image-preview" />` : ''}
+            ${image ? `<img src="${this.escapeHtml(image)}" alt="Vorschau" class="image-preview" style="width:${width}px;" />` : ''}
             ${isSolution ? '' : '<div class="construction-space"></div>'}
           </div>
         `;
@@ -340,5 +345,37 @@ export class TestPrintService {
       default:
         return '';
     }
+  }
+
+  private getConstructionTaskImage(example: Example): string | null {
+    if (!example?.id) {
+      return (example as any).imageUrl || (example as any).image || null;
+    }
+
+    if ((example as any).imageUrl || (example as any).image) {
+      return `${Config.API_URL}/example/${example.id}/construction-image`;
+    }
+
+    return null;
+  }
+
+  private getConstructionSolutionImage(example: Example): string | null {
+    if (!example?.id) {
+      return (example as any).solutionUrl || null;
+    }
+
+    if ((example as any).solutionUrl) {
+      return `${Config.API_URL}/example/${example.id}/construction-solution-image`;
+    }
+
+    return this.getConstructionTaskImage(example);
+  }
+
+  private normalizeImageWidth(value: number | null | undefined): number {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+      return this.defaultImageWidth;
+    }
+    return Math.max(80, Math.min(1200, Math.round(parsed)));
   }
 }

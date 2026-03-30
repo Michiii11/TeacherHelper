@@ -3,3 +3,115 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif;   background: #f8fafc;}
+
+:root {
+  --bg: #f3f6fb;
+  --surface: #ffffff;
+  --surface-soft: #f8fbff;
+  --text: #0f172a;
+  --text-soft: #64748b;
+  --border: #e2e8f0;
+  --shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+}
+
+body.dark-mode {
+  background: #0f172a;
+  color: #e5e7eb;
+}
+
+body.dark-mode .profile-page {
+  color: #e5e7eb;
+}
+
+body.dark-mode .page-title,
+body.dark-mode .profile-name,
+body.dark-mode .panel-title,
+body.dark-mode .setting-title,
+body.dark-mode .plan-option-name {
+  color: #f8fafc;
+}
+
+body.dark-mode .page-subtitle,
+body.dark-mode .profile-mail,
+body.dark-mode .panel-subtitle,
+body.dark-mode .info-text,
+body.dark-mode .plan-option-sub,
+body.dark-mode .profile-pending,
+body.dark-mode .feature-row {
+  color: #94a3b8;
+}
+
+body.dark-mode .loading-card,
+body.dark-mode .card,
+body.dark-mode .panel,
+body.dark-mode .profile-hero,
+body.dark-mode .settings-hero,
+body.dark-mode .plan-option {
+  background: #111827 !important;
+  border-color: #374151 !important;
+  color: #e5e7eb;
+}
+
+body.dark-mode .setting-card,
+body.dark-mode .setting-language-card {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+body.dark-mode .title-icon {
+  background: #1e293b !important;
+  color: #e5e7eb !important;
+}
+
+body.dark-mode .avatar-shell {
+  background: #1e293b !important;
+  border-color: #374151 !important;
+}
+
+body.dark-mode .avatar-fallback {
+  color: #f8fafc !important;
+}
+
+body.dark-mode .tag-plan,
+body.dark-mode .plan-badge {
+  background: #1d4ed8 !important;
+  color: #dbeafe !important;
+  border-color: #2563eb !important;
+}
+
+body.dark-mode .upload-button {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #e5e7eb !important;
+}
+
+body.dark-mode .upload-button:hover {
+  background: #273449 !important;
+  border-color: #4b5563 !important;
+}
+
+body.dark-mode .native-select {
+  background: #111827 !important;
+  color: #f8fafc !important;
+  border-color: #374151 !important;
+}
+
+body.dark-mode .switch-track {
+  background: #475569 !important;
+}
+
+body.dark-mode .switch-thumb {
+  background: #f8fafc !important;
+}
+
+body.dark-mode .switch input:checked + .switch-track {
+  background: #2563eb !important;
+}
+
+body.dark-mode .danger-panel {
+  border-color: #7f1d1d !important;
+}
+
+body.dark-mode .error-text {
+  color: #fca5a5 !important;
+}

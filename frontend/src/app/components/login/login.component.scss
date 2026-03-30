@@ -1,199 +1,292 @@
-/* =========================
-   PAGE CENTERING
-========================= */
+:host {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 24%),
+    radial-gradient(circle at top right, rgba(99, 102, 241, 0.10), transparent 18%),
+    linear-gradient(180deg, #f8fbff 0%, #f3f6fb 100%);
+}
 
 .auth-card {
-  max-width: 420px;
-  margin: 4rem auto;
-  padding: 1.5rem 1.5rem 1.8rem;
-  border-radius: 1.25rem;
-  background: #ffffff;
-  box-shadow:
-    0 10px 25px rgba(0, 0, 0, .08),
-    0 2px 6px rgba(0, 0, 0, .04);
-  border: 1px solid rgba(0, 0, 0, .05);
+  width: min(100%, 520px);
+  border-radius: 28px !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12) !important;
+  overflow: hidden;
 }
 
-/* =========================
-   TABS DESIGN FIX
-========================= */
-
-::ng-deep .mat-mdc-tab-group {
-  --mdc-tab-indicator-active-indicator-color: #2563eb;
+.auth-header {
+  padding: 1.75rem 1.75rem 1rem;
+  text-align: center;
 }
 
-::ng-deep .mat-mdc-tab {
-  font-weight: 600;
-  letter-spacing: .2px;
+.auth-header h2 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
 }
 
-::ng-deep .mat-mdc-tab-labels {
-  background: #f8fafc;
-  border-radius: 12px;
-  padding: 4px;
+.auth-header p {
+  margin: 0.45rem 0 0;
+  color: #64748b;
+  font-size: 0.98rem;
 }
-
-::ng-deep .mat-mdc-tab.mdc-tab--active {
-  background: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
-}
-
-/* =========================
-   FORM LAYOUT
-========================= */
 
 .auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding-top: 1.2rem;
+  display: block;
 }
 
-.forgot-form {
-  padding-top: .8rem;
+mat-card-content {
+  padding: 1.25rem 1.5rem 1rem !important;
+}
+
+mat-card-actions {
+  padding: 0 1.5rem 1.35rem !important;
+  margin: 0 !important;
 }
 
 .full-width {
   width: 100%;
 }
 
-/* =========================
-   INPUT FIELDS
-========================= */
-
-::ng-deep .mat-mdc-form-field {
-  font-size: .9rem;
+.auth-form .full-width + .full-width {
+  margin-top: 0.25rem;
 }
 
-::ng-deep .mat-mdc-text-field-wrapper {
-  border-radius: 12px !important;
+button[type="submit"][mat-raised-button] {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 0.4rem;
+  border-radius: 14px;
+  font-weight: 700;
 }
 
-.inline-action {
-  min-width: auto;
-  padding: 0 .35rem;
-  font-size: .78rem;
-  color: #2563eb;
-}
-
-/* =========================
-   BUTTONS
-========================= */
-
-.auth-form button[type="submit"],
-.forgot-actions button[mat-raised-button] {
-  height: 42px;
-  border-radius: 12px;
-  font-weight: 600;
-  letter-spacing: .3px;
-  margin-top: .5rem;
-}
-
-mat-card-actions {
+.action-row {
   display: flex;
-  justify-content: center;
-  padding-top: .35rem;
-}
-
-mat-card-actions button {
-  font-size: .85rem;
-  color: #2563eb;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .action-row-single {
-  padding-bottom: .2rem;
+  justify-content: center;
 }
 
-/* =========================
-   FEEDBACK MESSAGES
-========================= */
+.inline-action {
+  min-width: unset;
+  padding: 0 0.4rem !important;
+  color: #2563eb !important;
+  font-weight: 600;
+}
 
 .feedback {
-  padding: .6rem .9rem;
-  border-radius: 10px;
-  font-size: .85rem;
-  font-weight: 500;
-  text-align: center;
-}
-
-.feedback.error {
-  background: rgba(239, 68, 68, .08);
-  color: #dc2626;
-  border: 1px solid rgba(239, 68, 68, .25);
+  margin: 0.4rem 0 0.9rem;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  border: 1px solid transparent;
 }
 
 .feedback.success {
-  background: rgba(34, 197, 94, .08);
-  color: #16a34a;
-  border: 1px solid rgba(34, 197, 94, .25);
+  background: rgba(22, 163, 74, 0.08);
+  color: #15803d;
+  border-color: rgba(22, 163, 74, 0.14);
 }
 
-/* =========================
-   FORGOT PASSWORD PANEL
-========================= */
+.feedback.error {
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+  border-color: rgba(239, 68, 68, 0.14);
+}
 
 .forgot-panel {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(0, 0, 0, .08);
+  margin: 0 1.25rem 1.25rem;
+  padding: 1.1rem;
+  border-radius: 22px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
 }
 
-.forgot-header {
-  text-align: center;
-  margin-bottom: .25rem;
+.forgot-header h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+}
 
-  h3 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 700;
-    color: #0f172a;
-  }
+.forgot-header p {
+  margin: 0.45rem 0 0;
+  color: #64748b;
+  line-height: 1.5;
+}
 
-  p {
-    margin: .35rem 0 0;
-    font-size: .85rem;
-    color: #64748b;
-    line-height: 1.45;
-  }
+.forgot-form mat-card-content {
+  padding: 1rem 0 0 !important;
 }
 
 .forgot-actions {
   display: flex;
-  flex-direction: column;
-  gap: .45rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
 }
 
-/* =========================
-   MOBILE
-========================= */
+::ng-deep .mat-mdc-tab-group {
+  --mdc-secondary-navigation-tab-container-height: 52px;
+}
 
-@media (max-width: 520px) {
+::ng-deep .mat-mdc-tab-header {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+::ng-deep .mat-mdc-tab {
+  font-weight: 700;
+}
+
+::ng-deep .mat-mdc-text-field-wrapper {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-radius: 18px !important;
+}
+
+::ng-deep .mdc-notched-outline__leading,
+::ng-deep .mdc-notched-outline__notch,
+::ng-deep .mdc-notched-outline__trailing {
+  border-color: rgba(148, 163, 184, 0.35) !important;
+}
+
+::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__leading,
+::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__notch,
+::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__trailing {
+  border-color: rgba(37, 99, 235, 0.35) !important;
+}
+
+::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
+::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
+  border-color: #2563eb !important;
+}
+
+::ng-deep .mat-mdc-form-field-focus-overlay {
+  background: transparent !important;
+}
+
+/* DARK MODE */
+
+:host-context(.dark-mode) {
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 28%),
+    radial-gradient(circle at top right, rgba(79, 70, 229, 0.16), transparent 22%),
+    linear-gradient(180deg, #0b1120 0%, #111827 100%);
+
   .auth-card {
-    margin: 2rem 1rem;
-    padding: 1.2rem;
+    background: rgba(17, 24, 39, 0.9) !important;
+    border-color: rgba(71, 85, 105, 0.55);
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.42) !important;
+  }
+
+  .auth-header h2,
+  .forgot-header h3 {
+    color: #f8fafc;
+  }
+
+  .auth-header p,
+  .forgot-header p {
+    color: #94a3b8;
+  }
+
+  .forgot-panel {
+    background: rgba(15, 23, 42, 0.92);
+    border-color: rgba(71, 85, 105, 0.5);
+  }
+
+  .feedback.success {
+    background: rgba(22, 163, 74, 0.14);
+    color: #bbf7d0;
+    border-color: rgba(34, 197, 94, 0.2);
+  }
+
+  .feedback.error {
+    background: rgba(239, 68, 68, 0.14);
+    color: #fecaca;
+    border-color: rgba(248, 113, 113, 0.2);
+  }
+
+  .inline-action {
+    color: #93c5fd !important;
+  }
+
+  ::ng-deep .mat-mdc-tab-header {
+    border-bottom-color: rgba(71, 85, 105, 0.5);
+  }
+
+  ::ng-deep .mat-mdc-tab .mdc-tab__text-label {
+    color: #cbd5e1;
+  }
+
+  ::ng-deep .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
+    color: #dbeafe !important;
+  }
+
+  ::ng-deep .mat-mdc-tab-group.mat-primary .mdc-tab-indicator__content--underline {
+    border-color: #60a5fa !important;
+  }
+
+  ::ng-deep .mat-mdc-text-field-wrapper {
+    background: rgba(15, 23, 42, 0.92) !important;
+  }
+
+  ::ng-deep .mat-mdc-input-element,
+  ::ng-deep .mdc-floating-label,
+  ::ng-deep .mat-mdc-form-field-icon-suffix {
+    color: #e5e7eb !important;
+    caret-color: #93c5fd !important;
+  }
+
+  ::ng-deep .mdc-notched-outline__leading,
+  ::ng-deep .mdc-notched-outline__notch,
+  ::ng-deep .mdc-notched-outline__trailing {
+    border-color: rgba(71, 85, 105, 0.65) !important;
+  }
+
+  ::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__leading,
+  ::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__notch,
+  ::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__trailing {
+    border-color: rgba(148, 163, 184, 0.9) !important;
+  }
+
+  ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+  ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
+  ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
+    border-color: #60a5fa !important;
   }
 }
 
-.auth-header {
-  text-align: center;
-  margin-bottom: 1rem;
-
-  h2 {
-    margin: 0;
-    font-weight: 700;
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+@media (max-width: 640px) {
+  :host {
+    padding: 1rem 0.75rem;
   }
 
-  p {
-    margin: .2rem 0 0;
-    font-size: .85rem;
-    color: #64748b;
+  .auth-header {
+    padding: 1.4rem 1.2rem 0.8rem;
   }
-}
 
-.forgot-panel {
-  overflow: hidden;
+  mat-card-content {
+    padding: 1rem 1rem 0.9rem !important;
+  }
+
+  mat-card-actions {
+    padding: 0 1rem 1rem !important;
+  }
+
+  .forgot-panel {
+    margin: 0 0.9rem 1rem;
+    padding: 0.95rem;
+  }
+
+  .forgot-actions {
+    flex-direction: column;
+  }
 }

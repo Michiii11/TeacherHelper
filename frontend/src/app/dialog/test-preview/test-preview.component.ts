@@ -33,6 +33,7 @@ export class TestPreviewComponent implements OnInit {
   private testPrintService = inject(TestPrintService);
 
   readonly ExampleTypes = ExampleTypes;
+  readonly defaultImageWidth = 320;
 
   printCopies = 1;
   includeSolutionSheet = false;
@@ -72,6 +73,7 @@ export class TestPreviewComponent implements OnInit {
         };
 
         this.hydratePersistedSettings(response);
+        this.test.exampleList = this.hydrateConstructionImagesForEntries(this.test.exampleList ?? []);
       },
     });
   }
@@ -149,6 +151,33 @@ export class TestPreviewComponent implements OnInit {
 
   getPreviewImage(example: Example): string | null {
     return (example as any).imageUrl || (example as any).image || null;
+  }
+
+  getImageWidth(example: Example): number {
+    return this.normalizeImageWidth((example as any).imageWidth);
+  }
+
+  private hydrateConstructionImagesForEntries(entries: TestExampleDTO[]): TestExampleDTO[] {
+    return (entries ?? []).map(entry => ({
+      ...entry,
+      example: this.hydrateConstructionImage(entry.example)
+    }));
+  }
+
+  private hydrateConstructionImage(example: Example): Example {
+    if (!example || example.type !== ExampleTypes.CONSTRUCTION || !example.id) {
+      return example;
+    }
+
+    const hasTaskImage = !!((example as any).imageUrl || (example as any).image);
+    const hasSolutionImage = !!((example as any).solutionUrl);
+
+    return {
+      ...example,
+      imageUrl: hasTaskImage ? (this.service.getConstructionImageUrl(example.id) ?? '') : '',
+      image: hasTaskImage ? (this.service.getConstructionImageUrl(example.id) ?? '') : '',
+      solutionUrl: hasSolutionImage ? (this.service.getConstructionSolutionImageUrl(example.id) ?? '') : ''
+    } as Example & { image?: string };
   }
 
   private getAutomaticGradeRangeLabel(grade: number, maxPoints: number): string {
@@ -261,5 +290,13 @@ export class TestPreviewComponent implements OnInit {
     const numeric = Math.round(Number(value ?? 0));
     if (!Number.isFinite(numeric)) return 0;
     return Math.max(0, Math.min(240, numeric));
+  }
+
+  private normalizeImageWidth(value: number | null | undefined): number {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+      return this.defaultImageWidth;
+    }
+    return Math.max(80, Math.min(1200, Math.round(parsed)));
   }
 }

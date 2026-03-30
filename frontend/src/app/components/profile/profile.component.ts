@@ -12,6 +12,7 @@ import * as CryptoJS from 'crypto-js';
 import { HttpService } from '../../service/http.service';
 import { User } from '../../model/User';
 import { ConfirmDialogComponent } from '../../dialog/confirm-dialog/confirm-dialog.component';
+import { ThemeService } from '../../service/theme.service';
 
 type ProfileSettings = {
   darkMode: boolean;
@@ -41,6 +42,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
   private readonly destroy$ = new Subject<void>();
+  private readonly themeService = inject(ThemeService);
 
   private readonly DARK_MODE_KEY = 'teacher_settings_dark_mode';
   private readonly LANGUAGE_KEY = 'teacher_settings_language';
@@ -117,8 +119,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit(): void {
-    this.setupSettingsAutoSave();
     this.loadLocalSettings();
+    this.setupSettingsAutoSave();
     this.loadUser();
   }
 
@@ -170,7 +172,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
         }
 
         const settings = this.getCurrentSettings();
-
         this.applyLocalSettings(settings.darkMode, settings.language);
         this.persistSettings(settings);
       });
@@ -180,10 +181,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
     const darkMode = this.getStoredDarkMode();
     const language = this.getStoredLanguage();
 
-    this.settingsForm.patchValue({
-      darkMode,
-      language
-    }, { emitEvent: false });
+    this.settingsForm.patchValue(
+      {
+        darkMode,
+        language
+      },
+      { emitEvent: false }
+    );
 
     this.applyLocalSettings(darkMode, language);
   }
@@ -207,7 +211,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private applyLocalSettings(darkMode: boolean, language: string): void {
     localStorage.setItem(this.DARK_MODE_KEY, String(darkMode));
     localStorage.setItem(this.LANGUAGE_KEY, language);
-    this.applyDarkMode(darkMode);
+    this.themeService.setDarkMode(darkMode);
     document.documentElement.lang = language;
   }
 
@@ -571,10 +575,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   hasEmailError(error: string): boolean {
     return !!this.emailForm.controls.email.touched && !!this.emailForm.controls.email.hasError(error);
-  }
-
-  private applyDarkMode(enabled: boolean): void {
-    document.body.classList.toggle('dark-mode', enabled);
   }
 
   deleteAvatar(): void {

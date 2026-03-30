@@ -1,4 +1,3 @@
-// src/main/java/at/model/Example.java
 package at.model;
 
 import at.dtos.Example.GapDTO;
@@ -9,6 +8,7 @@ import at.model.helper.Focus;
 import at.model.helper.Gap;
 import at.model.helper.Option;
 import jakarta.persistence.*;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,14 +26,16 @@ public class Example {
     private ExampleTypes type;
 
     private String instruction;
-
     private String question;
-
     private String solution;
-
     private String solutionUrl;
-
     private String imageUrl;
+
+    /**
+     * Gilt für Preview UND Druck/Test.
+     */
+    private Integer imageWidth;
+    private Integer solutionImageWidth;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -80,27 +82,6 @@ public class Example {
         this.school = school;
     }
 
-    @Override
-    public String toString() {
-        return "Example{" +
-                "id=" + id +
-                ", admin=" + admin +
-                ", type=" + type +
-                ", instruction='" + instruction + '\'' +
-                ", question='" + question + '\'' +
-                ", answer='" + solution + '\'' +
-                ", imageUrl='" + imageUrl + '\'' +
-                ", school=" + school +
-                ", answers=" + answers +
-                ", options=" + options +
-                ", gapFillType=" + gapFillType +
-                ", gaps=" + gaps +
-                ", assigns=" + assigns +
-                ", assignRightItems=" + assignRightItems +
-                '}';
-    }
-
-    // Getter und Setter (gekürzt für Übersichtlichkeit)
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -119,8 +100,17 @@ public class Example {
     public String getSolution() { return solution; }
     public void setSolution(String solution) { this.solution = solution; }
 
+    public String getSolutionUrl() { return solutionUrl; }
+    public void setSolutionUrl(String solutionUrl) { this.solutionUrl = solutionUrl; }
+
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public Integer getImageWidth() { return imageWidth; }
+    public void setImageWidth(Integer imageWidth) { this.imageWidth = imageWidth; }
+
+    public Integer getSolutionImageWidth() { return solutionImageWidth; }
+    public void setSolutionImageWidth(Integer solutionImageWidth) { this.solutionImageWidth = solutionImageWidth; }
 
     public List<String[]> getAnswers() { return answers; }
     public void setAnswers(List<String[]> answers) { this.answers = answers; }
@@ -132,13 +122,11 @@ public class Example {
     public void setGapFillType(GapFillType gapFillType) { this.gapFillType = gapFillType; }
 
     public List<Gap> getGaps() { return gaps; }
-    public void setGaps(List<Gap> gaps) {
-        this.gaps = gaps;
-    }
+    public void setGaps(List<Gap> gaps) { this.gaps = gaps; }
 
     public List<GapDTO> getGapDTO() {
         List<GapDTO> dtos = new LinkedList<>();
-        for(Gap g : getGaps()){
+        for (Gap g : getGaps()) {
             dtos.add(new GapDTO(g.getId(), g.getLabel(), g.getSolution(), g.getOptions()));
         }
         return dtos;
@@ -153,19 +141,6 @@ public class Example {
     public School getSchool() { return school; }
     public void setSchool(School school) { this.school = school; }
 
-    public String getSolutionUrl() {
-        return solutionUrl;
-    }
-
-    public void setSolutionUrl(String solutionUrl) {
-        this.solutionUrl = solutionUrl;
-    }
-
-    public List<Focus> getFocusList() {
-        return focusList;
-    }
-
-    public void setFocusList(List<Focus> focusList) {
-        this.focusList = focusList;
-    }
+    public List<Focus> getFocusList() { return focusList; }
+    public void setFocusList(List<Focus> focusList) { this.focusList = focusList; }
 }

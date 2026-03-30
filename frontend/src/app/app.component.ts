@@ -7,6 +7,7 @@ import {interval, switchMap} from 'rxjs'
 import {MatProgressSpinner} from '@angular/material/progress-spinner'
 import {FooterComponent} from './components/footer/footer.component'
 import {AuthService} from './service/auth.service'
+import {ThemeService} from './service/theme.service'
 
 @Component({
   selector: 'app-root',
@@ -20,11 +21,16 @@ import {AuthService} from './service/auth.service'
   ],
   styleUrl: './app.component.scss'
 })
-export class AppComponent{
+export class AppComponent implements OnInit{
   service = inject(HttpService)
 
   private route = inject(ActivatedRoute);
   private dialog = inject(MatDialog);
+  private readonly themeService = inject(ThemeService);
+
+  ngOnInit(): void {
+    this.themeService.init();
+  }
 
   isLoggedIn = false;
 

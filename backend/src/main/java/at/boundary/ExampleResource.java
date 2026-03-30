@@ -3,23 +3,22 @@ package at.boundary;
 import at.dtos.Example.CreateExampleDTO;
 import at.dtos.Example.ExampleDTO;
 import at.dtos.Example.ExampleOverviewDTO;
+import at.model.Example;
 import at.repository.ExampleRepository;
+import at.security.TokenService;
+import at.service.MediaStorageService;
 import jakarta.inject.Inject;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import at.model.Example;
-import at.security.TokenService;
-import at.service.MediaStorageService;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
-import jakarta.ws.rs.core.MediaType;
-
-import java.nio.file.Files;
-import java.util.Set;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
+import java.util.Set;
 
 @Path("/example")
 public class ExampleResource {
@@ -49,24 +48,26 @@ public class ExampleResource {
 
     @POST
     @Path("{exampleId}")
-    public CreateExampleDTO getExample(@PathParam("exampleId") Long exampleId, JsonObject json){
+    public CreateExampleDTO getExample(@PathParam("exampleId") Long exampleId, JsonObject json) {
         return repo.getExample(exampleId, json.getString("authToken"));
     }
 
     @POST
-    public Response createExample(CreateExampleDTO dto) throws IOException {
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response createExample(CreateExampleDTO dto) {
         return repo.createExample(dto);
     }
 
     @PUT
     @Path("{exampleId}")
-    public Response updateExample(@PathParam("exampleId") Long exampleId, CreateExampleDTO dto){
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response updateExample(@PathParam("exampleId") Long exampleId, CreateExampleDTO dto) {
         return repo.updateExample(exampleId, dto);
     }
 
     @DELETE
     @Path("{exampleId}")
-    public Response deleteExample(JsonObject json, @PathParam("exampleId") Long exampleId){
+    public Response deleteExample(JsonObject json, @PathParam("exampleId") Long exampleId) {
         return repo.deleteExample(json.getString("authToken"), exampleId);
     }
 
@@ -105,6 +106,10 @@ public class ExampleResource {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Datei ist zu groß. Maximal 5 MB erlaubt.").build();
             }
 
+            if (example.getImageUrl() != null && !example.getImageUrl().isBlank()) {
+                mediaStorageService.delete(example.getImageUrl());
+            }
+
             String objectKey = mediaStorageService.uploadConstructionTaskImage(exampleId, file.uploadedFile());
             String result = repo.updateConstructionTaskImage(exampleId, objectKey);
 
@@ -116,6 +121,34 @@ public class ExampleResource {
         } catch (IOException e) {
             return Response.serverError().entity("Datei konnte nicht gespeichert werden.").build();
         }
+    }
+
+    @DELETE
+    @Path("{exampleId}/construction-image")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response deleteConstructionImage(@PathParam("exampleId") Long exampleId, JsonObject json) {
+        String authToken = json.getString("authToken", "");
+        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Ungültiger Token").build();
+        }
+
+        Example example = repo.findById(exampleId);
+        if (example == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Beispiel nicht gefunden.").build();
+        }
+
+        if (!example.getAdmin().getId().equals(userId) && !example.getSchool().getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Nicht berechtigt.").build();
+        }
+
+        if (example.getImageUrl() != null && !example.getImageUrl().isBlank()) {
+            mediaStorageService.delete(example.getImageUrl());
+        }
+
+        repo.updateConstructionTaskImage(exampleId, "");
+        return Response.ok("DELETED").build();
     }
 
     @POST
@@ -153,6 +186,10 @@ public class ExampleResource {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Datei ist zu groß. Maximal 5 MB erlaubt.").build();
             }
 
+            if (example.getSolutionUrl() != null && !example.getSolutionUrl().isBlank()) {
+                mediaStorageService.delete(example.getSolutionUrl());
+            }
+
             String objectKey = mediaStorageService.uploadConstructionSolutionImage(exampleId, file.uploadedFile());
             String result = repo.updateConstructionSolutionImage(exampleId, objectKey);
 
@@ -164,6 +201,34 @@ public class ExampleResource {
         } catch (IOException e) {
             return Response.serverError().entity("Datei konnte nicht gespeichert werden.").build();
         }
+    }
+
+    @DELETE
+    @Path("{exampleId}/construction-solution-image")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response deleteConstructionSolutionImage(@PathParam("exampleId") Long exampleId, JsonObject json) {
+        String authToken = json.getString("authToken", "");
+        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Ungültiger Token").build();
+        }
+
+        Example example = repo.findById(exampleId);
+        if (example == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Beispiel nicht gefunden.").build();
+        }
+
+        if (!example.getAdmin().getId().equals(userId) && !example.getSchool().getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Nicht berechtigt.").build();
+        }
+
+        if (example.getSolutionUrl() != null && !example.getSolutionUrl().isBlank()) {
+            mediaStorageService.delete(example.getSolutionUrl());
+        }
+
+        repo.updateConstructionSolutionImage(exampleId, "");
+        return Response.ok("DELETED").build();
     }
 
     @GET

@@ -66,7 +66,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
   private readonly http = inject(HttpService);
 
-  // ------- UI state -------
   hasUnsavedChanges = false;
   isEditMode = false;
   isSaving = false;
@@ -79,8 +78,8 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
   readonly maxImageBytes = 5 * 1024 * 1024;
   readonly allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  readonly defaultImageWidth = 320;
 
-  // ------- form model -------
   example: CreateExampleDTO = {
     authToken: '',
     schoolId: this.data.schoolId,
@@ -96,10 +95,11 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     image: '',
     solution: '',
     solutionUrl: '',
-    focusList: []
+    focusList: [],
+    imageWidth: this.defaultImageWidth,
+    solutionImageWidth: this.defaultImageWidth
   };
 
-  // types
   readonly ExampleTypes = ExampleTypes;
   exampleTypes = Object.values(ExampleTypes) as ExampleTypes[];
   ExampleTypeLabels = ExampleTypeLabels;
@@ -122,9 +122,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ---------------------------
-  // Focus (tags): source + selection
-  // ---------------------------
   private readonly focusSubject = new BehaviorSubject<Focus[]>([]);
   readonly focus$ = this.focusSubject.asObservable();
 
@@ -136,11 +133,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   @ViewChild('inputEl') inputEl!: ElementRef<HTMLInputElement>;
   @ViewChild(MatAutocompleteTrigger) autocompleteTrigger!: MatAutocompleteTrigger;
 
-  /**
-   * Autocomplete list:
-   * - Always show all available focuses minus selected ones.
-   * - If user typed something => filter by query
-   */
   readonly filteredFocusList = combineLatest([
     this.inputCtrl.valueChanges.pipe(startWith('')),
     this.focus$,
@@ -148,35 +140,39 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   ]).pipe(
     map(([rawValue, focuses, selected]) => {
       const query = this.normalizeLabel(typeof rawValue === 'string' ? rawValue : '');
-
       const selectedSet = new Set(selected.map(s => this.normalizeLabel(s.label)));
 
       return focuses
-        // hide selected from suggestions
         .filter(f => !selectedSet.has(this.normalizeLabel(f.label)))
-        // if user typed something, filter; otherwise show all (minus selected)
         .filter(f => !query || this.normalizeLabel(f.label).includes(query));
     })
   );
 
   ngOnInit(): void {
-    // Load focus catalog
     this.http.getAllFocus(this.data.schoolId)
       .pipe(takeUntil(this.destroy$))
       .subscribe(focuses => this.focusSubject.next(focuses));
 
-    // Edit mode: load example then sync selected focuses
     if (this.data.exampleId) {
       this.http.getCreateExample(this.data.exampleId)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
-            this.example = response;
+            this.example = {
+              ...response,
+              imageWidth: response.imageWidth ?? this.defaultImageWidth,
+              solutionImageWidth: response.solutionImageWidth ?? this.defaultImageWidth
+            };
             this.isEditMode = true;
 
             if (this.example.type === ExampleTypes.CONSTRUCTION && this.data.exampleId) {
-              this.constructionImagePreviewUrl = this.http.getConstructionImageUrl(this.data.exampleId);
-              this.constructionSolutionPreviewUrl = this.http.getConstructionSolutionImageUrl(this.data.exampleId);
+              this.constructionImagePreviewUrl = this.example.image
+                ? this.http.getConstructionImageUrl(this.data.exampleId)
+                : null;
+              this.constructionSolutionPreviewUrl = this.example.solutionUrl
+                ? this.http.getConstructionSolutionImageUrl(this.data.exampleId)
+                : null;
+
               this.example.image = this.constructionImagePreviewUrl ?? '';
               this.example.solutionUrl = this.constructionSolutionPreviewUrl ?? '';
             }
@@ -194,15 +190,11 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // ---------------------------
-  // Utility helpers
-  // ---------------------------
   private normalizeLabel(label: string): string {
     return (label ?? '').trim().toLowerCase();
   }
 
   private emitSelectedFocus(): void {
-    // new reference => combineLatest updates immediately
     this.selectedFocusSubject.next([...(this.example.focusList ?? [])]);
   }
 
@@ -219,9 +211,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     this.hasUnsavedChanges = true;
   }
 
-  // ----------------------
-  // Multiple choice
-  // ----------------------
   addOption(): void {
     this.example.options.push({ id: this.generateUniqueId(), text: '', correct: false });
     this.markDirty();
@@ -233,9 +222,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     this.markDirty();
   }
 
-  // ----------------------
-  // Half-open
-  // ----------------------
   addHalfOpenAnswer(): void {
     this.example.answers.push(['', '']);
     this.markDirty();
@@ -247,9 +233,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     this.markDirty();
   }
 
-  // ----------------------
-  // Assign (left / right lists + connections)
-  // ----------------------
   addAssignLeftItem(): void {
     this.example.assigns.push({ left: '', right: '' });
     this.markDirty();
@@ -279,9 +262,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     return String.fromCharCode(65 + i);
   }
 
-  // ----------------------
-  // Gap fill helpers
-  // ----------------------
   updateGapsFromText(): void {
     const regex = /\{Lücke (\d+)\}/g;
     const matches = Array.from(this.example.question.matchAll(regex));
@@ -345,9 +325,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     this.markDirty();
   }
 
-  // ----------------------
-  // Construction image
-  // ----------------------
   onImageSelected(event: Event, type: 'solution' | 'preview'): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
@@ -373,32 +350,75 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       if (type === 'solution') {
         this.selectedConstructionSolutionFile = file;
         this.constructionSolutionPreviewUrl = reader.result as string;
-        this.example.solutionUrl = this.constructionSolutionPreviewUrl;
       } else {
         this.selectedConstructionImageFile = file;
         this.constructionImagePreviewUrl = reader.result as string;
-        this.example.image = this.constructionImagePreviewUrl;
       }
       this.markDirty();
     };
     reader.readAsDataURL(file);
   }
 
-  removeSelectedImage(type: 'solution' | 'preview'): void {
+  async removeSelectedImage(type: 'solution' | 'preview'): Promise<void> {
     if (type === 'solution') {
-      this.selectedConstructionSolutionFile = null;
-      this.constructionSolutionPreviewUrl = this.isEditMode && this.data.exampleId
-        ? this.http.getConstructionSolutionImageUrl(this.data.exampleId)
-        : null;
-      this.example.solutionUrl = this.constructionSolutionPreviewUrl ?? '';
-    } else {
-      this.selectedConstructionImageFile = null;
-      this.constructionImagePreviewUrl = this.isEditMode && this.data.exampleId
-        ? this.http.getConstructionImageUrl(this.data.exampleId)
-        : null;
-      this.example.image = this.constructionImagePreviewUrl ?? '';
+      if (this.selectedConstructionSolutionFile) {
+        this.selectedConstructionSolutionFile = null;
+        this.constructionSolutionPreviewUrl = this.isEditMode && this.data.exampleId && this.example.solutionUrl
+          ? this.http.getConstructionSolutionImageUrl(this.data.exampleId)
+          : null;
+        this.markDirty();
+        return;
+      }
+
+      if (this.isEditMode && this.data.exampleId && this.constructionSolutionPreviewUrl) {
+        try {
+          await firstValueFrom(this.http.deleteConstructionSolutionImage(this.data.exampleId));
+          this.constructionSolutionPreviewUrl = null;
+          this.example.solutionUrl = '';
+          this.example.solutionImageWidth = this.defaultImageWidth;
+          this.markDirty();
+          this.snackBar.open('Lösungsbild gelöscht.', 'OK', { duration: 2500 });
+          return;
+        } catch {
+          this.snackBar.open('Lösungsbild konnte nicht gelöscht werden.', 'OK', { duration: 3000 });
+          return;
+        }
+      }
+
+      this.constructionSolutionPreviewUrl = null;
+      this.example.solutionUrl = '';
+      this.example.solutionImageWidth = this.defaultImageWidth;
+      this.markDirty();
+      return;
     }
 
+    if (this.selectedConstructionImageFile) {
+      this.selectedConstructionImageFile = null;
+      this.constructionImagePreviewUrl = this.isEditMode && this.data.exampleId && this.example.image
+        ? this.http.getConstructionImageUrl(this.data.exampleId)
+        : null;
+      this.markDirty();
+      return;
+    }
+
+    if (this.isEditMode && this.data.exampleId && this.constructionImagePreviewUrl) {
+      try {
+        await firstValueFrom(this.http.deleteConstructionImage(this.data.exampleId));
+        this.constructionImagePreviewUrl = null;
+        this.example.image = '';
+        this.example.imageWidth = this.defaultImageWidth;
+        this.markDirty();
+        this.snackBar.open('Aufgabenbild gelöscht.', 'OK', { duration: 2500 });
+        return;
+      } catch {
+        this.snackBar.open('Aufgabenbild konnte nicht gelöscht werden.', 'OK', { duration: 3000 });
+        return;
+      }
+    }
+
+    this.constructionImagePreviewUrl = null;
+    this.example.image = '';
+    this.example.imageWidth = this.defaultImageWidth;
     this.markDirty();
   }
 
@@ -407,9 +427,19 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       ...this.example,
       authToken: localStorage.getItem('teacher_authToken') || '',
       schoolId: Number(this.example.schoolId || this.data.schoolId),
-      image: '',
-      solutionUrl: ''
+      image: this.isEditMode ? (this.example.image || '') : '',
+      solutionUrl: this.isEditMode ? (this.example.solutionUrl || '') : '',
+      imageWidth: this.normalizeImageWidth(this.example.imageWidth),
+      solutionImageWidth: this.normalizeImageWidth(this.example.solutionImageWidth)
     };
+  }
+
+  private normalizeImageWidth(value: number | null | undefined): number {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+      return this.defaultImageWidth;
+    }
+    return Math.max(80, Math.min(1200, Math.round(parsed)));
   }
 
   private async uploadConstructionAssets(exampleId: number): Promise<void> {
@@ -421,17 +451,19 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       await firstValueFrom(this.http.uploadConstructionSolutionImage(exampleId, this.selectedConstructionSolutionFile));
     }
 
-    this.constructionImagePreviewUrl = this.http.getConstructionImageUrl(exampleId);
-    this.constructionSolutionPreviewUrl = this.http.getConstructionSolutionImageUrl(exampleId);
+    this.constructionImagePreviewUrl = this.example.image || this.selectedConstructionImageFile
+      ? this.http.getConstructionImageUrl(exampleId)
+      : null;
+    this.constructionSolutionPreviewUrl = this.example.solutionUrl || this.selectedConstructionSolutionFile
+      ? this.http.getConstructionSolutionImageUrl(exampleId)
+      : null;
+
     this.example.image = this.constructionImagePreviewUrl ?? '';
     this.example.solutionUrl = this.constructionSolutionPreviewUrl ?? '';
     this.selectedConstructionImageFile = null;
     this.selectedConstructionSolutionFile = null;
   }
 
-  // ----------------------
-  // Save & close
-  // ----------------------
   async saveExample(): Promise<void> {
     if (!this.example.instruction.trim() || !this.example.question.trim()) {
       this.snackBar.open('Bitte füllen Sie sowohl die Aufgabenstellung als auch die Angabe aus.', 'OK', {
@@ -455,10 +487,11 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       const payload = this.buildExamplePayload();
 
       if (this.isEditMode) {
-        await firstValueFrom(this.http.saveExample(this.data.exampleId, payload));
+        const updatedIdRaw = await firstValueFrom(this.http.saveExample(this.data.exampleId, payload));
+        const updatedId = Number(updatedIdRaw) || this.data.exampleId;
 
         if (this.example.type === ExampleTypes.CONSTRUCTION) {
-          await this.uploadConstructionAssets(this.data.exampleId);
+          await this.uploadConstructionAssets(updatedId);
         }
 
         this.snackBar.open('Beispiel erfolgreich gespeichert', 'OK', { duration: 3000 });
@@ -466,7 +499,11 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
         const createdIdRaw = await firstValueFrom(this.http.createExample(payload));
         const createdId = Number(createdIdRaw);
 
-        if (this.example.type === ExampleTypes.CONSTRUCTION && createdId) {
+        if (!createdId) {
+          throw new Error('Example-ID fehlt nach dem Erstellen.');
+        }
+
+        if (this.example.type === ExampleTypes.CONSTRUCTION) {
           await this.uploadConstructionAssets(createdId);
         }
 
@@ -476,6 +513,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       this.hasUnsavedChanges = false;
       this.dialogRef.close(true);
     } catch (error) {
+      console.error(error);
       this.snackBar.open('Beispiel konnte nicht gespeichert werden.', 'OK', { duration: 3500 });
     } finally {
       this.isSaving = false;
@@ -493,7 +531,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
         }
       });
 
-      const confirmed = await confirmRef.afterClosed().toPromise();
+      const confirmed = await firstValueFrom(confirmRef.afterClosed());
       if (!confirmed) return;
     }
 
@@ -508,9 +546,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ----------------------
-  // TrackBy + preview helpers
-  // ----------------------
   trackByIndex(index: number): number {
     return index;
   }
@@ -551,9 +586,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ---------------------------
-  // Focus (chips + autocomplete) actions
-  // ---------------------------
   showCreateOption(value: string | Focus | null): boolean {
     if (!value) return false;
 
@@ -579,7 +611,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   }
 
   addFromInput(event: MatChipInputEvent): void {
-    // Avoid double-add when user hits enter while panel open
     if (this.autocompleteTrigger?.panelOpen) return;
 
     const raw = (event.value ?? '').toString();
@@ -587,7 +618,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     if (!label) return;
 
     this.addFocus({ id: 0, label });
-
     event.chipInput?.clear();
   }
 
@@ -595,7 +625,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     const removeLabel = this.normalizeLabel(focus.label);
     this.example.focusList = this.example.focusList.filter(f => this.normalizeLabel(f.label) !== removeLabel);
 
-    // ✅ makes removed tag instantly available again in autocomplete
     this.emitSelectedFocus();
     this.markDirty();
   }
@@ -607,23 +636,19 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // ✅ prevent duplicates in selection (case-insensitive)
     if (this.example.focusList.some(f => this.normalizeLabel(f.label) === label)) {
       this.clearFocusInput();
       return;
     }
 
-    // If exists in catalog, use catalog object (keeps real id)
     const existing = this.focusSubject.value.find(f => this.normalizeLabel(f.label) === label);
     const focusToAdd: Focus = existing ? existing : { id: 0, label: value.label.trim() };
 
     this.example.focusList.push(focusToAdd);
 
-    // ✅ makes selected tag instantly disappear from autocomplete
     this.emitSelectedFocus();
     this.markDirty();
 
-    // If new, optimistically add to catalog and then replace with server-created id
     if (!existing) {
       const optimistic: Focus = { id: 0, label: focusToAdd.label };
       this.focusSubject.next([...this.focusSubject.value, optimistic]);
@@ -631,14 +656,12 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       this.http.createFocus(this.data.schoolId, { id: -1, label: focusToAdd.label })
         .pipe(takeUntil(this.destroy$))
         .subscribe(createdFocus => {
-          // Update selected list (replace optimistic with persisted focus)
           const selIdx = this.example.focusList.findIndex(f => this.normalizeLabel(f.label) === this.normalizeLabel(createdFocus.label));
           if (selIdx !== -1) {
             this.example.focusList[selIdx] = createdFocus;
             this.emitSelectedFocus();
           }
 
-          // Update catalog: replace optimistic with persisted focus
           const catalog = [...this.focusSubject.value];
           const catIdx = catalog.findIndex(f => this.normalizeLabel(f.label) === this.normalizeLabel(createdFocus.label));
           if (catIdx !== -1) {
@@ -674,14 +697,11 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
             this.snackBar.open(`Der Schwerpunkt "${focus.label}" wurde gelöscht.`, 'OK', { duration: 3000 });
           });
 
-        // remove from catalog
         this.focusSubject.next(this.focusSubject.value.filter(f => f.id !== focus.id));
 
-        // remove from selection
         const removedLabel = this.normalizeLabel(focus.label);
         this.example.focusList = this.example.focusList.filter(f => this.normalizeLabel(f.label) !== removedLabel);
 
-        // ✅ keeps autocomplete correct immediately
         this.emitSelectedFocus();
         this.markDirty();
       });

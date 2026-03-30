@@ -247,7 +247,7 @@ export class SchoolComponent implements OnInit, AfterViewInit {
 
   openExample(e: any) {
     this.dialog.open(ExamplePreviewComponent, {
-      width: '10vw',
+      width: '30vw',
       data: { schoolId: this.schoolId, exampleId: e.id }
     }).afterClosed().subscribe(() => {
       this.loadExamples();

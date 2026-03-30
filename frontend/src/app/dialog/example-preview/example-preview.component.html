@@ -19,13 +19,23 @@
     <div class="construction-preview">
       <div>
         <p><strong>Aufgabenbild</strong></p>
-        <img *ngIf="example.image" [src]="example.image" alt="Aufgabenbild Vorschau" class="image-preview" />
+        <img
+          *ngIf="example.image"
+          [src]="example.image"
+          alt="Aufgabenbild Vorschau"
+          class="image-preview"
+          [style.width.px]="getImageWidth(example)" />
         <p *ngIf="!example.image">Kein Bild ausgewählt.</p>
       </div>
 
       <div style="margin-top: 16px;">
         <p><strong>Lösungsbild</strong></p>
-        <img *ngIf="example.solutionUrl" [src]="example.solutionUrl" alt="Lösungsbild Vorschau" class="image-preview" />
+        <img
+          *ngIf="example.solutionUrl"
+          [src]="example.solutionUrl"
+          alt="Lösungsbild Vorschau"
+          class="image-preview"
+          [style.width.px]="getSolutionImageWidth(example)" />
         <p *ngIf="!example.solutionUrl">Kein Lösungsbild ausgewählt.</p>
       </div>
     </div>

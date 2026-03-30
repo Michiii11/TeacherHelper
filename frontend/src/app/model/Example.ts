@@ -1,7 +1,6 @@
 import {User, UserDTO} from './User'
 import {SchoolDTO} from './School'
 
-
 export enum ExampleTypes {
   OPEN = 'OPEN',
   HALF_OPEN = 'HALF_OPEN',
@@ -20,7 +19,6 @@ export const ExampleTypeLabels: Record<ExampleTypes, string> = {
   [ExampleTypes.ASSIGN]: 'Zuordnungsformat'
 };
 
-
 export interface Example {
   id: number;
   admin: User;
@@ -29,13 +27,15 @@ export interface Example {
   instruction: string;
   question: string;
   answers: string[];
-  imageUrl: string;
-  solutionUrl: string;
+  imageUrl: string | null;
+  solutionUrl: string | null;
+  imageWidth: number | null;
+  solutionImageWidth: number | null;
   options: Option[];
-  gapFillType: 'INPUT' | 'SELECT'
-  gaps: Gap[]
-  assigns: Assign[]
-  assignRightItems: string[]
+  gapFillType: 'INPUT' | 'SELECT';
+  gaps: Gap[];
+  assigns: Assign[];
+  assignRightItems: string[];
 }
 
 export interface ExampleDTO {
@@ -47,11 +47,13 @@ export interface ExampleDTO {
   solution: string | null;
   solutionUrl: string | null;
   imageUrl: string | null;
+  imageWidth: number | null;
+  solutionImageWidth: number | null;
   focusList: Focus[];
   school: SchoolDTO;
   answers: string[][];
   options: Option[];
-  gapFillType: 'INPUT' | 'SELECT'
+  gapFillType: 'INPUT' | 'SELECT';
   gaps: Gap[];
   assigns: Assign[];
   assignRightItems: string[];
@@ -65,15 +67,16 @@ export interface CreateExampleDTO {
   question: string;
   answers: string[][];
   options: Option[];
-  gapFillType: 'INPUT' | 'SELECT'
-  gaps: Gap[]
-  assigns: Assign[]
-  assignRightItems: string[]
+  gapFillType: 'INPUT' | 'SELECT';
+  gaps: Gap[];
+  assigns: Assign[];
+  assignRightItems: string[];
   image: string;
   solution: string;
   solutionUrl: string;
   focusList: Focus[];
-
+  imageWidth: number | null;
+  solutionImageWidth: number | null;
   imageFile?: File;
   solutionFile?: File;
 }
@@ -84,24 +87,24 @@ export interface Option {
   correct: boolean;
 }
 
-export interface Gap{
+export interface Gap {
   id: string;
   label: string;
   solution: string;
-  options: Option[]
+  options: Option[];
 }
 
-export interface Assign{
+export interface Assign {
   left: string;
   right: string;
 }
 
-export interface Focus{
+export interface Focus {
   id: number;
   label: string;
 }
 
-export interface ExampleOverviewDTO{
+export interface ExampleOverviewDTO {
   id: number;
   type: ExampleTypes;
   instruction: string;

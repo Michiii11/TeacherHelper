@@ -70,6 +70,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   showAdvancedSettings = false;
   printCopies = 1;
   includeSolutionSheet = false;
+  readonly defaultImageWidth = 320;
 
   test: CreateTestDTO & PersistedTestSettings = {
     authToken: '',
@@ -177,7 +178,9 @@ export class CreateTestComponent implements OnInit, OnDestroy {
               ...response,
             };
             this.isEditMode = true;
-            this.selectedExamplesSubject.next(this.test.exampleList ?? []);
+            const hydratedEntries = this.hydrateConstructionImagesForEntries(this.test.exampleList ?? []);
+            this.selectedExamplesSubject.next(hydratedEntries);
+            this.test.exampleList = hydratedEntries;
             this.hydratePersistedSettings(response);
             this.initializeTaskSpacing();
 
@@ -193,7 +196,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.service.getFullExamples(this.data.schoolId)
       .pipe(takeUntil(this.destroy$))
       .subscribe((examples) => {
-        this.allExamplesSubject.next(examples as ExampleDTO[]);
+        this.allExamplesSubject.next(this.hydrateConstructionImagesForExamples(examples as ExampleDTO[]));
       });
   }
 
@@ -231,9 +234,11 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     const current = this.selectedExamplesSubject.value;
     if (current.some((x) => x.example?.id === example.id)) return;
 
+    const hydratedExample = this.hydrateConstructionImage(example);
+
     const newEntry: TestExample = {
       id: -1,
-      example,
+      example: hydratedExample,
       points: 0,
       title: '',
       test: undefined as any,
@@ -480,6 +485,10 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     return (example as any).imageUrl || (example as any).image || null;
   }
 
+  getImageWidth(example: Example): number {
+    return this.normalizeImageWidth((example as any).imageWidth);
+  }
+
   getQuestionWithGapLabels(example: Example): string {
     let idx = 0;
     return example.question.replace(/\{Lücke \d+\}/g, () => {
@@ -503,6 +512,33 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       getQuestionWithGapLabels: (example) => this.getQuestionWithGapLabels(example),
       getLetter: (index) => this.getLetter(index),
     });
+  }
+
+  private hydrateConstructionImagesForExamples(examples: ExampleDTO[]): ExampleDTO[] {
+    return (examples ?? []).map(example => this.hydrateConstructionImage(example as unknown as Example) as unknown as ExampleDTO);
+  }
+
+  private hydrateConstructionImagesForEntries(entries: TestExampleDTO[]): TestExampleDTO[] {
+    return (entries ?? []).map(entry => ({
+      ...entry,
+      example: this.hydrateConstructionImage(entry.example)
+    }));
+  }
+
+  private hydrateConstructionImage(example: Example): Example {
+    if (!example || example.type !== ExampleTypes.CONSTRUCTION || !example.id) {
+      return example;
+    }
+
+    const hasTaskImage = !!((example as any).imageUrl || (example as any).image);
+    const hasSolutionImage = !!((example as any).solutionUrl);
+
+    return {
+      ...example,
+      imageUrl: hasTaskImage ? (this.service.getConstructionImageUrl(example.id) ?? '') : '',
+      image: hasTaskImage ? (this.service.getConstructionImageUrl(example.id) ?? '') : '',
+      solutionUrl: hasSolutionImage ? (this.service.getConstructionSolutionImageUrl(example.id) ?? '') : ''
+    } as Example & { image?: string };
   }
 
   private syncSelectionToTest(selected: TestExampleDTO[]): void {
@@ -595,6 +631,14 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     const numeric = Math.round(Number(value ?? 0));
     if (!Number.isFinite(numeric)) return 0;
     return Math.max(0, Math.min(240, numeric));
+  }
+
+  private normalizeImageWidth(value: number | null | undefined): number {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+      return this.defaultImageWidth;
+    }
+    return Math.max(80, Math.min(1200, Math.round(parsed)));
   }
 
   private normalize(v: string): string {
