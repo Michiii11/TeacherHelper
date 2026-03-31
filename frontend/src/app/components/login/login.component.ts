@@ -86,6 +86,14 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const token = localStorage.getItem('teacher_authToken');
+    const userId = localStorage.getItem('teacher_userId');
+
+    if (token && userId) {
+      this.router.navigate(['/home']);
+      return;
+    }
+
     this.route.queryParamMap.subscribe(params => {
       const verifyToken = params.get('verifyToken');
       const resetToken = params.get('resetToken');
@@ -154,7 +162,7 @@ export class LoginComponent implements OnInit {
         localStorage.setItem('teacher_authToken', result.token);
         localStorage.setItem('teacher_userId', result.userId.toString());
         window.dispatchEvent(new Event('storage'));
-        this.router.navigate(['']);
+        this.router.navigate(['/home']);
       }
     });
   }
@@ -306,5 +314,10 @@ export class LoginComponent implements OnInit {
     this.registerMessage = '';
     this.forgotMessage = '';
     this.resetMessage = '';
+  }
+
+  getLogo(): string {
+    const isDark = document.body.classList.contains('dark-mode');
+    return isDark ? '/darkmode.png' : '/lightmode.png';
   }
 }

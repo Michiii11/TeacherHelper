@@ -26,7 +26,7 @@ import { RouterLink } from '@angular/router';
     }
 
     .not-found-shell {
-      min-height: 100vh;
+      min-height: 70vh;
       display: grid;
       place-items: center;
       padding: 2rem 1rem;

@@ -619,4 +619,9 @@ export class NavigationComponent implements OnInit, OnDestroy {
   private extractError(err: any, fallback: string): string {
     return err?.error?.message || err?.error || fallback;
   }
+
+  getLogo(): string {
+    const isDark = document.body.classList.contains('dark-mode');
+    return isDark ? '/darkmode.png' : '/lightmode.png';
+  }
 }

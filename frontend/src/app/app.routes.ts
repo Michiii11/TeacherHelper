@@ -6,9 +6,11 @@ import {SchoolComponent} from './components/school/school.component'
 import {NotFoundComponent} from './components/not-found/not-found.component'
 import {ProfileComponent} from './components/profile/profile.component'
 import {LegalPageComponent} from './components/legal-page/legal-page.component'
+import {LandingPageComponent} from './components/landing-page/landing-page.component'
 
 export const routes: Routes = [
-  { path: '', component: HomeComponent, canActivate: [AuthGuard] },
+  { path: '', component: LandingPageComponent },
+  { path: 'home', component: HomeComponent, canActivate: [AuthGuard] },
   { path: 'school/:id', component: SchoolComponent, canActivate: [AuthGuard] },
   { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
   { path: 'login', component: LoginComponent },

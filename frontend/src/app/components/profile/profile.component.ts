@@ -30,7 +30,6 @@ type ProfileSettings = {
     MatFormField,
     MatLabel,
     MatInput,
-    MatDivider
   ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss'

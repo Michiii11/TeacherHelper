@@ -1,7 +1,6 @@
 <mat-card class="auth-card">
   <div class="auth-header">
-    <h2>TeacherHelper</h2>
-    <p>{{ selectedTab === 0 ? 'Anmelden' : 'Registrieren' }}</p>
+    <img [src]="getLogo()" alt="">
   </div>
 
   @if (verifying) {

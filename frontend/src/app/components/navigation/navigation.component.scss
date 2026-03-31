@@ -38,6 +38,11 @@
   display: flex;
   align-items: center;
   min-width: 0;
+  width: 20%;
+
+  img{
+    width: 100%;
+  }
 }
 
 .navbar-title {

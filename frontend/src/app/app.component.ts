@@ -1,13 +1,13 @@
-import {Component, inject, OnInit} from '@angular/core';
-import {ActivatedRoute, RouterOutlet} from '@angular/router'
-import {NavigationComponent} from './components/navigation/navigation.component'
-import {HttpService} from './service/http.service'
-import {MatDialog} from '@angular/material/dialog'
-import {interval, switchMap} from 'rxjs'
-import {MatProgressSpinner} from '@angular/material/progress-spinner'
-import {FooterComponent} from './components/footer/footer.component'
-import {AuthService} from './service/auth.service'
-import {ThemeService} from './service/theme.service'
+import { Component, inject, OnInit } from '@angular/core';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { NavigationComponent } from './components/navigation/navigation.component';
+import { HttpService } from './service/http.service';
+import { MatDialog } from '@angular/material/dialog';
+import { interval, filter, switchMap } from 'rxjs';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { FooterComponent } from './components/footer/footer.component';
+import { AuthService } from './service/auth.service';
+import { ThemeService } from './service/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -21,40 +21,66 @@ import {ThemeService} from './service/theme.service'
   ],
   styleUrl: './app.component.scss'
 })
-export class AppComponent implements OnInit{
-  service = inject(HttpService)
+export class AppComponent implements OnInit {
+  service = inject(HttpService);
 
-  private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private dialog = inject(MatDialog);
   private readonly themeService = inject(ThemeService);
 
-  ngOnInit(): void {
-    this.themeService.init();
-  }
-
   isLoggedIn = false;
-
   isLoading = true;
+  currentUrl = '/';
 
   constructor(private authService: AuthService) {
     this.authService.loggedIn$.subscribe(status => {
       this.isLoggedIn = status;
     });
 
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+        this.currentUrl = event.urlAfterRedirects || event.url || '/';
+      });
+
+    this.currentUrl = this.router.url || '/';
+
     this.service.getSchools().subscribe({
       next: () => {
         this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
       }
-    })
+    });
 
-    if(this.isLoading){
+    if (this.isLoading) {
       interval(2000).pipe(
         switchMap(() => this.service.getSchools())
       ).subscribe({
         next: () => {
           this.isLoading = false;
+        },
+        error: () => {
+          this.isLoading = false;
         }
       });
     }
+  }
+
+  ngOnInit(): void {
+    this.themeService.init();
+  }
+
+  get isLandingRoute(): boolean {
+    return this.currentUrl === '/';
+  }
+
+  get showNavigation(): boolean {
+    return this.isLoggedIn && !this.isLandingRoute;
+  }
+
+  get showFooter(): boolean {
+    return this.isLoggedIn || this.isLandingRoute;
   }
 }

@@ -2,11 +2,11 @@
   <mat-toolbar class="navbar">
     <div class="navbar-container">
       <div class="navbar-left">
-        <span class="navbar-title">TeacherHelper</span>
+        <img [src]="getLogo()" alt="">
       </div>
 
       <nav class="navbar-right">
-        <a mat-button routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
+        <a mat-button routerLink="/home" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
           Home
         </a>
 

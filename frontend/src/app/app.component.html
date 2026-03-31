@@ -3,16 +3,17 @@
     <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
   </div>
 } @else {
-  <div class="app-wrapper">
-    @if(isLoggedIn){
+  <div class="app-wrapper" [class.logged-in]="isLoggedIn" [class.guest]="!isLoggedIn">
+
+    @if(showNavigation){
       <app-navigation></app-navigation>
     }
 
-      <main>
+    <main class="app-main" [class.with-nav]="showNavigation" [class.landing-main]="isLandingRoute">
       <router-outlet></router-outlet>
     </main>
 
-    @if(isLoggedIn){
+    @if(showFooter){
       <app-footer></app-footer>
     }
   </div>
