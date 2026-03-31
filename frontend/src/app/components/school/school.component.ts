@@ -74,7 +74,7 @@ export class SchoolComponent implements OnInit, AfterViewInit {
     { title: 'Tests', value: this.tests.length, sub: 'Verfügbar', icon: 'assignment' },
     { title: 'Beispiele', value: this.exampleCount, sub: 'Fragen', icon: 'library_books' },
     { title: 'Lehrer', value: this.school.members?.length || 0, sub: 'Konten', icon: 'people' },
-    { title: 'Letzte Änderung', value: '2 Std. zuvor', sub: 'von Admin', icon: 'history' }
+    { title: 'Letzte Änderung', value: '', sub: '', icon: 'history' }
   ];
 
   currentUserId = -1;
@@ -95,6 +95,8 @@ export class SchoolComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.loadExamples();
     this.loadTests();
+
+    setInterval(() => this.loadLastChange(), 30000);
 
     this.service.getUserId().subscribe(id => {
       this.currentUserId = id as number;
@@ -130,6 +132,8 @@ export class SchoolComponent implements OnInit, AfterViewInit {
       this.school = school;
       this.kpis[2].value = this.getTeacherCount().toString();
     });
+
+    this.loadLastChange()
   }
 
   loadExamples() {
@@ -137,6 +141,8 @@ export class SchoolComponent implements OnInit, AfterViewInit {
       this.exampleDataSource.data = examples as ExampleOverviewDTO[];
       this.kpis[1].value = this.exampleCount.toString();
     });
+
+    this.loadLastChange()
   }
 
   loadTests() {
@@ -144,6 +150,44 @@ export class SchoolComponent implements OnInit, AfterViewInit {
       this.tests = tests as TestOverviewDTO[];
       this.kpis[0].value = this.tests.length.toString();
     });
+
+    this.loadLastChange()
+  }
+
+  loadLastChange() {
+    this.service.getLastChange(this.schoolId).subscribe(change => {
+      console.log(change);
+
+      this.kpis[3].value = this.formatTimeAgo(change.createdAt);
+      this.kpis[3].sub = "von " + change.username;
+    });
+  }
+
+  private formatTimeAgo(date: Date | string): string {
+    const now = Date.now();
+    const past = new Date(date).getTime();
+    const diffSeconds = Math.floor((now - past) / 1000);
+
+    if (diffSeconds < 5) {
+      return "gerade eben";
+    }
+
+    if (diffSeconds < 60) {
+      return `${diffSeconds} Sek. zuvor`;
+    }
+
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    if (diffMinutes < 60) {
+      return `${diffMinutes} Min. zuvor`;
+    }
+
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) {
+      return `${diffHours} Std zuvor`;
+    }
+
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays} Tag${diffDays === 1 ? '' : 'e'} zuvor`;
   }
 
   get exampleCount(): number {

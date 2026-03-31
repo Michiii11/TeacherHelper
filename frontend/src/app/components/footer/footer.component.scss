@@ -1,0 +1,92 @@
+.app-footer {
+  margin-top: 2rem;
+  padding: 0.8rem 1.2rem;
+  border-top: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* LEFT */
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.brand {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.version {
+  opacity: 0.8;
+}
+
+.divider {
+  opacity: 0.4;
+}
+
+/* LINKS */
+
+.footer-links {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.link {
+  background: none;
+  border: none;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.85rem;
+  color: #475569;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.link:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+/* ===================== */
+/* 🌙 DARK MODE */
+/* ===================== */
+
+:host-context(.dark-mode) .app-footer {
+  background: rgba(15, 23, 42, 1);
+
+  border-color: #1e293b;
+}
+
+:host-context(.dark-mode) .footer-left {
+  color: #94a3b8;
+}
+
+:host-context(.dark-mode) .brand {
+  color: #f8fafc;
+}
+
+:host-context(.dark-mode) .link {
+  color: #94a3b8;
+}
+
+:host-context(.dark-mode) .link:hover {
+  background: rgba(148, 163, 184, 0.08);
+  color: #f8fafc;
+}

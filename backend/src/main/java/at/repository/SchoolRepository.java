@@ -1,6 +1,7 @@
 package at.repository;
 
 import at.dtos.Notification.SchoolInviteDTO;
+import at.dtos.School.LastActivityDTO;
 import at.dtos.School.SchoolDTO;
 import at.dtos.User.UserDTO;
 import at.enums.NotificationActionType;
@@ -599,5 +600,15 @@ public class SchoolRepository {
         }
 
         return baseMessage + "\n\nNachricht: " + customMessage.trim();
+    }
+
+    public LastActivityDTO getLastActivity(Long id) {
+        return em.createQuery(
+                "SELECT new at.dtos.School.LastActivityDTO(c.user.username, c.createdAt) FROM ChangeLog c WHERE c.school.id = :schoolId ORDER BY c.createdAt DESC", LastActivityDTO.class)
+                .setParameter("schoolId", id)
+                .setMaxResults(1)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
     }
 }

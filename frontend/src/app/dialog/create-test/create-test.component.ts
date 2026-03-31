@@ -71,6 +71,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   printCopies = 1;
   includeSolutionSheet = false;
   readonly defaultImageWidth = 320;
+  isExportingPdf = false;
+  isExportingWord = false;
 
   test: CreateTestDTO & PersistedTestSettings = {
     authToken: '',
@@ -301,6 +303,60 @@ export class CreateTestComponent implements OnInit, OnDestroy {
           this.dialogRef.close(this.test);
         }
       });
+  }
+
+  async exportPdf(): Promise<void> {
+    if (!this.selectedExamples.length) {
+      this.snackBar.open('Bitte zuerst mindestens eine Aufgabe auswählen.', 'OK', { duration: 2500 });
+      return;
+    }
+
+    this.attachPersistedSettingsToPayload();
+    this.isExportingPdf = true;
+
+    const success = await this.testPrintService.exportPdf(this.test, this.selectedExamples, {
+      printCopies: this.printCopies,
+      includeSolutionSheet: this.includeSolutionSheet,
+      getGradeRangeLabel: (grade) => this.getGradeRangeLabel(grade),
+      getTaskSpacing: (exampleId) => this.getTaskSpacing(exampleId),
+      getQuestionWithGapLabels: (example) => this.getQuestionWithGapLabels(example),
+      getLetter: (index) => this.getLetter(index),
+    });
+
+    this.isExportingPdf = false;
+
+    this.snackBar.open(
+      success ? 'PDF wurde heruntergeladen.' : 'PDF-Export fehlgeschlagen.',
+      'OK',
+      { duration: 3000 }
+    );
+  }
+
+  async exportWord(): Promise<void> {
+    if (!this.selectedExamples.length) {
+      this.snackBar.open('Bitte zuerst mindestens eine Aufgabe auswählen.', 'OK', { duration: 2500 });
+      return;
+    }
+
+    this.attachPersistedSettingsToPayload();
+    this.isExportingWord = true;
+
+    const success = await this.testPrintService.exportWord(this.test, this.selectedExamples, {
+      printCopies: this.printCopies,
+      includeSolutionSheet: this.includeSolutionSheet,
+      getGradeRangeLabel: (grade) => this.getGradeRangeLabel(grade),
+      getTaskSpacing: (exampleId) => this.getTaskSpacing(exampleId),
+      getQuestionWithGapLabels: (example) => this.getQuestionWithGapLabels(example),
+      getLetter: (index) => this.getLetter(index),
+    });
+
+    this.isExportingWord = false;
+
+    this.snackBar.open(
+      success ? 'Word-Datei wurde heruntergeladen.' : 'Word-Export fehlgeschlagen.',
+      'OK',
+      { duration: 3000 }
+    );
   }
 
   async closeDialog(): Promise<void> {
@@ -646,6 +702,10 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   private matchesQuery(e: ExampleDTO, query: string): boolean {
+    const focusLabels = (e.focusList ?? [])
+      .map(focus => focus.label ?? '')
+      .join(' ');
+
     const haystack = this.normalize(
       [
         e.question,
@@ -653,6 +713,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
         e.admin?.username ?? '',
         String(e.id),
         String(e.type ?? ''),
+        focusLabels,
       ].join(' ')
     );
 

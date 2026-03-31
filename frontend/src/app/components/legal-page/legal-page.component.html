@@ -1,0 +1,47 @@
+<main class="legal-page">
+  <section class="hero-card">
+    <div class="hero-copy">
+      <p class="eyebrow">TeacherHelper</p>
+      <h1>{{ content().title }}</h1>
+      <p class="subtitle">{{ content().subtitle }}</p>
+    </div>
+
+    <div class="hero-actions">
+      <a routerLink="/" mat-stroked-button>
+        <mat-icon>arrow_back</mat-icon>
+        Zurück
+      </a>
+
+      <a
+        *ngIf="content().primaryActionHref && content().primaryActionLabel"
+        [href]="content().primaryActionHref"
+        target="_blank"
+        rel="noopener noreferrer"
+        mat-flat-button
+        color="primary">
+        <mat-icon>open_in_new</mat-icon>
+        {{ content().primaryActionLabel }}
+      </a>
+    </div>
+  </section>
+
+  <section class="content-card">
+    <article class="section-block" *ngFor="let section of content().sections">
+      <h2>{{ section.heading }}</h2>
+
+      <p *ngFor="let paragraph of section.paragraphs">
+        {{ paragraph }}
+      </p>
+
+      <ul *ngIf="section.bullets?.length">
+        <li *ngFor="let bullet of section.bullets">
+          {{ bullet }}
+        </li>
+      </ul>
+    </article>
+  </section>
+
+  <section class="bottom-note">
+    <p>Last updated {{ currentYear }}</p>
+  </section>
+</main>

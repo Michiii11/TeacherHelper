@@ -4,8 +4,10 @@ import at.dtos.Notification.CreateSchoolInviteDTO;
 import at.dtos.Notification.RespondSchoolInviteDTO;
 import at.dtos.Notification.SchoolInviteDTO;
 import at.dtos.School.CreateSchoolDTO;
+import at.dtos.School.LastActivityDTO;
 import at.dtos.School.SchoolDTO;
 import at.dtos.User.UserDTO;
+import at.model.ChangeLog;
 import at.model.helper.Focus;
 import at.repository.SchoolRepository;
 import at.security.TokenService;
@@ -175,5 +177,11 @@ public class SchoolResource {
         }
 
         return schoolRepository.getPendingRequestsForSchool(id, userId);
+    }
+
+    @GET
+    @Path("{id}/last-activity")
+    public LastActivityDTO getLastActivity(@PathParam("id") Long id) {
+        return schoolRepository.getLastActivity(id);
     }
 }

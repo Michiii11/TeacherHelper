@@ -131,10 +131,15 @@
   min-width: unset;
   width: 46px;
   height: 46px;
-  padding: 0;
+  padding: 0 !important;
   border-radius: 16px;
   overflow: hidden;
   background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  line-height: 1;
   transition:
     transform 0.18s ease,
     box-shadow 0.18s ease,
@@ -151,10 +156,13 @@
   width: 38px;
   height: 38px;
   border-radius: 14px;
+  display: block;
+  flex-shrink: 0;
 }
 
 .avatar-image {
   object-fit: cover;
+  object-position: center;
   border: 1px solid rgba(148, 163, 184, 0.22);
   box-shadow: 0 6px 16px rgba(15, 23, 42, 0.10);
 }
@@ -169,20 +177,21 @@
   border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
-/* MENU PANEL */
+/* MAT MENU OVERLAY */
 
-::ng-deep .mat-mdc-menu-panel.notif-menu {
+::ng-deep .cdk-overlay-pane .mat-mdc-menu-panel.notif-menu {
   max-width: min(94vw, 540px) !important;
   min-width: min(94vw, 540px) !important;
   margin-top: 10px;
   border-radius: 24px !important;
-  overflow: hidden;
+  overflow: hidden !important;
   background: transparent !important;
   box-shadow: none !important;
 }
 
-::ng-deep .mat-mdc-menu-content {
+::ng-deep .cdk-overlay-pane .mat-mdc-menu-panel.notif-menu .mat-mdc-menu-content {
   padding: 0 !important;
+  background: transparent !important;
 }
 
 .notif-panel {
@@ -315,7 +324,6 @@
 
 .system-info-input,
 .system-info-textarea {
-  width: 100%;
   border: 1px solid #cbd5e1;
   border-radius: 14px;
   background: #fff;
@@ -583,7 +591,13 @@
     border-color: rgba(96, 165, 250, 0.2);
   }
 
-  ::ng-deep .mat-mdc-menu-panel.notif-menu {
+  /* actual menu overlay */
+  ::ng-deep .cdk-overlay-pane .mat-mdc-menu-panel.notif-menu {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  ::ng-deep .cdk-overlay-pane .mat-mdc-menu-panel.notif-menu .mat-mdc-menu-content {
     background: transparent !important;
   }
 
@@ -610,6 +624,10 @@
   .notif-date,
   .empty-text {
     color: #94a3b8;
+  }
+
+  .notif-list {
+    background: rgba(17, 24, 39, 0.98);
   }
 
   .notif-tool-btn {
@@ -649,6 +667,11 @@
     border-color: rgba(71, 85, 105, 0.6);
   }
 
+  .system-info-input::placeholder,
+  .system-info-textarea::placeholder {
+    color: #94a3b8;
+  }
+
   .system-info-input:focus,
   .system-info-textarea:focus {
     border-color: rgba(96, 165, 250, 0.7);
@@ -660,14 +683,14 @@
     border-color: rgba(71, 85, 105, 0.5);
   }
 
-  .notif-item:hover {
-    border-color: rgba(96, 165, 250, 0.26);
-    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
-  }
-
   .notif-read,
   .notif-history {
     background: rgba(15, 23, 42, 0.96);
+  }
+
+  .notif-item:hover {
+    border-color: rgba(96, 165, 250, 0.26);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
   }
 
   .notif-result-accepted {
@@ -694,10 +717,24 @@
     color: #d1d5db;
   }
 
-  ::ng-deep .mat-mdc-menu-item,
-  ::ng-deep .mat-mdc-button,
-  ::ng-deep .mat-mdc-icon-button {
-    color: inherit;
+  ::ng-deep .notif-menu .mat-mdc-stroked-button:not(:disabled) {
+    color: #dbeafe !important;
+    border-color: rgba(96, 165, 250, 0.26) !important;
+    background: rgba(30, 41, 59, 0.65) !important;
+  }
+
+  ::ng-deep .notif-menu .mat-mdc-unelevated-button:not(:disabled),
+  ::ng-deep .notif-menu .mat-mdc-raised-button:not(:disabled) {
+    color: #ffffff !important;
+  }
+
+  ::ng-deep .notif-menu .mat-mdc-icon-button {
+    color: #cbd5e1 !important;
+  }
+
+  ::ng-deep .notif-menu .mat-mdc-icon-button:hover {
+    background: rgba(59, 130, 246, 0.14) !important;
+    color: #dbeafe !important;
   }
 }
 
@@ -752,8 +789,8 @@
     border-radius: 20px;
   }
 
-  ::ng-deep .mat-mdc-menu-panel.notif-menu {
-    min-width: min(96vw, 96vw) !important;
-    max-width: min(96vw, 96vw) !important;
+  ::ng-deep .cdk-overlay-pane .mat-mdc-menu-panel.notif-menu {
+    min-width: 96vw !important;
+    max-width: 96vw !important;
   }
 }

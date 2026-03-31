@@ -67,6 +67,91 @@ export class TestPrintService {
     return true;
   }
 
+  async exportPdf(test: PrintableTest, selectedExamples: TestExampleDTO[], options: TestPrintOptions): Promise<boolean> {
+    try {
+      const html2pdfModule = await import('html2pdf.js');
+      const html2pdf = (html2pdfModule as any).default ?? html2pdfModule;
+
+      const wrapper = document.createElement('div');
+      wrapper.style.position = 'fixed';
+      wrapper.style.left = '-100000px';
+      wrapper.style.top = '0';
+      wrapper.style.width = '210mm';
+      wrapper.style.background = '#fff';
+      wrapper.innerHTML = this.buildPdfBodyHtml(test, selectedExamples, options);
+
+      document.body.appendChild(wrapper);
+
+      const filename = this.buildFileName(test.name || 'Test', 'pdf', options.includeSolutionSheet);
+
+      await html2pdf()
+        .set({
+          margin: [10, 10, 10, 10],
+          filename,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+          },
+          jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait',
+          },
+          pagebreak: {
+            mode: ['css', 'legacy'],
+          },
+        })
+        .from(wrapper)
+        .save();
+
+      document.body.removeChild(wrapper);
+      return true;
+    } catch (error) {
+      console.error('PDF export failed', error);
+      return false;
+    }
+  }
+
+  async exportWord(test: PrintableTest, selectedExamples: TestExampleDTO[], options: TestPrintOptions): Promise<boolean> {
+    try {
+      const docxModule = await import('html-docx-js-typescript');
+      const asBlob = (docxModule as any).asBlob;
+
+      const html = this.buildPrintHtml(test, selectedExamples, options);
+      const blob = asBlob(html);
+
+      const filename = this.buildFileName(test.name || 'Test', 'docx', options.includeSolutionSheet);
+      this.downloadBlob(blob, filename);
+
+      return true;
+    } catch (error) {
+      console.error('Word export failed', error);
+      return false;
+    }
+  }
+
+  private downloadBlob(blob: Blob, filename: string): void {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = filename;
+    link.click();
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  private buildFileName(baseName: string, extension: 'pdf' | 'docx', withSolution: boolean): string {
+    const safeName = (baseName || 'Test')
+      .trim()
+      .replace(/[\\/:*?"<>|]+/g, '')
+      .replace(/\s+/g, '_');
+
+    return `${safeName}${withSolution ? '_mit_Loesung' : ''}.${extension}`;
+  }
+
   private escapeHtml(value: string | number | null | undefined): string {
     return String(value ?? '')
       .replace(/&/g, '&amp;')
@@ -78,6 +163,66 @@ export class TestPrintService {
 
   private formatMultiline(value: string | number | null | undefined): string {
     return this.escapeHtml(value).replace(/\n/g, '<br>');
+  }
+
+  private buildPdfBodyHtml(test: PrintableTest, selectedExamples: TestExampleDTO[], options: TestPrintOptions): string {
+    const studentDocs = this.buildStudentPagesHtml(test, selectedExamples, options);
+    const solutionDocs = options.includeSolutionSheet
+      ? this.buildSolutionPagesHtml(test, selectedExamples, options)
+      : '';
+
+    return `
+      <style>
+        @page { size: A4; margin: 12mm; }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; background: #fff; }
+        body { font-family: Arial, Helvetica, sans-serif; color: #111; font-size: 12px; }
+        .page-break-before { page-break-before: always; break-before: page; }
+        .print-doc { width: 100%; }
+        .test-title { text-align: center; font-size: 22px; font-weight: 700; margin: 0 0 14px; }
+        .meta-lines { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .meta-line { display: flex; align-items: center; gap: 8px; }
+        .meta-line span { white-space: nowrap; font-weight: 600; }
+        .meta-line .line { border-bottom: 1px solid #222; height: 14px; width: 100%; }
+        .header-tables.stacked { display: flex; flex-direction: column; gap: 10px; margin: 10px 0 12px; }
+        .result-table { width: 220px; }
+        table { border-collapse: collapse; width: 100%; }
+        .compact-table th, .compact-table td, .answer-table-wrap td, .answer-table-wrap th,
+        .assign-preview td, .assign-preview th, .gap-grid td, .gap-grid th {
+          border: 1px solid #222;
+          padding: 6px 8px;
+          vertical-align: top;
+        }
+        .grading-title { margin: 0 0 6px; font-weight: 700; }
+        .teacher-note { margin: 14px 0 10px; white-space: pre-line; text-align: center; line-height: 1.5; }
+        .good-luck { text-align: center; margin: 0 0 8px; font-size: 15px; }
+        .header-divider { border: none; border-top: 1px solid #222; margin: 10px 0 16px; }
+        .task { page-break-inside: avoid; break-inside: avoid; }
+        .task-head { display: flex; justify-content: space-between; gap: 12px; font-weight: 700; margin-bottom: 8px; font-size: 14px; }
+        .task-points { white-space: nowrap; }
+        .preview-panel { line-height: 1.4; }
+        .task-instruction, .task-question { margin: 0 0 10px; white-space: pre-line; }
+        .student-list > div, .solution-list > div { margin-bottom: 8px; }
+        .solution-box { border: 1px solid #222; padding: 10px; min-height: 48px; white-space: pre-line; }
+        .muted { color: #777; }
+        .construction-preview { margin-top: 8px; }
+        .image-preview { max-width: 100%; max-height: 220px; display: block; margin-bottom: 10px; object-fit: contain; }
+        .construction-space { min-height: 180px; border: 1px dashed #b6bcc7; }
+        .answer-table-wrap, .assign-preview, .gap-grid { margin-top: 8px; }
+        .checkbox-cell, .small, .letter-cell { width: 42px; text-align: center; }
+        .gap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+        .assign-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .fill { width: 48px; }
+        .solution-header { margin-bottom: 16px; }
+        .solution-note { margin: 0 0 10px; color: #555; }
+        .free-space { width: 100%; }
+        .free-space.medium { min-height: 90px; }
+        .free-space.large { min-height: 150px; }
+      </style>
+
+      ${studentDocs}
+      ${solutionDocs}
+    `;
   }
 
   private buildPrintHtml(test: PrintableTest, selectedExamples: TestExampleDTO[], options: TestPrintOptions): string {
@@ -97,7 +242,7 @@ export class TestPrintService {
             * { box-sizing: border-box; }
             html, body { margin: 0; padding: 0; }
             body { font-family: Arial, Helvetica, sans-serif; color: #111; font-size: 12px; }
-            .page-break-before { page-break-before: always; }
+            .page-break-before { page-break-before: always; break-before: page; }
             .print-doc { width: 100%; }
             .test-title { text-align: center; font-size: 22px; font-weight: 700; margin: 0 0 14px; }
             .meta-lines { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }

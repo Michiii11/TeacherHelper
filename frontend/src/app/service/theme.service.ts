@@ -18,10 +18,6 @@ export class ThemeService {
     this.apply(enabled);
   }
 
-  isDarkMode(): boolean {
-    return localStorage.getItem(this.STORAGE_KEY) === 'true';
-  }
-
   private apply(enabled: boolean): void {
     this.document.body.classList.toggle('dark-mode', enabled);
     this.document.documentElement.classList.toggle('dark-mode', enabled);

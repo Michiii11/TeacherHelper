@@ -4,6 +4,7 @@ import at.dtos.Example.CreateExampleDTO;
 import at.dtos.Example.ExampleDTO;
 import at.dtos.Example.ExampleOverviewDTO;
 import at.dtos.Example.GapDTO;
+import at.model.ChangeLog;
 import at.model.Example;
 import at.model.School;
 import at.model.User;
@@ -114,6 +115,8 @@ public class ExampleRepository {
         em.persist(example);
         em.flush();
 
+        em.persist(new ChangeLog("Example", example.getId(), "CREATE", admin, school));
+
         return Response.ok(example.getId()).build();
     }
 
@@ -169,6 +172,8 @@ public class ExampleRepository {
         }
 
         em.merge(example);
+
+        em.persist(new ChangeLog("Example", example.getId(), "UPDATE", em.find(User.class, userId), example.getSchool()));
         return Response.ok(example.getId()).build();
     }
 
@@ -183,8 +188,10 @@ public class ExampleRepository {
                     .entity("Not allowed to delete this Example.")
                     .build();
         }
+        em.persist(new ChangeLog("Example", example.getId(), "DELETE", em.find(User.class, userId), example.getSchool()));
 
         em.remove(example);
+
 
         return Response.ok().build();
     }
@@ -224,6 +231,8 @@ public class ExampleRepository {
 
         example.setImageUrl(imageKey);
         em.merge(example);
+
+        em.persist(new ChangeLog("Example", example.getId(), "UPDATE", null, example.getSchool()));
         return null;
     }
 
@@ -236,6 +245,7 @@ public class ExampleRepository {
 
         example.setSolutionUrl(solutionKey);
         em.merge(example);
+        em.persist(new ChangeLog("Example", example.getId(), "UPDATE", null, example.getSchool()));
         return null;
     }
 

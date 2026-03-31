@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Config } from '../config';
-import { CreateSchoolInviteDTO, SchoolDTO } from '../model/School';
+import {ChangeLog, CreateSchoolInviteDTO, LastActivityDTO, SchoolDTO} from '../model/School';
 import { CreateExampleDTO, Focus } from '../model/Example';
 import { CreateTestDTO } from '../model/Test';
 import { AuthResult, User, UserDTO } from '../model/User';
@@ -397,5 +397,9 @@ export class HttpService {
       headers: { 'Content-Type': 'text/plain' },
       responseType: 'text' as 'json'
     });
+  }
+
+  getLastChange(schoolId: string | null) {
+    return this.http.get<LastActivityDTO>(`${Config.API_URL}/school/${schoolId}/last-activity`)
   }
 }

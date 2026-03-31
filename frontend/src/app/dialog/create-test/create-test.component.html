@@ -55,6 +55,12 @@
               <div class="autocomplete-option">
                 <strong>{{ ex.question }}</strong>
                 <small>{{ ex.instruction }}</small>
+
+                <div class="focus-list" *ngIf="ex.focusList?.length">
+                  <span class="focus-chip" *ngFor="let focus of ex.focusList">
+                    {{ focus.label }}
+                  </span>
+                </div>
               </div>
             </mat-option>
           </mat-autocomplete>
@@ -441,6 +447,14 @@
     </div>
 
     <div class="print-actions">
+      <!--<button mat-stroked-button type="button" (click)="exportWord()" [disabled]="isExportingWord">
+        {{ isExportingWord ? 'Word wird erstellt…' : 'Word herunterladen' }}
+      </button>
+
+      <button mat-stroked-button type="button" (click)="exportPdf()" [disabled]="isExportingPdf">
+        {{ isExportingPdf ? 'PDF wird erstellt…' : 'PDF herunterladen' }}
+      </button>-->
+
       <button mat-flat-button color="primary" type="button" (click)="printPreview()">
         Drucken
       </button>

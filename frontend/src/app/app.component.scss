@@ -7,11 +7,8 @@ app-navigation {
   left: 0;
 }
 
-app-footer {
-  position: fixed;
-  width: 100vw;
-  bottom: 0;
-  z-index: 10;
+app-footer{
+  width: 100%;
 }
 
 .app-wrapper {

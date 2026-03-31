@@ -3,11 +3,7 @@ package at.repository;
 import at.dtos.Test.CreateTestDTO;
 import at.dtos.Test.TestExampleDTO;
 import at.dtos.Test.TestOverviewDTO;
-import at.model.Example;
-import at.model.School;
-import at.model.Test;
-import at.model.TestExample;
-import at.model.User;
+import at.model.*;
 import at.security.TokenService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -53,6 +49,8 @@ public class TestRepository {
         applySettings(test, dto);
         em.persist(test);
 
+        em.persist(new ChangeLog("Test", test.getId(), "CREATE", admin, test.getSchool()));
+
         addExamplesToTest(test, dto.exampleList());
 
         return Response.ok().build();
@@ -91,6 +89,8 @@ public class TestRepository {
 
         addExamplesToTest(test, dto.exampleList());
 
+        em.persist(new ChangeLog("Test", test.getId(), "UPDATE", test.getAdmin(), test.getSchool()));
+
         return Response.ok().build();
     }
 
@@ -112,7 +112,9 @@ public class TestRepository {
                     .build();
         }
 
+        em.persist(new ChangeLog("Test", test.getId(), "DELETE", test.getAdmin(), test.getSchool()));
         em.remove(test);
+
         return Response.ok().build();
     }
 
