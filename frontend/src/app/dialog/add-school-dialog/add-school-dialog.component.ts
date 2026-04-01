@@ -1,7 +1,5 @@
 import { Component } from '@angular/core';
-import {
-  MatDialogRef
-} from '@angular/material/dialog';
+import { MatDialogRef } from '@angular/material/dialog';
 import { MatFormField, MatInput, MatLabel } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
@@ -19,7 +17,6 @@ import { MatIcon } from '@angular/material/icon';
     MatIcon
   ],
   template: `
-    <!-- HEADER -->
     <div class="dialog-header">
       <div class="icon-wrapper">
         <mat-icon>school</mat-icon>
@@ -30,9 +27,7 @@ import { MatIcon } from '@angular/material/icon';
       </div>
     </div>
 
-    <!-- CONTENT -->
     <form (ngSubmit)="onCreate()" class="dialog-form">
-
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Schulname</mat-label>
         <input
@@ -45,45 +40,23 @@ import { MatIcon } from '@angular/material/icon';
         />
       </mat-form-field>
 
-      <!-- ACTIONS -->
       <div class="dialog-actions">
-
-        <button
-          mat-stroked-button
-          type="button"
-          (click)="onCancel()"
-        >
+        <button mat-stroked-button type="button" (click)="onCancel()">
           Abbrechen
         </button>
 
-        <button
-          mat-flat-button
-          color="primary"
-          type="submit"
-          [disabled]="!schoolName"
-        >
+        <button mat-flat-button color="primary" type="submit" [disabled]="!schoolName">
           Erstellen
         </button>
-
       </div>
-
     </form>
   `,
   styles: [`
-
-    /* =========================
-       BASE
-    ========================= */
-
     :host {
       display: block;
       padding: 1.4rem 1.5rem 1.6rem;
       background: transparent;
     }
-
-    /* =========================
-       HEADER
-    ========================= */
 
     .dialog-header {
       display: flex;
@@ -95,13 +68,13 @@ import { MatIcon } from '@angular/material/icon';
         margin: 0;
         font-weight: 700;
         font-size: 1.2rem;
-        color: #0f172a;
+        color: var(--text);
       }
 
       p {
         margin: .2rem 0 0;
         font-size: .85rem;
-        color: #64748b;
+        color: var(--text-soft);
       }
     }
 
@@ -109,20 +82,16 @@ import { MatIcon } from '@angular/material/icon';
       width: 46px;
       height: 46px;
       border-radius: 12px;
-      background: linear-gradient(135deg,#2563eb,#1d4ed8);
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      color: var(--button-text);
 
       mat-icon {
         font-size: 22px;
       }
     }
-
-    /* =========================
-       FORM
-    ========================= */
 
     .dialog-form {
       display: flex;
@@ -133,10 +102,6 @@ import { MatIcon } from '@angular/material/icon';
     .full-width {
       width: 100%;
     }
-
-    /* =========================
-       ACTIONS
-    ========================= */
 
     .dialog-actions {
       display: flex;
@@ -151,86 +116,22 @@ import { MatIcon } from '@angular/material/icon';
       }
     }
 
-    /* =========================
-       MATERIAL BASE
-    ========================= */
-
     ::ng-deep .mat-mdc-dialog-container {
       border-radius: 18px !important;
-      background: #ffffff;
+      background: var(--surface);
     }
 
-    /* Input */
     ::ng-deep .mat-mdc-text-field-wrapper {
       border-radius: 12px !important;
-      background: #ffffff;
+      background: var(--input-bg);
     }
 
     ::ng-deep .mdc-text-field--outlined {
-      --mdc-outlined-text-field-outline-color: #e2e8f0;
+      --mdc-outlined-text-field-outline-color: var(--border);
     }
-
-    /* =========================
-       🌙 DARK MODE
-    ========================= */
-
-    :host-context(.dark-mode) {
-
-      .dialog-header {
-        h2 {
-          color: #f1f5f9;
-        }
-
-        p {
-          color: #94a3b8;
-        }
-      }
-
-    }
-
-    /* Dialog Background */
-    :host-context(.dark-mode) ::ng-deep .mat-mdc-dialog-container {
-      background: #0f172a;
-    }
-
-    /* Input Background */
-    :host-context(.dark-mode) ::ng-deep .mat-mdc-text-field-wrapper {
-      background: #020617;
-    }
-
-    /* Input Text */
-    :host-context(.dark-mode) ::ng-deep input {
-      color: #e2e8f0 !important;
-    }
-
-    /* Label */
-    :host-context(.dark-mode) ::ng-deep .mdc-floating-label {
-      color: #94a3b8 !important;
-    }
-
-    /* Outline */
-    :host-context(.dark-mode) ::ng-deep .mdc-text-field--outlined {
-      --mdc-outlined-text-field-outline-color: #334155;
-    }
-
-    :host-context(.dark-mode) ::ng-deep .mdc-text-field--focused {
-      --mdc-outlined-text-field-outline-color: #3b82f6;
-    }
-
-    /* Buttons */
-    :host-context(.dark-mode) button[mat-stroked-button] {
-      border-color: #334155;
-      color: #e2e8f0;
-    }
-
-    :host-context(.dark-mode) button[mat-stroked-button]:hover {
-      background: rgba(148,163,184,0.1);
-    }
-
   `]
 })
 export class AddSchoolDialogComponent {
-
   schoolName = '';
 
   constructor(private dialogRef: MatDialogRef<AddSchoolDialogComponent>) {}
@@ -244,5 +145,4 @@ export class AddSchoolDialogComponent {
       this.dialogRef.close(this.schoolName);
     }
   }
-
 }

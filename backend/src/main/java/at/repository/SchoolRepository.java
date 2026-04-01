@@ -171,7 +171,7 @@ public class SchoolRepository {
 
         String jpql = excludedIds.isEmpty()
                 ? "SELECT u FROM User u"
-                : "SELECT u FROM User u WHERE u.id NOT IN :excluded";
+                : "SELECT u FROM User u WHERE u.id NOT IN :excluded and u.allowInvitations != false";
 
         var query = em.createQuery(jpql, User.class);
 

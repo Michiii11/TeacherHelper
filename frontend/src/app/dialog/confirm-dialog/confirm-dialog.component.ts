@@ -76,21 +76,21 @@ import { MatIconModule } from '@angular/material/icon';
       border-radius: 14px;
       display: grid;
       place-items: center;
-      background: rgba(239, 68, 68, 0.12);
-      color: #dc2626;
+      background: var(--warn-soft);
+      color: var(--warn);
     }
 
     .header-text h2 {
       margin: 0;
       font-size: 1.1rem;
       font-weight: 700;
-      color: #0f172a;
+      color: var(--text);
     }
 
     .header-text p {
       margin: .35rem 0 0;
       font-size: .92rem;
-      color: #64748b;
+      color: var(--text-soft);
       line-height: 1.5;
     }
 
@@ -98,8 +98,8 @@ import { MatIconModule } from '@angular/material/icon';
       margin-top: 1rem;
       padding: .9rem 1rem;
       border-radius: 14px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
     }
 
     .dialog-actions {

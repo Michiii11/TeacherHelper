@@ -17,7 +17,7 @@
   box-sizing: border-box;
   max-height: 92vh;
   overflow: auto;
-  background: #ffffff;
+  background: var(--surface);
   border-radius: 28px;
 }
 
@@ -33,13 +33,13 @@
   font-size: 1.2rem;
   line-height: 1.1;
   font-weight: 800;
-  color: #111827;
+  color: color-mix(in srgb, var(--text) 94%, transparent);
 }
 
 .preview-toolbar-text p {
   margin: 0.3rem 0 0;
   font-size: 0.95rem;
-  color: #64748b;
+  color: var(--text-soft);
 }
 
 .preview-toolbar-actions {
@@ -52,8 +52,8 @@
 .settings-card {
   padding: 1rem 1.1rem;
   border-radius: 22px;
-  background: #fafafa;
-  border: 1px solid #dbe1ea;
+  background: color-mix(in srgb, var(--surface) 85%, #fafafa);
+  border: 1px solid color-mix(in srgb, var(--border) 85%, #dbe1ea);
 }
 
 .print-controls-grid {
@@ -74,7 +74,7 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: #64748b;
+  color: var(--text-soft);
 }
 
 .stepper {
@@ -87,16 +87,16 @@
   width: 72px;
   height: 44px;
   border-radius: 12px;
-  border: 1px solid #cfd7e3;
-  background: #ffffff;
-  color: #111827;
+  border: 1px solid color-mix(in srgb, var(--border) 90%, #cfd7e3);
+  background: var(--surface);
+  color: color-mix(in srgb, var(--text) 94%, transparent);
   text-align: center;
   font-size: 1rem;
   outline: none;
 }
 
 .stepper input:focus {
-  border-color: #94b6f5;
+  border-color: color-mix(in srgb, var(--input-border-focus) 55%, white);
 }
 
 .print-toggle-group {
@@ -107,9 +107,9 @@
 }
 
 .print-toggle-group button.active {
-  border-color: #bfd1f7 !important;
-  background: #eef4ff !important;
-  color: #1565c0 !important;
+  border-color: color-mix(in srgb, var(--primary) 24%, #bfd1f7) !important;
+  background: color-mix(in srgb, var(--primary) 8%, #eef4ff) !important;
+  color: color-mix(in srgb, var(--primary-hover) 80%, #1565c0) !important;
 }
 
 .toolbar-buttons {
@@ -121,7 +121,7 @@
 .preview-surface {
   padding: 1.4rem;
   border-radius: 0;
-  background: #dfe7f4;
+  background: color-mix(in srgb, var(--surface-2) 50%, #dfe7f4);
   border: none;
 }
 
@@ -133,7 +133,7 @@
   width: 100%;
   max-width: 860px;
   margin: 0 auto;
-  background: #ffffff;
+  background: var(--surface);
   border-radius: 10px;
   padding: 2rem 2.2rem;
   box-sizing: border-box;
@@ -141,7 +141,7 @@
 }
 
 .test-header {
-  color: #111827;
+  color: color-mix(in srgb, var(--text) 94%, transparent);
 }
 
 .test-title {
@@ -149,7 +149,7 @@
   text-align: center;
   font-size: 2rem;
   font-weight: 800;
-  color: #111827;
+  color: color-mix(in srgb, var(--text) 94%, transparent);
 }
 
 .meta-lines {
@@ -163,13 +163,13 @@
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  color: #111827;
+  color: color-mix(in srgb, var(--text) 94%, transparent);
   font-weight: 600;
 }
 
 .meta-line .line {
   flex: 1;
-  border-bottom: 1px solid #374151;
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 30%, #374151);
   min-height: 1px;
 }
 
@@ -187,27 +187,27 @@
 
 .compact-table th,
 .compact-table td {
-  border: 1px solid #6b7280;
+  border: 1px solid color-mix(in srgb, var(--text-soft) 45%, #6b7280);
   padding: 0.6rem 0.7rem;
-  color: #111827;
+  color: color-mix(in srgb, var(--text) 94%, transparent);
 }
 
 .compact-table th {
   font-weight: 700;
-  background: #ffffff;
+  background: var(--surface);
 }
 
 .grading-title {
   margin: 0 0 0.4rem;
   font-size: 0.95rem;
   font-weight: 700;
-  color: #111827;
+  color: color-mix(in srgb, var(--text) 94%, transparent);
 }
 
 .teacher-note {
   margin: 0.9rem 0;
   text-align: center;
-  color: #374151;
+  color: color-mix(in srgb, var(--text) 55%, #374151);
 }
 
 .good-luck {
@@ -215,17 +215,17 @@
   text-align: center;
   font-size: 1.1rem;
   font-weight: 800;
-  color: #111827;
+  color: color-mix(in srgb, var(--text) 94%, transparent);
 }
 
 .header-divider {
   border: 0;
-  border-top: 1px solid #6b7280;
+  border-top: 1px solid color-mix(in srgb, var(--text-soft) 45%, #6b7280);
   margin: 1.25rem 0 0;
 }
 
 .task {
-  color: #111827;
+  color: color-mix(in srgb, var(--text) 94%, transparent);
 }
 
 .task-head {
@@ -239,11 +239,11 @@
 .task-title,
 .task-points {
   font-weight: 700;
-  color: #111827;
+  color: color-mix(in srgb, var(--text) 94%, transparent);
 }
 
 .preview-panel {
-  color: #111827;
+  color: color-mix(in srgb, var(--text) 94%, transparent);
 }
 
 .preview-panel p {
@@ -292,7 +292,7 @@
 .gap-grid td,
 .gap-grid th,
 .assign-preview td {
-  border: 1px solid #6b7280;
+  border: 1px solid color-mix(in srgb, var(--text-soft) 45%, #6b7280);
   padding: 0.55rem 0.7rem;
 }
 
@@ -331,11 +331,11 @@
 }
 
 ::ng-deep .mat-mdc-stroked-button {
-  border-color: #9ca3af !important;
+  border-color: color-mix(in srgb, var(--text-soft) 40%, #9ca3af) !important;
 }
 
 ::ng-deep .mat-pseudo-checkbox {
-  border-color: #6b7280 !important;
+  border-color: color-mix(in srgb, var(--text-soft) 55%, #6b7280) !important;
 }
 
 .dark-mode :host,
@@ -346,40 +346,40 @@
 /* DARK MODE – nahe an der hellen Version */
 
 :host-context(.dark-mode) .test-preview-layout {
-  background: #0f172a;
+  background: var(--bg);
 }
 
 :host-context(.dark-mode) .preview-toolbar-text h1 {
-  color: #f8fafc;
+  color: var(--text);
 }
 
 :host-context(.dark-mode) .preview-toolbar-text p {
-  color: #94a3b8;
+  color: var(--text-soft);
 }
 
 :host-context(.dark-mode) .settings-card {
-  background: #111827;
-  border-color: #263244;
+  background: var(--surface);
+  border-color: color-mix(in srgb, var(--surface-3) 70%, #263244);
 }
 
 :host-context(.dark-mode) .count-picker .label {
-  color: #94a3b8;
+  color: var(--text-soft);
 }
 
 :host-context(.dark-mode) .stepper input {
-  background: #0b1220;
-  border-color: #334155;
-  color: #e2e8f0;
+  background: color-mix(in srgb, var(--bg) 90%, #0b1220);
+  border-color: var(--border);
+  color: color-mix(in srgb, var(--text) 92%, transparent);
 }
 
 :host-context(.dark-mode) .stepper input:focus {
-  border-color: #5b8def;
+  border-color: color-mix(in srgb, var(--input-border-focus) 75%, #5b8def);
 }
 
 :host-context(.dark-mode) .print-toggle-group button.active {
-  border-color: #3b82f6 !important;
-  background: rgba(59, 130, 246, 0.12) !important;
-  color: #60a5fa !important;
+  border-color: var(--primary) !important;
+  background: color-mix(in srgb, var(--primary) 12%, transparent) !important;
+  color: var(--primary) !important;
 }
 
 :host-context(.dark-mode) .preview-surface {
@@ -387,7 +387,7 @@
 }
 
 :host-context(.dark-mode) .print-page {
-  background: #020817;
+  background: color-mix(in srgb, var(--bg) 94%, #020817);
   box-shadow: none;
 }
 
@@ -400,16 +400,16 @@
 :host-context(.dark-mode) .good-luck,
 :host-context(.dark-mode) .grading-title,
 :host-context(.dark-mode) .meta-line {
-  color: #f8fafc;
+  color: var(--text);
 }
 
 :host-context(.dark-mode) .teacher-note {
-  color: #cbd5e1;
+  color: color-mix(in srgb, var(--text) 82%, transparent);
 }
 
 :host-context(.dark-mode) .meta-line .line,
 :host-context(.dark-mode) .header-divider {
-  border-color: #334155;
+  border-color: var(--border);
 }
 
 :host-context(.dark-mode) .compact-table th,
@@ -418,31 +418,31 @@
 :host-context(.dark-mode) .gap-grid td,
 :host-context(.dark-mode) .gap-grid th,
 :host-context(.dark-mode) .assign-preview td {
-  border-color: #334155;
-  color: #e2e8f0;
+  border-color: var(--border);
+  color: color-mix(in srgb, var(--text) 92%, transparent);
   background: transparent;
 }
 
 :host-context(.dark-mode) ::ng-deep .mat-mdc-stroked-button:not(:disabled) {
-  border-color: #475569 !important;
-  color: #e2e8f0 !important;
+  border-color: var(--border-strong) !important;
+  color: color-mix(in srgb, var(--text) 92%, transparent) !important;
 }
 
 :host-context(.dark-mode) ::ng-deep .mat-mdc-stroked-button:not(:disabled):hover {
-  background: rgba(148, 163, 184, 0.08) !important;
+  background: color-mix(in srgb, var(--text-soft) 8%, transparent) !important;
 }
 
 :host-context(.dark-mode) ::ng-deep .mat-mdc-unelevated-button.mat-primary {
-  background: #2563eb !important;
-  color: #ffffff !important;
+  background: var(--primary) !important;
+  color: var(--button-text) !important;
 }
 
 :host-context(.dark-mode) ::ng-deep .mat-mdc-unelevated-button.mat-primary:hover {
-  background: #1d4ed8 !important;
+  background: var(--primary-hover) !important;
 }
 
 :host-context(.dark-mode) ::ng-deep .mat-pseudo-checkbox {
-  border-color: #64748b !important;
+  border-color: var(--text-muted) !important;
 }
 
 @media (max-width: 1100px) {

@@ -2,23 +2,26 @@ import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
 import { MatButton } from '@angular/material/button';
-import { MatFormField, MatInput, MatLabel } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatDivider } from '@angular/material/divider';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, finalize, takeUntil } from 'rxjs';
 import * as CryptoJS from 'crypto-js';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import { HttpService } from '../../service/http.service';
-import { User } from '../../model/User';
+import { User, UserSettings } from '../../model/User';
 import { ConfirmDialogComponent } from '../../dialog/confirm-dialog/confirm-dialog.component';
 import { ThemeService } from '../../service/theme.service';
+import { LanguageService } from '../../service/language.service';
 
 type ProfileSettings = {
   darkMode: boolean;
-  language: string;
+  language: 'de' | 'en';
   allowInvitations: boolean;
-};
+}
 
 @Component({
   selector: 'app-profile',
@@ -27,9 +30,9 @@ type ProfileSettings = {
     ReactiveFormsModule,
     MatIcon,
     MatButton,
-    MatFormField,
-    MatLabel,
+    MatFormFieldModule,
     MatInput,
+    TranslatePipe
   ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss'
@@ -42,9 +45,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly destroy$ = new Subject<void>();
   private readonly themeService = inject(ThemeService);
-
-  private readonly DARK_MODE_KEY = 'teacher_settings_dark_mode';
-  private readonly LANGUAGE_KEY = 'teacher_settings_language';
+  private readonly languageService = inject(LanguageService);
+  private readonly translate = inject(TranslateService);
 
   user: User | null = null;
   loading = true;
@@ -87,9 +89,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
   });
 
   settingsForm = this.fb.group({
-    darkMode: [false],
-    language: ['de', [Validators.required]],
-    allowInvitations: [true]
+    darkMode: [false, { nonNullable: true }],
+    language: ['de' as 'de' | 'en', [Validators.required]],
+    allowInvitations: [true, { nonNullable: true }]
   });
 
   deleteAccountForm = this.fb.group({
@@ -118,7 +120,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit(): void {
-    this.loadLocalSettings();
     this.setupSettingsAutoSave();
     this.loadUser();
   }
@@ -139,17 +140,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.usernameForm.patchValue({ username: user?.username ?? '' });
           this.emailForm.patchValue({ email: user?.email ?? '' });
 
-          this.settingsForm.patchValue({
-            darkMode: this.getStoredDarkMode(),
-            language: this.getStoredLanguage(),
-            allowInvitations: (user as any)?.allowInvitations ?? true
-          }, { emitEvent: false });
+          const resolvedSettings = this.resolveSettings(user.settings);
 
-          this.lastSavedSettings = this.getCurrentSettings();
+          this.settingsForm.patchValue(resolvedSettings, { emitEvent: false });
+          this.applyResolvedSettings(resolvedSettings);
+
+          this.lastSavedSettings = resolvedSettings;
           this.settingsReady = true;
         },
         error: () => {
-          this.snack.open('Benutzerdaten konnten nicht geladen werden', 'OK', { duration: 3500 });
+          this.snack.open(this.translate.instant('snackbar.userLoadedError'), 'OK', { duration: 3500 });
         }
       });
   }
@@ -171,59 +171,34 @@ export class ProfileComponent implements OnInit, OnDestroy {
         }
 
         const settings = this.getCurrentSettings();
-        this.applyLocalSettings(settings.darkMode, settings.language);
+        this.applyResolvedSettings(settings);
         this.persistSettings(settings);
       });
   }
 
-  private loadLocalSettings(): void {
-    const darkMode = this.getStoredDarkMode();
-    const language = this.getStoredLanguage();
-
-    this.settingsForm.patchValue(
-      {
-        darkMode,
-        language
-      },
-      { emitEvent: false }
-    );
-
-    this.applyLocalSettings(darkMode, language);
-  }
-
-  private getStoredDarkMode(): boolean {
-    return localStorage.getItem(this.DARK_MODE_KEY) === 'true';
-  }
-
-  private getStoredLanguage(): string {
-    return localStorage.getItem(this.LANGUAGE_KEY) || 'de';
+  private resolveSettings(settings?: UserSettings | null): ProfileSettings {
+    return {
+      darkMode: this.themeService.resolveDarkMode(settings?.darkMode ?? null),
+      language: this.languageService.resolveLanguage(settings?.language ?? null),
+      allowInvitations: settings?.allowInvitations ?? true
+    };
   }
 
   private getCurrentSettings(): ProfileSettings {
     return {
-      darkMode: !!this.settingsForm.controls.darkMode.value,
+      darkMode: this.settingsForm.controls.darkMode.value as boolean,
       language: this.settingsForm.controls.language.value ?? 'de',
-      allowInvitations: !!this.settingsForm.controls.allowInvitations.value
+      allowInvitations: this.settingsForm.controls.allowInvitations.value as boolean
     };
   }
 
-  private applyLocalSettings(darkMode: boolean, language: string): void {
-    localStorage.setItem(this.DARK_MODE_KEY, String(darkMode));
-    localStorage.setItem(this.LANGUAGE_KEY, language);
-    this.themeService.setDarkMode(darkMode);
-    document.documentElement.lang = language;
+  private applyResolvedSettings(settings: ProfileSettings): void {
+    this.themeService.setDarkMode(settings.darkMode);
+    this.languageService.applyUserPreference(settings.language);
   }
 
   private persistSettings(settings: ProfileSettings): void {
-    const allowInvitationsChanged = settings.allowInvitations !== this.lastSavedSettings.allowInvitations;
-    const onlyLocalChanged =
-      settings.darkMode !== this.lastSavedSettings.darkMode
-      || settings.language !== this.lastSavedSettings.language;
-
-    if (!allowInvitationsChanged) {
-      if (onlyLocalChanged) {
-        this.lastSavedSettings = { ...settings };
-      }
+    if (this.areSettingsEqual(settings, this.lastSavedSettings)) {
       return;
     }
 
@@ -234,7 +209,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     this.savingSettings = true;
 
-    this.http.updateAllowInvitations(settings.allowInvitations)
+    this.http.updateUserSettings({
+      darkMode: settings.darkMode,
+      language: settings.language,
+      allowInvitations: settings.allowInvitations
+    })
       .pipe(finalize(() => {
         this.savingSettings = false;
 
@@ -250,22 +229,23 @@ export class ProfileComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           if (this.user) {
-            (this.user as any).allowInvitations = settings.allowInvitations;
+            this.user.settings = {
+              darkMode: settings.darkMode,
+              language: settings.language,
+              allowInvitations: settings.allowInvitations
+            };
           }
 
           this.lastSavedSettings = { ...settings };
         },
         error: (err) => {
-          const reverted = Boolean((this.user as any)?.allowInvitations ?? true);
+          const fallback = this.lastSavedSettings;
 
-          this.settingsForm.patchValue({
-            allowInvitations: reverted
-          }, { emitEvent: false });
-
-          this.lastSavedSettings = this.getCurrentSettings();
+          this.settingsForm.patchValue(fallback, { emitEvent: false });
+          this.applyResolvedSettings(fallback);
 
           this.snack.open(
-            typeof err?.error === 'string' ? err.error : 'Einstellungen konnten nicht gespeichert werden',
+            typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.settingsSaveError'),
             'OK',
             { duration: 3500 }
           );
@@ -296,12 +276,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
             this.user.username = username;
           }
           window.dispatchEvent(new Event('storage'));
-          this.snack.open('Benutzername wurde aktualisiert', 'OK', { duration: 3000 });
+          this.snack.open(this.translate.instant('snackbar.usernameUpdated'), 'OK', { duration: 3000 });
         },
         error: (err) => {
-          this.snack.open(typeof err?.error === 'string' ? err.error : 'Benutzername konnte nicht geändert werden', 'OK', {
-            duration: 3500
-          });
+          this.snack.open(
+            typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.usernameUpdateError'),
+            'OK',
+            { duration: 3500 }
+          );
         }
       });
   }
@@ -325,9 +307,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.snack.open(message, 'OK', { duration: 3500 });
         },
         error: (err) => {
-          this.snack.open(typeof err?.error === 'string' ? err.error : 'E-Mail-Änderung konnte nicht angefordert werden', 'OK', {
-            duration: 3500
-          });
+          this.snack.open(
+            typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.emailRequestError'),
+            'OK',
+            { duration: 3500 }
+          );
         }
       });
   }
@@ -349,9 +333,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.snack.open(message, 'OK', { duration: 3200 });
         },
         error: (err) => {
-          this.snack.open(typeof err?.error === 'string' ? err.error : 'Offene E-Mail-Änderung konnte nicht gelöscht werden', 'OK', {
-            duration: 3500
-          });
+          this.snack.open(
+            typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.pendingEmailDeleteError'),
+            'OK',
+            { duration: 3500 }
+          );
         }
       });
   }
@@ -367,12 +353,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
     const confirmPasswordRaw = this.passwordForm.controls.confirmPassword.value ?? '';
 
     if (newPasswordRaw !== confirmPasswordRaw) {
-      this.snack.open('Die neuen Passwörter stimmen nicht überein', 'OK', { duration: 3200 });
+      this.snack.open(this.translate.instant('snackbar.passwordMismatch'), 'OK', { duration: 3200 });
       return;
     }
 
     if (currentPasswordRaw === newPasswordRaw) {
-      this.snack.open('Das neue Passwort muss sich vom alten unterscheiden', 'OK', { duration: 3200 });
+      this.snack.open(this.translate.instant('snackbar.passwordSame'), 'OK', { duration: 3200 });
       return;
     }
 
@@ -385,12 +371,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.passwordForm.reset();
-          this.snack.open('Passwort wurde geändert', 'OK', { duration: 3000 });
+          this.snack.open(this.translate.instant('snackbar.passwordChanged'), 'OK', { duration: 3000 });
         },
         error: (err) => {
-          this.snack.open(typeof err?.error === 'string' ? err.error : 'Passwort konnte nicht geändert werden', 'OK', {
-            duration: 3500
-          });
+          this.snack.open(
+            typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.passwordChangeError'),
+            'OK',
+            { duration: 3500 }
+          );
         }
       });
   }
@@ -406,12 +394,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
       maxWidth: 'calc(100vw - 24px)',
       disableClose: true,
       data: {
-        title: 'Account endgültig löschen?',
-        message: 'Diese Aktion kann nicht rückgängig gemacht werden. Dein Konto wird deaktiviert und du wirst sofort ausgeloggt.',
-        confirmText: 'Endgültig löschen',
-        cancelText: 'Abbrechen',
+        title: this.translate.instant('dialog.deleteAccountTitle'),
+        message: this.translate.instant('dialog.deleteAccountMessage'),
+        confirmText: this.translate.instant('dialog.deleteAccountConfirm'),
+        cancelText: this.translate.instant('common.cancel'),
         requireConfirmation: true,
-        confirmationText: 'Ich möchte meinen Account endgültig löschen'
+        confirmationText: this.translate.instant('dialog.confirmPhrase')
       }
     });
 
@@ -443,9 +431,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.router.navigate(['/login']);
         },
         error: (err) => {
-          this.snack.open(typeof err?.error === 'string' ? err.error : 'Account konnte nicht gelöscht werden', 'OK', {
-            duration: 3500
-          });
+          this.snack.open(
+            typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.accountDeleteError'),
+            'OK',
+            { duration: 3500 }
+          );
         }
       });
   }
@@ -459,13 +449,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     if (!this.allowedAvatarTypes.includes(file.type)) {
-      this.snack.open('Bitte nur JPG, PNG oder WEBP hochladen', 'OK', { duration: 3000 });
+      this.snack.open(this.translate.instant('snackbar.imageTypeError'), 'OK', { duration: 3000 });
       input.value = '';
       return;
     }
 
     if (file.size > this.maxAvatarBytes) {
-      this.snack.open('Das Bild darf maximal 2 MB groß sein', 'OK', { duration: 3200 });
+      this.snack.open(this.translate.instant('snackbar.imageSizeError'), 'OK', { duration: 3200 });
       input.value = '';
       return;
     }
@@ -495,12 +485,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
           }
           this.selectedAvatarFile = null;
           window.dispatchEvent(new Event('storage'));
-          this.snack.open('Profilbild wurde aktualisiert', 'OK', { duration: 3000 });
+          this.snack.open(this.translate.instant('snackbar.avatarUpdated'), 'OK', { duration: 3000 });
         },
         error: (err) => {
-          this.snack.open(typeof err?.error === 'string' ? err.error : 'Profilbild konnte nicht gespeichert werden', 'OK', {
-            duration: 3500
-          });
+          this.snack.open(
+            typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.avatarUpdateError'),
+            'OK',
+            { duration: 3500 }
+          );
         }
       });
   }
@@ -526,9 +518,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.snack.open(message, 'OK', { duration: 3000 });
         },
         error: (err) => {
-          this.snack.open(typeof err?.error === 'string' ? err.error : 'Abo-Modell konnte nicht geändert werden', 'OK', {
-            duration: 3500
-          });
+          this.snack.open(
+            typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.subscriptionUpdateError'),
+            'OK',
+            { duration: 3500 }
+          );
         }
       });
   }
@@ -541,11 +535,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   getDisplayName(): string {
-    return this.user?.username || 'Dein Profil';
+    return this.user?.username || this.translate.instant('profile.fallbackName');
   }
 
   getDisplayEmail(): string {
-    return this.user?.email || 'Keine E-Mail hinterlegt';
+    return this.user?.email || this.translate.instant('profile.fallbackEmail');
   }
 
   getPlanLabel(): string {
@@ -584,10 +578,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
-        title: 'Profilbild löschen?',
-        message: 'Dein aktuelles Profilbild wird entfernt.',
-        confirmText: 'Löschen',
-        cancelText: 'Abbrechen'
+        title: this.translate.instant('dialog.deleteAvatarTitle'),
+        message: this.translate.instant('dialog.deleteAvatarMessage'),
+        confirmText: this.translate.instant('common.delete'),
+        cancelText: this.translate.instant('common.cancel')
       }
     });
 
@@ -603,7 +597,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             this.snack.open(msg, 'OK', { duration: 3000 });
           },
           error: () => {
-            this.snack.open('Profilbild konnte nicht gelöscht werden', 'OK', { duration: 3000 });
+            this.snack.open(this.translate.instant('snackbar.avatarDeleteError'), 'OK', { duration: 3000 });
           }
         });
     });

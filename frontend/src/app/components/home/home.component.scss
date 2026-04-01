@@ -4,7 +4,7 @@
   background:
     radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 24%),
     radial-gradient(circle at top right, rgba(99, 102, 241, 0.10), transparent 18%),
-    linear-gradient(180deg, #f8fbff 0%, #f3f6fb 100%);
+    linear-gradient(180deg, var(--theme-bg-soft) 0%, var(--theme-bg) 100%);
 }
 
 .schools-dashboard {
@@ -14,7 +14,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  color: #0f172a;
+  color: var(--theme-text);
 }
 
 .page-header {
@@ -48,8 +48,8 @@
   border-radius: 18px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #2563eb, #4f46e5);
-  color: white;
+  background: linear-gradient(135deg, var(--theme-primary), var(--theme-primary-2));
+  color: var(--theme-on-primary);
   box-shadow: 0 12px 24px rgba(37, 99, 235, 0.24);
 }
 
@@ -67,7 +67,7 @@
 
 .page-subtitle {
   margin: 0.35rem 0 0;
-  color: #64748b;
+  color: var(--theme-text-soft);
 }
 
 .stats-grid {
@@ -89,7 +89,7 @@
 
 .stat-label {
   font-size: 0.9rem;
-  color: #64748b;
+  color: var(--theme-text-soft);
   font-weight: 600;
 }
 
@@ -97,7 +97,7 @@
   font-size: 2rem;
   line-height: 1;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--theme-text);
 }
 
 .section {
@@ -121,12 +121,12 @@
   margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--theme-text);
 }
 
 .section-subtitle {
   margin: 0.3rem 0 0;
-  color: #64748b;
+  color: var(--theme-text-soft);
 }
 
 .school-search {
@@ -172,14 +172,14 @@
   place-items: center;
   text-align: center;
   gap: 0.75rem;
-  color: #64748b;
+  color: var(--theme-text-soft);
 }
 
 .empty-card mat-icon {
   width: 42px;
   height: 42px;
   font-size: 42px;
-  color: #94a3b8;
+  color: var(--theme-text-muted);
 }
 
 .card-top-row {
@@ -198,8 +198,8 @@
   place-items: center;
   font-weight: 800;
   font-size: 1rem;
-  color: #1e3a8a;
-  background: linear-gradient(135deg, #bfdbfe, #c7d2fe);
+  color: var(--theme-primary-deep);
+  background: linear-gradient(135deg, var(--theme-primary-surface), var(--theme-primary-surface-2));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
 
   overflow:hidden;
@@ -210,13 +210,13 @@
 }
 
 .member-avatar {
-  color: #0f766e;
-  background: linear-gradient(135deg, #ccfbf1, #bfdbfe);
+  color: var(--theme-success-strong);
+  background: linear-gradient(135deg, var(--theme-success-surface), var(--theme-primary-surface));
 }
 
 .discover-avatar {
-  color: #7c2d12;
-  background: linear-gradient(135deg, #fed7aa, #fde68a);
+  color: var(--theme-warning-deep);
+  background: linear-gradient(135deg, var(--theme-warning-surface), var(--theme-warning-surface-2));
 }
 
 .role-badge {
@@ -233,19 +233,19 @@
 
 .admin-badge {
   background: rgba(37, 99, 235, 0.1);
-  color: #1d4ed8;
+  color: var(--theme-primary-strong);
   border-color: rgba(37, 99, 235, 0.14);
 }
 
 .member-badge {
   background: rgba(20, 184, 166, 0.1);
-  color: #0f766e;
+  color: var(--theme-success-strong);
   border-color: rgba(20, 184, 166, 0.14);
 }
 
 .discover-badge {
   background: rgba(249, 115, 22, 0.12);
-  color: #c2410c;
+  color: var(--theme-orange-strong);
   border-color: rgba(249, 115, 22, 0.16);
 }
 
@@ -253,7 +253,7 @@
   margin: 0 0 0.9rem;
   font-size: 1.15rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--theme-text);
 }
 
 .school-info-list {
@@ -266,12 +266,12 @@
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  color: #475569;
+  color: var(--theme-text-subtle);
   line-height: 1.4;
 }
 
 .info-row mat-icon {
-  color: #64748b;
+  color: var(--theme-text-soft);
   font-size: 20px;
   width: 20px;
   height: 20px;
@@ -280,11 +280,11 @@
 .card-action-hint {
   margin-top: 1rem;
   padding-top: 0.95rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--theme-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: #2563eb;
+  color: var(--theme-primary);
   font-weight: 700;
 }
 
@@ -316,7 +316,7 @@
 ::ng-deep .school-search .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
 ::ng-deep .school-search .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
 ::ng-deep .school-search .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
-  border-color: #2563eb !important;
+  border-color: var(--theme-primary) !important;
 }
 
 @media (max-width: 1080px) {
@@ -376,7 +376,7 @@
   .section-title,
   .school-name,
   .stat-value {
-    color: #f8fafc;
+    color: var(--theme-bg-base);
   }
 
   .page-subtitle,
@@ -385,11 +385,11 @@
   .info-row,
   .empty-card,
   .empty-card mat-icon {
-    color: #94a3b8;
+    color: var(--theme-text-muted);
   }
 
   .title-icon {
-    background: linear-gradient(135deg, #1d4ed8, #4338ca);
+    background: linear-gradient(135deg, var(--theme-primary-strong), var(--theme-primary-2-strong));
     box-shadow: 0 12px 24px rgba(29, 78, 216, 0.28);
   }
 
@@ -399,45 +399,45 @@
   }
 
   .school-avatar {
-    color: #eff6ff;
+    color: var(--theme-primary-surface-text);
     background: linear-gradient(135deg, rgba(37, 99, 235, 0.35), rgba(99, 102, 241, 0.35));
   }
 
   .member-avatar {
-    color: #ccfbf1;
+    color: var(--theme-success-surface);
     background: linear-gradient(135deg, rgba(13, 148, 136, 0.35), rgba(37, 99, 235, 0.28));
   }
 
   .discover-avatar {
-    color: #ffedd5;
+    color: var(--theme-warning-text-soft);
     background: linear-gradient(135deg, rgba(234, 88, 12, 0.35), rgba(245, 158, 11, 0.28));
   }
 
   .admin-badge {
     background: rgba(37, 99, 235, 0.18);
-    color: #bfdbfe;
+    color: var(--theme-primary-surface);
     border-color: rgba(96, 165, 250, 0.25);
   }
 
   .member-badge {
     background: rgba(20, 184, 166, 0.16);
-    color: #99f6e4;
+    color: var(--theme-success-text);
     border-color: rgba(45, 212, 191, 0.22);
   }
 
   .discover-badge {
     background: rgba(249, 115, 22, 0.18);
-    color: #fdba74;
+    color: var(--theme-warning-text);
     border-color: rgba(251, 146, 60, 0.24);
   }
 
   .info-row mat-icon {
-    color: #94a3b8;
+    color: var(--theme-text-muted);
   }
 
   .card-action-hint {
     border-top-color: rgba(71, 85, 105, 0.45);
-    color: #93c5fd;
+    color: var(--theme-primary-lighter);
   }
 
   ::ng-deep .school-search .mat-mdc-text-field-wrapper {
@@ -448,7 +448,7 @@
   ::ng-deep .school-search .mdc-floating-label,
   ::ng-deep .school-search .mat-mdc-form-field-icon-suffix {
     color: #e5e7eb !important;
-    caret-color: #93c5fd !important;
+    caret-color: var(--theme-primary-lighter) !important;
   }
 
   ::ng-deep .school-search .mdc-notched-outline__leading,
@@ -466,7 +466,7 @@
   ::ng-deep .school-search .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
   ::ng-deep .school-search .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
   ::ng-deep .school-search .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
-    border-color: #60a5fa !important;
+    border-color: var(--theme-primary-light) !important;
   }
 
   ::ng-deep .school-search .mat-mdc-form-field-focus-overlay {

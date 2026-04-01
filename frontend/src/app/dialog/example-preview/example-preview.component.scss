@@ -22,26 +22,26 @@
     font-size: 1.28rem;
     line-height: 1.2;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--text);
   }
 }
 
 .preview-panel {
   padding: 1rem;
   border-radius: 20px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  color: #0f172a;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
   overflow-wrap: anywhere;
 }
 
 .preview-panel p {
   margin: 0 0 0.9rem;
-  color: #334155;
+  color: color-mix(in srgb, var(--text) 78%, var(--text-soft));
 }
 
 .preview-panel strong {
-  color: #0f172a;
+  color: var(--text);
 }
 
 .multiline-text {
@@ -64,7 +64,7 @@
   height: auto;
   margin-top: 0.65rem;
   border-radius: 16px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--border-strong);
 }
 
 .multiple-choice-preview table,
@@ -81,10 +81,10 @@
 .gap-fill-preview th,
 .assign-preview td {
   padding: 0.7rem 0.8rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   vertical-align: middle;
   overflow-wrap: anywhere;
-  color: #334155;
+  color: color-mix(in srgb, var(--text) 78%, var(--text-soft));
 }
 
 .gap-fill-preview {
@@ -109,7 +109,7 @@
 }
 
 ::ng-deep .mat-pseudo-checkbox {
-  border-color: #64748b !important;
+  border-color: var(--text-soft) !important;
 }
 
 ::ng-deep .mat-pseudo-checkbox::after {
@@ -119,37 +119,37 @@
 /* DARK MODE */
 
 :host-context(.dark-mode) .preview-header h1 {
-  color: #f8fafc;
+  color: var(--text);
 }
 
 :host-context(.dark-mode) .preview-panel {
-  background: #020617;
-  border-color: #1e293b;
-  color: #e2e8f0;
+  background: color-mix(in srgb, var(--bg) 90%, black);
+  border-color: var(--surface-3);
+  color: color-mix(in srgb, var(--text) 92%, transparent);
 }
 
 :host-context(.dark-mode) .preview-panel p {
-  color: #cbd5e1;
+  color: color-mix(in srgb, var(--text) 82%, transparent);
 }
 
 :host-context(.dark-mode) .preview-panel strong {
-  color: #f8fafc;
+  color: var(--text);
 }
 
 :host-context(.dark-mode) .image-preview {
-  border-color: #334155;
+  border-color: var(--border);
 }
 
 :host-context(.dark-mode) .multiple-choice-preview td,
 :host-context(.dark-mode) .gap-fill-preview td,
 :host-context(.dark-mode) .gap-fill-preview th,
 :host-context(.dark-mode) .assign-preview td {
-  border-color: #1e293b;
-  color: #e2e8f0;
+  border-color: var(--surface-3);
+  color: color-mix(in srgb, var(--text) 92%, transparent);
 }
 
 :host-context(.dark-mode) ::ng-deep .mat-pseudo-checkbox {
-  border-color: #64748b !important;
+  border-color: var(--text-muted) !important;
 }
 
 @media (max-width: 900px) {

@@ -51,6 +51,12 @@ public class User {
     @Column(name = "allow_invitations", nullable = false)
     private boolean allowInvitations = true;
 
+    @Column(name = "preferred_dark_mode")
+    private Boolean darkMode;
+
+    @Column(name = "preferred_language", length = 10)
+    private String language;
+
     @Column(name = "deleted", nullable = false)
     private boolean deleted = false;
 
@@ -64,6 +70,8 @@ public class User {
         this.subscriptionModel = SubscriptionModel.FREE;
         this.emailVerified = false;
         this.allowInvitations = true;
+        this.darkMode = null;
+        this.language = null;
         this.deleted = false;
     }
 
@@ -169,6 +177,22 @@ public class User {
 
     public void setAllowInvitations(boolean allowInvitations) {
         this.allowInvitations = allowInvitations;
+    }
+
+    public Boolean getDarkMode() {
+        return darkMode;
+    }
+
+    public void setDarkMode(Boolean darkMode) {
+        this.darkMode = darkMode;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
     }
 
     public boolean isDeleted() {

@@ -1,0 +1,145 @@
+{
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "logout": "Logout",
+    "reset": "Zurücksetzen",
+    "loading": "Wird geladen..."
+  },
+  "profile": {
+    "title": "Mein Profil",
+    "subtitle": "Verwalte hier Konto, Sicherheit, Einstellungen, Abo und dein Profilbild.",
+    "loading": "Profil wird geladen...",
+    "darkMode": "Dark Mode",
+    "allowInvitations": "Einladungen erlauben",
+    "language": "Sprache",
+    "usernameSection": "Benutzername ändern",
+    "usernameSub": "So erscheinst du in der App.",
+    "username": "Benutzername",
+    "usernameRequired": "Benutzername ist erforderlich.",
+    "usernameMin": "Mindestens 3 Zeichen.",
+    "usernameSave": "Benutzername speichern",
+    "emailSection": "E-Mail ändern",
+    "emailSub": "Die neue E-Mail wird erst nach Bestätigung übernommen.",
+    "newEmail": "Neue E-Mail",
+    "emailRequired": "E-Mail ist erforderlich.",
+    "emailInvalid": "Bitte eine gültige E-Mail eingeben.",
+    "emailPending": "Offen zur Bestätigung:",
+    "emailSend": "Bestätigungs-Mail senden",
+    "emailDeletePending": "Offene Änderung löschen",
+    "passwordSection": "Passwort ändern",
+    "passwordSub": "Für mehr Sicherheit dein Passwort regelmäßig aktualisieren.",
+    "currentPassword": "Aktuelles Passwort",
+    "newPassword": "Neues Passwort",
+    "confirmPassword": "Neues Passwort wiederholen",
+    "changePassword": "Passwort ändern",
+    "deleteAccount": "Account löschen",
+    "deleteAccountPassword": "Passwort bestätigen",
+    "deleteAccountButton": "Account löschen",
+    "avatarFormats": "Erlaubte Formate: JPG, PNG, WEBP • max. 2 MB",
+    "selectImage": "Bild auswählen",
+    "saveImage": "Profilbild speichern",
+    "deleteImage": "Profilbild löschen",
+    "plan": "Plan",
+    "pendingEmailConfirmation": "Offene E-Mail-Bestätigung:"
+  },
+  "languages": {
+    "de": "Deutsch",
+    "en": "English"
+  },
+  "snackbar": {
+    "userLoadedError": "Benutzerdaten konnten nicht geladen werden",
+    "usernameUpdated": "Benutzername wurde aktualisiert",
+    "usernameUpdateError": "Benutzername konnte nicht geändert werden",
+    "emailRequestError": "E-Mail-Änderung konnte nicht angefordert werden",
+    "passwordChanged": "Passwort wurde geändert",
+    "passwordMismatch": "Die neuen Passwörter stimmen nicht überein",
+    "passwordSame": "Das neue Passwort muss sich vom alten unterscheiden",
+    "passwordChangeError": "Passwort konnte nicht geändert werden",
+    "imageTypeError": "Bitte nur JPG, PNG oder WEBP hochladen",
+    "imageSizeError": "Das Bild darf maximal 2 MB groß sein",
+    "avatarUpdated": "Profilbild wurde aktualisiert",
+    "avatarUpdateError": "Profilbild konnte nicht gespeichert werden",
+    "avatarDeleteError": "Profilbild konnte nicht gelöscht werden",
+    "settingsSaveError": "Einstellungen konnten nicht gespeichert werden",
+    "accountDeleteError": "Account konnte nicht gelöscht werden",
+    "joinRequestSent": "Beitrittsanfrage gesendet"
+  },
+  "dialog": {
+    "deleteAvatarTitle": "Profilbild löschen?",
+    "deleteAvatarMessage": "Dein aktuelles Profilbild wird entfernt.",
+    "deleteAccountTitle": "Account endgültig löschen?",
+    "deleteAccountMessage": "Diese Aktion kann nicht rückgängig gemacht werden. Dein Konto wird deaktiviert und du wirst sofort ausgeloggt.",
+    "deleteAccountConfirm": "Endgültig löschen",
+    "confirmPhrase": "Ich möchte meinen Account endgültig löschen"
+  },
+  "navbar": {
+    "home": "Startseite",
+    "school": "Schule",
+    "help": "Hilfe"
+  },
+  "notifications": {
+    "title": "Nachrichten",
+    "subtitle": "Offene Aktionen, Verlauf und System-Infos",
+    "tabs": {
+      "open": "Offen",
+      "history": "Verlauf"
+    },
+    "history": {
+      "expandAll": "Alle aufklappen",
+      "collapseAll": "Alle zuklappen"
+    },
+    "empty": {
+      "openTitle": "Keine offenen Nachrichten",
+      "historyTitle": "Kein Verlauf vorhanden",
+      "openText": "Sobald neue Einladungen, Anfragen oder Infos kommen, erscheinen sie hier.",
+      "historyText": "Bearbeitete Nachrichten und Ergebnisse werden hier angezeigt."
+    },
+    "actions": {
+      "markAsRead": "Als gelesen markieren"
+    },
+    "systemInfo": {
+      "send": "System-Info senden",
+      "title": "System-Info senden",
+      "scopeSchool": "Aktuelle Schule",
+      "scopeAll": "Alle User",
+      "titlePlaceholder": "Titel",
+      "messagePlaceholder": "Nachricht",
+      "linkPlaceholder": "Optionaler Link, z. B. /school/12",
+      "submit": "Senden"
+    }
+  },
+  "home": {
+    "title": "Meine Schulen",
+    "subtitle": "Hier siehst du auf einen Blick, wo du Admin bist und wo du Mitglied bist.",
+    "createSchool": "Neue Schule",
+    "labels": {
+      "admin": "Admin",
+      "examples": "Beispiele"
+    },
+    "actions": {
+      "openSchool": "Schule öffnen",
+      "sendRequest": "Anfrage senden",
+      "join": "Beitreten"
+    },
+    "adminSection": {
+      "title": "Schulen, die du verwaltest",
+      "subtitle": "Du bist hier als Admin eingetragen.",
+      "empty": "Du bist aktuell bei keiner Schule als Admin eingetragen."
+    },
+    "memberSection": {
+      "title": "Schulen, bei denen du Mitglied bist",
+      "subtitle": "Du hast Zugriff, bist aber nicht Admin.",
+      "empty": "Du bist aktuell in keiner weiteren Schule Mitglied."
+    },
+    "discoverSection": {
+      "title": "Weitere Schulen entdecken",
+      "subtitle": "Suche nach Schulen und sende eine Beitrittsanfrage.",
+      "empty": "Keine weiteren Schulen gefunden."
+    },
+    "search": {
+      "label": "Schule suchen"
+    }
+  }
+}

@@ -1,3 +1,9 @@
+export interface UserSettings {
+  darkMode: boolean | null;
+  language: 'de' | 'en' | null;
+  allowInvitations: boolean;
+}
+
 export interface User {
   id: number;
   username: string;
@@ -6,9 +12,10 @@ export interface User {
   pendingEmail?: string | null;
   subscriptionModel: 'FREE' | 'PRO' | 'ENTERPRISE' | 'ADMIN';
   profileImageUrl?: string | null;
+  settings: UserSettings;
 }
 
-export interface UserDTO{
+export interface UserDTO {
   id: number;
   username: string;
   email: string;
@@ -16,7 +23,7 @@ export interface UserDTO{
   profileImageUrl: string;
 }
 
-export interface LoginDTO{
+export interface LoginDTO {
   email: string;
   password: string;
 }

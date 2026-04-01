@@ -12,6 +12,7 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { HttpService } from '../../service/http.service';
 import { User } from '../../model/User';
 import { NotificationDTO, NotificationActionType, NotificationType } from '../../model/Notification';
+import {TranslatePipe} from '@ngx-translate/core'
 
 @Component({
   selector: 'app-navigation',
@@ -29,7 +30,8 @@ import { NotificationDTO, NotificationActionType, NotificationType } from '../..
     MatMenuTrigger,
     MatButton,
     MatSnackBarModule,
-    MatTooltip
+    MatTooltip,
+    TranslatePipe
   ],
   templateUrl: './navigation.component.html',
   styleUrl: './navigation.component.scss'

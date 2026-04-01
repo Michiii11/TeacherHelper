@@ -19,12 +19,12 @@
     margin: 0 0 0.35rem;
     font-size: 1.05rem;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--theme-text);
   }
 
   p {
     margin: 0;
-    color: #64748b;
+    color: var(--theme-text-soft);
   }
 }
 
@@ -53,19 +53,19 @@ mat-form-field {
 
 .logo-preview-card,
 .logo-actions-card {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--theme-border);
   border-radius: 20px;
-  background: #fff;
+  background: var(--theme-surface-solid);
   padding: 1rem;
 }
 
 .preview-box {
   min-height: 260px;
   border-radius: 18px;
-  border: 1px dashed #cbd5e1;
+  border: 1px dashed var(--theme-border-strong);
   background:
     radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 32%),
-    linear-gradient(180deg, #f8fbff 0%, #f6f8fc 100%);
+    linear-gradient(180deg, var(--theme-bg-soft) 0%, #f6f8fc 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -83,7 +83,7 @@ mat-form-field {
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
-  color: #64748b;
+  color: var(--theme-text-soft);
 
   mat-icon {
     font-size: 40px;
@@ -100,15 +100,15 @@ mat-form-field {
 
 .hint {
   margin: 1rem 0;
-  color: #64748b;
+  color: var(--theme-text-soft);
   font-size: 0.92rem;
 }
 
 .coming-soon-card {
   border-radius: 20px;
   box-shadow: none;
-  border: 1px solid #e2e8f0;
-  background: #fff;
+  border: 1px solid var(--theme-border);
+  background: var(--theme-surface-solid);
 }
 
 .coming-soon {
@@ -117,19 +117,19 @@ mat-form-field {
   align-items: flex-start;
 
   mat-icon {
-    color: #2563eb;
+    color: var(--theme-primary);
     margin-top: 0.1rem;
   }
 
   strong {
     display: block;
     margin-bottom: 0.25rem;
-    color: #0f172a;
+    color: var(--theme-text);
   }
 
   p {
     margin: 0;
-    color: #64748b;
+    color: var(--theme-text-soft);
   }
 }
 
@@ -144,41 +144,41 @@ mat-form-field {
   gap: 0.9rem;
   padding: 1rem;
   border-radius: 18px;
-  border: 1px solid #e2e8f0;
-  background: #fff;
+  border: 1px solid var(--theme-border);
+  background: var(--theme-surface-solid);
 
   mat-icon {
-    color: #2563eb;
+    color: var(--theme-primary);
     margin-top: 0.1rem;
   }
 
   strong {
     display: block;
     margin-bottom: 0.25rem;
-    color: #0f172a;
+    color: var(--theme-text);
   }
 
   p {
     margin: 0;
-    color: #64748b;
+    color: var(--theme-text-soft);
   }
 }
 
 .not-allowed {
   padding: 2rem 1rem 1rem;
   text-align: center;
-  color: #64748b;
+  color: var(--theme-text-soft);
 
   mat-icon {
     font-size: 44px;
     width: 44px;
     height: 44px;
-    color: #ef4444;
+    color: var(--theme-danger);
   }
 
   h3 {
     margin: 0.75rem 0 0.35rem;
-    color: #0f172a;
+    color: var(--theme-text);
   }
 
   p {

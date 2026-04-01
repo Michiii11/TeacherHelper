@@ -12,6 +12,7 @@ import {Router} from '@angular/router'
 import {MatIcon} from '@angular/material/icon'
 import {MatSnackBar} from '@angular/material/snack-bar'
 import {SchoolInvitationComponent} from '../../dialog/school-invitation/school-invitation.component'
+import {TranslatePipe} from '@ngx-translate/core'
 
 @Component({
   selector: 'app-home',
@@ -24,7 +25,8 @@ import {SchoolInvitationComponent} from '../../dialog/school-invitation/school-i
     MatInput,
     NgForOf,
     MatIcon,
-    NgIf
+    NgIf,
+    TranslatePipe
   ],
   templateUrl: './home.component.html',
   standalone: true,

@@ -31,18 +31,18 @@ import { RouterLink } from '@angular/router';
       place-items: center;
       padding: 2rem 1rem;
       background:
-        radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 24%),
-        radial-gradient(circle at top right, rgba(99, 102, 241, 0.10), transparent 18%),
-        linear-gradient(180deg, #f8fbff 0%, #f3f6fb 100%);
+        radial-gradient(circle at top left, var(--hero-grad-1), transparent 24%),
+        radial-gradient(circle at top right, var(--hero-grad-2), transparent 18%),
+        linear-gradient(180deg, var(--surface-2) 0%, var(--bg) 100%);
     }
 
     .not-found-card {
       width: min(100%, 560px);
       padding: 2.2rem 2rem;
-      border-radius: 28px;
-      background: rgba(255, 255, 255, 0.92);
-      border: 1px solid rgba(148, 163, 184, 0.18);
-      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+      border-radius: var(--radius-xl);
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      border: 1px solid var(--border-soft);
+      box-shadow: var(--shadow-lg);
       text-align: center;
     }
 
@@ -50,7 +50,7 @@ import { RouterLink } from '@angular/router';
       font-size: clamp(4.5rem, 10vw, 6.5rem);
       line-height: 1;
       font-weight: 800;
-      color: #2563eb;
+      color: var(--primary);
       margin-bottom: 0.6rem;
     }
 
@@ -58,13 +58,13 @@ import { RouterLink } from '@angular/router';
       margin: 0;
       font-size: 2rem;
       font-weight: 700;
-      color: #0f172a;
+      color: var(--text);
     }
 
     p {
       margin: 0.8rem auto 0;
       max-width: 420px;
-      color: #64748b;
+      color: var(--text-soft);
       font-size: 1.02rem;
       line-height: 1.55;
     }
@@ -75,31 +75,6 @@ import { RouterLink } from '@angular/router';
       padding: 0 1.2rem;
       border-radius: 14px;
       font-weight: 700;
-    }
-
-    :host-context(.dark-mode) .not-found-shell {
-      background:
-        radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 28%),
-        radial-gradient(circle at top right, rgba(79, 70, 229, 0.16), transparent 22%),
-        linear-gradient(180deg, #0b1120 0%, #111827 100%);
-    }
-
-    :host-context(.dark-mode) .not-found-card {
-      background: rgba(17, 24, 39, 0.9);
-      border-color: rgba(71, 85, 105, 0.55);
-      box-shadow: 0 28px 70px rgba(0, 0, 0, 0.42);
-    }
-
-    :host-context(.dark-mode) .code {
-      color: #60a5fa;
-    }
-
-    :host-context(.dark-mode) h1 {
-      color: #f8fafc;
-    }
-
-    :host-context(.dark-mode) p {
-      color: #94a3b8;
     }
 
     @media (max-width: 640px) {

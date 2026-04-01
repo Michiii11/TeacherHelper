@@ -1,8 +1,8 @@
 .app-footer {
   margin-top: 2rem;
   padding: 0.8rem 1.2rem;
-  border-top: 1px solid #e2e8f0;
-  background: #ffffff;
+  border-top: 1px solid var(--theme-border);
+  background: var(--theme-surface-solid);
 }
 
 .footer-inner {
@@ -24,12 +24,12 @@
   gap: 0.5rem;
 
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--theme-text-soft);
 }
 
 .brand {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--theme-text);
 }
 
 .version {
@@ -53,7 +53,7 @@
   border: none;
   padding: 0.2rem 0.4rem;
   font-size: 0.85rem;
-  color: #475569;
+  color: var(--theme-text-subtle);
   cursor: pointer;
   border-radius: 6px;
   transition: all 0.15s ease;
@@ -61,7 +61,7 @@
 
 .link:hover {
   background: #f1f5f9;
-  color: #0f172a;
+  color: var(--theme-text);
 }
 
 /* ===================== */
@@ -75,18 +75,18 @@
 }
 
 :host-context(.dark-mode) .footer-left {
-  color: #94a3b8;
+  color: var(--theme-text-muted);
 }
 
 :host-context(.dark-mode) .brand {
-  color: #f8fafc;
+  color: var(--theme-bg-base);
 }
 
 :host-context(.dark-mode) .link {
-  color: #94a3b8;
+  color: var(--theme-text-muted);
 }
 
 :host-context(.dark-mode) .link:hover {
   background: rgba(148, 163, 184, 0.08);
-  color: #f8fafc;
+  color: var(--theme-bg-base);
 }

@@ -13,10 +13,13 @@ import jakarta.transaction.Transactional;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @ApplicationScoped
 public class UserRepository {
+
+    private static final Set<String> SUPPORTED_LANGUAGES = Set.of("de", "en");
 
     @Inject
     EntityManager em;
@@ -116,7 +119,11 @@ public class UserRepository {
                 user.getPendingEmail(),
                 user.getSubscriptionModel(),
                 user.getProfileImageUrl(),
-                user.isAllowInvitations()
+                new UserSettingsDTO(
+                        user.getDarkMode(),
+                        user.getLanguage(),
+                        user.isAllowInvitations()
+                )
         );
     }
 
@@ -163,6 +170,8 @@ public class UserRepository {
         user.setEmailVerificationToken(UUID.randomUUID().toString());
         user.setEmailVerificationExpiresAt(LocalDateTime.now().plusHours(24));
         user.setAllowInvitations(true);
+        user.setDarkMode(null);
+        user.setLanguage(null);
         user.setDeleted(false);
 
         save(user);
@@ -412,6 +421,28 @@ public class UserRepository {
     }
 
     @Transactional
+    public String updateUserSettings(Long userId, UserSettingsDTO settings) {
+        User user = em.find(User.class, userId);
+        if (user == null || user.isDeleted()) return "USER_NOT_FOUND";
+        if (settings == null) return "SETTINGS_REQUIRED";
+        if (settings.allowInvitations() == null) return "ALLOW_INVITATIONS_REQUIRED";
+
+        String normalizedLanguage = null;
+        if (settings.language() != null && !settings.language().isBlank()) {
+            normalizedLanguage = settings.language().trim().toLowerCase();
+            if (!SUPPORTED_LANGUAGES.contains(normalizedLanguage)) {
+                return "LANGUAGE_INVALID";
+            }
+        }
+
+        user.setDarkMode(settings.darkMode());
+        user.setLanguage(normalizedLanguage);
+        user.setAllowInvitations(settings.allowInvitations());
+        em.merge(user);
+        return null;
+    }
+
+    @Transactional
     public String updateAllowInvitations(Long userId, Boolean allowInvitations) {
         User user = em.find(User.class, userId);
         if (user == null || user.isDeleted()) return "USER_NOT_FOUND";
@@ -443,6 +474,8 @@ public class UserRepository {
         user.setPasswordResetToken(null);
         user.setPasswordResetExpiresAt(null);
         user.setProfileImageUrl(null);
+        user.setDarkMode(null);
+        user.setLanguage(null);
 
         em.merge(user);
         return null;

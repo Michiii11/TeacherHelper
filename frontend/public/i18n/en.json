@@ -1,0 +1,145 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "logout": "Logout",
+    "reset": "Reset",
+    "loading": "Loading..."
+  },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "Manage your account, security, settings, subscription and profile picture here.",
+    "loading": "Loading profile...",
+    "darkMode": "Dark mode",
+    "allowInvitations": "Allow invitations",
+    "language": "Language",
+    "usernameSection": "Change username",
+    "usernameSub": "This is how you appear in the app.",
+    "username": "Username",
+    "usernameRequired": "Username is required.",
+    "usernameMin": "At least 3 characters.",
+    "usernameSave": "Save username",
+    "emailSection": "Change email",
+    "emailSub": "The new email will only be applied after confirmation.",
+    "newEmail": "New email",
+    "emailRequired": "Email is required.",
+    "emailInvalid": "Please enter a valid email address.",
+    "emailPending": "Pending confirmation:",
+    "emailSend": "Send confirmation email",
+    "emailDeletePending": "Delete pending change",
+    "passwordSection": "Change password",
+    "passwordSub": "For better security, update your password regularly.",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Repeat new password",
+    "changePassword": "Change password",
+    "deleteAccount": "Delete account",
+    "deleteAccountPassword": "Confirm password",
+    "deleteAccountButton": "Delete account",
+    "avatarFormats": "Allowed formats: JPG, PNG, WEBP • max. 2 MB",
+    "selectImage": "Choose image",
+    "saveImage": "Save profile picture",
+    "deleteImage": "Delete profile picture",
+    "plan": "Plan",
+    "pendingEmailConfirmation": "Pending email confirmation:"
+  },
+  "languages": {
+    "de": "Deutsch",
+    "en": "English"
+  },
+  "snackbar": {
+    "userLoadedError": "User data could not be loaded",
+    "usernameUpdated": "Username was updated",
+    "usernameUpdateError": "Username could not be updated",
+    "emailRequestError": "Email change could not be requested",
+    "passwordChanged": "Password was changed",
+    "passwordMismatch": "The new passwords do not match",
+    "passwordSame": "The new password must be different from the old one",
+    "passwordChangeError": "Password could not be changed",
+    "imageTypeError": "Please upload only JPG, PNG or WEBP",
+    "imageSizeError": "The image must not exceed 2 MB",
+    "avatarUpdated": "Profile picture was updated",
+    "avatarUpdateError": "Profile picture could not be saved",
+    "avatarDeleteError": "Profile picture could not be deleted",
+    "settingsSaveError": "Settings could not be saved",
+    "accountDeleteError": "Account could not be deleted",
+    "joinRequestSent": "Join request sent"
+  },
+  "dialog": {
+    "deleteAvatarTitle": "Delete profile picture?",
+    "deleteAvatarMessage": "Your current profile picture will be removed.",
+    "deleteAccountTitle": "Delete account permanently?",
+    "deleteAccountMessage": "This action cannot be undone. Your account will be deactivated and you will be logged out immediately.",
+    "deleteAccountConfirm": "Delete permanently",
+    "confirmPhrase": "I want to permanently delete my account"
+  },
+  "navbar": {
+    "home": "Home",
+    "school": "School",
+    "help": "Help"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Open actions, history and system information",
+    "tabs": {
+      "open": "Open",
+      "history": "History"
+    },
+    "history": {
+      "expandAll": "Expand all",
+      "collapseAll": "Collapse all"
+    },
+    "empty": {
+      "openTitle": "No open notifications",
+      "historyTitle": "No history available",
+      "openText": "As soon as new invitations, requests or information arrive, they will appear here.",
+      "historyText": "Processed notifications and results are shown here."
+    },
+    "actions": {
+      "markAsRead": "Mark as read"
+    },
+    "systemInfo": {
+      "send": "Send system info",
+      "title": "Send system info",
+      "scopeSchool": "Current school",
+      "scopeAll": "All users",
+      "titlePlaceholder": "Title",
+      "messagePlaceholder": "Message",
+      "linkPlaceholder": "Optional link, e.g. /school/12",
+      "submit": "Send"
+    }
+  },
+  "home": {
+    "title": "My Schools",
+    "subtitle": "Here you see where you are an admin and where you are a member.",
+    "createSchool": "New School",
+    "labels": {
+      "admin": "Admin",
+      "examples": "Examples"
+    },
+    "actions": {
+      "openSchool": "Open school",
+      "sendRequest": "Send request",
+      "join": "Join"
+    },
+    "adminSection": {
+      "title": "Schools you manage",
+      "subtitle": "You are registered here as an admin.",
+      "empty": "You are currently not registered as an admin at any school."
+    },
+    "memberSection": {
+      "title": "Schools where you are a member",
+      "subtitle": "You have access, but you are not an admin.",
+      "empty": "You are currently not a member of any other school."
+    },
+    "discoverSection": {
+      "title": "Discover more schools",
+      "subtitle": "Search for schools and send a join request.",
+      "empty": "No further schools found."
+    },
+    "search": {
+      "label": "Search school"
+    }
+  }
+}

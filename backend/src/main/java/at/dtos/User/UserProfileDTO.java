@@ -10,5 +10,5 @@ public record UserProfileDTO(
         String pendingEmail,
         SubscriptionModel subscriptionModel,
         String profileImageUrl,
-        boolean allowInvitations
+        UserSettingsDTO settings
 ) {}

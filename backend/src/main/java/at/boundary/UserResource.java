@@ -239,6 +239,28 @@ public class UserResource {
         };
     }
 
+    @PUT
+    @Path("settings")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response updateSettings(UpdateUserSettingsDTO dto) {
+        Long userId = tokenFromDto(dto == null ? null : dto.authToken());
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Ungültiger Token").build();
+        }
+
+        String result = repo.updateUserSettings(userId, dto.settings());
+
+        return switch (result) {
+            case null -> Response.ok("Einstellungen wurden gespeichert.").build();
+            case "USER_NOT_FOUND" -> Response.status(Response.Status.NOT_FOUND).entity("Benutzer nicht gefunden.").build();
+            case "SETTINGS_REQUIRED" -> Response.status(Response.Status.BAD_REQUEST).entity("Einstellungen fehlen.").build();
+            case "ALLOW_INVITATIONS_REQUIRED" -> Response.status(Response.Status.BAD_REQUEST).entity("Einladungs-Einstellung fehlt.").build();
+            case "LANGUAGE_INVALID" -> Response.status(Response.Status.BAD_REQUEST).entity("Sprache ist ungültig.").build();
+            default -> Response.status(Response.Status.BAD_REQUEST).entity("Einstellungen konnten nicht gespeichert werden.").build();
+        };
+    }
+
     @POST
     @Path("settings/allow-invitations")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -365,7 +387,6 @@ public class UserResource {
         }
 
         mediaStorageService.delete(user.getProfileImageUrl());
-
         repo.updateProfileImageUrl(userId, null);
 
         return Response.ok("Profilbild gelöscht.").build();

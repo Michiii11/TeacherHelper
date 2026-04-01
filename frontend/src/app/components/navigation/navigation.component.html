@@ -7,15 +7,15 @@
 
       <nav class="navbar-right">
         <a mat-button routerLink="/home" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
-          Home
+          {{ 'navbar.home' | translate }}
         </a>
 
         <a mat-button routerLink="/school" routerLinkActive="active-link" (click)="goToSchool()">
-          Schule
+          {{ 'navbar.school' | translate }}
         </a>
 
         <a mat-button routerLink="/contact" routerLinkActive="active-link">
-          Kontakt
+          {{ 'navbar.help' | translate }}
         </a>
 
         <button mat-icon-button class="icon-btn notif-trigger" [matMenuTriggerFor]="notifMenu">
@@ -41,8 +41,8 @@
       <div class="notif-header">
         <div class="notif-heading-row">
           <div>
-            <div class="notif-heading">Nachrichten</div>
-            <div class="notif-subtitle">Offene Aktionen, Verlauf und System-Infos</div>
+            <div class="notif-heading">{{ 'notifications.title' | translate }}</div>
+            <div class="notif-subtitle">{{ 'notifications.subtitle' | translate }}</div>
           </div>
 
           <div class="notif-header-tools">
@@ -52,7 +52,7 @@
                 type="button"
                 class="notif-tool-btn"
                 (click)="toggleSystemInfoComposer($event)"
-                matTooltip="System-Info senden">
+                [matTooltip]="'notifications.systemInfo.send' | translate">
                 <mat-icon>campaign</mat-icon>
               </button>
             }
@@ -67,14 +67,14 @@
               mat-stroked-button
               [class.active-tab]="selectedTab === 'open'"
               (click)="setTab('open', $event)">
-              Offen
+              {{ 'notifications.tabs.open' | translate }}
             </button>
 
             <button
               mat-stroked-button
               [class.active-tab]="selectedTab === 'history'"
               (click)="setTab('history', $event)">
-              Verlauf
+              {{ 'notifications.tabs.history' | translate }}
             </button>
           </div>
 
@@ -84,48 +84,48 @@
               type="button"
               class="history-expand-toggle"
               (click)="toggleAllHistoryExpanded($event)">
-              {{ historyExpanded ? 'Alle zuklappen' : 'Alle aufklappen' }}
+              {{ historyExpanded ? ('notifications.history.collapseAll' | translate) : ('notifications.history.expandAll' | translate) }}
             </button>
           }
         </div>
 
         @if (showSystemInfoComposer) {
           <div class="system-info-composer" (click)="$event.stopPropagation()">
-            <div class="system-info-composer-title">System-Info senden</div>
+            <div class="system-info-composer-title">{{ 'notifications.systemInfo.title' | translate }}</div>
 
             <div class="system-info-scope">
               <label class="scope-option">
                 <input type="radio" name="scope" value="school" [(ngModel)]="systemInfoScope">
-                <span>Aktuelle Schule</span>
+                <span>{{ 'notifications.systemInfo.scopeSchool' | translate }}</span>
               </label>
 
               <label class="scope-option">
                 <input type="radio" name="scope" value="all" [(ngModel)]="systemInfoScope">
-                <span>Alle User</span>
+                <span>{{ 'notifications.systemInfo.scopeAll' | translate }}</span>
               </label>
             </div>
 
             <input
               type="text"
               class="system-info-input"
-              placeholder="Titel"
+              [placeholder]="'notifications.systemInfo.titlePlaceholder' | translate"
               [(ngModel)]="systemInfoTitle" />
 
             <textarea
               class="system-info-textarea"
-              placeholder="Nachricht"
+              [placeholder]="'notifications.systemInfo.messagePlaceholder' | translate"
               rows="4"
               [(ngModel)]="systemInfoMessage"></textarea>
 
             <input
               type="text"
               class="system-info-input"
-              placeholder="Optionaler Link, z. B. /school/12"
+              [placeholder]="'notifications.systemInfo.linkPlaceholder' | translate"
               [(ngModel)]="systemInfoLink" />
 
             <div class="system-info-actions">
               <button mat-stroked-button type="button" (click)="toggleSystemInfoComposer($event)">
-                Abbrechen
+                {{ 'common.cancel' | translate }}
               </button>
 
               <button
@@ -134,7 +134,7 @@
                 type="button"
                 [disabled]="isSendingSystemInfo"
                 (click)="submitSystemInfo($event)">
-                Senden
+                {{ 'notifications.systemInfo.submit' | translate }}
               </button>
             </div>
           </div>
@@ -147,12 +147,14 @@
             <mat-icon>notifications_off</mat-icon>
           </div>
           <div class="empty-title">
-            {{ selectedTab === 'open' ? 'Keine offenen Nachrichten' : 'Kein Verlauf vorhanden' }}
+            {{ selectedTab === 'open'
+            ? ('notifications.empty.openTitle' | translate)
+            : ('notifications.empty.historyTitle' | translate) }}
           </div>
           <div class="empty-text">
             {{ selectedTab === 'open'
-            ? 'Sobald neue Einladungen, Anfragen oder Infos kommen, erscheinen sie hier.'
-            : 'Bearbeitete Nachrichten und Ergebnisse werden hier angezeigt.' }}
+            ? ('notifications.empty.openText' | translate)
+            : ('notifications.empty.historyText' | translate) }}
           </div>
         </div>
       } @else {
@@ -220,7 +222,7 @@
                           type="button"
                           [disabled]="isProcessing(n)"
                           (click)="markAsRead(n, $event)"
-                          matTooltip="Als gelesen markieren">
+                          [matTooltip]="'notifications.actions.markAsRead' | translate">
                           <mat-icon>done</mat-icon>
                         </button>
                       }
@@ -231,7 +233,7 @@
                           type="button"
                           [disabled]="isProcessing(n)"
                           (click)="deleteNotification(n, $event)"
-                          matTooltip="Löschen">
+                          [matTooltip]="'common.delete' | translate">
                           <mat-icon>delete</mat-icon>
                         </button>
                       }

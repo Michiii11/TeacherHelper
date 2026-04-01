@@ -6,8 +6,8 @@
           <mat-icon>school</mat-icon>
         </div>
         <div>
-          <h1 class="page-title">Meine Schulen</h1>
-          <p class="page-subtitle">Hier siehst du auf einen Blick, wo du Admin bist und wo du einfach Mitglied bist.</p>
+          <h1 class="page-title">{{ 'home.title' | translate }}</h1>
+          <p class="page-subtitle">{{ 'home.subtitle' | translate }}</p>
         </div>
       </div>
     </div>
@@ -15,7 +15,7 @@
     <div class="header-actions">
       <button mat-flat-button color="primary" (click)="openCreateDialog()">
         <mat-icon>add_circle</mat-icon>
-        Neue Schule
+        {{ 'home.createSchool' | translate }}
       </button>
     </div>
   </header>
@@ -23,8 +23,8 @@
   <section class="section">
     <div class="section-header">
       <div>
-        <h2 class="section-title">Schulen, die du verwaltest</h2>
-        <p class="section-subtitle">Du bist hier als Admin eingetragen.</p>
+        <h2 class="section-title">{{ 'home.adminSection.title' | translate }}</h2>
+        <p class="section-subtitle">{{ 'home.adminSection.subtitle' | translate }}</p>
       </div>
     </div>
 
@@ -50,23 +50,23 @@
         <div class="school-info-list">
           <div class="info-row">
             <mat-icon>person</mat-icon>
-            <span>Admin: {{ school.admin.username }}</span>
+            <span>{{ 'home.labels.admin' | translate }}: {{ school.admin.username }}</span>
           </div>
           <div class="info-row">
             <mat-icon>auto_stories</mat-icon>
-            <span>Beispiele: {{ school.exampleCount }}</span>
+            <span>{{ 'home.labels.examples' | translate }}: {{ school.exampleCount }}</span>
           </div>
         </div>
 
         <div class="card-action-hint">
-          <span>Schule öffnen</span>
+          <span>{{ 'home.actions.openSchool' | translate }}</span>
           <mat-icon>arrow_forward</mat-icon>
         </div>
       </mat-card>
 
       <mat-card *ngIf="!adminSchools?.length" class="empty-card">
         <mat-icon>admin_panel_settings</mat-icon>
-        <p>Du bist aktuell bei keiner Schule als Admin eingetragen.</p>
+        <p>{{ 'home.adminSection.empty' | translate }}</p>
       </mat-card>
     </div>
   </section>
@@ -74,8 +74,8 @@
   <section class="section">
     <div class="section-header">
       <div>
-        <h2 class="section-title">Schulen, bei denen du Mitglied bist</h2>
-        <p class="section-subtitle">Du hast Zugriff, bist aber nicht Admin.</p>
+        <h2 class="section-title">{{ 'home.memberSection.title' | translate }}</h2>
+        <p class="section-subtitle">{{ 'home.memberSection.subtitle' | translate }}</p>
       </div>
     </div>
 
@@ -101,23 +101,23 @@
         <div class="school-info-list">
           <div class="info-row">
             <mat-icon>person</mat-icon>
-            <span>Admin: {{ school.admin.username }}</span>
+            <span>{{ 'home.labels.admin' | translate }}: {{ school.admin.username }}</span>
           </div>
           <div class="info-row">
             <mat-icon>auto_stories</mat-icon>
-            <span>Beispiele: {{ school.exampleCount }}</span>
+            <span>{{ 'home.labels.examples' | translate }}: {{ school.exampleCount }}</span>
           </div>
         </div>
 
         <div class="card-action-hint">
-          <span>Schule öffnen</span>
+          <span>{{ 'home.actions.openSchool' | translate }}</span>
           <mat-icon>arrow_forward</mat-icon>
         </div>
       </mat-card>
 
       <mat-card *ngIf="!memberSchools?.length" class="empty-card">
         <mat-icon>groups</mat-icon>
-        <p>Du bist aktuell in keiner weiteren Schule Mitglied.</p>
+        <p>{{ 'home.memberSection.empty' | translate }}</p>
       </mat-card>
     </div>
   </section>
@@ -125,12 +125,12 @@
   <section class="section">
     <div class="section-header section-header-with-search">
       <div>
-        <h2 class="section-title">Weitere Schulen entdecken</h2>
-        <p class="section-subtitle">Suche nach Schulen und sende eine Beitrittsanfrage.</p>
+        <h2 class="section-title">{{ 'home.discoverSection.title' | translate }}</h2>
+        <p class="section-subtitle">{{ 'home.discoverSection.subtitle' | translate }}</p>
       </div>
 
       <mat-form-field appearance="outline" class="school-search">
-        <mat-label>Schule suchen</mat-label>
+        <mat-label>{{ 'home.search.label' | translate }}</mat-label>
         <input matInput (input)="filterSchools($event)" />
         <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
@@ -150,7 +150,7 @@
           } @else{
             <div class="school-avatar discover-avatar">{{ getSchoolInitials(school.name) }}</div>
           }
-          <span class="role-badge discover-badge">Beitreten</span>
+          <span class="role-badge discover-badge">{{ 'home.actions.join' | translate }}</span>
         </div>
 
         <h3 class="school-name">{{ school.name }}</h3>
@@ -158,23 +158,23 @@
         <div class="school-info-list">
           <div class="info-row">
             <mat-icon>person</mat-icon>
-            <span>Admin: {{ school.admin.username }}</span>
+            <span>{{ 'home.labels.admin' | translate }}: {{ school.admin.username }}</span>
           </div>
           <div class="info-row">
             <mat-icon>auto_stories</mat-icon>
-            <span>Beispiele: {{ school.exampleCount }}</span>
+            <span>{{ 'home.labels.examples' | translate }}: {{ school.exampleCount }}</span>
           </div>
         </div>
 
         <div class="card-action-hint">
-          <span>Anfrage senden</span>
+          <span>{{ 'home.actions.sendRequest' | translate }}</span>
           <mat-icon>send</mat-icon>
         </div>
       </mat-card>
 
       <mat-card *ngIf="!otherSchools?.length" class="empty-card">
         <mat-icon>search_off</mat-icon>
-        <p>Keine weiteren Schulen gefunden.</p>
+        <p>{{ 'home.discoverSection.empty' | translate }}</p>
       </mat-card>
     </div>
   </section>

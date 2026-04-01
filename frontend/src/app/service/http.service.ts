@@ -2,10 +2,10 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Config } from '../config';
-import {ChangeLog, CreateSchoolInviteDTO, LastActivityDTO, SchoolDTO} from '../model/School';
+import { ChangeLog, CreateSchoolInviteDTO, LastActivityDTO, SchoolDTO } from '../model/School';
 import { CreateExampleDTO, Focus } from '../model/Example';
 import { CreateTestDTO } from '../model/Test';
-import { AuthResult, User, UserDTO } from '../model/User';
+import { AuthResult, User, UserDTO, UserSettings } from '../model/User';
 import { NotificationActionType, NotificationDTO } from '../model/Notification';
 
 @Injectable({ providedIn: 'root' })
@@ -179,6 +179,17 @@ export class HttpService {
     return this.http.post<User>(`${Config.API_URL}/user`, this.authToken());
   }
 
+  updateUserSettings(settings: UserSettings) {
+    return this.http.put(
+      `${Config.API_URL}/user/settings`,
+      {
+        authToken: this.authToken(),
+        settings
+      },
+      { responseType: 'text' as 'json' }
+    );
+  }
+
   updateUsername(username: string) {
     return this.http.put(
       `${Config.API_URL}/user/username`,
@@ -345,15 +356,6 @@ export class HttpService {
     });
   }
 
-  updateAllowInvitations(allowInvitations: boolean) {
-    return this.http.post(`${Config.API_URL}/user/settings/allow-invitations`, {
-      authToken: localStorage.getItem('teacher_authToken') ?? '',
-      allowInvitations
-    }, {
-      responseType: 'text'
-    });
-  }
-
   deleteAccount(currentPassword: string) {
     return this.http.post(`${Config.API_URL}/user/delete-account`, {
       authToken: localStorage.getItem('teacher_authToken') ?? '',
@@ -400,7 +402,7 @@ export class HttpService {
   }
 
   getLastChange(schoolId: string | null) {
-    return this.http.get<LastActivityDTO>(`${Config.API_URL}/school/${schoolId}/last-activity`)
+    return this.http.get<LastActivityDTO>(`${Config.API_URL}/school/${schoolId}/last-activity`);
   }
 
   updateSchool(schoolId: string, payload: { name?: string }) {
@@ -412,7 +414,7 @@ export class HttpService {
   }
 
   getSchoolLogo(school: SchoolDTO, schoolId: string) {
-    if(!school?.logoUrl){
+    if (!school?.logoUrl) {
       return null;
     }
 
@@ -421,6 +423,6 @@ export class HttpService {
       return null;
     }
 
-    return `${Config.API_URL}/school/${schoolId}/logo`
+    return `${Config.API_URL}/school/${schoolId}/logo`;
   }
 }

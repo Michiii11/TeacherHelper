@@ -5,11 +5,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 
-type InvitationDialogData = {
-  schoolId: number;
-  schoolName: string;
-};
-
 @Component({
   selector: 'app-school-invitation',
   standalone: true,
@@ -28,33 +23,35 @@ type InvitationDialogData = {
 
       <mat-form-field appearance="outline" class="w-100">
         <mat-label>Nachricht (optional)</mat-label>
-        <textarea
-          matInput
-          rows="4"
-          [formControl]="message"
-          placeholder="z.B. Hallo, ich bin Lehrling bei ... und würde gerne beitreten."
-        ></textarea>
-        <mat-hint align="end">{{ message.value.length }}/500</mat-hint>
+        <textarea matInput rows="4" [formControl]="message"></textarea>
       </mat-form-field>
     </div>
 
     <div mat-dialog-actions align="end">
       <button mat-button (click)="close()">Abbrechen</button>
-      <button mat-flat-button color="primary" (click)="submit()" [disabled]="message.invalid">
+      <button mat-flat-button color="primary" (click)="submit()">
         Anfrage senden
       </button>
     </div>
   `,
   styles: [`
     .w-100 { width: 100%; }
-    p { margin: 0 0 12px; }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--text-soft);
+    }
+
+    h2 {
+      color: var(--text);
+    }
   `]
 })
 export class SchoolInvitationComponent {
-  readonly data = inject<InvitationDialogData>(MAT_DIALOG_DATA);
+  readonly data = inject<any>(MAT_DIALOG_DATA);
   private readonly dialogRef = inject(MatDialogRef<SchoolInvitationComponent>);
 
-  message = new FormControl<string>('', { nonNullable: true, validators: [Validators.maxLength(500)] });
+  message = new FormControl('', { nonNullable: true, validators: [Validators.maxLength(500)] });
 
   close() {
     this.dialogRef.close();
