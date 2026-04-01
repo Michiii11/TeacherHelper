@@ -36,11 +36,19 @@ public class Test {
     @Column(name = "grading_mode", length = 20)
     private String gradingMode;
 
+    @Column(name = "grading_system_name", length = 120)
+    private String gradingSystemName;
+
     @ElementCollection
     @CollectionTable(name = "test_task_spacing", joinColumns = @JoinColumn(name = "test_id"))
     @MapKeyColumn(name = "example_id")
     @Column(name = "spacing_value")
     private Map<Integer, Integer> taskSpacingMap = new HashMap<>();
+
+    @ElementCollection
+    @CollectionTable(name = "test_grading_levels", joinColumns = @JoinColumn(name = "test_id"))
+    @OrderColumn(name = "schema_order")
+    private List<GradingLevel> gradingSchema = new ArrayList<>();
 
     @ElementCollection
     @CollectionTable(name = "test_grade_percentages", joinColumns = @JoinColumn(name = "test_id"))
@@ -137,12 +145,28 @@ public class Test {
         this.gradingMode = gradingMode;
     }
 
+    public String getGradingSystemName() {
+        return gradingSystemName;
+    }
+
+    public void setGradingSystemName(String gradingSystemName) {
+        this.gradingSystemName = gradingSystemName;
+    }
+
     public Map<Integer, Integer> getTaskSpacingMap() {
         return taskSpacingMap;
     }
 
     public void setTaskSpacingMap(Map<Integer, Integer> taskSpacingMap) {
         this.taskSpacingMap = taskSpacingMap != null ? new HashMap<>(taskSpacingMap) : new HashMap<>();
+    }
+
+    public List<GradingLevel> getGradingSchema() {
+        return gradingSchema;
+    }
+
+    public void setGradingSchema(List<GradingLevel> gradingSchema) {
+        this.gradingSchema = gradingSchema != null ? new ArrayList<>(gradingSchema) : new ArrayList<>();
     }
 
     public Map<Integer, Integer> getGradePercentages() {

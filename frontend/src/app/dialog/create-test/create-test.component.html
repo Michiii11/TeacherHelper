@@ -132,8 +132,8 @@
         <div class="settings-card grading-card">
           <div class="settings-head compact-head">
             <div>
-              <h3>Notenschlüssel</h3>
-              <p>Automatisch nach Prozent oder manuell nach Punkten.</p>
+              <h3>Bewertungssystem</h3>
+              <p>Freie Stufen für Noten, Buchstaben oder Symbole wie ++ / + / o / - / --.</p>
             </div>
 
             <div class="mode-switch">
@@ -155,39 +155,111 @@
             </div>
           </div>
 
-          @if (useAutomaticGrading) {
-            <div class="grading-editor-grid compact-grid four-cols">
-              @for (grade of [1, 2, 3, 4]; track grade) {
+          <div class="preset-toolbar">
+            <button mat-stroked-button type="button" (click)="applyGradingPreset('AT')">AT 1–5</button>
+            <button mat-stroked-button type="button" (click)="applyGradingPreset('DE')">DE 1–6</button>
+            <button mat-stroked-button type="button" (click)="applyGradingPreset('US')">US A–F</button>
+            <button mat-stroked-button type="button" (click)="applyGradingPreset('MITARBEIT')">Mitarbeit</button>
+            <button mat-stroked-button type="button" (click)="applyGradingPreset('CUSTOM')">Custom</button>
+          </div>
+
+          <div class="grading-system-name">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Name des Bewertungssystems</mat-label>
+              <input
+                matInput
+                name="gradingSystemName"
+                [ngModel]="gradingSystemName"
+                (ngModelChange)="onGradingSystemNameChanged($event)"
+                placeholder="z. B. Österreich 1–5 oder Mitarbeit" />
+            </mat-form-field>
+          </div>
+
+          <div class="grading-level-list">
+            <div class="grading-level-card" *ngFor="let level of gradingSchema; let i = index">
+              <div class="grading-level-header">
+                <strong>Stufe {{ i + 1 }}</strong>
+
+                <div class="level-actions">
+                  <button mat-icon-button type="button" (click)="moveGradingLevel(i, -1)" [disabled]="i === 0">
+                    <mat-icon>arrow_upward</mat-icon>
+                  </button>
+                  <button mat-icon-button type="button" (click)="moveGradingLevel(i, 1)" [disabled]="i === gradingSchema.length - 1">
+                    <mat-icon>arrow_downward</mat-icon>
+                  </button>
+                  <button mat-icon-button color="warn" type="button" (click)="removeGradingLevel(i)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              <div class="task-settings-grid compact-grid four-cols">
                 <mat-form-field appearance="outline">
-                  <mat-label>{{ gradeLabels[grade] }} ab %</mat-label>
+                  <mat-label>Kürzel</mat-label>
                   <input
+                    matInput
+                    name="grade-short-{{ i }}"
+                    [(ngModel)]="level.shortLabel"
+                    (ngModelChange)="onLevelChanged()"
+                    placeholder="1 / A / ++" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Bezeichnung</mat-label>
+                  <input
+                    matInput
+                    name="grade-label-{{ i }}"
+                    [(ngModel)]="level.label"
+                    (ngModelChange)="onLevelChanged()"
+                    placeholder="Sehr gut / Excellent / Aktiv" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Interner Schlüssel</mat-label>
+                  <input
+                    matInput
+                    name="grade-key-{{ i }}"
+                    [(ngModel)]="level.key"
+                    (ngModelChange)="onLevelChanged()"
+                    placeholder="grade-1" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>{{ gradeTableHeading }}</mat-label>
+                  <input
+                    *ngIf="useAutomaticGrading"
                     matInput
                     type="number"
                     min="0"
                     max="100"
-                    name="grade-percentage-{{ grade }}"
-                    [(ngModel)]="gradePercentages[grade]"
-                    (ngModelChange)="normalizePercentages()" />
-                </mat-form-field>
-              }
-            </div>
-          } @else {
-            <div class="grading-editor-grid compact-grid four-cols">
-              @for (grade of [1, 2, 3, 4]; track grade) {
-                <mat-form-field appearance="outline">
-                  <mat-label>{{ gradeLabels[grade] }} ab Punkten</mat-label>
+                    name="grade-threshold-percentage-{{ i }}"
+                    [(ngModel)]="level.percentageFrom"
+                    (ngModelChange)="onLevelChanged()" />
+
                   <input
+                    *ngIf="!useAutomaticGrading"
                     matInput
                     type="number"
                     min="0"
                     [max]="totalPoints"
-                    name="grade-minimum-{{ grade }}"
-                    [(ngModel)]="manualGradeMinimums[grade]"
-                    (ngModelChange)="normalizeManualGradeMinimums()" />
+                    name="grade-threshold-minimum-{{ i }}"
+                    [(ngModel)]="level.minimumPoints"
+                    (ngModelChange)="onLevelChanged()" />
                 </mat-form-field>
-              }
+              </div>
+
+              <div class="grading-range-preview">
+                Bereich in der Vorschau: <strong>{{ getGradeRangeLabelByIndex(i) }}</strong>
+              </div>
             </div>
-          }
+          </div>
+
+          <div class="grading-footer-actions">
+            <button mat-stroked-button type="button" (click)="addGradingLevel()">
+              <mat-icon>add</mat-icon>
+              Stufe hinzufügen
+            </button>
+          </div>
         </div>
       </div>
 
@@ -308,7 +380,7 @@
               <table class="result-table compact-table">
                 <tr>
                   <th>Erreichte Punkte</th>
-                  <th>Note</th>
+                  <th>{{ gradeHeaderLabel }}</th>
                 </tr>
                 <tr>
                   <td>&nbsp;</td>
@@ -317,23 +389,19 @@
               </table>
 
               <div class="grading-box">
-                <p class="grading-title">Notenschlüssel</p>
+                <p class="grading-title">{{ gradingSystemName || 'Bewertungsschlüssel' }}</p>
                 <table class="grading-table compact-table">
                   <tr>
                     <td>Punkte</td>
-                    <td>{{ getGradeRangeLabel(1) }}</td>
-                    <td>{{ getGradeRangeLabel(2) }}</td>
-                    <td>{{ getGradeRangeLabel(3) }}</td>
-                    <td>{{ getGradeRangeLabel(4) }}</td>
-                    <td>{{ getGradeRangeLabel(5) }}</td>
+                    <td *ngFor="let level of gradingSchema; let i = index">
+                      {{ getGradeRangeLabelByIndex(i) }}
+                    </td>
                   </tr>
                   <tr>
-                    <td>Note</td>
-                    <td>1</td>
-                    <td>2</td>
-                    <td>3</td>
-                    <td>4</td>
-                    <td>5</td>
+                    <td>{{ gradeHeaderLabel }}</td>
+                    <td *ngFor="let level of gradingSchema">
+                      {{ level.shortLabel || level.label }}
+                    </td>
                   </tr>
                 </table>
               </div>
@@ -447,14 +515,6 @@
     </div>
 
     <div class="print-actions">
-      <!--<button mat-stroked-button type="button" (click)="exportWord()" [disabled]="isExportingWord">
-        {{ isExportingWord ? 'Word wird erstellt…' : 'Word herunterladen' }}
-      </button>
-
-      <button mat-stroked-button type="button" (click)="exportPdf()" [disabled]="isExportingPdf">
-        {{ isExportingPdf ? 'PDF wird erstellt…' : 'PDF herunterladen' }}
-      </button>-->
-
       <button mat-flat-button color="primary" type="button" (click)="printPreview()">
         Drucken
       </button>

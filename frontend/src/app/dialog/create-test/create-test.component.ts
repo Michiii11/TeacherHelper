@@ -19,18 +19,21 @@ import { BehaviorSubject, Observable, Subject, combineLatest } from 'rxjs';
 import { map, startWith, takeUntil } from 'rxjs/operators';
 
 import { Example, ExampleDTO, ExampleTypes } from '../../model/Example';
-import { CreateTestDTO, TestExample, TestExampleDTO } from '../../model/Test';
+import { CreateTestDTO, GradingLevel, TestExample, TestExampleDTO } from '../../model/Test';
 import { HttpService } from '../../service/http.service';
 import { TestPrintService } from '../../service/test-print.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { MatPseudoCheckbox } from '@angular/material/core';
 
 type GradeMode = 'auto' | 'manual';
+type GradePresetKey = 'AT' | 'DE' | 'US' | 'MITARBEIT' | 'CUSTOM';
 
 type PersistedTestSettings = {
   defaultTaskSpacing?: number;
   taskSpacingMap?: Record<number, number> | Record<string, number>;
   gradingMode?: GradeMode;
+  gradingSystemName?: string;
+  gradingSchema?: GradingLevel[];
   gradePercentages?: Record<number, number> | Record<string, number>;
   manualGradeMinimums?: Record<number, number> | Record<string, number>;
 };
@@ -84,18 +87,10 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     defaultTaskSpacing: 48,
     taskSpacingMap: {},
     gradingMode: 'auto',
-    gradePercentages: {
-      1: 90,
-      2: 78,
-      3: 65,
-      4: 50,
-    },
-    manualGradeMinimums: {
-      1: 18,
-      2: 16,
-      3: 13,
-      4: 10,
-    }
+    gradingSystemName: 'Österreich 1–5',
+    gradingSchema: [],
+    gradePercentages: {},
+    manualGradeMinimums: {}
   };
 
   hasUnsavedChanges = false;
@@ -125,38 +120,66 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   taskSpacingMap: Record<number, number> = {};
 
   useAutomaticGrading = true;
-  gradePercentages: Record<number, number> = {
-    1: 90,
-    2: 78,
-    3: 65,
-    4: 50,
-  };
-  manualGradeMinimums: Record<number, number> = {
-    1: 18,
-    2: 16,
-    3: 13,
-    4: 10,
-  };
+  gradingSystemName = 'Österreich 1–5';
+  gradingSchema: GradingLevel[] = [];
 
-  readonly defaultGradePercentages: Record<number, number> = {
-    1: 90,
-    2: 78,
-    3: 65,
-    4: 50,
-  };
-
-  readonly gradeLabels: Record<number, string> = {
-    1: 'Sehr gut',
-    2: 'Gut',
-    3: 'Befriedigend',
-    4: 'Genügend',
-    5: 'Nicht genügend',
+  readonly gradingPresets: Record<GradePresetKey, { name: string; levels: Omit<GradingLevel, 'order'>[] }> = {
+    AT: {
+      name: 'Österreich 1–5',
+      levels: [
+        { key: '1', label: 'Sehr gut', shortLabel: '1', percentageFrom: 90, minimumPoints: 18 },
+        { key: '2', label: 'Gut', shortLabel: '2', percentageFrom: 78, minimumPoints: 16 },
+        { key: '3', label: 'Befriedigend', shortLabel: '3', percentageFrom: 65, minimumPoints: 13 },
+        { key: '4', label: 'Genügend', shortLabel: '4', percentageFrom: 50, minimumPoints: 10 },
+        { key: '5', label: 'Nicht genügend', shortLabel: '5', percentageFrom: 0, minimumPoints: 0 },
+      ]
+    },
+    DE: {
+      name: 'Deutschland 1–6',
+      levels: [
+        { key: '1', label: 'Sehr gut', shortLabel: '1', percentageFrom: 92, minimumPoints: 18 },
+        { key: '2', label: 'Gut', shortLabel: '2', percentageFrom: 81, minimumPoints: 16 },
+        { key: '3', label: 'Befriedigend', shortLabel: '3', percentageFrom: 67, minimumPoints: 13 },
+        { key: '4', label: 'Ausreichend', shortLabel: '4', percentageFrom: 50, minimumPoints: 10 },
+        { key: '5', label: 'Mangelhaft', shortLabel: '5', percentageFrom: 30, minimumPoints: 6 },
+        { key: '6', label: 'Ungenügend', shortLabel: '6', percentageFrom: 0, minimumPoints: 0 },
+      ]
+    },
+    US: {
+      name: 'USA A–F',
+      levels: [
+        { key: 'A', label: 'Excellent', shortLabel: 'A', percentageFrom: 90, minimumPoints: 18 },
+        { key: 'B', label: 'Good', shortLabel: 'B', percentageFrom: 80, minimumPoints: 16 },
+        { key: 'C', label: 'Satisfactory', shortLabel: 'C', percentageFrom: 70, minimumPoints: 14 },
+        { key: 'D', label: 'Passing', shortLabel: 'D', percentageFrom: 60, minimumPoints: 12 },
+        { key: 'F', label: 'Fail', shortLabel: 'F', percentageFrom: 0, minimumPoints: 0 },
+      ]
+    },
+    MITARBEIT: {
+      name: 'Mitarbeit ++ bis --',
+      levels: [
+        { key: 'plusplus', label: 'Sehr aktiv', shortLabel: '++', percentageFrom: 90, minimumPoints: 18 },
+        { key: 'plus', label: 'Aktiv', shortLabel: '+', percentageFrom: 75, minimumPoints: 15 },
+        { key: 'neutral', label: 'In Ordnung', shortLabel: 'o', percentageFrom: 55, minimumPoints: 11 },
+        { key: 'minus', label: 'Wenig Mitarbeit', shortLabel: '-', percentageFrom: 30, minimumPoints: 6 },
+        { key: 'minusminus', label: 'Keine Mitarbeit', shortLabel: '--', percentageFrom: 0, minimumPoints: 0 },
+      ]
+    },
+    CUSTOM: {
+      name: 'Eigenes Schema',
+      levels: [
+        { key: 'top', label: 'Top', shortLabel: 'Top', percentageFrom: 90, minimumPoints: 18 },
+        { key: 'mid', label: 'Mittel', shortLabel: 'Mid', percentageFrom: 60, minimumPoints: 12 },
+        { key: 'low', label: 'Niedrig', shortLabel: 'Low', percentageFrom: 0, minimumPoints: 0 },
+      ]
+    }
   };
 
   protected readonly ExampleTypes = ExampleTypes;
 
   constructor() {
     this.dialogRef.disableClose = true;
+    this.applyGradingPreset('AT', false);
 
     this.dialogRef.backdropClick()
       .pipe(takeUntil(this.destroy$))
@@ -185,11 +208,6 @@ export class CreateTestComponent implements OnInit, OnDestroy {
             this.test.exampleList = hydratedEntries;
             this.hydratePersistedSettings(response);
             this.initializeTaskSpacing();
-
-            if (this.useAutomaticGrading) {
-              this.syncManualGradeMinimumsWithAuto();
-            }
-
             this.hasUnsavedChanges = false;
           },
         });
@@ -251,8 +269,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.syncSelectionToTest(next);
     this.taskSpacingMap[example.id] = this.defaultTaskSpacing;
 
-    if (this.useAutomaticGrading) {
-      this.syncManualGradeMinimumsWithAuto();
+    if (!this.useAutomaticGrading) {
+      this.normalizeManualThresholds();
     }
 
     this.markDirty();
@@ -264,8 +282,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.syncSelectionToTest(next);
     delete this.taskSpacingMap[entry.example.id];
 
-    if (this.useAutomaticGrading) {
-      this.syncManualGradeMinimumsWithAuto();
+    if (!this.useAutomaticGrading) {
+      this.normalizeManualThresholds();
     }
 
     this.markDirty();
@@ -277,6 +295,17 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   get totalPoints(): number {
     return this.selectedExamples.reduce((sum, entry) => sum + (Number(entry.points) || 0), 0);
+  }
+
+  get gradeHeaderLabel(): string {
+    const name = this.normalize(this.gradingSystemName);
+    if (name.includes('usa') || name.includes('a–f') || name.includes('a-f')) return 'Grade';
+    if (name.includes('mitarbeit') || name.includes('feedback')) return 'Bewertung';
+    return 'Note';
+  }
+
+  get gradeTableHeading(): string {
+    return this.useAutomaticGrading ? 'ab %' : 'ab Punkten';
   }
 
   protected saveTest(): void {
@@ -317,7 +346,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     const success = await this.testPrintService.exportPdf(this.test, this.selectedExamples, {
       printCopies: this.printCopies,
       includeSolutionSheet: this.includeSolutionSheet,
-      getGradeRangeLabel: (grade) => this.getGradeRangeLabel(grade),
+      getGradeRangeLabel: (gradeOrIndex: number) => this.getGradeRangeLabelByIndex(gradeOrIndex - 1),
       getTaskSpacing: (exampleId) => this.getTaskSpacing(exampleId),
       getQuestionWithGapLabels: (example) => this.getQuestionWithGapLabels(example),
       getLetter: (index) => this.getLetter(index),
@@ -344,7 +373,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     const success = await this.testPrintService.exportWord(this.test, this.selectedExamples, {
       printCopies: this.printCopies,
       includeSolutionSheet: this.includeSolutionSheet,
-      getGradeRangeLabel: (grade) => this.getGradeRangeLabel(grade),
+      getGradeRangeLabel: (gradeOrIndex: number) => this.getGradeRangeLabelByIndex(gradeOrIndex - 1),
       getTaskSpacing: (exampleId) => this.getTaskSpacing(exampleId),
       getQuestionWithGapLabels: (example) => this.getQuestionWithGapLabels(example),
       getLetter: (index) => this.getLetter(index),
@@ -391,8 +420,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   onPointsChanged(): void {
-    if (this.useAutomaticGrading) {
-      this.syncManualGradeMinimumsWithAuto();
+    if (!this.useAutomaticGrading) {
+      this.normalizeManualThresholds();
     }
     this.markDirty();
   }
@@ -436,105 +465,170 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   onGradingModeChange(mode: GradeMode): void {
     this.useAutomaticGrading = mode === 'auto';
-
     if (this.useAutomaticGrading) {
-      this.syncManualGradeMinimumsWithAuto();
-    }
-
-    this.markDirty();
-  }
-
-  resetGrading(): void {
-    this.gradePercentages = { ...this.defaultGradePercentages };
-
-    if (this.useAutomaticGrading) {
-      this.syncManualGradeMinimumsWithAuto();
+      this.normalizeAutomaticThresholds();
     } else {
-      this.manualGradeMinimums = {
-        1: this.getAutomaticGradeMinimum(1),
-        2: this.getAutomaticGradeMinimum(2),
-        3: this.getAutomaticGradeMinimum(3),
-        4: this.getAutomaticGradeMinimum(4),
-      };
+      this.normalizeManualThresholds();
     }
-
     this.markDirty();
   }
 
-  normalizePercentages(): void {
+  applyGradingPreset(preset: GradePresetKey, shouldMarkDirty = true): void {
+    const config = this.gradingPresets[preset];
+    this.gradingSystemName = config.name;
+    this.gradingSchema = config.levels.map((level, index) => ({
+      ...level,
+      order: index,
+    }));
+    this.normalizeCurrentThresholds();
+    if (shouldMarkDirty) {
+      this.markDirty();
+    } else {
+      this.attachPersistedSettingsToPayload();
+    }
+  }
+
+  addGradingLevel(): void {
+    const nextIndex = this.gradingSchema.length;
+    const previous = this.gradingSchema[nextIndex - 1];
+    const threshold = this.useAutomaticGrading
+      ? Math.max(0, (previous?.percentageFrom ?? 0) - 10)
+      : Math.max(0, (previous?.minimumPoints ?? 0) - 1);
+
+    this.gradingSystemName = this.gradingSystemName || 'Eigenes Schema';
+    this.gradingSchema = [
+      ...this.gradingSchema,
+      {
+        key: `level-${Date.now()}-${nextIndex}`,
+        label: `Stufe ${nextIndex + 1}`,
+        shortLabel: `${nextIndex + 1}`,
+        order: nextIndex,
+        percentageFrom: this.useAutomaticGrading ? threshold : 0,
+        minimumPoints: this.useAutomaticGrading ? 0 : threshold,
+      }
+    ];
+    this.normalizeCurrentThresholds();
+    this.markDirty();
+  }
+
+  removeGradingLevel(index: number): void {
+    if (this.gradingSchema.length <= 2) {
+      this.snackBar.open('Mindestens zwei Bewertungsstufen sollten bestehen bleiben.', 'OK', { duration: 2500 });
+      return;
+    }
+
+    this.gradingSchema = this.gradingSchema
+      .filter((_, i) => i !== index)
+      .map((level, i) => ({ ...level, order: i }));
+
+    this.normalizeCurrentThresholds();
+    this.markDirty();
+  }
+
+  moveGradingLevel(index: number, direction: -1 | 1): void {
+    const target = index + direction;
+    if (target < 0 || target >= this.gradingSchema.length) return;
+
+    const next = [...this.gradingSchema];
+    const temp = next[index];
+    next[index] = next[target];
+    next[target] = temp;
+
+    this.gradingSchema = next.map((level, i) => ({ ...level, order: i }));
+    this.normalizeCurrentThresholds();
+    this.markDirty();
+  }
+
+  onGradingSystemNameChanged(value: string): void {
+    this.gradingSystemName = value?.trim() || 'Eigenes Schema';
+    this.markDirty();
+  }
+
+  onLevelChanged(): void {
+    this.normalizeCurrentThresholds();
+    this.markDirty();
+  }
+
+  normalizeCurrentThresholds(): void {
+    if (this.useAutomaticGrading) {
+      this.normalizeAutomaticThresholds();
+    } else {
+      this.normalizeManualThresholds();
+    }
+  }
+
+  normalizeAutomaticThresholds(): void {
     let last = 100;
 
-    for (const grade of [1, 2, 3, 4]) {
-      const raw = Number(this.gradePercentages[grade] ?? 0);
-      const normalized = Math.max(0, Math.min(last, Math.round(raw)));
-      this.gradePercentages[grade] = normalized;
+    this.gradingSchema = this.gradingSchema.map((level, index) => {
+      const raw = Number(level.percentageFrom ?? (index === this.gradingSchema.length - 1 ? 0 : last));
+      const normalized = index === this.gradingSchema.length - 1
+        ? 0
+        : Math.max(0, Math.min(last, Math.round(raw)));
+
       last = normalized;
-    }
+      return {
+        ...level,
+        order: index,
+        percentageFrom: normalized,
+      };
+    });
 
-    if (this.useAutomaticGrading) {
-      this.syncManualGradeMinimumsWithAuto();
+    if (this.gradingSchema.length) {
+      this.gradingSchema[this.gradingSchema.length - 1].percentageFrom = 0;
     }
-
-    this.markDirty();
   }
 
-  normalizeManualGradeMinimums(): void {
+  normalizeManualThresholds(): void {
     const total = this.totalPoints;
     let last = total;
 
-    for (const grade of [1, 2, 3, 4]) {
-      const raw = Number(this.manualGradeMinimums[grade] ?? 0);
-      const normalized = Math.max(0, Math.min(last, Math.round(raw)));
-      this.manualGradeMinimums[grade] = normalized;
+    this.gradingSchema = this.gradingSchema.map((level, index) => {
+      const raw = Number(level.minimumPoints ?? (index === this.gradingSchema.length - 1 ? 0 : last));
+      const normalized = index === this.gradingSchema.length - 1
+        ? 0
+        : Math.max(0, Math.min(last, Math.round(raw)));
+
       last = normalized;
+
+      return {
+        ...level,
+        order: index,
+        minimumPoints: normalized,
+      };
+    });
+
+    if (this.gradingSchema.length) {
+      this.gradingSchema[this.gradingSchema.length - 1].minimumPoints = 0;
     }
-
-    this.markDirty();
   }
 
-  getGradePercentage(grade: number): number {
-    return Number(this.gradePercentages[grade] ?? 0);
+  resetGrading(): void {
+    this.applyGradingPreset('AT');
   }
 
-  getGradeMinimum(grade: number): number {
-    if (grade === 5) return 0;
+  getGradeMinimumByIndex(index: number): number {
+    if (!this.gradingSchema[index]) return 0;
 
     if (this.useAutomaticGrading) {
-      return this.getAutomaticGradeMinimum(grade);
+      const percentage = Number(this.gradingSchema[index].percentageFrom ?? 0);
+      return Math.max(0, Math.min(this.totalPoints, Math.ceil(this.totalPoints * (percentage / 100))));
     }
 
-    return Math.max(0, Math.min(this.totalPoints, Math.round(Number(this.manualGradeMinimums[grade] ?? 0))));
+    return Math.max(0, Math.min(this.totalPoints, Math.round(Number(this.gradingSchema[index].minimumPoints ?? 0))));
   }
 
-  getGradeRangeLabel(grade: number): string {
+  getGradeRangeLabelByIndex(index: number): string {
     const total = this.totalPoints;
     if (total <= 0) return '–';
+    if (!this.gradingSchema[index]) return '–';
 
-    const min = this.getGradeMinimum(grade);
-    const upper = grade === 1 ? total : this.getGradeMinimum(grade - 1) - 1;
+    const min = this.getGradeMinimumByIndex(index);
+    const upper = index === 0 ? total : this.getGradeMinimumByIndex(index - 1) - 1;
 
     if (upper < min) return `${min}`;
-    if (min === upper) return `${upper}`;
+    if (upper === min) return `${min}`;
     return `${upper}-${min}`;
-  }
-
-  getAutomaticGradeMinimum(grade: number): number {
-    const total = this.totalPoints;
-    if (grade === 5) return 0;
-
-    const percentage = Number(this.gradePercentages[grade] ?? 0);
-    return Math.max(0, Math.min(total, Math.ceil(total * (percentage / 100))));
-  }
-
-  syncManualGradeMinimumsWithAuto(): void {
-    this.manualGradeMinimums = {
-      1: this.getAutomaticGradeMinimum(1),
-      2: this.getAutomaticGradeMinimum(2),
-      3: this.getAutomaticGradeMinimum(3),
-      4: this.getAutomaticGradeMinimum(4),
-    };
-
-    this.attachPersistedSettingsToPayload();
   }
 
   getPreviewImage(example: Example): string | null {
@@ -563,7 +657,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.testPrintService.printTest(this.test, this.selectedExamples, {
       printCopies: this.printCopies,
       includeSolutionSheet: this.includeSolutionSheet,
-      getGradeRangeLabel: (grade) => this.getGradeRangeLabel(grade),
+      getGradeRangeLabel: (gradeOrIndex: number) => this.getGradeRangeLabelByIndex(gradeOrIndex - 1),
       getTaskSpacing: (exampleId) => this.getTaskSpacing(exampleId),
       getQuestionWithGapLabels: (example) => this.getQuestionWithGapLabels(example),
       getLetter: (index) => this.getLetter(index),
@@ -614,8 +708,15 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.test.defaultTaskSpacing = this.defaultTaskSpacing;
     this.test.taskSpacingMap = { ...this.taskSpacingMap };
     this.test.gradingMode = this.useAutomaticGrading ? 'auto' : 'manual';
-    this.test.gradePercentages = { ...this.gradePercentages };
-    this.test.manualGradeMinimums = { ...this.manualGradeMinimums };
+    this.test.gradingSystemName = this.gradingSystemName;
+    this.test.gradingSchema = this.gradingSchema.map((level, index) => ({
+      ...level,
+      order: index,
+      percentageFrom: this.useAutomaticGrading ? Number(level.percentageFrom ?? 0) : 0,
+      minimumPoints: this.useAutomaticGrading ? 0 : Number(level.minimumPoints ?? 0),
+    }));
+    this.test.gradePercentages = this.buildLegacyPercentageMap();
+    this.test.manualGradeMinimums = this.buildLegacyMinimumMap();
   }
 
   private hydratePersistedSettings(response: any): void {
@@ -637,33 +738,62 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     const gradingMode = response?.gradingMode ?? response?.gradingSettings?.mode ?? 'auto';
     this.useAutomaticGrading = gradingMode !== 'manual';
 
-    const percentages = this.normalizeNumberMap(
-      response?.gradePercentages ??
-      response?.gradingSettings?.gradePercentages ??
-      this.defaultGradePercentages
-    );
+    const schema = Array.isArray(response?.gradingSchema) ? response.gradingSchema : [];
+    this.gradingSystemName = response?.gradingSystemName ?? 'Österreich 1–5';
 
-    this.gradePercentages = {
-      1: percentages[1] ?? this.defaultGradePercentages[1],
-      2: percentages[2] ?? this.defaultGradePercentages[2],
-      3: percentages[3] ?? this.defaultGradePercentages[3],
-      4: percentages[4] ?? this.defaultGradePercentages[4],
-    };
+    if (schema.length) {
+      this.gradingSchema = schema.map((level: any, index: number) => ({
+        key: level?.key ?? `level-${index}`,
+        label: level?.label ?? `Stufe ${index + 1}`,
+        shortLabel: level?.shortLabel ?? String(index + 1),
+        order: Number(level?.order ?? index),
+        percentageFrom: Number(level?.percentageFrom ?? 0),
+        minimumPoints: Number(level?.minimumPoints ?? 0),
+      }));
+    } else {
+      const percentages = this.normalizeNumberMap(
+        response?.gradePercentages ??
+        response?.gradingSettings?.gradePercentages ??
+        {}
+      );
 
-    const manualMinimums = this.normalizeNumberMap(
-      response?.manualGradeMinimums ??
-      response?.gradingSettings?.manualGradeMinimums ??
-      {}
-    );
+      const minimums = this.normalizeNumberMap(
+        response?.manualGradeMinimums ??
+        response?.gradingSettings?.manualGradeMinimums ??
+        {}
+      );
 
-    this.manualGradeMinimums = {
-      1: manualMinimums[1] ?? this.manualGradeMinimums[1],
-      2: manualMinimums[2] ?? this.manualGradeMinimums[2],
-      3: manualMinimums[3] ?? this.manualGradeMinimums[3],
-      4: manualMinimums[4] ?? this.manualGradeMinimums[4],
-    };
+      this.gradingSchema = [
+        { key: '1', label: 'Sehr gut', shortLabel: '1', order: 0, percentageFrom: percentages[1] ?? 90, minimumPoints: minimums[1] ?? 18 },
+        { key: '2', label: 'Gut', shortLabel: '2', order: 1, percentageFrom: percentages[2] ?? 78, minimumPoints: minimums[2] ?? 16 },
+        { key: '3', label: 'Befriedigend', shortLabel: '3', order: 2, percentageFrom: percentages[3] ?? 65, minimumPoints: minimums[3] ?? 13 },
+        { key: '4', label: 'Genügend', shortLabel: '4', order: 3, percentageFrom: percentages[4] ?? 50, minimumPoints: minimums[4] ?? 10 },
+        { key: '5', label: 'Nicht genügend', shortLabel: '5', order: 4, percentageFrom: 0, minimumPoints: 0 },
+      ];
+    }
 
+    this.normalizeCurrentThresholds();
     this.attachPersistedSettingsToPayload();
+  }
+
+  private buildLegacyPercentageMap(): Record<number, number> {
+    const map: Record<number, number> = {};
+    this.gradingSchema.forEach((level, index) => {
+      if (index < 4) {
+        map[index + 1] = Number(level.percentageFrom ?? 0);
+      }
+    });
+    return map;
+  }
+
+  private buildLegacyMinimumMap(): Record<number, number> {
+    const map: Record<number, number> = {};
+    this.gradingSchema.forEach((level, index) => {
+      if (index < 4) {
+        map[index + 1] = Number(level.minimumPoints ?? 0);
+      }
+    });
+    return map;
   }
 
   private normalizeNumberMap(

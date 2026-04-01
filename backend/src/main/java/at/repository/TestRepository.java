@@ -1,6 +1,7 @@
 package at.repository;
 
 import at.dtos.Test.CreateTestDTO;
+import at.dtos.Test.GradingLevelDTO;
 import at.dtos.Test.TestExampleDTO;
 import at.dtos.Test.TestOverviewDTO;
 import at.model.*;
@@ -143,6 +144,8 @@ public class TestRepository {
                 t.getDefaultTaskSpacing(),
                 copyMap(t.getTaskSpacingMap()),
                 t.getGradingMode(),
+                t.getGradingSystemName(),
+                mapDtoSchemaToEntitySchema(t.getGradingSchema()),
                 copyMap(t.getGradePercentages()),
                 copyMap(t.getManualGradeMinimums())
         );
@@ -164,12 +167,54 @@ public class TestRepository {
     private void applySettings(Test test, CreateTestDTO dto) {
         test.setDefaultTaskSpacing(dto.defaultTaskSpacing());
         test.setGradingMode(dto.gradingMode());
+        test.setGradingSystemName(dto.gradingSystemName());
         test.setTaskSpacingMap(copyMap(dto.taskSpacingMap()));
+        test.setGradingSchema(mapGradingSchema(dto.gradingSchema()));
         test.setGradePercentages(copyMap(dto.gradePercentages()));
         test.setManualGradeMinimums(copyMap(dto.manualGradeMinimums()));
     }
 
     private Map<Integer, Integer> copyMap(Map<Integer, Integer> source) {
         return source == null ? Map.of() : Map.copyOf(source);
+    }
+
+    private List<GradingLevelDTO> mapDtoSchemaToEntitySchema(List<GradingLevel> source) {
+        List<GradingLevelDTO> mapped = new LinkedList<>();
+        if (source == null) {
+            return mapped;
+        }
+
+        for (GradingLevel level : source) {
+            mapped.add(new GradingLevelDTO(
+                    level.getKey(),
+                    level.getLabel(),
+                    level.getShortLabel(),
+                    level.getOrder(),
+                    level.getPercentageFrom(),
+                    level.getMinimumPoints()
+            ));
+        }
+
+        return mapped;
+    }
+
+    private List<GradingLevel> mapGradingSchema(List<GradingLevelDTO> source) {
+        List<GradingLevel> mapped = new LinkedList<>();
+        if (source == null) {
+            return mapped;
+        }
+
+        for (GradingLevelDTO level : source) {
+            mapped.add(new GradingLevel(
+                    level.key(),
+                    level.label(),
+                    level.shortLabel(),
+                    level.order(),
+                    level.percentageFrom(),
+                    level.minimumPoints()
+            ));
+        }
+
+        return mapped;
     }
 }

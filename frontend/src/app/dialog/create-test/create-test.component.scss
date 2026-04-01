@@ -313,7 +313,6 @@
   width: 794px;
   min-height: 1123px;
   margin: 0 auto;
-  background: #020817;
   color: #111827;
   box-shadow: 0 16px 40px rgba(15, 23, 42, 0.10);
   border-radius: 12px;
@@ -801,5 +800,82 @@
   .gap-grid,
   .assign-preview {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Flexible grading schema */
+.preset-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-bottom: 0.9rem;
+}
+
+.grading-system-name {
+  margin-bottom: 0.9rem;
+}
+
+.grading-level-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.grading-level-card {
+  padding: 0.95rem;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  background: linear-gradient(180deg, #ffffff, #f8fbff);
+}
+
+.grading-level-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.85rem;
+}
+
+.level-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.grading-range-preview {
+  margin-top: 0.35rem;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.grading-footer-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 0.9rem;
+}
+
+@media (max-width: 1100px) {
+  .compact-grid.four-cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 780px) {
+  .compact-grid.two-cols,
+  .compact-grid.three-cols,
+  .compact-grid.four-cols,
+  .layout-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .grading-level-header,
+  .settings-head,
+  .section-head,
+  .summary-strip {
+    align-items: stretch;
+  }
+
+  .advanced-toggle {
+    margin-left: 0;
   }
 }

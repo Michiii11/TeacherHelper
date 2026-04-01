@@ -13,6 +13,8 @@ public record CreateTestDTO(
         Integer defaultTaskSpacing,
         Map<Integer, Integer> taskSpacingMap,
         String gradingMode,
+        String gradingSystemName,
+        List<GradingLevelDTO> gradingSchema,
         Map<Integer, Integer> gradePercentages,
         Map<Integer, Integer> manualGradeMinimums
 ) {

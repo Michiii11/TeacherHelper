@@ -4,6 +4,15 @@ import {School} from './School'
 
 export type TestGradingMode = 'auto' | 'manual';
 
+export interface GradingLevel {
+  key: string;
+  label: string;
+  shortLabel: string;
+  order: number;
+  percentageFrom?: number;
+  minimumPoints?: number;
+}
+
 export interface Test {
   id: number;
   admin: User;
@@ -15,6 +24,8 @@ export interface Test {
   defaultTaskSpacing?: number;
   taskSpacingMap?: Record<number, number>;
   gradingMode?: TestGradingMode;
+  gradingSystemName?: string;
+  gradingSchema?: GradingLevel[];
   gradePercentages?: Record<number, number>;
   manualGradeMinimums?: Record<number, number>;
 }
@@ -52,6 +63,8 @@ export interface CreateTestDTO {
   defaultTaskSpacing?: number;
   taskSpacingMap?: Record<number, number>;
   gradingMode?: TestGradingMode;
+  gradingSystemName?: string;
+  gradingSchema?: GradingLevel[];
   gradePercentages?: Record<number, number>;
   manualGradeMinimums?: Record<number, number>;
 }
