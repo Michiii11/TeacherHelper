@@ -16,6 +16,9 @@ public class School {
     @Column(nullable = false, unique = true)
     private String name;
 
+    @Column(length = 1000)
+    private String logoUrl;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "admin_id")
     private User admin;
@@ -31,8 +34,7 @@ public class School {
     @OneToMany
     private List<Focus> focusList;
 
-    public School(){
-
+    public School() {
     }
 
     public School(String name, User admin) {
@@ -64,6 +66,14 @@ public class School {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
+    }
+
+    public void setLogoUrl(String logoUrl) {
+        this.logoUrl = logoUrl;
     }
 
     public User getAdmin() {

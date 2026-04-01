@@ -42,7 +42,7 @@ public class SchoolRepository {
             School school = new School(schoolName, user);
             em.persist(school);
 
-            return Response.ok(school).build();
+            return Response.ok(toSchoolDTO(school)).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST).entity("User not found or error occurred").build();
         }
@@ -51,13 +51,7 @@ public class SchoolRepository {
     public List<SchoolDTO> getAllSchools() {
         List<School> schools = em.createQuery("SELECT s FROM School s", School.class).getResultList();
         return schools.stream()
-                .map(school -> new SchoolDTO(
-                        school.getId(),
-                        school.getName(),
-                        school.getAdminDTO(),
-                        0,
-                        school.getUsers().stream().map(User::toUserDTO).toList()
-                ))
+                .map(this::toSchoolDTO)
                 .toList();
     }
 
@@ -72,13 +66,7 @@ public class SchoolRepository {
             return null;
         }
 
-        return new SchoolDTO(
-                school.getId(),
-                school.getName(),
-                school.getAdminDTO(),
-                0,
-                school.getUsers().stream().map(User::toUserDTO).toList()
-        );
+        return toSchoolDTO(school);
     }
 
     public List<SchoolDTO> getYourSchools(String auth) {
@@ -97,13 +85,7 @@ public class SchoolRepository {
                 .getResultList();
 
         return schools.stream()
-                .map(school -> new SchoolDTO(
-                        school.getId(),
-                        school.getName(),
-                        school.getAdminDTO(),
-                        0,
-                        school.getUsers().stream().map(User::toUserDTO).toList()
-                ))
+                .map(this::toSchoolDTO)
                 .toList();
     }
 
@@ -149,6 +131,7 @@ public class SchoolRepository {
         return new SchoolDTO(
                 school.getId(),
                 school.getName(),
+                school.getLogoUrl(),
                 school.getAdminDTO(),
                 school.getUsers().size(),
                 school.getUsers().stream().map(User::toUserDTO).toList()
@@ -243,6 +226,61 @@ public class SchoolRepository {
         em.merge(school);
 
         return Response.ok().build();
+    }
+
+    public Response updateSchoolSettings(Long schoolId, Long userId, String newName) {
+        School school = em.find(School.class, schoolId);
+
+        if (school == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("School not found").build();
+        }
+
+        if (!school.getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Only the school admin can update the school").build();
+        }
+
+        if (newName == null || newName.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("School name must not be empty").build();
+        }
+
+        String cleanedName = newName.trim();
+
+        Long existing = em.createQuery("""
+                SELECT COUNT(s)
+                FROM School s
+                WHERE LOWER(s.name) = LOWER(:name)
+                  AND s.id <> :schoolId
+                """, Long.class)
+                .setParameter("name", cleanedName)
+                .setParameter("schoolId", schoolId)
+                .getSingleResult();
+
+        if (existing > 0) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("A school with this name already exists").build();
+        }
+
+        school.setName(cleanedName);
+        em.merge(school);
+
+        return Response.ok(toSchoolDTO(school)).build();
+    }
+
+    public Response updateSchoolLogoObject(Long schoolId, Long userId, String logoUrl) {
+        School school = em.find(School.class, schoolId);
+
+        if (school == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("School not found").build();
+        }
+
+        if (!school.getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Only the school admin can update the logo").build();
+        }
+
+        school.setLogoUrl(logoUrl);
+
+        em.merge(school);
+
+        return Response.ok(toSchoolDTO(school)).build();
     }
 
     public Response inviteTeacher(Long schoolId, Long userId, int teacherId, String message) {
@@ -604,11 +642,20 @@ public class SchoolRepository {
 
     public LastActivityDTO getLastActivity(Long id) {
         return em.createQuery(
-                "SELECT new at.dtos.School.LastActivityDTO(c.user.username, c.createdAt) FROM ChangeLog c WHERE c.school.id = :schoolId ORDER BY c.createdAt DESC", LastActivityDTO.class)
+                        "SELECT new at.dtos.School.LastActivityDTO(c.user.username, c.createdAt) FROM ChangeLog c WHERE c.school.id = :schoolId ORDER BY c.createdAt DESC", LastActivityDTO.class)
                 .setParameter("schoolId", id)
                 .setMaxResults(1)
                 .getResultStream()
                 .findFirst()
                 .orElse(null);
+    }
+
+    public String getSchoolUrl(Long id) {
+        School school = em.find(School.class, id);
+        if (school == null) {
+            return null;
+        }
+
+        return school.getLogoUrl();
     }
 }

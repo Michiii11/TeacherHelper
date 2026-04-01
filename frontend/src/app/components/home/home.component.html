@@ -35,7 +35,13 @@
         (click)="openSchool(school)"
       >
         <div class="card-top-row">
-          <div class="school-avatar">{{ getSchoolInitials(school.name) }}</div>
+          @if(school.logoUrl){
+            <div class="school-avatar">
+              <img [src]="getSchoolLogoUrl(school)" alt="{{ school.name }} Logo" class="avatar-image" />
+            </div>
+          } @else{
+            <div class="school-avatar">{{ getSchoolInitials(school.name) }}</div>
+          }
           <span class="role-badge admin-badge">{{ getSchoolRoleLabel('admin') }}</span>
         </div>
 
@@ -80,7 +86,13 @@
         (click)="openSchool(school)"
       >
         <div class="card-top-row">
-          <div class="school-avatar member-avatar">{{ getSchoolInitials(school.name) }}</div>
+          @if(school.logoUrl){
+            <div class="school-avatar member-avatar">
+              <img [src]="getSchoolLogoUrl(school)" alt="{{ school.name }} Logo" class="avatar-image" />
+            </div>
+          } @else{
+            <div class="school-avatar member-avatar">{{ getSchoolInitials(school.name) }}</div>
+          }
           <span class="role-badge member-badge">{{ getSchoolRoleLabel('member') }}</span>
         </div>
 
@@ -131,7 +143,13 @@
         (click)="openInvitationDialog(school)"
       >
         <div class="card-top-row">
-          <div class="school-avatar discover-avatar">{{ getSchoolInitials(school.name) }}</div>
+          @if(school.logoUrl){
+            <div class="school-avatar discover-avatar">
+              <img [src]="getSchoolLogoUrl(school)" alt="{{ school.name }} Logo" class="avatar-image" />
+            </div>
+          } @else{
+            <div class="school-avatar discover-avatar">{{ getSchoolInitials(school.name) }}</div>
+          }
           <span class="role-badge discover-badge">Beitreten</span>
         </div>
 

@@ -402,4 +402,25 @@ export class HttpService {
   getLastChange(schoolId: string | null) {
     return this.http.get<LastActivityDTO>(`${Config.API_URL}/school/${schoolId}/last-activity`)
   }
+
+  updateSchool(schoolId: string, payload: { name?: string }) {
+    return this.http.put<SchoolDTO>(`${Config.API_URL}/school/${schoolId}/settings`, payload);
+  }
+
+  uploadSchoolLogo(schoolId: string, formData: FormData) {
+    return this.http.post<SchoolDTO>(`${Config.API_URL}/school/${schoolId}/logo`, formData);
+  }
+
+  getSchoolLogo(school: SchoolDTO, schoolId: string) {
+    if(!school?.logoUrl){
+      return null;
+    }
+
+    const token = this.authToken();
+    if (!token) {
+      return null;
+    }
+
+    return `${Config.API_URL}/school/${schoolId}/logo`
+  }
 }

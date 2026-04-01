@@ -1,0 +1,173 @@
+<h2 mat-dialog-title>Schul-Einstellungen</h2>
+
+<mat-dialog-content class="dialog-content">
+  @if(isAdmin){
+    <mat-tab-group animationDuration="200ms">
+      <mat-tab label="Allgemein">
+        <div class="tab-content">
+          <div class="section-head">
+            <h3>Name & Basisdaten</h3>
+            <p>Hier kannst du die wichtigsten Schul-Einstellungen verwalten.</p>
+          </div>
+
+          <form [formGroup]="generalForm" class="settings-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Schulname</mat-label>
+              <input matInput formControlName="name" maxlength="120">
+            </mat-form-field>
+
+            @if(savingGeneral){
+              <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+            }
+
+            <div class="form-actions">
+              <button mat-stroked-button type="button" (click)="close()">Abbrechen</button>
+              <button mat-flat-button color="primary" type="button" (click)="saveGeneral()">
+                Speichern
+              </button>
+            </div>
+          </form>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Logo">
+        <div class="tab-content">
+          <div class="section-head">
+            <h3>Schullogo</h3>
+            <p>Logo hochladen und später überall in der School-Ansicht verwenden.</p>
+          </div>
+
+          <div class="logo-layout">
+            <div class="logo-preview-card">
+              <div class="preview-box">
+                @if(logoPreviewUrl){
+                  <img [src]="logoPreviewUrl" alt="Logo Vorschau" class="logo-preview-image">
+                }
+                @else if(getSchoolLogoUrl()){
+                  <img [src]="getSchoolLogoUrl()" alt="Logo Vorschau" class="logo-preview-image">
+                } @else {
+                  <div class="logo-fallback">
+                    <mat-icon>school</mat-icon>
+                    <span>Kein Logo vorhanden</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="logo-actions-card">
+              <input
+                #logoInput
+                type="file"
+                accept="image/*"
+                hidden
+                (change)="onLogoSelected($event)"
+              >
+
+              <div class="upload-actions">
+                <button mat-stroked-button type="button" (click)="logoInput.click()">
+                  <mat-icon>upload</mat-icon>
+                  Logo auswählen
+                </button>
+
+                <button
+                  mat-button
+                  type="button"
+                  color="warn"
+                  (click)="removeSelectedLogo()"
+                  [disabled]="!selectedLogoFile"
+                >
+                  Auswahl entfernen
+                </button>
+              </div>
+
+              <p class="hint">
+                Empfohlen: quadratisches PNG mit transparentem Hintergrund.
+              </p>
+
+              @if(uploadingLogo){
+                <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+              }
+
+              <div class="form-actions">
+                <button mat-stroked-button type="button" (click)="close()">Schließen</button>
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="button"
+                  (click)="uploadLogo()"
+                  [disabled]="!selectedLogoFile"
+                >
+                  Logo speichern
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Templates">
+        <div class="tab-content">
+          <div class="section-head">
+            <h3>Schul-Templates</h3>
+            <p>Bereich für zukünftige Vorlagen und Standard-Layouts.</p>
+          </div>
+
+          <mat-card class="coming-soon-card">
+            <mat-card-content>
+              <div class="coming-soon">
+                <mat-icon>dashboard_customize</mat-icon>
+                <div>
+                  <strong>Coming soon</strong>
+                  <p>
+                    Hier kannst du später Schul-Templates, Standardköpfe, Drucklayouts
+                    oder Bewertungs-Voreinstellungen verwalten.
+                  </p>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Weitere Einstellungen">
+        <div class="tab-content">
+          <div class="section-head">
+            <h3>Weitere wichtige Einstellungen</h3>
+          </div>
+
+          <div class="settings-placeholder-list">
+            <div class="placeholder-item">
+              <mat-icon>grading</mat-icon>
+              <div>
+                <strong>Standard-Notensystem</strong>
+                <p>z. B. Österreich, Deutschland, Punkte, Buchstaben, ++ / + / -</p>
+              </div>
+            </div>
+
+            <div class="placeholder-item">
+              <mat-icon>print</mat-icon>
+              <div>
+                <strong>Druck-/Export-Vorgaben</strong>
+                <p>z. B. Kopfzeile, Fußzeile, Schullogo, Standardlayout</p>
+              </div>
+            </div>
+
+            <div class="placeholder-item">
+              <mat-icon>groups</mat-icon>
+              <div>
+                <strong>Rollen & Rechte</strong>
+                <p>z. B. wer Tests erstellen, bearbeiten oder löschen darf</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  } @else {
+    <div class="not-allowed">
+      <mat-icon>lock</mat-icon>
+      <h3>Kein Zugriff</h3>
+      <p>Nur der Admin darf die Schul-Einstellungen öffnen.</p>
+    </div>
+  }
+</mat-dialog-content>

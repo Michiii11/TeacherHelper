@@ -140,4 +140,8 @@ export class HomeComponent implements OnInit{
       })
     });
   }
+
+  protected getSchoolLogoUrl(school: SchoolDTO) {
+    return  this.http.getSchoolLogo(school, school.id.toString());
+  }
 }

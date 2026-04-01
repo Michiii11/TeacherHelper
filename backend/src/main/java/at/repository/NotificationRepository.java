@@ -320,6 +320,7 @@ public class NotificationRepository {
             schoolDTO = new SchoolDTO(
                     n.getSchool().getId(),
                     n.getSchool().getName(),
+                    n.getSchool().getLogoUrl(),
                     n.getSchool().getAdminDTO(),
                     n.getSchool().getUsers().size(),
                     n.getSchool().getUsers().stream().map(User::toUserDTO).toList()

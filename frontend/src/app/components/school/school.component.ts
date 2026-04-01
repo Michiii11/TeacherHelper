@@ -29,6 +29,7 @@ import { TestPreviewComponent } from '../../dialog/test-preview/test-preview.com
 import { ExamplePreviewComponent } from '../../dialog/example-preview/example-preview.component';
 import { SchoolInvitationDialogComponent } from '../../dialog/school-invitation-dialog/school-invitation-dialog.component';
 import { UserDTO } from '../../model/User';
+import {SchoolSettingsComponent} from '../../dialog/school-settings/school-settings.component'
 
 @Component({
   selector: 'app-school',
@@ -123,6 +124,10 @@ export class SchoolComponent implements OnInit, AfterViewInit {
     };
   }
 
+  get isAdmin(): boolean {
+    return this.currentUserId === this.school?.admin?.id;
+  }
+
   private loadSchool(): void {
     if (!this.schoolId) {
       return;
@@ -130,10 +135,11 @@ export class SchoolComponent implements OnInit, AfterViewInit {
 
     this.service.getSchoolById(this.schoolId).subscribe(school => {
       this.school = school;
+
       this.kpis[2].value = this.getTeacherCount().toString();
     });
 
-    this.loadLastChange()
+    this.loadLastChange();
   }
 
   loadExamples() {
@@ -142,7 +148,7 @@ export class SchoolComponent implements OnInit, AfterViewInit {
       this.kpis[1].value = this.exampleCount.toString();
     });
 
-    this.loadLastChange()
+    this.loadLastChange();
   }
 
   loadTests() {
@@ -151,15 +157,16 @@ export class SchoolComponent implements OnInit, AfterViewInit {
       this.kpis[0].value = this.tests.length.toString();
     });
 
-    this.loadLastChange()
+    this.loadLastChange();
   }
 
   loadLastChange() {
     this.service.getLastChange(this.schoolId).subscribe(change => {
-      console.log(change);
 
-      this.kpis[3].value = this.formatTimeAgo(change.createdAt);
-      this.kpis[3].sub = "von " + change.username;
+      if(change){
+        this.kpis[3].value = this.formatTimeAgo(change.createdAt);
+        this.kpis[3].sub = 'von ' + change.username;
+      }
     });
   }
 
@@ -169,7 +176,7 @@ export class SchoolComponent implements OnInit, AfterViewInit {
     const diffSeconds = Math.floor((now - past) / 1000);
 
     if (diffSeconds < 5) {
-      return "gerade eben";
+      return 'gerade eben';
     }
 
     if (diffSeconds < 60) {
@@ -286,7 +293,24 @@ export class SchoolComponent implements OnInit, AfterViewInit {
   }
 
   openSettings() {
-    console.log('open settings');
+    if (!this.isAdmin || !this.schoolId) {
+      return;
+    }
+
+    this.dialog.open(SchoolSettingsComponent, {
+      width: 'min(95vw, 960px)',
+      maxWidth: '95vw',
+      maxHeight: '92vh',
+      data: {
+        schoolId: this.schoolId,
+        school: this.school,
+        currentUserId: this.currentUserId
+      }
+    }).afterClosed().subscribe(result => {
+      if (result?.updated) {
+        this.loadSchool();
+      }
+    });
   }
 
   openExample(e: any) {
@@ -365,5 +389,9 @@ export class SchoolComponent implements OnInit, AfterViewInit {
         this.loadSchool();
       });
     });
+  }
+
+  protected getSchoolLogo() {
+    return this.service.getSchoolLogo(this.school, this.schoolId!);
   }
 }

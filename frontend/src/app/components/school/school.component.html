@@ -3,7 +3,11 @@
   <header class="topbar">
     <div class="brand">
       <div class="brand-logo" aria-hidden="true">
-        <mat-icon class="school-icon">school</mat-icon>
+        @if(school.logoUrl){
+          <img [src]="getSchoolLogo()" alt="Schullogo" class="school-logo-image">
+        } @else {
+          <mat-icon class="school-icon">school</mat-icon>
+        }
       </div>
       <div class="brand-text">
         <h1 class="brand-title">{{ school.name }}</h1>
@@ -27,9 +31,11 @@
           Test erstellen
         </button>
 
-        <button mat-icon-button aria-label="Einstellungen" (click)="openSettings()">
-          <mat-icon>settings</mat-icon>
-        </button>
+        @if(isAdmin){
+          <button mat-icon-button aria-label="Einstellungen" (click)="openSettings()">
+            <mat-icon>settings</mat-icon>
+          </button>
+        }
       </div>
     </div>
   </header>
@@ -195,12 +201,7 @@
       </div>
     </article>
 
-    <article class="panel teacherRequests">
-
-    </article>
-
-    <article class="panel teacherRequests">
-
-    </article>
+    <article class="panel teacherRequests"></article>
+    <article class="panel teacherRequests"></article>
   </section>
 </main>

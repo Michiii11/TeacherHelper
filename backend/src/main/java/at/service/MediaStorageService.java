@@ -41,6 +41,29 @@ public class MediaStorageService {
         return objectName;
     }
 
+    public String uploadSchoolLogo(Long schoolId, Path file) throws IOException {
+        Storage storage = StorageOptions.getDefaultInstance().getService();
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        Thumbnails.of(file.toFile())
+                .size(1200, 1200)
+                .outputFormat("jpg")
+                .outputQuality(0.82)
+                .toOutputStream(out);
+
+        String objectName = "schools/" + schoolId + "/logo/current.jpg";
+
+        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, objectName)
+                .setContentType("image/jpeg")
+                .setCacheControl("private, max-age=3600")
+                .build();
+
+        storage.create(blobInfo, out.toByteArray());
+
+        return objectName;
+    }
+
     public StoredImage loadImage(String objectName) {
         Storage storage = StorageOptions.getDefaultInstance().getService();
         Blob blob = storage.get(bucketName, objectName);

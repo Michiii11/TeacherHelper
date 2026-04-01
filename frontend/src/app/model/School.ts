@@ -5,6 +5,7 @@ export interface School {
   name: string;
   admin: User;
   users: User[];
+  logoUrl: string;
 }
 
 export interface SchoolDTO {
@@ -12,7 +13,8 @@ export interface SchoolDTO {
   name: string;
   admin: UserDTO;
   exampleCount: number;
-  members: UserDTO[]
+  members: UserDTO[],
+  logoUrl: string;
 }
 
 export interface SchoolInviteDTO {
