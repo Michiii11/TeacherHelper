@@ -55,7 +55,6 @@ import { MatIcon } from '@angular/material/icon';
     :host {
       display: block;
       padding: 1.4rem 1.5rem 1.6rem;
-      background: transparent;
     }
 
     .dialog-header {
@@ -82,11 +81,9 @@ import { MatIcon } from '@angular/material/icon';
       width: 46px;
       height: 46px;
       border-radius: 12px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--button-text);
 
       mat-icon {
         font-size: 22px;
@@ -116,9 +113,13 @@ import { MatIcon } from '@angular/material/icon';
       }
     }
 
+    .mat-mdc-outlined-button:not(:disabled){
+      color: var(--theme-primary);
+      border-color: var(--theme-primary);
+    }
+
     ::ng-deep .mat-mdc-dialog-container {
       border-radius: 18px !important;
-      background: var(--surface);
     }
 
     ::ng-deep .mat-mdc-text-field-wrapper {

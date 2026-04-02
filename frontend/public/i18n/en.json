@@ -141,5 +141,143 @@
     "search": {
       "label": "Search school"
     }
+  },
+  "landing": {
+    "eyebrow": "For teachers and schools",
+    "title": "Less chaos. More teaching.",
+    "description": "TeacherHelper helps you organize examples cleanly, build tests faster and manage teaching content together in everyday school life — modern, clear and without unnecessary clutter.",
+    "start": "Get started",
+    "login": "Login / Register",
+    "dashboard": "Go to dashboard",
+    "points": {
+      "p1": "Build tests from examples in just a few clicks",
+      "p2": "Reuse content over time instead of doing everything twice",
+      "p3": "Manage everything together with colleagues in one school space"
+    },
+    "trust": {
+      "t1": "Faster workflow instead of material chaos",
+      "t2": "Made for teams and schools",
+      "t3": "Built with print, PDF and Word in mind",
+      "t4": "German and English included"
+    },
+    "visual": {
+      "live": "Live Preview",
+      "school": "School",
+      "team": "Team • Admin",
+      "examples": "Examples",
+      "tests": "Tests",
+      "members": "Members",
+      "organized": "Neatly organized",
+      "poolTitle": "Your example pool at a glance",
+      "poolText": "Find tasks faster, combine content in a smart way and create clean tests with only a few clicks.",
+      "new": "New",
+      "recentExamples": "Recent examples",
+      "updatedNow": "Updated just now",
+      "previewTitle": "Print preview",
+      "ready": "Ready",
+      "pdf": "PDF",
+      "word": "Word",
+      "print": "Print",
+      "smart": "Quickly prepared",
+      "collab": "Work together"
+    },
+    "mock": {
+      "type1": "Open",
+      "title1": "Calculate the missing values in the ratio task",
+      "focus1": "Mathematics",
+      "type2": "Multiple Choice",
+      "title2": "Choose the correct physical statement",
+      "focus2": "Physics",
+      "type3": "Match",
+      "title3": "Match the technical terms correctly",
+      "focus3": "German"
+    },
+    "features": {
+      "eyebrow": "Why TeacherHelper?",
+      "title": "Built for real lesson preparation",
+      "subtitle": "Not overloaded, but practical. TeacherHelper helps exactly where planning, collecting material and creating tests usually become frustrating."
+    },
+    "featureCards": {
+      "f1": {
+        "title": "Organize examples centrally",
+        "text": "Store tasks in one place instead of losing them across folders, chats and old files."
+      },
+      "f2": {
+        "title": "Filter and find quickly",
+        "text": "Find content by type, topic or focus instantly when you need it for the next test."
+      },
+      "f3": {
+        "title": "Create tests much faster",
+        "text": "Build complete tests from existing examples in just a few steps instead of starting from zero every time."
+      },
+      "f4": {
+        "title": "Clean preview for export and print",
+        "text": "Check everything before printing and keep a clear output for PDF, Word and print."
+      },
+      "f5": {
+        "title": "Collaboration inside your school team",
+        "text": "Work with colleagues in a shared school environment and keep content where it is actually needed."
+      },
+      "f6": {
+        "title": "Made for real schools",
+        "text": "No unnecessary feature clutter, just a workflow that actually fits teachers, departments and daily school life."
+      }
+    },
+    "pricing": {
+      "eyebrow": "Pricing",
+      "title": "A plan for every stage",
+      "subtitle": "Start for free, work more professionally with Pro or use TeacherHelper as a shared platform for your school."
+    },
+    "plans": {
+      "free": {
+        "subtitle": "Perfect for trying it out and small setups.",
+        "f1": "1 school (no members)",
+        "f2": "50 examples",
+        "f3": "5 tests",
+        "f4": "Free",
+        "cta": "Start free"
+      },
+      "pro": {
+        "badge": "Popular",
+        "chip": "For teachers",
+        "subtitle": "For active teachers who regularly prepare material and tests.",
+        "f1": "5 schools (5 members)",
+        "f2": "500 examples",
+        "f3": "50 tests",
+        "f4": "€5 per month",
+        "cta": "Start Pro"
+      },
+      "school": {
+        "chip": "For teams",
+        "subtitle": "For schools, departments and shared management across the whole staff.",
+        "f1": "∞ schools (∞ members)",
+        "f2": "∞ examples",
+        "f3": "∞ tests",
+        "f4": "€20 per month",
+        "cta": "Start School"
+      }
+    },
+    "final": {
+      "eyebrow": "Ready to begin?",
+      "title": "Turn material chaos into one clean workflow.",
+      "text": "Start for free and see how much faster lesson preparation can become with a clear interface."
+    }
+  },
+  "school": {
+    "admin": "Admin",
+    "teacher": "Teacher",
+    "teachers": "Teachers",
+    "examples": "Examples",
+    "tests": "Tests",
+    "questions": "Questions",
+    "open": "Open",
+    "actions": "Actions",
+    "type": "Type",
+    "instruction": "Instruction",
+    "question": "Question",
+    "focus": "Focus",
+    "adminLabel": "Admin",
+    "createExample": "Create example",
+    "createTest": "Create test"
   }
 }

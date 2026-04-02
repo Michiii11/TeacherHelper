@@ -32,14 +32,6 @@
   color: var(--theme-text);
 }
 
-.version {
-  opacity: 0.8;
-}
-
-.divider {
-  opacity: 0.4;
-}
-
 /* LINKS */
 
 .footer-links {
@@ -60,33 +52,5 @@
 }
 
 .link:hover {
-  background: #f1f5f9;
   color: var(--theme-text);
-}
-
-/* ===================== */
-/* 🌙 DARK MODE */
-/* ===================== */
-
-:host-context(.dark-mode) .app-footer {
-  background: rgba(15, 23, 42, 1);
-
-  border-color: #1e293b;
-}
-
-:host-context(.dark-mode) .footer-left {
-  color: var(--theme-text-muted);
-}
-
-:host-context(.dark-mode) .brand {
-  color: var(--theme-bg-base);
-}
-
-:host-context(.dark-mode) .link {
-  color: var(--theme-text-muted);
-}
-
-:host-context(.dark-mode) .link:hover {
-  background: rgba(148, 163, 184, 0.08);
-  color: var(--theme-bg-base);
 }

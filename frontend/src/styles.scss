@@ -1,3 +1,6 @@
+/* styles.scss */
+/* vorhandenen Inhalt beibehalten – diese Variablen in :root und html.dark-mode/body.dark-mode ergänzen bzw. ersetzen */
+
 html,
 body {
   height: 100%;
@@ -12,12 +15,15 @@ body {
 body {
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
-  background: var(--theme-bg-base);
   color: var(--theme-text);
 }
 
 :root {
   color-scheme: light;
+
+  --theme-bg-gradient: radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 24%),
+  radial-gradient(circle at top right, rgba(99, 102, 241, 0.10), transparent 18%),
+  linear-gradient(180deg, var(--theme-bg-soft) 0%, var(--theme-bg) 100%);
 
   --theme-bg-base: hsla(210, 40%, 98%, 1);
   --theme-bg-soft: hsla(210, 100%, 99%, 1);
@@ -73,81 +79,155 @@ body {
   --surface: var(--theme-surface-solid);
   --surface-soft: var(--theme-bg-soft);
   --surface-muted: hsla(216, 60%, 98%, 1);
+  --surface-2: hsla(210, 40%, 96%, 1);
+  --surface-3: hsla(214, 32%, 94%, 1);
+
   --text: var(--theme-text);
   --text-soft: var(--theme-text-soft);
+  --text-muted: var(--theme-text-muted);
+
   --border: var(--theme-border);
   --border-strong: var(--theme-border-strong);
+  --border-soft: hsla(214, 32%, 91%, 0.72);
+
   --accent: var(--theme-primary);
+  --primary: var(--theme-primary);
+  --primary-soft: hsla(221, 83%, 53%, 0.08);
+  --primary-soft-strong: hsla(221, 83%, 53%, 0.12);
+  --primary-border-soft: hsla(221, 83%, 53%, 0.14);
+  --primary-border-medium: hsla(221, 83%, 53%, 0.22);
+  --primary-ring: hsla(221, 83%, 53%, 0.10);
+
+  --input-bg: var(--theme-surface-solid);
+  --input-border: var(--theme-border-strong);
+  --input-border-hover: hsla(215, 25%, 35%, 0.35);
+  --input-border-focus: hsla(221, 83%, 53%, 0.55);
+
+  --menu-bg: var(--theme-surface-solid);
+  --overlay-bg: hsla(0, 0%, 100%, 0.98);
+  --navbar-bg: var(--theme-bg-base);
+  --navbar-border: hsla(215, 16%, 73%, 0.18);
+
+  --row-hover: hsla(221, 83%, 53%, 0.04);
+
+  --avatar-gradient: linear-gradient(
+      135deg,
+      var(--theme-primary-surface),
+      var(--theme-primary-surface-2)
+  );
+  --avatar-border: hsla(215, 16%, 73%, 0.22);
+
+  --success-border-soft: hsla(142, 71%, 45%, 0.22);
+  --danger-border-soft: hsla(0, 84%, 60%, 0.22);
+  --danger-gradient: linear-gradient(135deg, var(--theme-danger), #dc2626);
+
+  --button-text: var(--theme-on-primary);
+
+  --shadow-sm: 0 6px 16px hsla(222, 47%, 11%, 0.10);
+  --shadow-md: 0 12px 28px hsla(222, 47%, 11%, 0.07);
+  --shadow-lg: 0 24px 60px hsla(222, 47%, 11%, 0.18);
+  --shadow-danger: 0 6px 14px hsla(0, 84%, 60%, 0.28);
   --shadow: 0 14px 34px hsla(222, 47%, 11%, 0.06);
+  --navbar-shadow: 0 10px 30px hsla(222, 47%, 11%, 0.06);
+  --navbar-shadow-scrolled: 0 16px 36px hsla(222, 47%, 11%, 0.10);
 }
 
 html.dark-mode,
 body.dark-mode {
   color-scheme: dark;
 
-  --theme-bg-base: hsla(222, 47%, 9%, 1);
-  --theme-bg-soft: hsla(217, 33%, 17%, 1);
-  --theme-bg: hsla(222, 47%, 11%, 1);
+  --theme-bg-base: hsla(224, 55%, 6%, 1);
+  --theme-bg-soft: hsla(222, 45%, 10%, 1);
+  --theme-bg: hsla(224, 50%, 8%, 1);
 
-  --theme-surface-solid: hsla(217, 33%, 17%, 1);
+  --theme-bg-gradient:
+    radial-gradient(circle at 20% 0%, hsla(221, 83%, 55%, 0.10), transparent 30%),
+    radial-gradient(circle at 80% 0%, hsla(243, 75%, 60%, 0.12), transparent 28%),
+    linear-gradient(180deg, #05070f 0%, #0a0f1f 60%, #0d1326 100%);
+
+  --theme-surface-solid: hsla(222, 40%, 12%, 1);
 
   --theme-text: hsla(210, 40%, 98%, 1);
-  --theme-text-soft: hsla(215, 16%, 73%, 1);
-  --theme-text-muted: hsla(215, 16%, 73%, 1);
-  --theme-text-subtle: hsla(215, 25%, 35%, 1);
-  --theme-text-subtle-2: hsla(217, 33%, 27%, 1);
+  --theme-text-soft: hsla(215, 16%, 70%, 1);
+  --theme-text-muted: hsla(215, 16%, 60%, 1);
+  --theme-text-subtle: hsla(215, 18%, 72%, 1);
+  --theme-text-subtle-2: hsla(210, 30%, 85%, 1);
 
-  --theme-border: hsla(217, 19%, 27%, 1);
-  --theme-border-strong: hsla(215, 25%, 35%, 1);
-  --theme-border-soft-2: hsla(217, 33%, 27%, 0.55);
+  --theme-border: hsla(220, 25%, 20%, 1);
+  --theme-border-strong: hsla(220, 30%, 28%, 1);
+  --theme-border-soft-2: hsla(220, 30%, 24%, 0.55);
 
-  --theme-primary: hsla(221, 83%, 53%, 1);
-  --theme-primary-2: hsla(243, 75%, 59%, 1);
-  --theme-primary-strong: hsla(224, 76%, 48%, 1);
-  --theme-primary-2-strong: hsla(244, 64%, 50%, 1);
+  --theme-primary: hsla(221, 83%, 60%, 1);
+  --theme-primary-2: hsla(243, 75%, 66%, 1);
+  --theme-primary-strong: hsla(213, 94%, 78%, 1);
+  --theme-primary-2-strong: hsla(244, 80%, 74%, 1);
   --theme-primary-light: hsla(213, 94%, 68%, 1);
   --theme-primary-lighter: hsla(213, 97%, 78%, 1);
   --theme-primary-text-soft: hsla(214, 100%, 93%, 1);
-  --theme-primary-surface: hsla(214, 95%, 88%, 1);
-  --theme-primary-surface-2: hsla(230, 91%, 91%, 1);
-  --theme-primary-surface-text: hsla(214, 100%, 97%, 1);
-  --theme-primary-deep: hsla(214, 95%, 88%, 1);
+
+  --theme-primary-surface: hsla(221, 83%, 53%, 0.14);
+  --theme-primary-surface-2: hsla(243, 75%, 59%, 0.12);
+  --theme-primary-surface-text: hsla(221, 83%, 53%, 0.16);
+  --theme-primary-deep: hsla(210, 40%, 98%, 1);
 
   --theme-success: hsla(172, 72%, 41%, 1);
-  --theme-success-strong: hsla(165, 84%, 80%, 1);
-  --theme-success-surface: hsla(173, 80%, 31%, 0.35);
-  --theme-success-text: hsla(165, 84%, 80%, 1);
-  --theme-success-2: hsla(142, 71%, 52%, 1);
-  --theme-success-2-light: hsla(141, 76%, 73%, 1);
+  --theme-success-strong: hsla(165, 84%, 75%, 1);
+  --theme-success-surface: hsla(173, 80%, 28%, 0.28);
 
-  --theme-warning-deep: hsla(33, 100%, 93%, 1);
-  --theme-warning-surface: hsla(21, 88%, 48%, 0.35);
-  --theme-warning-surface-2: hsla(38, 92%, 50%, 0.28);
-  --theme-warning-text-soft: hsla(33, 100%, 93%, 1);
-  --theme-warning-text: hsla(31, 97%, 72%, 1);
-  --theme-orange-strong: hsla(31, 97%, 72%, 1);
+  --theme-warning-deep: hsla(33, 100%, 92%, 1);
+  --theme-warning-surface: hsla(21, 88%, 40%, 0.28);
+  --theme-warning-surface-2: hsla(38, 92%, 48%, 0.24);
 
   --theme-danger: hsla(0, 91%, 71%, 1);
-  --theme-danger-light: hsla(0, 91%, 71%, 1);
-  --theme-danger-text: hsla(0, 93%, 82%, 1);
-  --theme-danger-border-strong: hsla(0, 63%, 31%, 1);
-
-  --theme-avatar-fallback: linear-gradient(
-      135deg,
-      hsla(221, 83%, 53%, 0.32),
-      hsla(239, 84%, 67%, 0.34)
-  );
+  --theme-danger-border-strong: hsla(0, 63%, 28%, 1);
 
   --bg: var(--theme-bg);
   --surface: var(--theme-surface-solid);
-  --surface-soft: hsla(217, 35%, 15%, 1);
+  --surface-soft: hsla(222, 40%, 10%, 1);
   --surface-muted: var(--theme-bg);
+  --surface-2: hsla(222, 38%, 14%, 1);
+  --surface-3: hsla(222, 34%, 18%, 1);
+
   --text: var(--theme-text);
   --text-soft: var(--theme-text-soft);
+  --text-muted: var(--theme-text-muted);
+
   --border: var(--theme-border);
   --border-strong: var(--theme-border-strong);
-  --accent: var(--theme-primary-light);
-  --shadow: 0 18px 40px hsla(0, 0%, 0%, 0.28);
+  --border-soft: hsla(220, 25%, 20%, 0.75);
+
+  --primary-soft: hsla(221, 83%, 60%, 0.10);
+  --primary-soft-strong: hsla(221, 83%, 60%, 0.14);
+  --primary-border-soft: hsla(221, 83%, 60%, 0.20);
+  --primary-border-medium: hsla(221, 83%, 60%, 0.30);
+  --primary-ring: hsla(221, 83%, 60%, 0.14);
+
+  --input-bg: hsla(222, 40%, 12%, 1);
+  --input-border: hsla(220, 30%, 28%, 1);
+  --input-border-hover: hsla(213, 94%, 78%, 0.30);
+  --input-border-focus: hsla(213, 94%, 78%, 0.70);
+
+  --menu-bg: hsla(222, 40%, 12%, 1);
+  --overlay-bg: hsla(224, 55%, 6%, 0.96);
+  --navbar-bg: hsla(224, 55%, 6%, 0.85);
+  --navbar-border: hsla(220, 30%, 28%, 0.6);
+
+  --row-hover: hsla(221, 83%, 60%, 0.06);
+
+  --avatar-gradient: linear-gradient(
+      135deg,
+      hsla(221, 83%, 53%, 0.22),
+      hsla(243, 75%, 59%, 0.20)
+  );
+  --avatar-border: hsla(220, 30%, 28%, 0.9);
+
+  --shadow-sm: 0 6px 18px hsla(0, 0%, 0%, 0.35);
+  --shadow-md: 0 12px 30px hsla(0, 0%, 0%, 0.45);
+  --shadow-lg: 0 30px 80px hsla(0, 0%, 0%, 0.65);
+
+  --shadow: 0 20px 50px hsla(0, 0%, 0%, 0.45);
+  --navbar-shadow: 0 10px 30px hsla(0, 0%, 0%, 0.45);
+  --navbar-shadow-scrolled: 0 18px 45px hsla(0, 0%, 0%, 0.6);
 }
 
 
@@ -174,10 +254,6 @@ a {
 .content-card,
 .feature-card,
 .plan-card,
-.logo-preview-card,
-.logo-actions-card,
-.placeholder-item,
-.coming-soon-card,
 .not-found-card {
   color: var(--text) !important;
   border: 1px solid var(--border) !important;
@@ -228,14 +304,16 @@ a {
 .content-card p,
 .section-block p,
 .section-block li,
-.footer-links .link,
-.footer-left,
 .mock-school-sub,
 .mock-card-sub,
 .mock-kpi-label,
 .mock-row,
 .mock-row span {
-  color: var(--text-soft) !important;
+  color: var(--theme-text-subtle) !important;
+}
+
+.mat-mdc-select, .mat-mdc-option{
+  color: var(--theme-text) !important;
 }
 
 .navbar,
@@ -248,16 +326,18 @@ a {
 
 .app-footer {
   background: var(--surface);
-  color: var(--text-soft);
+  color: var(--theme-text-subtle);
   border-top: 1px solid var(--border);
 }
 
 .title-icon,
 .empty-icon-wrap,
 .notif-icon,
+.brand-logo,
+.icon-wrapper,
 .feature-icon {
-  background: var(--primary-soft) !important;
-  color: var(--primary) !important;
+  background: var(--primary) !important;
+  color: var(--theme-bg) !important;
 }
 
 .avatar-shell {
@@ -347,8 +427,6 @@ textarea::placeholder {
 .mat-mdc-card {
   background: var(--surface) !important;
   color: var(--text) !important;
-  border: 1px solid var(--border) !important;
-  box-shadow: var(--shadow-md) !important;
 }
 
 .mat-mdc-dialog-title {
@@ -361,7 +439,7 @@ textarea::placeholder {
 }
 
 .mat-mdc-tab .mdc-tab__text-label {
-  color: var(--text-soft) !important;
+  color: var(--theme-text) !important;
 }
 
 .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
@@ -369,7 +447,7 @@ textarea::placeholder {
 }
 
 .mat-mdc-tab-header-pagination-chevron {
-  border-color: var(--text-soft) !important;
+  border-color: var(--theme-text-subtle) !important;
 }
 
 .mat-mdc-form-field {
@@ -387,7 +465,7 @@ textarea::placeholder {
 }
 
 .mat-mdc-form-field .mdc-floating-label {
-  color: var(--text-soft) !important;
+  color: var(--theme-text-subtle) !important;
 }
 
 .mat-mdc-form-field.mat-focused .mdc-floating-label {
@@ -414,7 +492,7 @@ textarea::placeholder {
 
 .mat-mdc-form-field .mat-mdc-form-field-icon-prefix,
 .mat-mdc-form-field .mat-mdc-form-field-icon-suffix {
-  color: var(--text-soft) !important;
+  color: var(--theme-text-subtle) !important;
 }
 
 .mat-mdc-progress-bar {
@@ -431,10 +509,6 @@ textarea::placeholder {
   background: var(--surface-3) !important;
 }
 
-.mat-mdc-button:not(:disabled) {
-  color: var(--text-soft) !important;
-}
-
 .mat-mdc-button:not(:disabled):hover {
   background: var(--primary-soft) !important;
 }
@@ -446,10 +520,6 @@ textarea::placeholder {
   color: var(--button-text) !important;
 }
 
-.mat-mdc-icon-button {
-  color: var(--text-soft) !important;
-}
-
 .mat-mdc-icon-button:hover {
   background: var(--primary-soft) !important;
   color: var(--text) !important;
@@ -457,7 +527,12 @@ textarea::placeholder {
 
 .mat-mdc-mini-fab.mat-primary,
 .mat-mdc-fab.mat-primary {
+  background: var(--theme-primary-2) !important;
   color: var(--button-text) !important;
+}
+
+.mat-button-toggle-appearance-standard{
+  color: var(--theme-text-soft) !important;
 }
 
 .mat-mdc-table,
@@ -472,7 +547,7 @@ textarea::placeholder {
 }
 
 .mat-mdc-header-cell {
-  color: var(--text-soft) !important;
+  color: var(--theme-text-subtle) !important;
   border-bottom-color: var(--border) !important;
 }
 
@@ -503,39 +578,6 @@ textarea::placeholder {
   padding: 0 !important;
 }
 
-.notif-panel {
-  background: var(--overlay-bg) !important;
-  border: 1px solid var(--border-soft) !important;
-  box-shadow: var(--shadow-lg) !important;
-  color: var(--text) !important;
-}
-
-.notif-header {
-  background: linear-gradient(180deg, var(--surface-2), var(--surface)) !important;
-  border-bottom: 1px solid var(--border) !important;
-}
-
-.notif-list {
-  background: var(--overlay-bg) !important;
-}
-
-.notif-item {
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text) !important;
-}
-
-.notif-read,
-.notif-history {
-  background: var(--surface-2) !important;
-}
-
-.notif-type-badge {
-  background: var(--surface-2) !important;
-  color: var(--text-soft) !important;
-  border: 1px solid var(--border) !important;
-}
-
 .system-info-composer {
   background: var(--surface-2) !important;
   border: 1px solid var(--border) !important;
@@ -543,10 +585,6 @@ textarea::placeholder {
 
 .scope-option {
   color: var(--text) !important;
-}
-
-.danger-panel {
-  border-color: color-mix(in srgb, var(--warn) 35%, var(--border)) !important;
 }
 
 .error-text {
@@ -565,7 +603,7 @@ textarea::placeholder {
 }
 
 .logo-fallback {
-  color: var(--text-soft);
+  color: var(--theme-text-subtle);
 }
 
 .mat-mdc-card,

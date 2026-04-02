@@ -11,28 +11,30 @@
       </div>
       <div class="brand-text">
         <h1 class="brand-title">{{ school.name }}</h1>
-        <p class="brand-sub" *ngIf="school.admin">Verwaltung • {{ school.admin.username || '—' }}</p>
+        <p class="brand-sub" *ngIf="school.admin">
+          {{ 'school.admin' | translate }} • {{ school.admin.username || '—' }}
+        </p>
       </div>
     </div>
 
     <div class="topbar-actions">
-      <button mat-icon-button class="menu-toggle" (click)="menuOpen = !menuOpen" aria-label="Menü öffnen">
+      <button mat-icon-button class="menu-toggle" (click)="menuOpen = !menuOpen">
         <mat-icon>more_vert</mat-icon>
       </button>
 
       <div class="actions" [class.show]="menuOpen">
         <button mat-stroked-button color="primary" (click)="openCreateExample()">
           <mat-icon>post_add</mat-icon>
-          Neues Beispiel
+          {{ 'school.createExample' | translate }}
         </button>
 
         <button mat-flat-button color="primary" (click)="createTest()">
           <mat-icon>assignment</mat-icon>
-          Test erstellen
+          {{ 'school.createTest' | translate }}
         </button>
 
         @if(isAdmin){
-          <button mat-icon-button aria-label="Einstellungen" (click)="openSettings()">
+          <button mat-icon-button (click)="openSettings()">
             <mat-icon>settings</mat-icon>
           </button>
         }
@@ -40,58 +42,80 @@
     </div>
   </header>
 
+  <!-- KPI -->
   <section class="kpis">
     <article class="kpi-card" *ngFor="let k of kpis">
       <div class="kpi-left">
         <div class="kpi-title">{{ k.title }}</div>
-        <div class="kpi-value">
-          {{ k.value }}
-        </div>
+        <div class="kpi-value">{{ k.value }}</div>
         <div class="kpi-sub" *ngIf="k.sub">{{ k.sub }}</div>
       </div>
-      <div class="kpi-right" aria-hidden="true">
+      <div class="kpi-right">
         <mat-icon>{{ k.icon }}</mat-icon>
       </div>
     </article>
   </section>
 
+  <!-- EXAMPLES -->
   <section class="content-area">
     <article class="panel examples">
       <div class="panel-header">
-        <h2 class="panel-title">Beispiele</h2>
-        <button mat-mini-fab color="primary" (click)="openCreateExample()" aria-label="Neue Frage">
+        <h2 class="panel-title">{{ 'school.examples' | translate }}</h2>
+        <button mat-mini-fab color="primary" (click)="openCreateExample()">
           <mat-icon>add</mat-icon>
         </button>
       </div>
 
       <div class="panel-body table-wrapper">
-        <table mat-table [dataSource]="exampleDataSource" class="mat-elevation-z1 table" matSort>
+        <table mat-table [dataSource]="exampleDataSource" matSort>
+
           <ng-container matColumnDef="type">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Typ</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              {{ 'school.type' | translate }}
+            </th>
             <td mat-cell *matCellDef="let e">{{ getExampleTypeLabel(e.type) }}</td>
           </ng-container>
+
           <ng-container matColumnDef="instruction">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Angabe</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              {{ 'school.instruction' | translate }}
+            </th>
             <td mat-cell *matCellDef="let e">{{ e.instruction }}</td>
           </ng-container>
+
           <ng-container matColumnDef="question">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Aufgabenstellung</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              {{ 'school.question' | translate }}
+            </th>
             <td mat-cell *matCellDef="let e">{{ e.question }}</td>
           </ng-container>
+
           <ng-container matColumnDef="focus">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Schwerpunkt</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              {{ 'school.focus' | translate }}
+            </th>
             <td mat-cell *matCellDef="let e">{{ getFocusList(e.focusList) }}</td>
           </ng-container>
+
           <ng-container matColumnDef="adminUsername">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Admin</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              {{ 'school.adminLabel' | translate }}
+            </th>
             <td mat-cell *matCellDef="let e">{{ e.adminUsername }}</td>
           </ng-container>
+
           <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Aktionen</th>
+            <th mat-header-cell *matHeaderCellDef>
+              {{ 'school.actions' | translate }}
+            </th>
             <td mat-cell *matCellDef="let e">
               @if(currentUserId == school.admin.id || currentUserId == e.adminId){
-                <button mat-icon-button (click)="editExample(e)"><mat-icon>edit</mat-icon></button>
-                <button mat-icon-button color="warn" (click)="deleteExample(e)"><mat-icon>delete</mat-icon></button>
+                <button mat-icon-button (click)="editExample(e)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteExample(e)">
+                  <mat-icon>delete</mat-icon>
+                </button>
               } @else{
                 <button mat-icon-button (click)="openExample(e)">
                   <mat-icon>visibility</mat-icon>
@@ -99,109 +123,89 @@
               }
             </td>
           </ng-container>
+
           <tr mat-header-row *matHeaderRowDef="exampleDisplayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: exampleDisplayedColumns;"></tr>
         </table>
       </div>
     </article>
 
-    <article class="panel tests">
-      <div class="panel-header">
-        <h2 class="panel-title">
-          <mat-icon>assignment</mat-icon>
-          Tests
-        </h2>
+    <!-- TESTS -->
+    <div>
+      <article class="panel tests">
+        <div class="panel-header">
+          <h2 class="panel-title">
+            <mat-icon>assignment</mat-icon>
+            {{ 'school.tests' | translate }}
+          </h2>
 
-        <button mat-mini-fab color="primary" (click)="createTest()" aria-label="Test erstellen">
-          <mat-icon>add</mat-icon>
-        </button>
-      </div>
+          <button mat-mini-fab color="primary" (click)="createTest()">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
 
-      <div class="panel-body tests-grid">
-        <div *ngFor="let test of tests" class="test-card">
-          <div class="test-header">
+        <div class="panel-body tests-grid">
+          <div *ngFor="let test of tests" class="test-card">
+
             <div class="test-title">{{ test.name }}</div>
-          </div>
 
-          <div class="test-meta">
-            <span>
-              <mat-icon>quiz</mat-icon>
-              {{ test.amountOfQuestions }} Fragen
-            </span>
-          </div>
+            <div class="test-meta">
+              {{ test.amountOfQuestions }} {{ 'school.questions' | translate }}
+            </div>
 
-          <div class="test-actions">
-            <button mat-stroked-button color="primary" (click)="openTest(test)">
-              Öffnen
-            </button>
-
-            @if(currentUserId == school.admin.id || currentUserId == test.adminId){
-              <button mat-icon-button (click)="editTest(test)">
-                <mat-icon>edit</mat-icon>
+            <div class="test-actions">
+              <button mat-stroked-button color="primary" (click)="openTest(test)">
+                {{ 'school.open' | translate }}
               </button>
 
-              <button mat-icon-button color="warn" (click)="deleteTest(test)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            }
+              @if(currentUserId == school.admin.id || currentUserId == test.adminId){
+                <button mat-icon-button (click)="editTest(test)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+
+                <button mat-icon-button color="warn" (click)="deleteTest(test)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              }
+            </div>
           </div>
         </div>
-      </div>
-    </article>
-  </section>
+      </article>
 
-  <section class="content-area three">
-    <article class="panel teachers">
-      <div class="panel-header">
-        <h2 class="panel-title">Lehrer</h2>
-        <button mat-mini-fab color="primary" (click)="openAddTeacher()" aria-label="Lehrer hinzufügen">
-          <mat-icon>person_add</mat-icon>
-        </button>
-      </div>
+      <article class="panel teachers">
+        <div class="panel-header">
+          <h2 class="panel-title">{{ 'school.teachers' | translate }}</h2>
+          <button mat-mini-fab color="primary" (click)="openAddTeacher()">
+            <mat-icon>person_add</mat-icon>
+          </button>
+        </div>
 
-      <div class="panel-body teachers-list">
-        <div class="teacher-card mat-elevation-z1" *ngIf="school.admin">
-          <div class="teacher-info">
-            <div class="avatar" *ngIf="getAvatarUrl(school.admin) as avatarUrl; else adminFallback">
-              <img [src]="avatarUrl" alt="Profilbild Admin" class="avatar-image">
-            </div>
-            <ng-template #adminFallback>
-              <div class="avatar">{{ getInitials(school.admin) }}</div>
-            </ng-template>
+        <div class="panel-body teachers-list">
 
+          <div class="teacher-card" *ngIf="school.admin">
             <div class="teacher-text">
-              <div class="name">{{ school.admin.username || '-' }}</div>
-              <div class="role">Admin</div>
+              <div class="name">{{ school.admin.username }}</div>
+              <div class="role">{{ 'school.admin' | translate }}</div>
             </div>
           </div>
-        </div>
 
-        <div *ngFor="let t of school.members" class="teacher-card mat-elevation-z1">
-          <div class="teacher-info">
-            <div class="avatar" *ngIf="getAvatarUrl(t) as avatarUrl; else teacherFallback">
-              <img [src]="avatarUrl" alt="Profilbild {{ t.username }}" class="avatar-image">
-            </div>
-            <ng-template #teacherFallback>
-              <div class="avatar">{{ getInitials(t) }}</div>
-            </ng-template>
-
+          <div *ngFor="let t of school.members" class="teacher-card">
             <div class="teacher-text">
               <div class="name">{{ t.username }}</div>
-              <div class="role">{{ school.admin.username == t.username ? 'Admin' : 'Lehrer' }}</div>
+              <div class="role">
+                {{ school.admin.username == t.username ? ('school.admin' | translate) : ('school.teacher' | translate) }}
+              </div>
             </div>
-          </div>
-          <div class="teacher-actions">
+
             @if(school.admin.id == currentUserId){
-              <button mat-icon-button (click)="kickTeacher(t)" aria-label="Kick">
+              <button mat-icon-button (click)="kickTeacher(t)">
                 <mat-icon>delete</mat-icon>
               </button>
             }
           </div>
-        </div>
-      </div>
-    </article>
 
-    <article class="panel teacherRequests"></article>
-    <article class="panel teacherRequests"></article>
+        </div>
+      </article>
+    </div>
   </section>
 </main>

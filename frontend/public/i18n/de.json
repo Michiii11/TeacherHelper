@@ -141,5 +141,143 @@
     "search": {
       "label": "Schule suchen"
     }
+  },
+  "landing": {
+    "eyebrow": "Für Lehrkräfte und Schulen",
+    "title": "Weniger Chaos. Mehr Unterricht.",
+    "description": "TeacherHelper hilft dir, Beispiele sauber zu organisieren, Tests schneller zu bauen und Inhalte gemeinsam im Schulalltag zu verwalten — modern, klar und ohne unnötigen Overkill.",
+    "start": "Jetzt starten",
+    "login": "Login / Registrieren",
+    "dashboard": "Zum Dashboard",
+    "points": {
+      "p1": "Tests in wenigen Klicks aus Beispielen zusammenstellen",
+      "p2": "Inhalte langfristig wiederverwenden statt doppelt arbeiten",
+      "p3": "Mit Kolleg:innen in Schulen gemeinsam verwalten"
+    },
+    "trust": {
+      "t1": "Schneller Workflow statt Zettelchaos",
+      "t2": "Gemacht für Teams und Schulen",
+      "t3": "Druck, PDF und Word im Fokus",
+      "t4": "Deutsch und Englisch integriert"
+    },
+    "visual": {
+      "live": "Live Preview",
+      "school": "Schule",
+      "team": "Team • Admin",
+      "examples": "Beispiele",
+      "tests": "Tests",
+      "members": "Mitglieder",
+      "organized": "Sauber organisiert",
+      "poolTitle": "Dein Beispielpool auf einen Blick",
+      "poolText": "Finde Aufgaben schneller, kombiniere Inhalte sinnvoll und erstelle mit wenigen Klicks saubere Tests.",
+      "new": "Neu",
+      "recentExamples": "Letzte Beispiele",
+      "updatedNow": "Gerade aktualisiert",
+      "previewTitle": "Druckvorschau",
+      "ready": "Bereit",
+      "pdf": "PDF",
+      "word": "Word",
+      "print": "Print",
+      "smart": "Schnell vorbereitet",
+      "collab": "Gemeinsam im Team"
+    },
+    "mock": {
+      "type1": "Offen",
+      "title1": "Berechne die fehlenden Werte im Dreisatz",
+      "focus1": "Mathematik",
+      "type2": "Multiple Choice",
+      "title2": "Wähle die richtige physikalische Aussage",
+      "focus2": "Physik",
+      "type3": "Zuordnen",
+      "title3": "Ordne die Fachbegriffe korrekt zu",
+      "focus3": "Deutsch"
+    },
+    "features": {
+      "eyebrow": "Warum TeacherHelper?",
+      "title": "Gebaut für echte Unterrichtsvorbereitung",
+      "subtitle": "Nicht überladen, sondern praktisch. TeacherHelper hilft genau dort, wo Planung, Materialsammlung und Test-Erstellung sonst mühsam werden."
+    },
+    "featureCards": {
+      "f1": {
+        "title": "Beispiele zentral organisieren",
+        "text": "Speichere Aufgaben an einem Ort, statt sie in Ordnern, Chats und alten Dateien zu verlieren."
+      },
+      "f2": {
+        "title": "Schnell filtern und wiederfinden",
+        "text": "Finde Inhalte nach Typ, Thema oder Fokus sofort wieder, wenn du sie für den nächsten Test brauchst."
+      },
+      "f3": {
+        "title": "Tests deutlich schneller erstellen",
+        "text": "Baue aus vorhandenen Beispielen in wenigen Schritten komplette Tests statt jedes Mal bei null zu starten."
+      },
+      "f4": {
+        "title": "Saubere Vorschau für Export und Druck",
+        "text": "Kontrolliere alles vor dem Druck und behalte eine klare, übersichtliche Ausgabe für PDF, Word und Print."
+      },
+      "f5": {
+        "title": "Zusammenarbeit im Schulteam",
+        "text": "Arbeite mit Kolleg:innen in einer gemeinsamen Schulumgebung und teile Inhalte dort, wo sie gebraucht werden."
+      },
+      "f6": {
+        "title": "Für echte Schulen gemacht",
+        "text": "Kein unnötiger Feature-Müll, sondern ein Workflow, der für Lehrkräfte, Fachgruppen und Schulalltag wirklich passt."
+      }
+    },
+    "pricing": {
+      "eyebrow": "Abo-Modelle",
+      "title": "Ein Modell für jeden Einstieg",
+      "subtitle": "Starte gratis, arbeite professioneller mit Pro oder nutze TeacherHelper als gemeinsame Plattform für deine Schule."
+    },
+    "plans": {
+      "free": {
+        "subtitle": "Perfekt zum Kennenlernen und für kleine Setups.",
+        "f1": "1 Schule (keine Mitglieder)",
+        "f2": "50 Beispiele",
+        "f3": "5 Tests",
+        "f4": "Gratis",
+        "cta": "Kostenlos starten"
+      },
+      "pro": {
+        "badge": "Beliebt",
+        "chip": "Für Lehrkräfte",
+        "subtitle": "Für aktive Lehrkräfte, die regelmäßig Material und Tests vorbereiten.",
+        "f1": "5 Schulen (5 Mitglieder)",
+        "f2": "500 Beispiele",
+        "f3": "50 Tests",
+        "f4": "5€ pro Monat",
+        "cta": "Pro starten"
+      },
+      "school": {
+        "chip": "Für Teams",
+        "subtitle": "Für Schulen, Fachgruppen und gemeinsame Verwaltung im Kollegium.",
+        "f1": "∞ Schulen (∞ Mitglieder)",
+        "f2": "∞ Beispiele",
+        "f3": "∞ Tests",
+        "f4": "20€ pro Monat",
+        "cta": "School starten"
+      }
+    },
+    "final": {
+      "eyebrow": "Bereit zum Start?",
+      "title": "Mach aus Materialchaos endlich einen sauberen Workflow.",
+      "text": "Starte kostenlos und schau dir an, wie viel schneller Unterrichtsvorbereitung mit einer klaren Oberfläche wirklich werden kann."
+    }
+  },
+  "school": {
+    "admin": "Admin",
+    "teacher": "Lehrer",
+    "teachers": "Lehrer",
+    "examples": "Beispiele",
+    "tests": "Tests",
+    "questions": "Fragen",
+    "open": "Öffnen",
+    "actions": "Aktionen",
+    "type": "Typ",
+    "instruction": "Angabe",
+    "question": "Aufgabenstellung",
+    "focus": "Schwerpunkt",
+    "adminLabel": "Admin",
+    "createExample": "Neues Beispiel",
+    "createTest": "Test erstellen"
   }
 }

@@ -23,6 +23,7 @@ import { RouterLink } from '@angular/router';
     :host {
       display: block;
       min-height: 100%;
+      background: var(--theme-bg-gradient);
     }
 
     .not-found-shell {
@@ -30,20 +31,16 @@ import { RouterLink } from '@angular/router';
       display: grid;
       place-items: center;
       padding: 2rem 1rem;
-      background:
-        radial-gradient(circle at top left, var(--hero-grad-1), transparent 24%),
-        radial-gradient(circle at top right, var(--hero-grad-2), transparent 18%),
-        linear-gradient(180deg, var(--surface-2) 0%, var(--bg) 100%);
     }
 
     .not-found-card {
       width: min(100%, 560px);
       padding: 2.2rem 2rem;
-      border-radius: var(--radius-xl);
       background: color-mix(in srgb, var(--surface) 92%, transparent);
       border: 1px solid var(--border-soft);
       box-shadow: var(--shadow-lg);
       text-align: center;
+      border-radius: 1rem;
     }
 
     .code {
@@ -75,6 +72,11 @@ import { RouterLink } from '@angular/router';
       padding: 0 1.2rem;
       border-radius: 14px;
       font-weight: 700;
+    }
+
+    .mat-mdc-raised-button{
+      color: var(--theme-text) !important;
+      background-color: var(--theme-primary) !important;
     }
 
     @media (max-width: 640px) {

@@ -2,18 +2,15 @@
   min-height: 100vh;
   display: grid;
   place-items: center;
-  background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 24%),
-    radial-gradient(circle at top right, rgba(99, 102, 241, 0.10), transparent 18%),
-    linear-gradient(180deg, var(--theme-bg-soft) 0%, var(--theme-bg) 100%);
+  background: var(--theme-bg-gradient);
 }
 
 .auth-card {
   width: min(100%, 520px);
   border-radius: 28px !important;
-  background: rgba(255, 255, 255, 0.92) !important;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12) !important;
+  background: var(--theme-bg) !important;
+  border: 1px solid var(--theme-border);
+  box-shadow: 0 24px 60px var(--theme-bg-soft) !important;
   overflow: hidden;
 }
 
@@ -177,120 +174,13 @@ button[type="submit"][mat-raised-button] {
   background: transparent !important;
 }
 
-/* DARK MODE */
-
-:host-context(.dark-mode) {
-  background:
-    radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 28%),
-    radial-gradient(circle at top right, rgba(79, 70, 229, 0.16), transparent 22%),
-    linear-gradient(180deg, #0b1120 0%, #111827 100%);
-
-  .auth-card {
-    background: rgba(17, 24, 39, 0.9) !important;
-    border-color: rgba(71, 85, 105, 0.55);
-    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.42) !important;
-  }
-
-  .auth-header h2,
-  .forgot-header h3 {
-    color: var(--theme-bg-base);
-  }
-
-  .auth-header p,
-  .forgot-header p {
-    color: var(--theme-text-muted);
-  }
-
-  .forgot-panel {
-    background: rgba(15, 23, 42, 0.92);
-    border-color: rgba(71, 85, 105, 0.5);
-  }
-
-  .feedback.success {
-    background: rgba(22, 163, 74, 0.14);
-    color: #bbf7d0;
-    border-color: rgba(34, 197, 94, 0.2);
-  }
-
-  .feedback.error {
-    background: rgba(239, 68, 68, 0.14);
-    color: #fecaca;
-    border-color: rgba(248, 113, 113, 0.2);
-  }
-
-  .inline-action {
-    color: var(--theme-primary-lighter) !important;
-  }
-
-  ::ng-deep .mat-mdc-tab-header {
-    border-bottom-color: rgba(71, 85, 105, 0.5);
-  }
-
-  ::ng-deep .mat-mdc-tab .mdc-tab__text-label {
-    color: var(--theme-border-strong);
-  }
-
-  ::ng-deep .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
-    color: var(--theme-primary-text-soft) !important;
-  }
-
-  ::ng-deep .mat-mdc-tab-group.mat-primary .mdc-tab-indicator__content--underline {
-    border-color: var(--theme-primary-light) !important;
-  }
-
-  ::ng-deep .mat-mdc-text-field-wrapper {
-    background: rgba(15, 23, 42, 0.92) !important;
-  }
-
-  ::ng-deep .mat-mdc-input-element,
-  ::ng-deep .mdc-floating-label,
-  ::ng-deep .mat-mdc-form-field-icon-suffix {
-    color: #e5e7eb !important;
-    caret-color: var(--theme-primary-lighter) !important;
-  }
-
-  ::ng-deep .mdc-notched-outline__leading,
-  ::ng-deep .mdc-notched-outline__notch,
-  ::ng-deep .mdc-notched-outline__trailing {
-    border-color: rgba(71, 85, 105, 0.65) !important;
-  }
-
-  ::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__leading,
-  ::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__notch,
-  ::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__trailing {
-    border-color: rgba(148, 163, 184, 0.9) !important;
-  }
-
-  ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
-  ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
-  ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
-    border-color: var(--theme-primary-light) !important;
-  }
+.mat-mdc-raised-button {
+  background: var(--theme-primary) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px var(--theme-primary-soft) !important;
 }
 
-@media (max-width: 640px) {
-  :host {
-    padding: 1rem 0.75rem;
-  }
-
-  .auth-header {
-    padding: 1.4rem 1.2rem 0.8rem;
-  }
-
-  mat-card-content {
-    padding: 1rem 1rem 0.9rem !important;
-  }
-
-  mat-card-actions {
-    padding: 0 1rem 1rem !important;
-  }
-
-  .forgot-panel {
-    margin: 0 0.9rem 1rem;
-    padding: 0.95rem;
-  }
-
-  .forgot-actions {
-    flex-direction: column;
-  }
+.mat-mdc-raised-button:disabled{
+  background: var(--theme-bg-soft) !important;
+  color: var(--theme-text) !important;
 }

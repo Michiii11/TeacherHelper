@@ -1,199 +1,179 @@
 <main class="landing-page">
-  <section class="landing-topbar">
-    <a class="brand" routerLink="/">
-      <img [src]="getLogo()" alt="TeacherHelper Logo" class="brand-logo-image">
-    </a>
+  <section class="landing-shell">
+    <header class="landing-topbar">
+      <a class="brand" routerLink="/">
+        <img [src]="getLogo()" alt="TeacherHelper Logo" class="brand-logo-image">
+      </a>
 
-    <div class="topbar-actions">
-      @if (isLoggedIn) {
-        <a mat-stroked-button routerLink="/home">
-          <mat-icon>dashboard</mat-icon>
-          Zurück zum Dashboard
-        </a>
-      } @else {
-        <a mat-stroked-button routerLink="/login">
-          <mat-icon>login</mat-icon>
-          Login / Registrieren
-        </a>
-      }
-    </div>
-  </section>
-
-  <section class="hero">
-    <div class="hero-copy">
-      <p class="eyebrow">Für Lehrkräfte und Schulen</p>
-      <h1>Unterrichtsmaterial endlich klar, schnell und modern organisieren.</h1>
-
-      <p class="hero-text">
-        TeacherHelper hilft dir dabei, Beispiele zu sammeln, Tests schneller zu erstellen
-        und Inhalte gemeinsam im Schulalltag zu verwalten — ohne unnötigen Overkill.
-      </p>
-
-      <div class="hero-actions">
+      <div class="topbar-actions">
         @if (isLoggedIn) {
-          <a mat-flat-button color="primary" routerLink="/home">
-            <mat-icon>arrow_forward</mat-icon>
-            Zum Dashboard
+          <a mat-stroked-button class="topbar-button secondary" routerLink="/home">
+            <mat-icon>dashboard</mat-icon>
+            {{ 'landing.dashboard' | translate }}
           </a>
         } @else {
-          <a mat-flat-button color="primary" routerLink="/login">
-            <mat-icon>rocket_launch</mat-icon>
-            Jetzt starten
-          </a>
-
-          <a mat-stroked-button routerLink="/login">
-            <mat-icon>person</mat-icon>
-            Login / Registrieren
+          <a mat-stroked-button class="topbar-button secondary" routerLink="/login">
+            <mat-icon>login</mat-icon>
+            {{ 'landing.login' | translate }}
           </a>
         }
       </div>
+    </header>
 
-      <div class="hero-points">
-        <div class="hero-point" *ngFor="let point of heroPoints">
-          <mat-icon>check_circle</mat-icon>
-          <span>{{ point }}</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="hero-visual">
-      <div class="app-mock">
-        <div class="mock-topline">
-          <div class="mock-dots">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-
-          <div class="mock-mini-brand">
-            <img [src]="getLogo()" alt="TeacherHelper Logo" class="mini-logo-image">
-          </div>
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="hero-chip">
+          <span class="hero-chip-dot"></span>
+          {{ 'landing.eyebrow' | translate }}
         </div>
 
-        <div class="mock-body">
-          <div class="mock-side-card">
-            <div class="mock-school-title">HTL Beispielschule</div>
-            <div class="mock-school-sub">Schule • Team • Admin</div>
-          </div>
+        <h1>{{ 'landing.title' | translate }}</h1>
 
-          <div class="mock-kpis">
-            <div class="mock-kpi">
-              <div class="mock-kpi-label">Tests</div>
-              <div class="mock-kpi-value">12</div>
-            </div>
-            <div class="mock-kpi">
-              <div class="mock-kpi-label">Beispiele</div>
-              <div class="mock-kpi-value">148</div>
-            </div>
-            <div class="mock-kpi">
-              <div class="mock-kpi-label">Lehrer</div>
-              <div class="mock-kpi-value">9</div>
-            </div>
-          </div>
+        <p class="hero-text">
+          {{ 'landing.description' | translate }}
+        </p>
 
-          <div class="mock-main-card">
-            <div class="mock-card-head">
-              <div>
-                <div class="mock-card-title">Beispielpool</div>
-                <div class="mock-card-sub">Schneller Zugriff auf Inhalte</div>
-              </div>
-              <button type="button">Neu</button>
-            </div>
-
-            <div class="mock-table">
-              <div class="mock-row header">
-                <span>Typ</span>
-                <span>Angabe</span>
-                <span>Fokus</span>
-              </div>
-              <div class="mock-row">
-                <span>Offen</span>
-                <span>Berechne die fehlenden Werte ...</span>
-                <span>Mathe</span>
-              </div>
-              <div class="mock-row">
-                <span>MC</span>
-                <span>Wähle die richtige Aussage ...</span>
-                <span>Physik</span>
-              </div>
-              <div class="mock-row">
-                <span>Zuordnen</span>
-                <span>Ordne Begriffe korrekt zu ...</span>
-                <span>Deutsch</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="floating-badge">
-            <span class="floating-title">Druckvorschau</span>
-            <span class="floating-line"></span>
-            <span class="floating-line short"></span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="features">
-    <div class="section-head">
-      <p class="eyebrow">Warum TeacherHelper?</p>
-      <h2>Gebaut für echte Arbeit im Unterricht</h2>
-      <p>
-        Nicht überladen, sondern praktisch: TeacherHelper hilft dir genau dort,
-        wo Unterrichtsvorbereitung oft unübersichtlich wird.
-      </p>
-    </div>
-
-    <div class="feature-grid">
-      <article class="feature-card" *ngFor="let feature of features">
-        <div class="feature-icon">
-          <mat-icon>{{ feature.icon }}</mat-icon>
-        </div>
-        <h3>{{ feature.title }}</h3>
-        <p>{{ feature.text }}</p>
-      </article>
-    </div>
-  </section>
-
-  <section class="plans">
-    <div class="section-head">
-      <p class="eyebrow">Abo-Modelle</p>
-      <h2>Ein Modell für jeden Einstieg</h2>
-      <p>
-        Egal ob du TeacherHelper zuerst ausprobieren, intensiv alleine nutzen
-        oder gemeinsam mit deiner Schule einsetzen willst.
-      </p>
-    </div>
-
-    <div class="plan-grid">
-      <article class="plan-card" *ngFor="let plan of plans" [class.highlight]="plan.highlight">
-        <div class="plan-badge" *ngIf="plan.badge">{{ plan.badge }}</div>
-
-        <div class="plan-head">
-          <h3>{{ plan.name }}</h3>
-          <div class="plan-price">{{ plan.price }}</div>
-          <p>{{ plan.subtitle }}</p>
-        </div>
-
-        <div class="plan-list">
-          <div class="plan-item" *ngFor="let item of plan.features">
-            <mat-icon>check</mat-icon>
-            <span>{{ item }}</span>
-          </div>
-        </div>
-
-        <div class="plan-actions">
+        <div class="hero-actions">
           @if (isLoggedIn) {
-            <a mat-stroked-button routerLink="/home">
-              Zum Dashboard
+            <a mat-flat-button color="primary" class="hero-button primary" routerLink="/home">
+              <mat-icon>arrow_forward</mat-icon>
+              {{ 'landing.dashboard' | translate }}
             </a>
           } @else {
-            <a mat-flat-button color="primary" routerLink="/login">
-              {{ plan.cta }}
+            <a mat-flat-button color="primary" class="hero-button primary" routerLink="/login">
+              <mat-icon>rocket_launch</mat-icon>
+              {{ 'landing.start' | translate }}
+            </a>
+
+            <a mat-stroked-button class="hero-button secondary" routerLink="/login">
+              <mat-icon>person</mat-icon>
+              {{ 'landing.login' | translate }}
             </a>
           }
         </div>
-      </article>
-    </div>
+
+        <div class="hero-points">
+          <div class="hero-point" *ngFor="let point of heroPoints">
+            <mat-icon>check_circle</mat-icon>
+            <span>{{ point | translate }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="preview-frame">
+          <div class="preview-frame-top">
+            <div class="mock-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+
+            <div class="preview-frame-title">Live Preview</div>
+          </div>
+
+          <div class="preview-image-wrap">
+            <img
+              class="preview-image"
+              src="/img.png"
+              alt="TeacherHelper Live Preview"
+            >
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="trust-strip">
+      <div class="trust-item" *ngFor="let item of trustItems">
+        <mat-icon>{{ item.icon }}</mat-icon>
+        <span>{{ item.label | translate }}</span>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="section-head">
+        <p class="eyebrow">{{ 'landing.features.eyebrow' | translate }}</p>
+        <h2>{{ 'landing.features.title' | translate }}</h2>
+        <p>{{ 'landing.features.subtitle' | translate }}</p>
+      </div>
+
+      <div class="feature-grid">
+        <article class="feature-card" *ngFor="let feature of features">
+          <div class="feature-icon">
+            <mat-icon>{{ feature.icon }}</mat-icon>
+          </div>
+
+          <h3>{{ feature.title | translate }}</h3>
+          <p>{{ feature.text | translate }}</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="plans">
+      <div class="section-head">
+        <p class="eyebrow">{{ 'landing.pricing.eyebrow' | translate }}</p>
+        <h2>{{ 'landing.pricing.title' | translate }}</h2>
+        <p>{{ 'landing.pricing.subtitle' | translate }}</p>
+      </div>
+
+      <div class="plan-grid">
+        <article class="plan-card" *ngFor="let plan of plans" [class.highlight]="plan.highlight">
+          <div class="plan-badge" *ngIf="plan.badge">{{ plan.badge | translate }}</div>
+
+          <div class="plan-head">
+            <div class="plan-name-row">
+              <h3>{{ plan.name }}</h3>
+              <span class="plan-chip" *ngIf="plan.chip">{{ plan.chip | translate }}</span>
+            </div>
+
+            <div class="plan-price">{{ plan.price }}</div>
+            <p>{{ plan.subtitle | translate }}</p>
+          </div>
+
+          <div class="plan-list">
+            <div class="plan-item" *ngFor="let item of plan.features">
+              <mat-icon>check</mat-icon>
+              <span>{{ item | translate }}</span>
+            </div>
+          </div>
+
+          <div class="plan-actions">
+            @if (isLoggedIn) {
+              <a mat-stroked-button class="plan-button secondary" routerLink="/home">
+                {{ 'landing.dashboard' | translate }}
+              </a>
+            } @else {
+              <a mat-flat-button color="primary" class="plan-button primary" routerLink="/login">
+                {{ plan.cta | translate }}
+              </a>
+            }
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="final-cta">
+      <div class="final-cta-card">
+        <div class="final-cta-copy">
+          <p class="eyebrow">{{ 'landing.final.eyebrow' | translate }}</p>
+          <h2>{{ 'landing.final.title' | translate }}</h2>
+          <p>{{ 'landing.final.text' | translate }}</p>
+        </div>
+
+        <div class="final-cta-actions">
+          @if (isLoggedIn) {
+            <a mat-flat-button color="primary" class="hero-button primary" routerLink="/home">
+              <mat-icon>dashboard</mat-icon>
+              {{ 'landing.dashboard' | translate }}
+            </a>
+          } @else {
+            <a mat-flat-button color="primary" class="hero-button primary" routerLink="/login">
+              <mat-icon>rocket_launch</mat-icon>
+              {{ 'landing.start' | translate }}
+            </a>
+          }
+        </div>
+      </div>
+    </section>
   </section>
 </main>

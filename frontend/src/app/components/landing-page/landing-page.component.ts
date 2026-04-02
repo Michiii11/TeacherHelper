@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { NgFor, NgIf } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslatePipe } from '@ngx-translate/core';
 
 type Feature = {
   icon: string;
@@ -13,6 +14,7 @@ type Feature = {
 type Plan = {
   name: string;
   badge?: string;
+  chip?: string;
   price: string;
   subtitle: string;
   features: string[];
@@ -20,10 +22,26 @@ type Plan = {
   cta: string;
 };
 
+type Stat = {
+  value: string;
+  label: string;
+};
+
+type TrustItem = {
+  icon: string;
+  label: string;
+};
+
+type MockExample = {
+  type: string;
+  title: string;
+  focus: string;
+};
+
 @Component({
   selector: 'app-landing-page',
   standalone: true,
-  imports: [RouterLink, NgFor, NgIf, MatButtonModule, MatIconModule],
+  imports: [RouterLink, NgFor, NgIf, MatButtonModule, MatIconModule, TranslatePipe],
   templateUrl: './landing-page.component.html',
   styleUrl: './landing-page.component.scss'
 })
@@ -32,84 +50,111 @@ export class LandingPageComponent {
     !!localStorage.getItem('teacher_authToken') &&
     !!localStorage.getItem('teacher_userId');
 
+  readonly heroPoints: string[] = [
+    'landing.points.p1',
+    'landing.points.p2',
+    'landing.points.p3'
+  ];
+
+  readonly trustItems: TrustItem[] = [
+    { icon: 'bolt', label: 'landing.trust.t1' },
+    { icon: 'groups', label: 'landing.trust.t2' },
+    { icon: 'print', label: 'landing.trust.t3' },
+    { icon: 'translate', label: 'landing.trust.t4' }
+  ];
+
   readonly features: Feature[] = [
     {
       icon: 'library_books',
-      title: 'Beispiele sauber organisieren',
-      text: 'Speichere Aufgaben zentral, filtere nach Schwerpunkt und finde Inhalte später sofort wieder.'
+      title: 'landing.featureCards.f1.title',
+      text: 'landing.featureCards.f1.text'
+    },
+    {
+      icon: 'filter_alt',
+      title: 'landing.featureCards.f2.title',
+      text: 'landing.featureCards.f2.text'
     },
     {
       icon: 'assignment',
-      title: 'Tests schneller erstellen',
-      text: 'Stelle aus vorhandenen Beispielen in wenigen Schritten komplette Tests zusammen.'
+      title: 'landing.featureCards.f3.title',
+      text: 'landing.featureCards.f3.text'
+    },
+    {
+      icon: 'description',
+      title: 'landing.featureCards.f4.title',
+      text: 'landing.featureCards.f4.text'
     },
     {
       icon: 'groups',
-      title: 'Zusammenarbeit in Schulen',
-      text: 'Arbeite mit Kolleginnen und Kollegen in einer gemeinsamen Schulumgebung.'
-    },
-    {
-      icon: 'print',
-      title: 'Vorschau und Druckansicht',
-      text: 'Kontrolliere Tests vor dem Drucken und erhalte übersichtliche, saubere Layouts.'
-    },
-    {
-      icon: 'category',
-      title: 'Mehrere Aufgabentypen',
-      text: 'Von offenen Fragen bis Multiple Choice, Lückentext oder Zuordnungen – alles an einem Ort.'
+      title: 'landing.featureCards.f5.title',
+      text: 'landing.featureCards.f5.text'
     },
     {
       icon: 'school',
-      title: 'Für den Schulalltag gedacht',
-      text: 'TeacherHelper ist auf reale Unterrichtsvorbereitung und Teamarbeit in Schulen ausgerichtet.'
+      title: 'landing.featureCards.f6.title',
+      text: 'landing.featureCards.f6.text'
     }
   ];
 
   readonly plans: Plan[] = [
     {
       name: 'Free',
-      price: 'Kostenlos',
-      subtitle: 'Zum Ausprobieren und für kleine Setups.',
+      price: '0€',
+      subtitle: 'landing.plans.free.subtitle',
       features: [
-        'Eigene Inhalte erstellen',
-        'Grundlegende Testvorschau',
-        'Standardfunktionen für den Einstieg',
-        'Ideal für Einzelpersonen'
+        'landing.plans.free.f1',
+        'landing.plans.free.f2',
+        'landing.plans.free.f3',
+        'landing.plans.free.f4'
       ],
-      cta: 'Kostenlos starten'
+      cta: 'landing.plans.free.cta'
     },
     {
       name: 'Pro',
-      badge: 'Beliebt',
-      price: 'Flexibel',
-      subtitle: 'Für Lehrkräfte, die regelmäßig mit Tests und Beispielen arbeiten.',
+      badge: 'landing.plans.pro.badge',
+      chip: 'landing.plans.pro.chip',
+      price: '5€ / Monat',
+      subtitle: 'landing.plans.pro.subtitle',
       features: [
-        'Mehr Inhalte und bessere Organisation',
-        'Komfortabler Workflow für den Schulalltag',
-        'Erweiterte Nutzung für Unterrichtsvorbereitung',
-        'Ideal für intensive Einzel-Nutzung'
+        'landing.plans.pro.f1',
+        'landing.plans.pro.f2',
+        'landing.plans.pro.f3',
+        'landing.plans.pro.f4'
       ],
       highlight: true,
-      cta: 'Mit Pro loslegen'
+      cta: 'landing.plans.pro.cta'
     },
     {
       name: 'School',
-      price: 'Für Teams',
-      subtitle: 'Für Schulen und gemeinsame Verwaltung mit Kolleg:innen.',
+      chip: 'landing.plans.school.chip',
+      price: '20€ / Monat',
+      subtitle: 'landing.plans.school.subtitle',
       features: [
-        'Zusammenarbeit innerhalb einer Schule',
-        'Geteilte Inhalte und Aufgabenpools',
-        'Bessere Übersicht für Teams',
-        'Ideal für Fachgruppen und Schulbetrieb'
+        'landing.plans.school.f1',
+        'landing.plans.school.f2',
+        'landing.plans.school.f3',
+        'landing.plans.school.f4'
       ],
-      cta: 'Für Schulen entdecken'
+      cta: 'landing.plans.school.cta'
     }
   ];
 
-  readonly heroPoints = [
-    'Tests aus Beispielen zusammenbauen',
-    'Inhalte langfristig wiederverwenden',
-    'Gemeinsam im Schulteam arbeiten'
+  readonly mockExamples: MockExample[] = [
+    {
+      type: 'landing.mock.type1',
+      title: 'landing.mock.title1',
+      focus: 'landing.mock.focus1'
+    },
+    {
+      type: 'landing.mock.type2',
+      title: 'landing.mock.title2',
+      focus: 'landing.mock.focus2'
+    },
+    {
+      type: 'landing.mock.type3',
+      title: 'landing.mock.title3',
+      focus: 'landing.mock.focus3'
+    }
   ];
 
   getLogo(): string {

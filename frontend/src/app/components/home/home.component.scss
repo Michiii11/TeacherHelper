@@ -1,10 +1,7 @@
 :host {
   display: block;
   min-height: 100%;
-  background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 24%),
-    radial-gradient(circle at top right, rgba(99, 102, 241, 0.10), transparent 18%),
-    linear-gradient(180deg, var(--theme-bg-soft) 0%, var(--theme-bg) 100%);
+  background: var(--theme-bg-gradient);
 }
 
 .schools-dashboard {
@@ -24,10 +21,8 @@
   gap: 1rem;
   padding: 1.5rem;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
-  backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-strong) 18%, transparent);
 }
 
 .header-actions {
@@ -50,7 +45,6 @@
   place-items: center;
   background: linear-gradient(135deg, var(--theme-primary), var(--theme-primary-2));
   color: var(--theme-on-primary);
-  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.24);
 }
 
 .title-icon mat-icon {
@@ -79,9 +73,8 @@
 .stat-card {
   padding: 1.15rem 1.25rem;
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-strong) 16%, transparent);
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
@@ -144,9 +137,8 @@
 .school-card,
 .empty-card {
   border-radius: 24px !important;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  background: rgba(255, 255, 255, 0.92) !important;
-  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06) !important;
+  border: 1px solid color-mix(in srgb, var(--border-strong) 16%, transparent);
+  background: color-mix(in srgb, var(--surface) 92%, transparent) !important;
 }
 
 .school-card {
@@ -161,8 +153,7 @@
 
 .school-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.10) !important;
-  border-color: rgba(37, 99, 235, 0.22);
+  border-color: color-mix(in srgb, var(--theme-primary) 22%, transparent);
 }
 
 .empty-card {
@@ -200,11 +191,11 @@
   font-size: 1rem;
   color: var(--theme-primary-deep);
   background: linear-gradient(135deg, var(--theme-primary-surface), var(--theme-primary-surface-2));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  box-shadow: inset 0 1px 0 var(--theme-border);
 
-  overflow:hidden;
+  overflow: hidden;
 
-  img{
+  img {
     width: 100%;
   }
 }
@@ -232,21 +223,21 @@
 }
 
 .admin-badge {
-  background: rgba(37, 99, 235, 0.1);
+  background: color-mix(in srgb, var(--theme-primary) 10%, transparent);
   color: var(--theme-primary-strong);
-  border-color: rgba(37, 99, 235, 0.14);
+  border-color: color-mix(in srgb, var(--theme-primary) 14%, transparent);
 }
 
 .member-badge {
-  background: rgba(20, 184, 166, 0.1);
+  background: color-mix(in srgb, var(--theme-success) 10%, transparent);
   color: var(--theme-success-strong);
-  border-color: rgba(20, 184, 166, 0.14);
+  border-color: color-mix(in srgb, var(--theme-success) 14%, transparent);
 }
 
 .discover-badge {
-  background: rgba(249, 115, 22, 0.12);
+  background: color-mix(in srgb, var(--theme-orange-strong) 12%, transparent);
   color: var(--theme-orange-strong);
-  border-color: rgba(249, 115, 22, 0.16);
+  border-color: color-mix(in srgb, var(--theme-orange-strong) 16%, transparent);
 }
 
 .school-name {
@@ -294,23 +285,23 @@
   height: 20px;
 }
 
-/* Material field in light mode */
+/* Material field */
 
 ::ng-deep .school-search .mat-mdc-text-field-wrapper {
-  background: rgba(255, 255, 255, 0.9) !important;
+  background: transparent !important;
   border-radius: 18px !important;
 }
 
 ::ng-deep .school-search .mdc-notched-outline__leading,
 ::ng-deep .school-search .mdc-notched-outline__notch,
 ::ng-deep .school-search .mdc-notched-outline__trailing {
-  border-color: rgba(148, 163, 184, 0.35) !important;
+  border-color: color-mix(in srgb, var(--input-border) 35%, transparent) !important;
 }
 
 ::ng-deep .school-search .mat-mdc-form-field:hover .mdc-notched-outline__leading,
 ::ng-deep .school-search .mat-mdc-form-field:hover .mdc-notched-outline__notch,
 ::ng-deep .school-search .mat-mdc-form-field:hover .mdc-notched-outline__trailing {
-  border-color: rgba(37, 99, 235, 0.35) !important;
+  border-color: color-mix(in srgb, var(--theme-primary) 35%, transparent) !important;
 }
 
 ::ng-deep .school-search .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
@@ -346,130 +337,5 @@
   .stats-grid,
   .school-grid {
     grid-template-columns: 1fr;
-  }
-}
-
-/* =========================
-   DARK MODE
-   ========================= */
-
-:host-context(.dark-mode) {
-  background:
-    radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 28%),
-    radial-gradient(circle at top right, rgba(79, 70, 229, 0.16), transparent 22%),
-    linear-gradient(180deg, #0b1120 0%, #111827 100%);
-
-  .schools-dashboard {
-    color: #e5e7eb;
-  }
-
-  .page-header,
-  .stat-card,
-  .school-card,
-  .empty-card {
-    background: rgba(17, 24, 39, 0.88) !important;
-    border-color: rgba(71, 85, 105, 0.55);
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35) !important;
-  }
-
-  .page-title,
-  .section-title,
-  .school-name,
-  .stat-value {
-    color: var(--theme-bg-base);
-  }
-
-  .page-subtitle,
-  .section-subtitle,
-  .stat-label,
-  .info-row,
-  .empty-card,
-  .empty-card mat-icon {
-    color: var(--theme-text-muted);
-  }
-
-  .title-icon {
-    background: linear-gradient(135deg, var(--theme-primary-strong), var(--theme-primary-2-strong));
-    box-shadow: 0 12px 24px rgba(29, 78, 216, 0.28);
-  }
-
-  .school-card:hover {
-    border-color: rgba(96, 165, 250, 0.32);
-    box-shadow: 0 22px 48px rgba(0, 0, 0, 0.42) !important;
-  }
-
-  .school-avatar {
-    color: var(--theme-primary-surface-text);
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.35), rgba(99, 102, 241, 0.35));
-  }
-
-  .member-avatar {
-    color: var(--theme-success-surface);
-    background: linear-gradient(135deg, rgba(13, 148, 136, 0.35), rgba(37, 99, 235, 0.28));
-  }
-
-  .discover-avatar {
-    color: var(--theme-warning-text-soft);
-    background: linear-gradient(135deg, rgba(234, 88, 12, 0.35), rgba(245, 158, 11, 0.28));
-  }
-
-  .admin-badge {
-    background: rgba(37, 99, 235, 0.18);
-    color: var(--theme-primary-surface);
-    border-color: rgba(96, 165, 250, 0.25);
-  }
-
-  .member-badge {
-    background: rgba(20, 184, 166, 0.16);
-    color: var(--theme-success-text);
-    border-color: rgba(45, 212, 191, 0.22);
-  }
-
-  .discover-badge {
-    background: rgba(249, 115, 22, 0.18);
-    color: var(--theme-warning-text);
-    border-color: rgba(251, 146, 60, 0.24);
-  }
-
-  .info-row mat-icon {
-    color: var(--theme-text-muted);
-  }
-
-  .card-action-hint {
-    border-top-color: rgba(71, 85, 105, 0.45);
-    color: var(--theme-primary-lighter);
-  }
-
-  ::ng-deep .school-search .mat-mdc-text-field-wrapper {
-    background: rgba(15, 23, 42, 0.92) !important;
-  }
-
-  ::ng-deep .school-search .mat-mdc-input-element,
-  ::ng-deep .school-search .mdc-floating-label,
-  ::ng-deep .school-search .mat-mdc-form-field-icon-suffix {
-    color: #e5e7eb !important;
-    caret-color: var(--theme-primary-lighter) !important;
-  }
-
-  ::ng-deep .school-search .mdc-notched-outline__leading,
-  ::ng-deep .school-search .mdc-notched-outline__notch,
-  ::ng-deep .school-search .mdc-notched-outline__trailing {
-    border-color: rgba(71, 85, 105, 0.65) !important;
-  }
-
-  ::ng-deep .school-search .mat-mdc-form-field:hover .mdc-notched-outline__leading,
-  ::ng-deep .school-search .mat-mdc-form-field:hover .mdc-notched-outline__notch,
-  ::ng-deep .school-search .mat-mdc-form-field:hover .mdc-notched-outline__trailing {
-    border-color: rgba(148, 163, 184, 0.9) !important;
-  }
-
-  ::ng-deep .school-search .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
-  ::ng-deep .school-search .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
-  ::ng-deep .school-search .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
-    border-color: var(--theme-primary-light) !important;
-  }
-
-  ::ng-deep .school-search .mat-mdc-form-field-focus-overlay {
-    background: transparent !important;
   }
 }

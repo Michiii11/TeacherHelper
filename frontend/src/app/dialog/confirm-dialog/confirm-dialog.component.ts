@@ -76,8 +76,8 @@ import { MatIconModule } from '@angular/material/icon';
       border-radius: 14px;
       display: grid;
       place-items: center;
-      background: var(--warn-soft);
-      color: var(--warn);
+      background: var(--theme-danger);
+      color: var(--theme-bg);
     }
 
     .header-text h2 {
@@ -90,7 +90,7 @@ import { MatIconModule } from '@angular/material/icon';
     .header-text p {
       margin: .35rem 0 0;
       font-size: .92rem;
-      color: var(--text-soft);
+      color: var(--theme-text-subtle);
       line-height: 1.5;
     }
 

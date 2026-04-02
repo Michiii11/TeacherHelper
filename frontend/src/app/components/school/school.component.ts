@@ -30,6 +30,7 @@ import { ExamplePreviewComponent } from '../../dialog/example-preview/example-pr
 import { SchoolInvitationDialogComponent } from '../../dialog/school-invitation-dialog/school-invitation-dialog.component';
 import { UserDTO } from '../../model/User';
 import {SchoolSettingsComponent} from '../../dialog/school-settings/school-settings.component'
+import {TranslatePipe} from '@ngx-translate/core'
 
 @Component({
   selector: 'app-school',
@@ -52,6 +53,7 @@ import {SchoolSettingsComponent} from '../../dialog/school-settings/school-setti
     NgForOf,
     NgIf,
     MatSortHeader,
+    TranslatePipe,
   ],
   templateUrl: './school.component.html',
   standalone: true,

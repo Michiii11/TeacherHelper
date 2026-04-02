@@ -1,10 +1,7 @@
 :host {
   display: block;
   min-height: 100%;
-  background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 24%),
-    radial-gradient(circle at top right, rgba(99, 102, 241, 0.10), transparent 18%),
-    linear-gradient(180deg, var(--theme-bg-soft) 0%, var(--theme-bg) 100%);
+  background: var(--theme-bg-gradient);
 }
 
 .dashboard {
@@ -50,9 +47,6 @@
   border-radius: 18px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, var(--theme-primary), var(--theme-primary-2));
-  color: var(--theme-on-primary);
-  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.24);
   flex-shrink: 0;
 }
 
@@ -157,13 +151,15 @@
 
 .content-area {
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
+  grid-template-columns: 1.8fr 1fr;
   gap: 1rem;
   align-items: start;
-}
 
-.content-area.three {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  > div{
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
 }
 
 .panel {
@@ -363,143 +359,126 @@
   color: inherit;
 }
 
-/* DARK MODE */
+/* ===== SCHOOL: NUR FARBEN ===== */
 
-:host-context(.dark-mode) {
-  background:
-    radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 28%),
-    radial-gradient(circle at top right, rgba(79, 70, 229, 0.16), transparent 22%),
-    linear-gradient(180deg, #0b1120 0%, #111827 100%);
-
-  .dashboard {
-    color: #e5e7eb;
-  }
-
-  .topbar,
-  .kpi-card,
-  .panel,
-  .test-card,
-  .teacher-card {
-    background: rgba(17, 24, 39, 0.88);
-    border-color: rgba(71, 85, 105, 0.55);
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
-  }
-
-  .brand-title,
-  .kpi-value,
-  .panel-title,
-  .test-title,
-  .name {
-    color: var(--theme-text);
-  }
-
-  .brand-sub,
-  .kpi-title,
-  .kpi-sub,
-  .role,
-  .test-meta {
-    color: var(--theme-text-muted);
-  }
-
-  .brand-logo {
-    background: linear-gradient(135deg, var(--theme-primary-strong), var(--theme-primary-2-strong));
-    box-shadow: 0 12px 24px rgba(29, 78, 216, 0.28);
-  }
-
-  .kpi-right {
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.35), rgba(99, 102, 241, 0.35));
-    color: var(--theme-primary-text-soft);
-  }
-
-  .panel-header {
-    border-bottom-color: rgba(71, 85, 105, 0.45);
-  }
-
-  .test-card:hover {
-    border-color: rgba(96, 165, 250, 0.32);
-    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.30);
-  }
-
-  .avatar {
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.32), rgba(99, 102, 241, 0.34));
-    color: var(--theme-primary-surface-text);
-    border-color: rgba(96, 165, 250, 0.2);
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
-  }
-
-  .avatar-image {
-    border-radius: 14px;
-  }
-
-  ::ng-deep .table .mat-mdc-header-row {
-    background: rgba(15, 23, 42, 0.92);
-  }
-
-  ::ng-deep .table .mat-mdc-header-cell {
-    color: #e5e7eb;
-    border-bottom-color: rgba(71, 85, 105, 0.55);
-  }
-
-  ::ng-deep .table .mat-mdc-cell {
-    color: var(--theme-border-strong);
-    border-bottom-color: rgba(51, 65, 85, 0.55);
-  }
-
-  ::ng-deep .mat-mdc-table,
-  ::ng-deep .mdc-data-table__table {
-    background: transparent !important;
-  }
-
-  ::ng-deep .mat-mdc-mini-fab,
-  ::ng-deep .mat-mdc-icon-button,
-  ::ng-deep .mat-mdc-stroked-button,
-  ::ng-deep .mat-mdc-unelevated-button {
-    color: inherit;
-  }
+:host {
+  color: var(--theme-text);
 }
 
-@media (max-width: 1180px) {
-  .kpis {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .content-area,
-  .content-area.three {
-    grid-template-columns: 1fr;
-  }
+.dashboard {
+  color: var(--theme-text);
 }
 
-@media (max-width: 820px) {
-  .dashboard {
-    padding: 1rem;
-  }
+.topbar,
+.panel,
+.kpi-card,
+.test-card,
+.teacher-card {
+  background: var(--surface);
+  color: var(--theme-text);
+  border-color: var(--border-soft);
+  box-shadow: var(--shadow-sm);
+}
 
-  .topbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
+.brand-title,
+.panel-title,
+.kpi-value,
+.test-title,
+.teacher-text .name,
+th[mat-header-cell],
+td[mat-cell] {
+  color: var(--theme-text);
+}
 
-  .menu-toggle {
-    display: inline-flex;
-    align-self: flex-end;
-  }
+.brand-sub,
+.kpi-title,
+.kpi-sub,
+.test-meta,
+.teacher-text .role {
+  color: var(--theme-text-subtle);
+}
 
-  .actions {
-    display: none;
-    width: 100%;
-    flex-direction: column;
-    align-items: stretch;
-  }
+.kpi-right,
+.kpi-right .mat-icon {
+  color: var(--theme-primary-strong);
+}
 
-  .actions.show {
-    display: flex;
-  }
+.kpi-right {
+  background: var(--primary-soft-strong);
+  border-color: var(--primary-border-soft);
+}
 
-  .kpis {
-    grid-template-columns: 1fr;
-  }
+table[mat-table] {
+  background: transparent;
+}
 
-  .brand {
-    align-items: flex-start;
-  }
+th[mat-header-cell] {
+  background: var(--surface-2);
+  border-bottom-color: var(--theme-border);
+  color: var(--theme-text-subtle-2);
+}
+
+td[mat-cell] {
+  border-bottom-color: var(--theme-border-soft-2);
+  color: var(--theme-text);
+}
+
+tr[mat-row]:hover {
+  background: var(--row-hover);
+}
+
+.actions button[mat-icon-button],
+td[mat-cell] button[mat-icon-button],
+.test-actions button[mat-icon-button],
+.teacher-card button[mat-icon-button] {
+  color: var(--theme-text-subtle-2);
+}
+
+.actions button[mat-icon-button] {
+  background: var(--surface-2);
+  border-color: var(--border-soft);
+}
+
+.actions button[mat-icon-button]:hover,
+td[mat-cell] button[mat-icon-button]:hover,
+.test-actions button[mat-icon-button]:hover {
+  background: var(--primary-soft);
+  color: var(--theme-primary-strong);
+}
+
+.teacher-card button[mat-icon-button]:hover,
+td[mat-cell] button[mat-icon-button][color="warn"]:hover {
+  background: hsla(0, 84%, 60%, 0.10);
+}
+
+.kpi-card:hover,
+.test-card:hover,
+.teacher-card:hover {
+  border-color: var(--primary-border-soft);
+  box-shadow: var(--shadow-md);
+}
+
+button[mat-stroked-button] {
+  border-color: var(--primary-border-medium);
+  color: var(--theme-primary-strong);
+  background: transparent;
+}
+
+button[mat-stroked-button]:hover {
+  background: var(--primary-soft);
+}
+
+button[mat-flat-button],
+button[mat-mini-fab] {
+  background: linear-gradient(135deg, var(--theme-primary), var(--theme-primary-2)) !important;
+  color: var(--theme-on-primary);
+}
+
+button[mat-flat-button]:hover,
+button[mat-mini-fab]:hover {
+  background: var(--theme-primary);
+}
+
+.mat-header-row{
+  background:red !important;
 }

@@ -24,7 +24,7 @@
 
   p {
     margin: 0;
-    color: var(--theme-text-soft);
+    color: var(--theme-text-subtle);
   }
 }
 
@@ -65,7 +65,7 @@ mat-form-field {
   border: 1px dashed var(--theme-border-strong);
   background:
     radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 32%),
-    linear-gradient(180deg, var(--theme-bg-soft) 0%, #f6f8fc 100%);
+    linear-gradient(180deg, var(--theme-bg-soft) 0%, var(--theme-bg-soft) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -106,7 +106,6 @@ mat-form-field {
 
 .coming-soon-card {
   border-radius: 20px;
-  box-shadow: none;
   border: 1px solid var(--theme-border);
   background: var(--theme-surface-solid);
 }

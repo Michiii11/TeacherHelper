@@ -39,11 +39,11 @@ import { MatButtonModule } from '@angular/material/button';
 
     p {
       margin: 0 0 12px;
-      color: var(--text-soft);
+      color: var(--theme-text-subtle);
     }
 
     h2 {
-      color: var(--text);
+      color: var(--theme-text);
     }
   `]
 })
