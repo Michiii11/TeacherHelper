@@ -14,7 +14,8 @@ RUN npm install
 COPY . .
 
 # Build the Angular app
-RUN npm run build --prod
+ARG CONFIGURATION=production
+RUN npm run build -- --configuration=${CONFIGURATION}
 
 RUN ls -la /app/dist && ls -la /app/dist/frontend
 
