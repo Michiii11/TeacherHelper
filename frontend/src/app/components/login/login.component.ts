@@ -10,6 +10,7 @@ import { NgClass, NgIf } from '@angular/common';
 import { AuthResult } from '../../model/User';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '../../service/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -62,7 +63,8 @@ export class LoginComponent implements OnInit {
     private snackBar: MatSnackBar,
     private http: HttpService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private authService: AuthService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -159,9 +161,7 @@ export class LoginComponent implements OnInit {
       });
 
       if (result.success && result.token && result.userId !== null) {
-        localStorage.setItem('teacher_authToken', result.token);
-        localStorage.setItem('teacher_userId', result.userId.toString());
-        window.dispatchEvent(new Event('storage'));
+        this.authService.setLogin(result.token, result.userId.toString());
         this.router.navigate(['/home']);
       }
     });
