@@ -23,7 +23,6 @@ import { RouterLink } from '@angular/router';
     :host {
       display: block;
       min-height: 100%;
-      background: var(--theme-bg-gradient);
     }
 
     .not-found-shell {
@@ -36,7 +35,7 @@ import { RouterLink } from '@angular/router';
     .not-found-card {
       width: min(100%, 560px);
       padding: 2.2rem 2rem;
-      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      background: var(--bg-soft);
       border: 1px solid var(--border-soft);
       box-shadow: var(--shadow-lg);
       text-align: center;
@@ -74,9 +73,9 @@ import { RouterLink } from '@angular/router';
       font-weight: 700;
     }
 
-    .mat-mdc-raised-button{
-      color: var(--theme-text) !important;
-      background-color: var(--theme-primary) !important;
+    .mat-mdc-raised-button {
+      color: var(--theme-on-primary) !important;
+      background-color: var(--primary) !important;
     }
 
     @media (max-width: 640px) {

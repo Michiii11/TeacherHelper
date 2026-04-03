@@ -1,6 +1,5 @@
 :host {
   display: block;
-  background: var(--theme-bg-gradient);
 }
 
 .legal-page {
@@ -79,7 +78,7 @@
 
   p {
     margin: 0;
-    color: var(--theme-text-subtle-2);
+    color: var(--text-subtle-2);
     font-size: 0.9rem;
   }
 }

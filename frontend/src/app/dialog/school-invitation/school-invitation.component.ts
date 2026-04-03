@@ -35,15 +35,17 @@ import { MatButtonModule } from '@angular/material/button';
     </div>
   `,
   styles: [`
-    .w-100 { width: 100%; }
+    .w-100 {
+      width: 100%;
+    }
 
     p {
       margin: 0 0 12px;
-      color: var(--theme-text-subtle);
+      color: var(--text-subtle);
     }
 
     h2 {
-      color: var(--theme-text);
+      color: var(--text);
     }
   `]
 })

@@ -1,7 +1,6 @@
 :host {
   display: block;
   min-height: 100%;
-  background: var(--theme-bg-gradient);
 }
 
 .dashboard {
@@ -11,7 +10,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  color: var(--theme-text);
+  color: var(--text);
 }
 
 .school-logo-image {
@@ -28,9 +27,6 @@
   gap: 1rem;
   padding: 1.5rem;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
   backdrop-filter: blur(12px);
 }
 
@@ -69,7 +65,7 @@
 
 .brand-sub {
   margin: 0.35rem 0 0;
-  color: var(--theme-text-soft);
+  color: var(--text-soft);
 }
 
 .topbar-actions {
@@ -114,7 +110,7 @@
 
 .kpi-title {
   font-size: 0.9rem;
-  color: var(--theme-text-soft);
+  color: var(--text-soft);
   font-weight: 600;
 }
 
@@ -123,13 +119,13 @@
   font-size: 2rem;
   line-height: 1;
   font-weight: 800;
-  color: var(--theme-text);
+  color: var(--text);
 }
 
 .kpi-sub {
   margin-top: 0.45rem;
   font-size: 0.85rem;
-  color: var(--theme-text-soft);
+  color: var(--text-soft);
 }
 
 .kpi-right {
@@ -139,8 +135,7 @@
   border-radius: 16px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, rgba(191, 219, 254, 0.95), rgba(224, 231, 255, 0.92));
-  color: var(--theme-primary-strong);
+  color: var(--primary-strong);
 }
 
 .kpi-right mat-icon {
@@ -173,7 +168,7 @@
 
 .panel-header {
   padding: 1.1rem 1.25rem;
-  border-bottom: 1px solid var(--theme-border);
+  border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -187,7 +182,7 @@
   gap: 0.55rem;
   font-size: 1.08rem;
   font-weight: 700;
-  color: var(--theme-text);
+  color: var(--text);
 }
 
 .panel-body {
@@ -212,8 +207,8 @@
 .test-card {
   padding: 1rem;
   border-radius: 18px;
-  background: var(--theme-surface-solid);
-  border: 1px solid var(--theme-border);
+  background: var(--surface-solid);
+  border: 1px solid var(--border);
   transition:
     transform 0.18s ease,
     box-shadow 0.18s ease,
@@ -235,12 +230,12 @@
 
 .test-title {
   font-weight: 700;
-  color: var(--theme-text);
+  color: var(--text);
 }
 
 .test-meta {
   margin-top: 0.75rem;
-  color: var(--theme-text-soft);
+  color: var(--text-soft);
 }
 
 .test-meta span {
@@ -272,8 +267,8 @@
 .teacher-card {
   padding: 0.9rem 1rem;
   border-radius: 18px;
-  background: var(--theme-surface-solid);
-  border: 1px solid var(--theme-border);
+  background: var(--surface-solid);
+  border: 1px solid var(--border);
   box-shadow: none !important;
   display: flex;
   align-items: center;
@@ -306,29 +301,19 @@
   display: block;
 }
 
-.panel-header .mat-mdc-mini-fab {
-  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.18) !important;
-}
-
-:host-context(.dark-mode) {
-  ::ng-deep .panel-header .mat-mdc-mini-fab {
-    background: linear-gradient(135deg, var(--theme-primary), var(--theme-primary-2)) !important;
-  }
-}
-
 .teacher-text {
   min-width: 0;
 }
 
 .name {
   font-weight: 700;
-  color: var(--theme-text);
+  color: var(--text);
   word-break: break-word;
 }
 
 .role {
   margin-top: 0.2rem;
-  color: var(--theme-text-soft);
+  color: var(--text-soft);
   font-size: 0.9rem;
 }
 
@@ -341,18 +326,18 @@
 /* Material table light */
 
 ::ng-deep .table .mat-mdc-header-row {
-  background: var(--theme-bg-base);
+  background: var(--bg-base);
 }
 
 ::ng-deep .table .mat-mdc-header-cell {
-  color: var(--theme-text-subtle-2);
+  color: var(--text-subtle-2);
   font-weight: 700;
-  border-bottom-color: var(--theme-border);
+  border-bottom-color: var(--border);
 }
 
 ::ng-deep .table .mat-mdc-cell {
-  color: var(--theme-text-subtle);
-  border-bottom-color: var(--theme-border-soft-2);
+  color: var(--text-subtle);
+  border-bottom-color: var(--border-soft-2);
 }
 
 ::ng-deep .table .mat-sort-header-arrow {
@@ -362,11 +347,11 @@
 /* ===== SCHOOL: NUR FARBEN ===== */
 
 :host {
-  color: var(--theme-text);
+  color: var(--text);
 }
 
 .dashboard {
-  color: var(--theme-text);
+  color: var(--text);
 }
 
 .topbar,
@@ -374,8 +359,8 @@
 .kpi-card,
 .test-card,
 .teacher-card {
-  background: var(--surface);
-  color: var(--theme-text);
+  background: var(--bg-soft);
+  color: var(--text);
   border-color: var(--border-soft);
   box-shadow: var(--shadow-sm);
 }
@@ -387,7 +372,7 @@
 .teacher-text .name,
 th[mat-header-cell],
 td[mat-cell] {
-  color: var(--theme-text);
+  color: var(--text);
 }
 
 .brand-sub,
@@ -395,12 +380,12 @@ td[mat-cell] {
 .kpi-sub,
 .test-meta,
 .teacher-text .role {
-  color: var(--theme-text-subtle);
+  color: var(--text-subtle);
 }
 
 .kpi-right,
 .kpi-right .mat-icon {
-  color: var(--theme-primary-strong);
+  color: var(--primary-strong);
 }
 
 .kpi-right {
@@ -413,14 +398,14 @@ table[mat-table] {
 }
 
 th[mat-header-cell] {
-  background: var(--surface-2);
-  border-bottom-color: var(--theme-border);
-  color: var(--theme-text-subtle-2);
+  background: var(--surface);
+  border-bottom-color: var(--border);
+  color: var(--text-subtle-2);
 }
 
 td[mat-cell] {
-  border-bottom-color: var(--theme-border-soft-2);
-  color: var(--theme-text);
+  border-bottom-color: var(--border-soft-2);
+  color: var(--text);
 }
 
 tr[mat-row]:hover {
@@ -431,7 +416,7 @@ tr[mat-row]:hover {
 td[mat-cell] button[mat-icon-button],
 .test-actions button[mat-icon-button],
 .teacher-card button[mat-icon-button] {
-  color: var(--theme-text-subtle-2);
+  color: var(--text-subtle-2);
 }
 
 .actions button[mat-icon-button] {
@@ -443,7 +428,7 @@ td[mat-cell] button[mat-icon-button],
 td[mat-cell] button[mat-icon-button]:hover,
 .test-actions button[mat-icon-button]:hover {
   background: var(--primary-soft);
-  color: var(--theme-primary-strong);
+  color: var(--primary-strong);
 }
 
 .teacher-card button[mat-icon-button]:hover,
@@ -458,27 +443,150 @@ td[mat-cell] button[mat-icon-button][color="warn"]:hover {
   box-shadow: var(--shadow-md);
 }
 
-button[mat-stroked-button] {
-  border-color: var(--primary-border-medium);
-  color: var(--theme-primary-strong);
-  background: transparent;
-}
-
-button[mat-stroked-button]:hover {
-  background: var(--primary-soft);
-}
-
-button[mat-flat-button],
-button[mat-mini-fab] {
-  background: linear-gradient(135deg, var(--theme-primary), var(--theme-primary-2)) !important;
-  color: var(--theme-on-primary);
-}
-
 button[mat-flat-button]:hover,
 button[mat-mini-fab]:hover {
-  background: var(--theme-primary);
+  background: var(--primary);
 }
 
-.mat-header-row{
-  background:red !important;
+@media (max-width: 1100px) {
+  .dashboard {
+    padding: 1.25rem;
+  }
+
+  .content-area {
+    grid-template-columns: 1fr;
+  }
+
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 780px) {
+  .dashboard {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1rem;
+  }
+
+  .brand {
+    align-items: flex-start;
+  }
+
+  .brand-title {
+    font-size: 1.35rem;
+  }
+
+  .topbar-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .actions button[mat-stroked-button],
+  .actions button[mat-flat-button] {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .kpi-card {
+    padding: 1rem;
+  }
+
+  .panel-header {
+    padding: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .panel-body {
+    padding: 1rem;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table[mat-table] {
+    min-width: 760px;
+  }
+
+  .test-actions {
+    flex-wrap: wrap;
+  }
+
+  .test-actions button[mat-stroked-button] {
+    flex: 1 1 auto;
+  }
+
+  .teacher-card {
+    padding: 0.85rem 0.9rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar-actions {
+    width: 100%;
+    margin-top: 0.75rem;
+  }
+
+  .actions {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+    width: 100%;
+  }
+
+  .actions button[mat-stroked-button],
+  .actions button[mat-flat-button] {
+    width: 100%;
+    min-height: 42px;
+    justify-content: center;
+  }
+
+  .actions button[mat-icon-button] {
+    width: 100%;
+    min-height: 42px;
+    border-radius: 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+  }
+
+  .actions button[mat-icon-button] .mat-icon {
+    margin: 0;
+  }
+
+  .menu-toggle {
+    align-self: flex-end;
+    margin-bottom: 0.5rem;
+  }
+
+  .actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    width: 100%;
+  }
+
+  .actions button[mat-icon-button] {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-height: 42px;
+    border-radius: 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+  }
 }

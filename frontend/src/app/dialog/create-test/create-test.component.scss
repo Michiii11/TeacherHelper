@@ -1,20 +1,13 @@
 :host {
   display: block;
   color: var(--text);
+  background: var(--menu-bg);
+  padding: 1.15rem 1.15rem 1.2rem;
 }
 
 .create-test-shell {
   display: grid;
-  grid-template-columns: minmax(420px, 1.05fr) minmax(380px, 0.95fr);
-  gap: 1.25rem;
-  width: min(96vw, 1540px);
-  max-width: 1540px;
-  min-height: min(88vh, 980px);
-  padding: 0.35rem;
-  background:
-    radial-gradient(circle at top left, var(--hero-grad-1), transparent 24%),
-    radial-gradient(circle at top right, var(--hero-grad-2), transparent 18%),
-    linear-gradient(180deg, var(--surface-2) 0%, var(--bg) 100%);
+  grid-template-columns: 1fr 1fr;
   border-radius: 30px;
 }
 
@@ -23,10 +16,6 @@
   margin: 0 !important;
   max-height: min(86vh, 940px);
   overflow: auto !important;
-  border-radius: 26px;
-  background: color-mix(in srgb, var(--surface) 90%, transparent);
-  border: 1px solid var(--border-soft);
-  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
   backdrop-filter: blur(12px);
 }
 
@@ -74,7 +63,7 @@
   min-width: 120px;
   padding: 0.8rem 0.95rem;
   border-radius: 16px;
-  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+  background: var(--bg-soft);
   border: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -93,7 +82,6 @@
 }
 
 .advanced-toggle {
-  margin-left: auto;
   border-radius: 14px !important;
 }
 
@@ -108,7 +96,6 @@
   border-radius: 22px;
   background: color-mix(in srgb, var(--surface) 92%, transparent);
   border: 1px solid color-mix(in srgb, var(--text-soft) 16%, transparent);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
 }
 
 .settings-head {
@@ -173,15 +160,15 @@
 }
 
 .mode-switch button,
-.print-toggle-group button {
+.print-toggle-group button,
+button{
   border-radius: 12px !important;
 }
 
 .mode-switch button.active,
 .print-toggle-group button.active {
-  background: color-mix(in srgb, var(--primary) 12%, transparent) !important;
-  color: var(--primary-hover) !important;
-  border-color: color-mix(in srgb, var(--primary) 22%, transparent) !important;
+  background: var(--primary) !important;
+  color: var(--theme-on-primary) !important;
 }
 
 .selected-section {
@@ -221,10 +208,9 @@
   border-radius: 12px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
+  background: var(--primary);
   color: var(--button-text);
   font-weight: 800;
-  box-shadow: 0 10px 20px color-mix(in srgb, var(--primary) 20%, transparent);
 }
 
 .task-copy {
@@ -282,7 +268,6 @@
   height: 40px;
   border-radius: 12px;
   border: 1px solid var(--border-strong);
-  background: var(--surface);
   color: var(--text);
   text-align: center;
   font: inherit;
@@ -297,9 +282,8 @@
 }
 
 .preview-surface {
-  padding: 1rem;
-  border-radius: 22px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, transparent), color-mix(in srgb, var(--surface-2) 96%, transparent));
+  border-radius: 2rem;
+  background: var(--bg-soft);
   border: 1px solid var(--border);
   flex: 1;
   overflow: auto;
@@ -310,12 +294,10 @@
 }
 
 .print-page {
-  width: 794px;
-  min-height: 1123px;
   margin: 0 auto;
-  color: #111827;
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.10);
-  border-radius: 12px;
+  color: var(--text);
+  border-color: var(--border);
+  background: var(--bg-soft);
   padding: 36px 44px;
 }
 
@@ -350,7 +332,7 @@
 
 .line {
   flex: 1;
-  border-bottom: 1px solid #111827;
+  border-bottom: 1px solid var(--text);
   min-height: 18px;
 }
 
@@ -368,7 +350,7 @@
 
 .compact-table th,
 .compact-table td {
-  border: 1px solid #111827;
+  border: 1px solid var(--text);
   padding: 0.45rem 0.6rem;
   text-align: center;
 }
@@ -535,201 +517,6 @@
   scrollbar-width: thin;
 }
 
-/* form fields */
-::ng-deep .mat-mdc-text-field-wrapper {
-  background: color-mix(in srgb, var(--surface) 92%, transparent) !important;
-  border-radius: 18px !important;
-  box-shadow: none !important;
-}
-
-::ng-deep .mat-mdc-form-field .mdc-notched-outline {
-  overflow: hidden;
-  border-radius: 18px;
-}
-
-::ng-deep .mat-mdc-form-field .mdc-notched-outline__leading {
-  width: 12px !important;
-  min-width: 12px !important;
-  border-top-left-radius: 18px !important;
-  border-bottom-left-radius: 18px !important;
-}
-
-::ng-deep .mat-mdc-form-field .mdc-notched-outline__notch {
-  border-left: none !important;
-}
-
-::ng-deep .mat-mdc-form-field .mdc-notched-outline__trailing {
-  border-top-right-radius: 18px !important;
-  border-bottom-right-radius: 18px !important;
-}
-
-::ng-deep .mdc-notched-outline__leading,
-::ng-deep .mdc-notched-outline__notch,
-::ng-deep .mdc-notched-outline__trailing {
-  border-color: color-mix(in srgb, var(--text-soft) 35%, transparent) !important;
-}
-
-::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__leading,
-::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__notch,
-::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__trailing {
-  border-color: color-mix(in srgb, var(--primary) 35%, transparent) !important;
-}
-
-::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
-::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
-::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
-  border-color: var(--primary) !important;
-}
-
-::ng-deep .mat-mdc-form-field-focus-overlay {
-  background: transparent !important;
-}
-
-/* local autocomplete style for non-overlay fallback */
-::ng-deep .mat-mdc-autocomplete-panel {
-  border-radius: 18px !important;
-  border: 1px solid color-mix(in srgb, var(--text-soft) 16%, transparent);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.10) !important;
-}
-
-::ng-deep .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled),
-::ng-deep .mat-mdc-option:hover {
-  background: color-mix(in srgb, var(--primary) 8%, transparent) !important;
-}
-
-/* DARK MODE */
-:host-context(.dark-mode) {
-  color: color-mix(in srgb, var(--text) 88%, transparent);
-
-  .create-test-shell {
-    background:
-      radial-gradient(circle at top left, var(--hero-grad-1), transparent 28%),
-      radial-gradient(circle at top right, var(--hero-grad-2), transparent 22%),
-      linear-gradient(180deg, color-mix(in srgb, var(--bg) 96%, black) 0%, var(--surface) 100%);
-  }
-
-  .editor-pane,
-  .preview-pane,
-  .settings-card,
-  .selected-task-card {
-    background: color-mix(in srgb, var(--surface) 90%, transparent);
-    border-color: var(--border-soft);
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
-  }
-
-  .editor-pane > h1,
-  .preview-header h1,
-  .settings-head h3,
-  .section-head h3,
-  .task-copy strong,
-  .summary-pill strong {
-    color: var(--text);
-  }
-
-  .settings-head p,
-  .section-note,
-  .task-subline,
-  .summary-pill span,
-  .count-picker .label {
-    color: var(--text-soft);
-  }
-
-  .summary-pill {
-    background: linear-gradient(180deg, color-mix(in srgb, var(--surface-3) 94%, transparent), color-mix(in srgb, var(--surface) 96%, transparent));
-    border-color: color-mix(in srgb, var(--border-strong) 50%, transparent);
-  }
-
-  .mode-switch button.active,
-  .print-toggle-group button.active {
-    background: color-mix(in srgb, var(--primary) 18%, transparent) !important;
-    color: color-mix(in srgb, var(--surface) 10%, var(--text)) !important;
-    border-color: color-mix(in srgb, var(--primary) 26%, transparent) !important;
-  }
-
-  .task-index-badge {
-    background: linear-gradient(135deg, var(--primary-hover), var(--accent));
-    box-shadow: 0 12px 24px color-mix(in srgb, var(--primary-hover) 28%, transparent);
-  }
-
-  .stepper input {
-    background: color-mix(in srgb, var(--bg) 95%, transparent);
-    color: var(--text);
-    border-color: color-mix(in srgb, var(--border-strong) 60%, transparent);
-  }
-
-  .preview-surface {
-    background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, transparent), color-mix(in srgb, var(--bg) 96%, transparent));
-    border-color: color-mix(in srgb, var(--border-strong) 50%, transparent);
-  }
-
-  .print-page {
-    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.42);
-  }
-
-  .autocomplete-option strong {
-    color: var(--text);
-  }
-
-  .autocomplete-option small {
-    color: var(--text-soft);
-  }
-
-  .focus-chip {
-    background: color-mix(in srgb, var(--primary) 18%, transparent);
-    color: color-mix(in srgb, var(--primary) 35%, var(--surface));
-    border-color: color-mix(in srgb, var(--primary) 26%, transparent);
-  }
-
-  ::ng-deep .mat-mdc-text-field-wrapper {
-    background: color-mix(in srgb, var(--bg) 92%, transparent) !important;
-  }
-
-  ::ng-deep .mat-mdc-input-element,
-  ::ng-deep .mdc-floating-label,
-  ::ng-deep .mat-mdc-form-field-icon-suffix,
-  ::ng-deep .mat-mdc-form-field-icon-prefix {
-    color: color-mix(in srgb, var(--text) 88%, transparent) !important;
-    caret-color: color-mix(in srgb, var(--input-border-focus) 70%, white) !important;
-  }
-
-  ::ng-deep .mat-mdc-form-field .mdc-notched-outline__leading,
-  ::ng-deep .mat-mdc-form-field .mdc-notched-outline__notch,
-  ::ng-deep .mat-mdc-form-field .mdc-notched-outline__trailing {
-    border-color: color-mix(in srgb, var(--border-strong) 65%, transparent) !important;
-  }
-
-  ::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__leading,
-  ::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__notch,
-  ::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__trailing {
-    border-color: color-mix(in srgb, var(--text-soft) 90%, transparent) !important;
-  }
-
-  ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
-  ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
-  ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
-    border-color: var(--input-border-focus) !important;
-  }
-
-  ::ng-deep .mat-mdc-autocomplete-panel {
-    background: color-mix(in srgb, var(--surface) 98%, transparent) !important;
-    border-color: color-mix(in srgb, var(--border-strong) 50%, transparent) !important;
-    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.42) !important;
-  }
-
-  ::ng-deep .mat-mdc-option {
-    color: color-mix(in srgb, var(--text) 88%, transparent) !important;
-  }
-
-  ::ng-deep .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled),
-  ::ng-deep .mat-mdc-option:hover {
-    background: color-mix(in srgb, var(--primary) 16%, transparent) !important;
-  }
-
-  ::ng-deep .mat-pseudo-checkbox {
-    color: color-mix(in srgb, var(--input-border-focus) 70%, white) !important;
-  }
-}
-
 @media (max-width: 1280px) {
   .create-test-shell {
     grid-template-columns: 1fr;
@@ -877,5 +664,169 @@
 
   .advanced-toggle {
     margin-left: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .create-test-shell {
+    display: flex !important;
+    flex-direction: column !important;
+    height: auto;
+  }
+
+  .editor-pane,
+  .preview-pane {
+    width: 100% !important;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .summary-strip {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .summary-pill {
+    width: 100%;
+  }
+
+  .advanced-toggle {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .create-test-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 0;
+  }
+
+  .editor-pane,
+  .preview-pane {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 16px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
+  .row,
+  .meta-row,
+  .search-row,
+  .summary-strip,
+  .layout-toolbar,
+  .preset-toolbar,
+  .mode-switch,
+  .print-controls-grid,
+  .print-toggle-group,
+  .selected-task-main,
+  .task-settings-grid,
+  .header-tables,
+  .assign-preview,
+  .gap-fill-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .compact-grid,
+  .compact-grid.two-cols,
+  .compact-grid.three-cols,
+  .compact-grid.four-cols {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .toolbar-actions,
+  .stacked-actions,
+  .grading-footer-actions,
+  .print-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .toolbar-actions button,
+  .stacked-actions button,
+  .grading-footer-actions button,
+  .print-actions button,
+  .advanced-toggle {
+    width: 100%;
+  }
+
+  .summary-strip {
+    align-items: stretch;
+  }
+
+  .summary-pill {
+    width: 100%;
+  }
+
+  .hide-on-small {
+    display: none !important;
+  }
+
+  .selected-task-main {
+    align-items: flex-start;
+  }
+
+  .task-index-badge {
+    align-self: flex-start;
+  }
+
+  .task-copy {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .preview-scale {
+    transform: none !important;
+    width: 100%;
+  }
+
+  .print-page {
+    width: 100%;
+    min-width: 0;
+    padding: 16px;
+    box-sizing: border-box;
+  }
+
+  .preview-surface,
+  .print-area {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .multiple-choice-preview table,
+  .grading-table,
+  .result-table,
+  .assign-preview table,
+  .gap-fill-preview table {
+    width: 100%;
+    table-layout: fixed;
+    word-break: break-word;
+  }
+
+  .image-preview {
+    max-width: 100%;
+    height: auto;
+  }
+
+  mat-dialog-actions {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  mat-dialog-actions button {
+    width: 100%;
   }
 }

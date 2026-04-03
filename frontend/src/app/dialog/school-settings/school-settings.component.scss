@@ -19,12 +19,12 @@
     margin: 0 0 0.35rem;
     font-size: 1.05rem;
     font-weight: 700;
-    color: var(--theme-text);
+    color: var(--text);
   }
 
   p {
     margin: 0;
-    color: var(--theme-text-subtle);
+    color: var(--text-subtle);
   }
 }
 
@@ -53,19 +53,19 @@ mat-form-field {
 
 .logo-preview-card,
 .logo-actions-card {
-  border: 1px solid var(--theme-border);
+  border: 1px solid var(--border);
   border-radius: 20px;
-  background: var(--theme-surface-solid);
+  background: var(--surface-solid);
   padding: 1rem;
 }
 
 .preview-box {
   min-height: 260px;
   border-radius: 18px;
-  border: 1px dashed var(--theme-border-strong);
+  border: 1px dashed var(--border-strong);
   background:
     radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 32%),
-    linear-gradient(180deg, var(--theme-bg-soft) 0%, var(--theme-bg-soft) 100%);
+    linear-gradient(180deg, var(--bg-soft) 0%, var(--bg-soft) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -83,7 +83,7 @@ mat-form-field {
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
-  color: var(--theme-text-soft);
+  color: var(--text-soft);
 
   mat-icon {
     font-size: 40px;
@@ -100,14 +100,14 @@ mat-form-field {
 
 .hint {
   margin: 1rem 0;
-  color: var(--theme-text-soft);
+  color: var(--text-soft);
   font-size: 0.92rem;
 }
 
 .coming-soon-card {
   border-radius: 20px;
-  border: 1px solid var(--theme-border);
-  background: var(--theme-surface-solid);
+  border: 1px solid var(--border);
+  background: var(--surface-solid);
 }
 
 .coming-soon {
@@ -116,19 +116,19 @@ mat-form-field {
   align-items: flex-start;
 
   mat-icon {
-    color: var(--theme-primary);
+    color: var(--primary);
     margin-top: 0.1rem;
   }
 
   strong {
     display: block;
     margin-bottom: 0.25rem;
-    color: var(--theme-text);
+    color: var(--text);
   }
 
   p {
     margin: 0;
-    color: var(--theme-text-soft);
+    color: var(--text-soft);
   }
 }
 
@@ -143,30 +143,30 @@ mat-form-field {
   gap: 0.9rem;
   padding: 1rem;
   border-radius: 18px;
-  border: 1px solid var(--theme-border);
-  background: var(--theme-surface-solid);
+  border: 1px solid var(--border);
+  background: var(--surface-solid);
 
   mat-icon {
-    color: var(--theme-primary);
+    color: var(--primary);
     margin-top: 0.1rem;
   }
 
   strong {
     display: block;
     margin-bottom: 0.25rem;
-    color: var(--theme-text);
+    color: var(--text);
   }
 
   p {
     margin: 0;
-    color: var(--theme-text-soft);
+    color: var(--text-soft);
   }
 }
 
 .not-allowed {
   padding: 2rem 1rem 1rem;
   text-align: center;
-  color: var(--theme-text-soft);
+  color: var(--text-soft);
 
   mat-icon {
     font-size: 44px;
@@ -177,7 +177,7 @@ mat-form-field {
 
   h3 {
     margin: 0.75rem 0 0.35rem;
-    color: var(--theme-text);
+    color: var(--text);
   }
 
   p {

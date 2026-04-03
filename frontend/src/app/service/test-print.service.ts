@@ -185,7 +185,7 @@ export class TestPrintService {
         .meta-line span { white-space: nowrap; font-weight: 600; }
         .meta-line .line { border-bottom: 1px solid #222; height: 14px; width: 100%; }
         .header-tables.stacked { display: flex; flex-direction: column; gap: 10px; margin: 10px 0 12px; }
-        .result-table { width: 220px; }
+        .result-table { width: 100%; }
         table { border-collapse: collapse; width: 100%; }
         .compact-table th, .compact-table td, .answer-table-wrap td, .answer-table-wrap th,
         .assign-preview td, .assign-preview th, .gap-grid td, .gap-grid th {

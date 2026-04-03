@@ -50,7 +50,7 @@
   font-size: 1.2rem;
   font-weight: 800;
   letter-spacing: 0.01em;
-  color: var(--theme-text);
+  color: var(--text);
   white-space: nowrap;
 }
 
@@ -68,7 +68,7 @@
   height: 42px;
   padding: 0 1rem;
   border-radius: 14px;
-  color: var(--theme-text-subtle-2);
+  color: var(--text-subtle-2);
   font-weight: 600;
   transition:
     background-color 0.18s ease,
@@ -78,12 +78,12 @@
 
 .navbar-right a[mat-button]:hover {
   background: var(--primary-soft);
-  color: var(--theme-primary-strong);
+  color: var(--primary-strong);
 }
 
 .navbar-right a[mat-button].active-link {
   background: var(--surface-2);
-  color: var(--theme-primary-strong);
+  color: var(--primary-strong);
   box-shadow: inset 0 0 0 1px var(--primary-border-soft);
 }
 
@@ -97,7 +97,7 @@
   width: 42px;
   height: 42px;
   border-radius: 14px;
-  color: var(--theme-text-subtle-2);
+  color: var(--text-subtle-2);
   transition:
     background-color 0.18s ease,
     color 0.18s ease,
@@ -106,7 +106,7 @@
 
 .icon-btn:hover {
   background: var(--primary-soft);
-  color: var(--theme-primary-strong);
+  color: var(--primary-strong);
 }
 
 .notif-trigger {
@@ -125,12 +125,12 @@
   align-items: center;
   justify-content: center;
   background: var(--danger-gradient);
-  color: var(--theme-surface-solid);
+  color: var(--surface-solid);
   font-size: 0.68rem;
   font-weight: 800;
   line-height: 1;
   box-shadow: var(--shadow-danger);
-  border: 2px solid var(--theme-surface-solid);
+  border: 2px solid var(--surface-solid);
 }
 
 .avatar-btn {
@@ -177,7 +177,7 @@
   display: grid;
   place-items: center;
   background: var(--avatar-gradient);
-  color: var(--theme-primary-deep);
+  color: var(--primary-deep);
   font-weight: 800;
   font-size: 0.92rem;
   border: 1px solid var(--avatar-border);
@@ -210,7 +210,7 @@
 
 .notif-header {
   padding: 1rem 1rem 0.85rem;
-  border-bottom: 1px solid var(--theme-border);
+  border-bottom: 1px solid var(--border);
   background: linear-gradient(180deg, var(--surface-2), var(--surface));
 }
 
@@ -224,12 +224,12 @@
 .notif-heading {
   font-size: 1rem;
   font-weight: 800;
-  color: var(--theme-text);
+  color: var(--text);
 }
 
 .notif-subtitle {
   margin-top: 0.2rem;
-  color: var(--theme-text-soft);
+  color: var(--text-soft);
   font-size: 0.86rem;
   line-height: 1.4;
 }
@@ -246,12 +246,12 @@
 }
 
 .notif-tool-btn {
-  color: var(--theme-text-subtle);
+  color: var(--text-subtle);
 }
 
 .notif-tool-btn:hover {
   background: var(--primary-soft);
-  color: var(--theme-primary-strong);
+  color: var(--primary-strong);
 }
 
 .notif-counter {
@@ -263,7 +263,7 @@
   align-items: center;
   justify-content: center;
   background: var(--primary-soft);
-  color: var(--theme-primary-strong);
+  color: var(--primary-strong);
   font-weight: 800;
   border: 1px solid var(--primary-border-soft);
 }
@@ -290,7 +290,7 @@
 .active-tab {
   background: var(--primary-soft) !important;
   border-color: var(--primary-border-medium) !important;
-  color: var(--theme-primary-strong) !important;
+  color: var(--primary-strong) !important;
 }
 
 .history-expand-toggle {
@@ -302,7 +302,7 @@
   padding: 1rem;
   border-radius: 18px;
   background: var(--surface-2);
-  border: 1px solid var(--theme-border);
+  border: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -310,7 +310,7 @@
 
 .system-info-composer-title {
   font-weight: 700;
-  color: var(--theme-text);
+  color: var(--text);
 }
 
 .system-info-scope {
@@ -323,7 +323,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  color: var(--theme-text-subtle-2);
+  color: var(--text-subtle-2);
   font-weight: 600;
 }
 
@@ -332,7 +332,7 @@
   border: 1px solid var(--input-border);
   border-radius: 14px;
   background: var(--input-bg);
-  color: var(--theme-text);
+  color: var(--text);
   font: inherit;
   padding: 0.8rem 0.95rem;
   transition:
@@ -373,7 +373,7 @@
 .notif-item {
   padding: 0.95rem;
   border-radius: 18px;
-  border: 1px solid var(--theme-border);
+  border: 1px solid var(--border);
   background: var(--surface);
   transition:
     border-color 0.18s ease,
@@ -402,7 +402,7 @@
 
 .notif-read,
 .notif-history {
-  background: var(--theme-bg-soft);
+  background: var(--bg-soft);
 }
 
 .notif-top {
@@ -419,7 +419,7 @@
   display: grid;
   place-items: center;
   background: var(--primary-soft-strong);
-  color: var(--theme-primary-strong);
+  color: var(--primary-strong);
 }
 
 .notif-main {
@@ -440,14 +440,14 @@
 
 .notif-title {
   font-weight: 700;
-  color: var(--theme-text);
+  color: var(--text);
   line-height: 1.35;
 }
 
 .notif-meta {
   margin-top: 0.2rem;
   font-size: 0.82rem;
-  color: var(--theme-text-soft);
+  color: var(--text-soft);
 }
 
 .notif-title-actions {
@@ -461,15 +461,15 @@
   padding: 0.3rem 0.65rem;
   border-radius: 999px;
   background: var(--surface-2);
-  color: var(--theme-text-subtle-2);
+  color: var(--text-subtle-2);
   font-size: 0.74rem;
   font-weight: 700;
-  border: 1px solid var(--theme-border);
+  border: 1px solid var(--border);
 }
 
 .notif-message {
   margin-top: 0.55rem;
-  color: var(--theme-text-subtle-2);
+  color: var(--text-subtle-2);
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
@@ -485,7 +485,7 @@
 }
 
 .notif-date {
-  color: var(--theme-text-soft);
+  color: var(--text-soft);
   font-size: 0.8rem;
 }
 
@@ -511,28 +511,24 @@
   display: grid;
   place-items: center;
   background: var(--primary-soft-strong);
-  color: var(--theme-primary-strong);
+  color: var(--primary-strong);
   margin-bottom: 0.9rem;
 }
 
 .empty-title {
   font-weight: 800;
-  color: var(--theme-text);
+  color: var(--text);
 }
 
 .empty-text {
   margin-top: 0.4rem;
   max-width: 340px;
-  color: var(--theme-text-soft);
+  color: var(--text-soft);
   line-height: 1.45;
 }
 
-.mat-mdc-icon-button{
-  color: var(--theme-text);
-}
-
 .mat-mdc-outlined-button:not(:disabled){
-  color: var(--theme-text);
+  color: var(--text);
 }
 
 @media (max-width: 900px) {
@@ -548,7 +544,7 @@
   }
 
   .navbar-left {
-    justify-content: center;
+    display: none;
   }
 
   .navbar-right {

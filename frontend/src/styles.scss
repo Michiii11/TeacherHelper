@@ -1,6 +1,3 @@
-/* styles.scss */
-/* vorhandenen Inhalt beibehalten – diese Variablen in :root und html.dark-mode/body.dark-mode ergänzen bzw. ersetzen */
-
 html,
 body {
   height: 100%;
@@ -15,43 +12,45 @@ body {
 body {
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
-  color: var(--theme-text);
+  color: var(--text);
 }
 
 :root {
   color-scheme: light;
 
-  --theme-bg-gradient: radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 24%),
-  radial-gradient(circle at top right, rgba(99, 102, 241, 0.10), transparent 18%),
-  linear-gradient(180deg, var(--theme-bg-soft) 0%, var(--theme-bg) 100%);
+  --bg-gradient:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 24%),
+    radial-gradient(circle at top right, rgba(99, 102, 241, 0.10), transparent 18%),
+    linear-gradient(180deg, var(--bg-soft) 0%, var(--bg) 100%);
 
-  --theme-bg-base: hsla(210, 40%, 98%, 1);
-  --theme-bg-soft: hsla(210, 100%, 99%, 1);
-  --theme-bg: hsla(216, 60%, 97%, 1);
+  --bg-base: hsla(210, 40%, 98%, 1);
+  --bg-soft: hsla(210, 100%, 99%, 1);
+  --bg: hsla(216, 60%, 97%, 1);
 
-  --theme-surface-solid: hsla(0, 0%, 100%, 1);
+  --surface-solid: hsla(0, 0%, 100%, 1);
 
-  --theme-text: hsla(222, 47%, 11%, 1);
-  --theme-text-soft: hsla(215, 20%, 65%, 1);
-  --theme-text-muted: hsla(215, 16%, 73%, 1);
-  --theme-text-subtle: hsla(215, 25%, 35%, 1);
-  --theme-text-subtle-2: hsla(217, 33%, 27%, 1);
+  --text: hsla(222, 47%, 11%, 1);
+  --text-soft: hsla(215, 20%, 65%, 1);
+  --text-muted: hsla(215, 16%, 73%, 1);
+  --text-subtle: hsla(215, 25%, 35%, 1);
+  --text-subtle-2: hsla(217, 33%, 27%, 1);
 
-  --theme-border: hsla(214, 32%, 91%, 1);
-  --theme-border-strong: hsla(214, 32%, 85%, 1);
-  --theme-border-soft-2: hsla(214, 32%, 95%, 1);
+  --border: hsla(214, 32%, 91%, 1);
+  --border-strong: hsla(214, 32%, 85%, 1);
+  --border-soft: hsla(214, 32%, 91%, 0.72);
+  --border-soft-2: hsla(214, 32%, 95%, 1);
 
-  --theme-primary: hsla(221, 83%, 53%, 1);
-  --theme-primary-2: hsla(243, 75%, 59%, 1);
-  --theme-primary-strong: hsla(224, 76%, 48%, 1);
-  --theme-primary-2-strong: hsla(244, 64%, 50%, 1);
-  --theme-primary-light: hsla(213, 94%, 68%, 1);
-  --theme-primary-lighter: hsla(213, 97%, 78%, 1);
-  --theme-primary-text-soft: hsla(214, 100%, 93%, 1);
-  --theme-primary-surface: hsla(214, 95%, 88%, 1);
-  --theme-primary-surface-2: hsla(230, 91%, 91%, 1);
-  --theme-primary-surface-text: hsla(214, 100%, 97%, 1);
-  --theme-primary-deep: hsla(226, 71%, 30%, 1);
+  --primary: hsla(221, 83%, 53%, 1);
+  --primary-2: hsla(243, 75%, 59%, 1);
+  --primary-strong: hsla(224, 76%, 48%, 1);
+  --primary-2-strong: hsla(244, 64%, 50%, 1);
+  --primary-light: hsla(213, 94%, 68%, 1);
+  --primary-lighter: hsla(213, 97%, 78%, 1);
+  --primary-text-soft: hsla(214, 100%, 93%, 1);
+  --primary-surface: hsla(214, 95%, 88%, 1);
+  --primary-surface-2: hsla(230, 91%, 91%, 1);
+  --primary-surface-text: hsla(214, 100%, 97%, 1);
+  --primary-deep: hsla(226, 71%, 30%, 1);
 
   --theme-success: hsla(172, 72%, 41%, 1);
   --theme-success-strong: hsla(173, 80%, 26%, 1);
@@ -75,45 +74,35 @@ body {
   --theme-avatar-fallback: hsla(0, 0%, 16%, 1);
   --theme-on-primary: white;
 
-  --bg: var(--theme-bg);
-  --surface: var(--theme-surface-solid);
-  --surface-soft: var(--theme-bg-soft);
+  --surface: var(--surface-solid);
+  --surface-soft: var(--bg-soft);
   --surface-muted: hsla(216, 60%, 98%, 1);
   --surface-2: hsla(210, 40%, 96%, 1);
   --surface-3: hsla(214, 32%, 94%, 1);
 
-  --text: var(--theme-text);
-  --text-soft: var(--theme-text-soft);
-  --text-muted: var(--theme-text-muted);
-
-  --border: var(--theme-border);
-  --border-strong: var(--theme-border-strong);
-  --border-soft: hsla(214, 32%, 91%, 0.72);
-
-  --accent: var(--theme-primary);
-  --primary: var(--theme-primary);
+  --accent: var(--primary);
   --primary-soft: hsla(221, 83%, 53%, 0.08);
   --primary-soft-strong: hsla(221, 83%, 53%, 0.12);
   --primary-border-soft: hsla(221, 83%, 53%, 0.14);
   --primary-border-medium: hsla(221, 83%, 53%, 0.22);
   --primary-ring: hsla(221, 83%, 53%, 0.10);
 
-  --input-bg: var(--theme-surface-solid);
-  --input-border: var(--theme-border-strong);
+  --input-bg: var(--surface-solid);
+  --input-border: var(--border-strong);
   --input-border-hover: hsla(215, 25%, 35%, 0.35);
   --input-border-focus: hsla(221, 83%, 53%, 0.55);
 
-  --menu-bg: var(--theme-surface-solid);
+  --menu-bg: var(--surface-solid);
   --overlay-bg: hsla(0, 0%, 100%, 0.98);
-  --navbar-bg: var(--theme-bg-base);
+  --navbar-bg: var(--bg-base);
   --navbar-border: hsla(215, 16%, 73%, 0.18);
 
   --row-hover: hsla(221, 83%, 53%, 0.04);
 
   --avatar-gradient: linear-gradient(
       135deg,
-      var(--theme-primary-surface),
-      var(--theme-primary-surface-2)
+      var(--primary-surface),
+      var(--primary-surface-2)
   );
   --avatar-border: hsla(215, 16%, 73%, 0.22);
 
@@ -136,39 +125,40 @@ html.dark-mode,
 body.dark-mode {
   color-scheme: dark;
 
-  --theme-bg-base: hsla(224, 55%, 6%, 1);
-  --theme-bg-soft: hsla(222, 45%, 10%, 1);
-  --theme-bg: hsla(224, 50%, 8%, 1);
+  --bg-base: hsla(224, 55%, 6%, 1);
+  --bg-soft: hsla(222, 45%, 10%, 1);
+  --bg: hsla(224, 50%, 8%, 1);
 
-  --theme-bg-gradient:
+  --bg-gradient:
     radial-gradient(circle at 20% 0%, hsla(221, 83%, 55%, 0.10), transparent 30%),
     radial-gradient(circle at 80% 0%, hsla(243, 75%, 60%, 0.12), transparent 28%),
     linear-gradient(180deg, #05070f 0%, #0a0f1f 60%, #0d1326 100%);
 
-  --theme-surface-solid: hsla(222, 40%, 12%, 1);
+  --surface-solid: hsla(222, 40%, 12%, 1);
 
-  --theme-text: hsla(210, 40%, 98%, 1);
-  --theme-text-soft: hsla(215, 16%, 70%, 1);
-  --theme-text-muted: hsla(215, 16%, 60%, 1);
-  --theme-text-subtle: hsla(215, 18%, 72%, 1);
-  --theme-text-subtle-2: hsla(210, 30%, 85%, 1);
+  --text: hsla(210, 40%, 98%, 1);
+  --text-soft: hsla(215, 16%, 70%, 1);
+  --text-subtle: hsla(215, 18%, 72%, 1);
+  --text-subtle-2: hsla(210, 30%, 85%, 1);
+  --text-muted: var(--text-muted);
 
-  --theme-border: hsla(220, 25%, 20%, 1);
-  --theme-border-strong: hsla(220, 30%, 28%, 1);
-  --theme-border-soft-2: hsla(220, 30%, 24%, 0.55);
+  --border: hsla(220, 25%, 20%, 1);
+  --border-strong: hsla(220, 30%, 28%, 1);
+  --border-soft-2: hsla(220, 30%, 24%, 0.55);
+  --border-soft: hsla(220, 25%, 20%, 0.75);
 
-  --theme-primary: hsla(221, 83%, 60%, 1);
-  --theme-primary-2: hsla(243, 75%, 66%, 1);
-  --theme-primary-strong: hsla(213, 94%, 78%, 1);
-  --theme-primary-2-strong: hsla(244, 80%, 74%, 1);
-  --theme-primary-light: hsla(213, 94%, 68%, 1);
-  --theme-primary-lighter: hsla(213, 97%, 78%, 1);
-  --theme-primary-text-soft: hsla(214, 100%, 93%, 1);
+  --primary: hsla(221, 83%, 60%, 1);
+  --primary-2: hsla(243, 75%, 66%, 1);
+  --primary-strong: hsla(213, 94%, 78%, 1);
+  --primary-2-strong: hsla(244, 80%, 74%, 1);
+  --primary-light: hsla(213, 94%, 68%, 1);
+  --primary-lighter: hsla(213, 97%, 78%, 1);
+  --primary-text-soft: hsla(214, 100%, 93%, 1);
 
-  --theme-primary-surface: hsla(221, 83%, 53%, 0.14);
-  --theme-primary-surface-2: hsla(243, 75%, 59%, 0.12);
-  --theme-primary-surface-text: hsla(221, 83%, 53%, 0.16);
-  --theme-primary-deep: hsla(210, 40%, 98%, 1);
+  --primary-surface: hsla(221, 83%, 53%, 0.14);
+  --primary-surface-2: hsla(243, 75%, 59%, 0.12);
+  --primary-surface-text: hsla(221, 83%, 53%, 0.16);
+  --primary-deep: hsla(210, 40%, 98%, 1);
 
   --theme-success: hsla(172, 72%, 41%, 1);
   --theme-success-strong: hsla(165, 84%, 75%, 1);
@@ -181,20 +171,11 @@ body.dark-mode {
   --theme-danger: hsla(0, 91%, 71%, 1);
   --theme-danger-border-strong: hsla(0, 63%, 28%, 1);
 
-  --bg: var(--theme-bg);
-  --surface: var(--theme-surface-solid);
+  --surface: var(--surface-solid);
   --surface-soft: hsla(222, 40%, 10%, 1);
-  --surface-muted: var(--theme-bg);
+  --surface-muted: var(--bg);
   --surface-2: hsla(222, 38%, 14%, 1);
   --surface-3: hsla(222, 34%, 18%, 1);
-
-  --text: var(--theme-text);
-  --text-soft: var(--theme-text-soft);
-  --text-muted: var(--theme-text-muted);
-
-  --border: var(--theme-border);
-  --border-strong: var(--theme-border-strong);
-  --border-soft: hsla(220, 25%, 20%, 0.75);
 
   --primary-soft: hsla(221, 83%, 60%, 0.10);
   --primary-soft-strong: hsla(221, 83%, 60%, 0.14);
@@ -229,7 +210,6 @@ body.dark-mode {
   --navbar-shadow: 0 10px 30px hsla(0, 0%, 0%, 0.45);
   --navbar-shadow-scrolled: 0 18px 45px hsla(0, 0%, 0%, 0.6);
 }
-
 
 a {
   color: var(--primary);
@@ -309,11 +289,12 @@ a {
 .mock-kpi-label,
 .mock-row,
 .mock-row span {
-  color: var(--theme-text-subtle) !important;
+  color: var(--text-subtle) !important;
 }
 
-.mat-mdc-select, .mat-mdc-option{
-  color: var(--theme-text) !important;
+.mat-mdc-select,
+.mat-mdc-option {
+  color: var(--text) !important;
 }
 
 .navbar,
@@ -326,7 +307,7 @@ a {
 
 .app-footer {
   background: var(--surface);
-  color: var(--theme-text-subtle);
+  color: var(--text-subtle);
   border-top: 1px solid var(--border);
 }
 
@@ -337,7 +318,7 @@ a {
 .icon-wrapper,
 .feature-icon {
   background: var(--primary) !important;
-  color: var(--theme-bg) !important;
+  color: var(--bg) !important;
 }
 
 .avatar-shell {
@@ -439,7 +420,7 @@ textarea::placeholder {
 }
 
 .mat-mdc-tab .mdc-tab__text-label {
-  color: var(--theme-text) !important;
+  color: var(--text) !important;
 }
 
 .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
@@ -447,16 +428,11 @@ textarea::placeholder {
 }
 
 .mat-mdc-tab-header-pagination-chevron {
-  border-color: var(--theme-text-subtle) !important;
+  border-color: var(--text-subtle) !important;
 }
 
 .mat-mdc-form-field {
   color: var(--text) !important;
-}
-
-.mat-mdc-form-field .mdc-text-field--outlined {
-  background: var(--input-bg) !important;
-  border-radius: 14px !important;
 }
 
 .mat-mdc-input-element {
@@ -465,7 +441,7 @@ textarea::placeholder {
 }
 
 .mat-mdc-form-field .mdc-floating-label {
-  color: var(--theme-text-subtle) !important;
+  color: var(--text-subtle) !important;
 }
 
 .mat-mdc-form-field.mat-focused .mdc-floating-label {
@@ -492,7 +468,7 @@ textarea::placeholder {
 
 .mat-mdc-form-field .mat-mdc-form-field-icon-prefix,
 .mat-mdc-form-field .mat-mdc-form-field-icon-suffix {
-  color: var(--theme-text-subtle) !important;
+  color: var(--text-subtle) !important;
 }
 
 .mat-mdc-progress-bar {
@@ -516,8 +492,35 @@ textarea::placeholder {
 .mat-mdc-raised-button:not(:disabled),
 .mat-mdc-unelevated-button:not(:disabled),
 .mat-mdc-unelevated-button.mat-primary,
-.mat-mdc-raised-button.mat-primary {
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-icon-button {
   color: var(--button-text) !important;
+  transition: all 0.2s ease;
+}
+
+button[mat-stroked-button] {
+  border-color: var(--primary-border-medium) !important;
+  color: var(--primary-strong) !important;
+  background: transparent;
+  border-radius: 14px;
+}
+
+button[mat-stroked-button]:hover {
+  background: var(--primary-soft) !important;
+}
+
+.mat-mdc-unelevated-button:not(:disabled),
+.mat-mdc-unelevated-button[disabled] {
+  border-radius: 14px;
+}
+
+.mat-button-toggle-appearance-standard.mat-button-toggle-checked {
+  background: var(--primary) !important;
+  color: var(--theme-on-primary) !important;
+}
+
+.mat-mdc-icon-button {
+  color: var(--text) !important;
 }
 
 .mat-mdc-icon-button:hover {
@@ -527,12 +530,12 @@ textarea::placeholder {
 
 .mat-mdc-mini-fab.mat-primary,
 .mat-mdc-fab.mat-primary {
-  background: var(--theme-primary-2) !important;
+  background: var(--primary) !important;
   color: var(--button-text) !important;
 }
 
-.mat-button-toggle-appearance-standard{
-  color: var(--theme-text-soft) !important;
+.mat-button-toggle-appearance-standard {
+  color: var(--text-soft) !important;
 }
 
 .mat-mdc-table,
@@ -547,7 +550,7 @@ textarea::placeholder {
 }
 
 .mat-mdc-header-cell {
-  color: var(--theme-text-subtle) !important;
+  color: var(--text-subtle) !important;
   border-bottom-color: var(--border) !important;
 }
 
@@ -603,7 +606,7 @@ textarea::placeholder {
 }
 
 .logo-fallback {
-  color: var(--theme-text-subtle);
+  color: var(--text-subtle);
 }
 
 .mat-mdc-card,
@@ -621,4 +624,47 @@ button {
     color 180ms ease,
     border-color 180ms ease,
     box-shadow 180ms ease;
+}
+
+
+.mdc-notched-outline__leading,
+.mdc-notched-outline__notch,
+.mdc-notched-outline__trailing {
+  border-top-width: 1px !important;
+}
+
+.mdc-notched-outline__notch {
+  border-left: none !important;
+  border-right: none !important;
+}
+
+
+.mobile-fullscreen-dialog {
+  .mat-mdc-dialog-surface {
+    border-radius: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-width: 100vw !important;
+    max-height: 100dvh !important;
+  }
+}
+
+.test-preview-dialog .mat-mdc-dialog-surface {
+  height: 92vh !important;
+  max-height: 92vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.test-preview-dialog .mat-mdc-dialog-inner-container {
+  height: 100%;
+}
+
+.test-preview-dialog .mat-mdc-dialog-container {
+  height: 100%;
+}
+
+.test-preview-dialog .mdc-dialog__surface {
+  height: 92vh !important;
+  max-height: 92vh !important;
 }

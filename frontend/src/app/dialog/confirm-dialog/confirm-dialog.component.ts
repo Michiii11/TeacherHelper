@@ -57,6 +57,7 @@ import { MatIconModule } from '@angular/material/icon';
   styles: [`
     :host {
       display: block;
+      background: var(--menu-bg);
     }
 
     .dialog-shell {
@@ -77,7 +78,7 @@ import { MatIconModule } from '@angular/material/icon';
       display: grid;
       place-items: center;
       background: var(--theme-danger);
-      color: var(--theme-bg);
+      color: var(--bg);
     }
 
     .header-text h2 {
@@ -90,7 +91,7 @@ import { MatIconModule } from '@angular/material/icon';
     .header-text p {
       margin: .35rem 0 0;
       font-size: .92rem;
-      color: var(--theme-text-subtle);
+      color: var(--text-subtle);
       line-height: 1.5;
     }
 

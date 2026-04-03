@@ -6,7 +6,6 @@
 .create-example-shell {
   display: grid;
   grid-template-columns: 3fr 2fr;
-  gap: 1rem;
   align-items: start;
   width: 100%;
   min-width: 0;
@@ -18,7 +17,11 @@ mat-dialog-content {
 }
 
 mat-divider{
-  border-color: var(--theme-border);
+  border-color: var(--border);
+}
+
+.mat-mdc-standard-chip:not(.mdc-evolution-chip--disabled) .mdc-evolution-chip__text-label{
+  color: var(--text) !important;
 }
 
 .create-example-dialog,
@@ -198,8 +201,9 @@ mat-divider{
   padding: 0.95rem;
   height: 60vh;
   border-radius: 18px;
-  border: 1px solid var(--theme-border);
-  color: var(--theme-text);
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  color: var(--text);
   overflow-wrap: anywhere;
 }
 
@@ -266,6 +270,10 @@ mat-divider{
   padding: 0.15rem 0 0.35rem;
 }
 
+.focus-chip-grid.hidden-chip-grid {
+  display: none;
+}
+
 .focus-input {
   margin-top: 0.2rem;
 }
@@ -308,13 +316,25 @@ mat-divider{
   border-radius: 999px !important;
   padding-inline: 0.35rem !important;
   min-height: 34px !important;
+  background: var(--primary-soft) !important;
+  border: 1px solid var(--primary-border-medium) !important;
+}
+
+::ng-deep .mat-mdc-chip-row .mdc-evolution-chip__graphic,
+::ng-deep .mat-mdc-chip-row .mdc-evolution-chip__cell,
+::ng-deep .mat-mdc-chip-row .mdc-evolution-chip__action,
+::ng-deep .mat-mdc-chip-row .mdc-evolution-chip__text-label {
+  color: var(--primary) !important;
 }
 
 ::ng-deep .mat-mdc-chip-row .mdc-evolution-chip__text-label {
   font-weight: 600;
 }
 
-::ng-deep .mat-mdc-chip-remove {
+::ng-deep .mat-mdc-chip-row .mat-mdc-chip-remove,
+::ng-deep .mat-mdc-chip-row .mat-mdc-chip-remove mat-icon,
+::ng-deep .mat-mdc-chip-row button {
+  color: var(--primary) !important;
   opacity: 0.9;
 }
 
@@ -356,5 +376,66 @@ mat-divider{
     grid-template-columns: 1fr;
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+@media (max-width: 768px) {
+  .create-example-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .create-example-dialog,
+  .create-example-layout {
+    width: 100%;
+    max-width: 100%;
+    padding: 16px;
+    box-sizing: border-box;
+  }
+
+  .row,
+  .type-selection,
+  .item-row,
+  .assign-row,
+  .option-row,
+  .assign-board {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .assign-board {
+    display: flex;
+    gap: 16px;
+  }
+
+  .assign-column,
+  .item-input,
+  .assign-select,
+  .full-width {
+    width: 100%;
+  }
+
+  .panel-actions {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  mat-dialog-actions {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  mat-dialog-actions button {
+    width: 100%;
+  }
+
+  .image-preview {
+    max-width: 100%;
+    height: auto;
   }
 }

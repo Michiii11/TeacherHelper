@@ -1,8 +1,7 @@
 .app-footer {
-  margin-top: 2rem;
   padding: 0.8rem 1.2rem;
-  border-top: 1px solid var(--theme-border);
-  background: var(--theme-surface-solid);
+  border-top: 1px solid var(--border);
+  background: var(--surface-solid);
 }
 
 .footer-inner {
@@ -24,12 +23,12 @@
   gap: 0.5rem;
 
   font-size: 0.85rem;
-  color: var(--theme-text-soft);
+  color: var(--text-soft);
 }
 
 .brand {
   font-weight: 600;
-  color: var(--theme-text);
+  color: var(--text);
 }
 
 /* LINKS */
@@ -45,12 +44,12 @@
   border: none;
   padding: 0.2rem 0.4rem;
   font-size: 0.85rem;
-  color: var(--theme-text-subtle);
+  color: var(--text-subtle);
   cursor: pointer;
   border-radius: 6px;
   transition: all 0.15s ease;
 }
 
 .link:hover {
-  color: var(--theme-text);
+  color: var(--text);
 }

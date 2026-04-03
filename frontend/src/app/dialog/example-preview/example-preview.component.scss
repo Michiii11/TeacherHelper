@@ -29,7 +29,7 @@
 .preview-panel {
   padding: 1rem;
   border-radius: 20px;
-  background: var(--surface-2);
+  background: var(--bg-soft);
   border: 1px solid var(--border);
   color: var(--text);
   overflow-wrap: anywhere;
@@ -114,42 +114,6 @@
 
 ::ng-deep .mat-pseudo-checkbox::after {
   color: inherit !important;
-}
-
-/* DARK MODE */
-
-:host-context(.dark-mode) .preview-header h1 {
-  color: var(--text);
-}
-
-:host-context(.dark-mode) .preview-panel {
-  background: color-mix(in srgb, var(--bg) 90%, black);
-  border-color: var(--surface-3);
-  color: color-mix(in srgb, var(--text) 92%, transparent);
-}
-
-:host-context(.dark-mode) .preview-panel p {
-  color: color-mix(in srgb, var(--text) 82%, transparent);
-}
-
-:host-context(.dark-mode) .preview-panel strong {
-  color: var(--text);
-}
-
-:host-context(.dark-mode) .image-preview {
-  border-color: var(--border);
-}
-
-:host-context(.dark-mode) .multiple-choice-preview td,
-:host-context(.dark-mode) .gap-fill-preview td,
-:host-context(.dark-mode) .gap-fill-preview th,
-:host-context(.dark-mode) .assign-preview td {
-  border-color: var(--surface-3);
-  color: color-mix(in srgb, var(--text) 92%, transparent);
-}
-
-:host-context(.dark-mode) ::ng-deep .mat-pseudo-checkbox {
-  border-color: var(--text-muted) !important;
 }
 
 @media (max-width: 900px) {

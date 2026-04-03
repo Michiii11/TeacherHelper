@@ -3,10 +3,20 @@
   width: 100%;
   max-width: 1040px;
   margin: 0 auto;
+  padding: 1.15rem 1.15rem 1.2rem;
+  height: 100%;
 }
 
 .test-preview-shell {
-  display: block;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.test-preview-layout {
+  height: 100%;
+  min-height: 0;
 }
 
 .test-preview-layout {
@@ -15,10 +25,30 @@
   gap: 1rem;
   padding: 1.2rem;
   box-sizing: border-box;
-  max-height: 92vh;
-  overflow: auto;
-  background: var(--surface);
   border-radius: 28px;
+}
+
+.print-area.preview-surface {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.preview-scale {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.print-page {
+  width: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.test-preview-layout.mat-mdc-dialog-content {
+  max-height: none !important;
+  overflow: hidden !important;
 }
 
 .preview-toolbar {
@@ -33,7 +63,7 @@
   font-size: 1.2rem;
   line-height: 1.1;
   font-weight: 800;
-  color: color-mix(in srgb, var(--text) 94%, transparent);
+  color: var(--text);
 }
 
 .preview-toolbar-text p {
@@ -52,7 +82,7 @@
 .settings-card {
   padding: 1rem 1.1rem;
   border-radius: 22px;
-  background: color-mix(in srgb, var(--surface) 85%, #fafafa);
+  background: var(--menu-bg);
   border: 1px solid color-mix(in srgb, var(--border) 85%, #dbe1ea);
 }
 
@@ -119,9 +149,8 @@
 }
 
 .preview-surface {
-  padding: 1.4rem;
+  padding: 1rem;
   border-radius: 0;
-  background: color-mix(in srgb, var(--surface-2) 50%, #dfe7f4);
   border: none;
 }
 
@@ -133,7 +162,7 @@
   width: 100%;
   max-width: 860px;
   margin: 0 auto;
-  background: var(--surface);
+  background: var(--bg-soft);
   border-radius: 10px;
   padding: 2rem 2.2rem;
   box-sizing: border-box;
@@ -336,113 +365,6 @@
 
 ::ng-deep .mat-pseudo-checkbox {
   border-color: color-mix(in srgb, var(--text-soft) 55%, #6b7280) !important;
-}
-
-.dark-mode :host,
-:host-context(.dark-mode) {
-  color-scheme: dark;
-}
-
-/* DARK MODE – nahe an der hellen Version */
-
-:host-context(.dark-mode) .test-preview-layout {
-  background: var(--bg);
-}
-
-:host-context(.dark-mode) .preview-toolbar-text h1 {
-  color: var(--text);
-}
-
-:host-context(.dark-mode) .preview-toolbar-text p {
-  color: var(--text-soft);
-}
-
-:host-context(.dark-mode) .settings-card {
-  background: var(--surface);
-  border-color: color-mix(in srgb, var(--surface-3) 70%, #263244);
-}
-
-:host-context(.dark-mode) .count-picker .label {
-  color: var(--text-soft);
-}
-
-:host-context(.dark-mode) .stepper input {
-  background: color-mix(in srgb, var(--bg) 90%, #0b1220);
-  border-color: var(--border);
-  color: color-mix(in srgb, var(--text) 92%, transparent);
-}
-
-:host-context(.dark-mode) .stepper input:focus {
-  border-color: color-mix(in srgb, var(--input-border-focus) 75%, #5b8def);
-}
-
-:host-context(.dark-mode) .print-toggle-group button.active {
-  border-color: var(--primary) !important;
-  background: color-mix(in srgb, var(--primary) 12%, transparent) !important;
-  color: var(--primary) !important;
-}
-
-:host-context(.dark-mode) .preview-surface {
-  background: none;
-}
-
-:host-context(.dark-mode) .print-page {
-  background: color-mix(in srgb, var(--bg) 94%, #020817);
-  box-shadow: none;
-}
-
-:host-context(.dark-mode) .test-header,
-:host-context(.dark-mode) .task,
-:host-context(.dark-mode) .preview-panel,
-:host-context(.dark-mode) .preview-panel p,
-:host-context(.dark-mode) .task-title,
-:host-context(.dark-mode) .task-points,
-:host-context(.dark-mode) .good-luck,
-:host-context(.dark-mode) .grading-title,
-:host-context(.dark-mode) .meta-line {
-  color: var(--text);
-}
-
-:host-context(.dark-mode) .teacher-note {
-  color: color-mix(in srgb, var(--text) 82%, transparent);
-}
-
-:host-context(.dark-mode) .meta-line .line,
-:host-context(.dark-mode) .header-divider {
-  border-color: var(--border);
-}
-
-:host-context(.dark-mode) .compact-table th,
-:host-context(.dark-mode) .compact-table td,
-:host-context(.dark-mode) .answer-table-wrap td,
-:host-context(.dark-mode) .gap-grid td,
-:host-context(.dark-mode) .gap-grid th,
-:host-context(.dark-mode) .assign-preview td {
-  border-color: var(--border);
-  color: color-mix(in srgb, var(--text) 92%, transparent);
-  background: transparent;
-}
-
-:host-context(.dark-mode) ::ng-deep .mat-mdc-stroked-button:not(:disabled) {
-  border-color: var(--border-strong) !important;
-  color: color-mix(in srgb, var(--text) 92%, transparent) !important;
-}
-
-:host-context(.dark-mode) ::ng-deep .mat-mdc-stroked-button:not(:disabled):hover {
-  background: color-mix(in srgb, var(--text-soft) 8%, transparent) !important;
-}
-
-:host-context(.dark-mode) ::ng-deep .mat-mdc-unelevated-button.mat-primary {
-  background: var(--primary) !important;
-  color: var(--button-text) !important;
-}
-
-:host-context(.dark-mode) ::ng-deep .mat-mdc-unelevated-button.mat-primary:hover {
-  background: var(--primary-hover) !important;
-}
-
-:host-context(.dark-mode) ::ng-deep .mat-pseudo-checkbox {
-  border-color: var(--text-muted) !important;
 }
 
 @media (max-width: 1100px) {

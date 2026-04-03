@@ -228,21 +228,59 @@ export class SchoolComponent implements OnInit, AfterViewInit {
   }
 
   openCreateExample() {
+    const isMobile = window.innerWidth <= 768;
+
     this.dialog.open(CreateExampleComponent, {
-      width: '60vw',
-      maxWidth: 'none',
-      minWidth: '1000px',
+      width: isMobile ? '100vw' : 'min(96vw, 1400px)',
+      maxWidth: isMobile ? '100vw' : '96vw',
+      height: isMobile ? '100dvh' : '92vh',
+      maxHeight: isMobile ? '100dvh' : '92vh',
+      panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-example-dialog-panel',
       data: { schoolId: this.schoolId }
     }).afterClosed().subscribe(() => {
       this.loadExamples();
     });
   }
 
+  openExample(e: any) {
+    const isMobile = window.innerWidth <= 768;
+
+    this.dialog.open(ExamplePreviewComponent, {
+      width: isMobile ? '100vw' : 'min(90vw, 900px)',
+      maxWidth: isMobile ? '100vw' : '90vw',
+      height: isMobile ? '100dvh' : '90vh',
+      maxHeight: isMobile ? '100dvh' : '90vh',
+      panelClass: isMobile ? 'mobile-fullscreen-dialog' : undefined,
+      data: { schoolId: this.schoolId, exampleId: e.id }
+    }).afterClosed().subscribe(() => {
+      this.loadExamples();
+    });
+  }
+
+  editExample(e: any) {
+    const isMobile = window.innerWidth <= 768;
+
+    this.dialog.open(CreateExampleComponent, {
+      width: isMobile ? '100vw' : 'min(96vw, 1400px)',
+      maxWidth: isMobile ? '100vw' : '96vw',
+      height: isMobile ? '100dvh' : '92vh',
+      maxHeight: isMobile ? '100dvh' : '92vh',
+      panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-example-dialog-panel',
+      data: { schoolId: this.schoolId, exampleId: e.id }
+    }).afterClosed().subscribe(() => {
+      this.loadExamples();
+    });
+  }
+
   createTest() {
+    const isMobile = window.innerWidth <= 768;
+
     this.dialog.open(CreateTestComponent, {
-      width: 'min(96vw, 1680px)',
-      maxWidth: '96vw',
-      maxHeight: '94vh',
+      width: isMobile ? '100vw' : 'min(96vw, 1680px)',
+      maxWidth: isMobile ? '100vw' : '96vw',
+      height: isMobile ? '100dvh' : '94vh',
+      maxHeight: isMobile ? '100dvh' : '94vh',
+      panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-test-dialog-panel',
       data: { schoolId: this.schoolId }
     }).afterClosed().subscribe(() => {
       this.loadTests();
@@ -250,16 +288,19 @@ export class SchoolComponent implements OnInit, AfterViewInit {
   }
 
   protected editTest(test: TestOverviewDTO) {
+    const isMobile = window.innerWidth <= 768;
+
     this.dialog.open(CreateTestComponent, {
-      width: 'min(96vw, 1680px)',
-      maxWidth: '96vw',
-      maxHeight: '94vh',
+      width: isMobile ? '100vw' : 'min(96vw, 1680px)',
+      maxWidth: isMobile ? '100vw' : '96vw',
+      height: isMobile ? '100dvh' : '94vh',
+      maxHeight: isMobile ? '100dvh' : '94vh',
+      panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-test-dialog-panel',
       data: { schoolId: this.schoolId, testId: test.id }
     }).afterClosed().subscribe(() => {
       this.loadTests();
     });
   }
-
   protected openTest(test: TestOverviewDTO) {
     this.dialog.open(TestPreviewComponent, {
       width: 'min(80vw, 950px)',
@@ -312,26 +353,6 @@ export class SchoolComponent implements OnInit, AfterViewInit {
       if (result?.updated) {
         this.loadSchool();
       }
-    });
-  }
-
-  openExample(e: any) {
-    this.dialog.open(ExamplePreviewComponent, {
-      width: '30vw',
-      data: { schoolId: this.schoolId, exampleId: e.id }
-    }).afterClosed().subscribe(() => {
-      this.loadExamples();
-    });
-  }
-
-  editExample(e: any) {
-    this.dialog.open(CreateExampleComponent, {
-      width: '60vw',
-      maxWidth: 'none',
-      minWidth: '1000px',
-      data: { schoolId: this.schoolId, exampleId: e.id }
-    }).afterClosed().subscribe(() => {
-      this.loadExamples();
     });
   }
 

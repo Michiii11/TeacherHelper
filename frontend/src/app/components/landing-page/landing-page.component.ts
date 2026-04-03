@@ -161,4 +161,9 @@ export class LandingPageComponent {
     const isDark = document.body.classList.contains('dark-mode');
     return isDark ? '/darkmode.png' : '/lightmode.png';
   }
+
+  getImage() {
+    const isDark = document.body.classList.contains('dark-mode');
+    return isDark ? '/screen_dark.png' : '/screen_light.png';
+  }
 }
