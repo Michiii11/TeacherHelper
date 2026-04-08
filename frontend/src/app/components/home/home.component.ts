@@ -11,7 +11,6 @@ import {NgForOf, NgIf} from '@angular/common'
 import {Router} from '@angular/router'
 import {MatIcon} from '@angular/material/icon'
 import {MatSnackBar} from '@angular/material/snack-bar'
-import {SchoolInvitationComponent} from '../../dialog/school-invitation/school-invitation.component'
 import {TranslatePipe} from '@ngx-translate/core'
 
 @Component({
@@ -19,10 +18,7 @@ import {TranslatePipe} from '@ngx-translate/core'
   imports: [
     MatButton,
     MatCard,
-    MatFormField,
-    MatLabel,
     FormsModule,
-    MatInput,
     NgForOf,
     MatIcon,
     NgIf,
@@ -39,8 +35,6 @@ export class HomeComponent implements OnInit{
   otherSchools: SchoolDTO[] = [];
 
   userId: number = 0;
-
-  snack = inject(MatSnackBar);
 
   constructor(private dialog: MatDialog, private http: HttpService, private router: Router) {}
 
@@ -64,21 +58,6 @@ export class HomeComponent implements OnInit{
         })
       })
     })
-  }
-
-  filterSchools(e: Event) {
-    if(!e) {
-      this.otherSchools = [...this.allOtherSchools];
-      return;
-    }
-
-    const search = (e.target as HTMLInputElement).value;
-    const term = search?.toLowerCase().trim() || '';
-
-    this.otherSchools = this.allOtherSchools.filter(school =>
-      school.name?.toLowerCase().includes(term) ||
-      school.admin?.username?.toLowerCase().includes(term)
-    );
   }
 
   openCreateDialog() {
@@ -121,26 +100,6 @@ export class HomeComponent implements OnInit{
     if (!userId) return false;
 
     return school.admin.id === userId;
-  }
-
-  protected openInvitationDialog(school: SchoolDTO) {
-    const ref = this.dialog.open(SchoolInvitationComponent, {
-      width: '520px',
-      data: {
-        schoolId: school.id,
-        schoolName: school.name
-      }
-    });
-
-    ref.afterClosed().subscribe((result) => {
-      if (!result) return;
-
-      this.http.sendJoinRequest(school.id, result).subscribe({
-        next: () => {
-          this.snack.open('Beitrittsanfrage gesendet', 'OK', { duration: 3000 });
-        }
-      })
-    });
   }
 
   protected getSchoolLogoUrl(school: SchoolDTO) {

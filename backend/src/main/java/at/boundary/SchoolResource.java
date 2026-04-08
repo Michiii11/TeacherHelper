@@ -4,7 +4,6 @@ import at.dtos.Notification.CreateSchoolInviteDTO;
 import at.dtos.Notification.RespondSchoolInviteDTO;
 import at.dtos.Notification.SchoolInviteDTO;
 import at.dtos.School.CreateSchoolDTO;
-import at.dtos.School.LastActivityDTO;
 import at.dtos.School.SchoolDTO;
 import at.dtos.School.UpdateSchoolDTO;
 import at.dtos.User.UserDTO;
@@ -16,16 +15,12 @@ import io.smallrye.common.annotation.Blocking;
 import jakarta.inject.Inject;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.BeanParam;
-import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
@@ -209,20 +204,6 @@ public class SchoolResource {
     }
 
     @POST
-    @Path("{id}/join-request")
-    public Response sendJoinRequest(@PathParam("id") Long id, JsonObject request) {
-        String authToken = request.getString("authToken", null);
-        String message = request.getString("message", "");
-
-        Long userId = tokenService.validateTokenAndGetUserId(authToken);
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
-        }
-
-        return schoolRepository.sendJoinRequest(id, userId, message);
-    }
-
-    @POST
     @Path("invite/{inviteId}/respond")
     public Response respondToInvite(@PathParam("inviteId") Long inviteId, RespondSchoolInviteDTO dto) {
         Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
@@ -231,17 +212,6 @@ public class SchoolResource {
         }
 
         return schoolRepository.respondToInvite(inviteId, userId, dto.accept());
-    }
-
-    @POST
-    @Path("join-request/{inviteId}/respond")
-    public Response respondToJoinRequest(@PathParam("inviteId") Long inviteId, RespondSchoolInviteDTO dto) {
-        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
-        }
-
-        return schoolRepository.respondToJoinRequest(inviteId, userId, dto.accept());
     }
 
     @POST
@@ -264,11 +234,5 @@ public class SchoolResource {
         }
 
         return schoolRepository.getPendingRequestsForSchool(id, userId);
-    }
-
-    @GET
-    @Path("{id}/last-activity")
-    public LastActivityDTO getLastActivity(@PathParam("id") Long id) {
-        return schoolRepository.getLastActivity(id);
     }
 }

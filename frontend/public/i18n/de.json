@@ -77,7 +77,7 @@
   },
   "navbar": {
     "home": "Startseite",
-    "school": "Schule",
+    "school": "Sammlung",
     "help": "Hilfe"
   },
   "notifications": {
@@ -103,7 +103,7 @@
     "systemInfo": {
       "send": "System-Info senden",
       "title": "System-Info senden",
-      "scopeSchool": "Aktuelle Schule",
+      "scopeSchool": "Aktuelle Sammlung",
       "scopeAll": "Alle User",
       "titlePlaceholder": "Titel",
       "messagePlaceholder": "Nachricht",
@@ -112,39 +112,31 @@
     }
   },
   "home": {
-    "title": "Meine Schulen",
+    "title": "Meine Sammlungen",
     "subtitle": "Hier siehst du auf einen Blick, wo du Admin bist und wo du Mitglied bist.",
-    "createSchool": "Neue Schule",
+    "createSchool": "Neue Sammlung",
     "labels": {
       "admin": "Admin",
       "examples": "Beispiele"
     },
     "actions": {
-      "openSchool": "Schule öffnen",
+      "openSchool": "Sammlung öffnen",
       "sendRequest": "Anfrage senden",
       "join": "Beitreten"
     },
     "adminSection": {
-      "title": "Schulen, die du verwaltest",
+      "title": "Sammlungen, die du verwaltest",
       "subtitle": "Du bist hier als Admin eingetragen.",
-      "empty": "Du bist aktuell bei keiner Schule als Admin eingetragen."
+      "empty": "Du bist aktuell bei keiner Sammlung als Admin eingetragen."
     },
     "memberSection": {
-      "title": "Schulen, bei denen du Mitglied bist",
+      "title": "Sammlungen, bei denen du Mitglied bist",
       "subtitle": "Du hast Zugriff, bist aber nicht Admin.",
-      "empty": "Du bist aktuell in keiner weiteren Schule Mitglied."
-    },
-    "discoverSection": {
-      "title": "Weitere Schulen entdecken",
-      "subtitle": "Suche nach Schulen und sende eine Beitrittsanfrage.",
-      "empty": "Keine weiteren Schulen gefunden."
-    },
-    "search": {
-      "label": "Schule suchen"
+      "empty": "Du bist aktuell in keiner weiteren Sammlung Mitglied."
     }
   },
   "landing": {
-    "eyebrow": "Für Lehrkräfte und Schulen",
+    "eyebrow": "Für Lehrkräfte und Sammlungen",
     "title": "Weniger Chaos. Mehr Unterricht.",
     "description": "TeacherHelper hilft dir, Beispiele sauber zu organisieren, Tests schneller zu bauen und Inhalte gemeinsam im Schulalltag zu verwalten — modern, klar und ohne unnötigen Overkill.",
     "start": "Jetzt starten",
@@ -153,17 +145,17 @@
     "points": {
       "p1": "Tests in wenigen Klicks aus Beispielen zusammenstellen",
       "p2": "Inhalte langfristig wiederverwenden statt doppelt arbeiten",
-      "p3": "Mit Kolleg:innen in Schulen gemeinsam verwalten"
+      "p3": "Mit Kolleg:innen in Sammlungen gemeinsam verwalten"
     },
     "trust": {
       "t1": "Schneller Workflow statt Zettelchaos",
-      "t2": "Gemacht für Teams und Schulen",
+      "t2": "Gemacht für Teams und Sammlungen",
       "t3": "Druck, PDF und Word im Fokus",
       "t4": "Deutsch und Englisch integriert"
     },
     "visual": {
       "live": "Live Preview",
-      "school": "Schule",
+      "school": "Sammlung",
       "team": "Team • Admin",
       "examples": "Beispiele",
       "tests": "Tests",
@@ -220,7 +212,7 @@
         "text": "Arbeite mit Kolleg:innen in einer gemeinsamen Schulumgebung und teile Inhalte dort, wo sie gebraucht werden."
       },
       "f6": {
-        "title": "Für echte Schulen gemacht",
+        "title": "Für echte Sammlungen gemacht",
         "text": "Kein unnötiger Feature-Müll, sondern ein Workflow, der für Lehrkräfte, Fachgruppen und Schulalltag wirklich passt."
       }
     },
@@ -232,7 +224,7 @@
     "plans": {
       "free": {
         "subtitle": "Perfekt zum Kennenlernen und für kleine Setups.",
-        "f1": "1 Schule (keine Mitglieder)",
+        "f1": "1 Sammlung (keine Mitglieder)",
         "f2": "50 Beispiele",
         "f3": "5 Tests",
         "f4": "Gratis",
@@ -242,7 +234,7 @@
         "badge": "Beliebt",
         "chip": "Für Lehrkräfte",
         "subtitle": "Für aktive Lehrkräfte, die regelmäßig Material und Tests vorbereiten.",
-        "f1": "5 Schulen (5 Mitglieder)",
+        "f1": "5 Sammlungen (5 Mitglieder)",
         "f2": "500 Beispiele",
         "f3": "50 Tests",
         "f4": "5€ pro Monat",
@@ -251,7 +243,7 @@
       "school": {
         "chip": "Für Teams",
         "subtitle": "Für Schulen, Fachgruppen und gemeinsame Verwaltung im Kollegium.",
-        "f1": "∞ Schulen (∞ Mitglieder)",
+        "f1": "∞ Sammlungen (∞ Mitglieder)",
         "f2": "∞ Beispiele",
         "f3": "∞ Tests",
         "f4": "20€ pro Monat",

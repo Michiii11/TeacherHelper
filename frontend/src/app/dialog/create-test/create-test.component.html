@@ -21,7 +21,7 @@
 
       <div class="row meta-row">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Notiz</mat-label>
+          <mat-label>Beschreibung</mat-label>
           <textarea
             matInput
             [(ngModel)]="test.note"
@@ -29,7 +29,7 @@
             (input)="markDirty()"
             placeholder="Arbeite sauber, runde sinnvoll, Rechenweg angeben ..."
             cdkTextareaAutosize
-            cdkAutosizeMinRows="2"
+            cdkAutosizeMinRows="4"
             cdkAutosizeMaxRows="8">
           </textarea>
         </mat-form-field>
@@ -136,23 +136,18 @@
               <p>Freie Stufen für Noten, Buchstaben oder Symbole wie ++ / + / o / - / --.</p>
             </div>
 
-            <div class="mode-switch">
-              <button
-                mat-stroked-button
-                type="button"
-                [class.active]="useAutomaticGrading"
-                (click)="onGradingModeChange('auto')">
-                Automatisch
-              </button>
-              <button
-                mat-stroked-button
-                type="button"
-                [class.active]="!useAutomaticGrading"
-                (click)="onGradingModeChange('manual')">
-                Manuell
-              </button>
-              <button mat-stroked-button type="button" (click)="resetGrading()">Zurücksetzen</button>
-            </div>
+            <mat-button-toggle-group [(ngModel)]="useAutomaticGrading" [hideSingleSelectionIndicator]="true">
+              <mat-button-toggle [value]="false"
+                                 (click)="onGradingModeChange('auto')">
+                Prozent
+              </mat-button-toggle>
+              <mat-button-toggle [value]="true"
+                                 (click)="onGradingModeChange('manual')">
+                Punkte
+              </mat-button-toggle>
+            </mat-button-toggle-group>
+
+            <button mat-stroked-button type="button" (click)="resetGrading()">Zurücksetzen</button>
           </div>
 
           <div class="preset-toolbar">
@@ -321,11 +316,6 @@
           </div>
         </div>
       </div>
-
-      <mat-dialog-actions align="end">
-        <button mat-stroked-button type="button" (click)="closeDialog()">Abbrechen</button>
-        <button mat-flat-button color="primary" type="submit">Speichern</button>
-      </mat-dialog-actions>
     </form>
   </mat-dialog-content>
 
@@ -337,41 +327,36 @@
     <div class="print-controls settings-card">
       <div class="print-controls-grid">
         <div class="section">
-          <p>Seiten</p>
-
           <div class="stepper">
-            <button mat-stroked-button type="button" (click)="decreaseCount()">−</button>
+            <button mat-icon-button type="button" (click)="decreaseCount()">
+              <mat-icon>remove</mat-icon>
+            </button>
             <input type="number" min="1" max="100" [(ngModel)]="printCopies" (ngModelChange)="onPrintCopiesChange($event)">
-            <button mat-stroked-button type="button" (click)="increaseCount()">+</button>
+            <button mat-icon-button type="button" (click)="increaseCount()">
+              <mat-icon>add</mat-icon>
+            </button>
           </div>
         </div>
 
         <div class="section">
-          <p>Modus</p>
-
-          <div class="print-toggle-group">
-            <button
-              mat-stroked-button
-              type="button"
-              [class.active]="!includeSolutionSheet"
-              (click)="setIncludeSolutionSheet(false)">
+          <mat-button-toggle-group [(ngModel)]="includeSolutionSheet" [hideSingleSelectionIndicator]="true">
+            <mat-button-toggle [value]="false"
+                               (click)="setIncludeSolutionSheet(false)">
               Nur Test
-            </button>
-            <button
-              mat-stroked-button
-              type="button"
-              [class.active]="includeSolutionSheet"
-              (click)="setIncludeSolutionSheet(true)">
+            </mat-button-toggle>
+            <mat-button-toggle [value]="true"
+                               (click)="setIncludeSolutionSheet(true)">
               Lösung mitdrucken
-            </button>
-          </div>
+            </mat-button-toggle>
+          </mat-button-toggle-group>
         </div>
 
         <div class="section">
-          <p></p>
-
           <button mat-flat-button color="primary" type="button" (click)="printPreview()">
             Drucken
+            <mat-icon>
+              print
+            </mat-icon>
           </button>
         </div>
       </div>
@@ -402,7 +387,7 @@
               </table>
 
               <div class="grading-box">
-                <p class="grading-title">{{ gradingSystemName || 'Bewertungsschlüssel' }}</p>
+                <p class="grading-title">Notenschlüssel</p>
                 <table class="grading-table compact-table">
                   <tr>
                     <td>Punkte</td>
@@ -527,4 +512,10 @@
       </div>
     </div>
   </mat-dialog-content>
+
+  <div></div>
+  <mat-dialog-actions>
+    <button mat-stroked-button type="button" (click)="closeDialog()">Abbrechen</button>
+    <button mat-flat-button color="primary" type="submit">Speichern</button>
+  </mat-dialog-actions>
 </main>

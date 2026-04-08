@@ -567,20 +567,26 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     });
   }
 
-  getTooltip(): string {
-    switch (this.example.type) {
+  getTooltip(t: ExampleTypes): string {
+    switch (t) {
       case ExampleTypes.OPEN:
-        return 'Beim offenen Antwortformat kann die Bearbeitung der Aufgaben je nach Aufgabenstellung auf unterschiedliche Weise erfolgen.';
+        return 'Antwort ohne Vorgaben.';
+
       case ExampleTypes.HALF_OPEN:
-        return 'Beim halboffenen Antwortformat muss die richtige Antwort in eine vorgegebene Gleichung, Funktion etc. eingesetzt werden.';
+        return 'Antwort in vorgegebene Struktur eintragen.';
+
       case ExampleTypes.CONSTRUCTION:
-        return 'Bei diesem Antwortformat ist eine Abbildung, eine Grafik, ein Diagramm etc. vorgegeben.Diese Aufgaben erfordern die Ergänzung von Graphen, Punkten, Vektoren o. Ä. in die vorgegebene Darstellung.';
+        return 'Aufgabe mit Bild oder Grafik.';
+
       case ExampleTypes.MULTIPLE_CHOICE:
-        return 'Dieses Antwortformat ist durch einen Fragenstamm und mehreren Antwortmöglichkeiten gekennzeichnet. Aufgaben dieses Formats werden korrekt bearbeitet, indem die richtig zutreffenden Antwortmöglichkeiten angekreuzt werden.';
+        return 'Eine oder mehrere Optionen auswählen.';
+
       case ExampleTypes.GAP_FILL:
-        return 'Dieses Antwortformat ist durch einen Satz mit Lücken gekennzeichnet, d.h., im Aufgabentext sind die Stellen ausgewiesen, die ergänzt werden müssen. Für jede Lücke sind Antwortmöglichkeiten vorgegeben, oder wenn gewünscht auch ohne Antwortmöglichkeiten. Aufgaben dieses Formats werden korrekt bearbeitet, indem die Lücken durch Ankreuzen der beiden zutreffenden Antwortmöglichkeiten gefüllt werden, oder durch Eingabe der richtigen Antwort in die Lücke.';
+        return 'Lücken durch Auswahl oder Eingabe füllen.';
+
       case ExampleTypes.ASSIGN:
-        return 'Dieses Antwortformat ist durch Auswahlmöglichkeiten (z.B. Aussagen, Tabellen, Abbildungen) gekennzeichnet, die den vorgegebenen Antwortmöglichkeiten zugeordnet werden müssen. Aufgaben dieses Formats werden korrekt bearbeitet, indem man den Antwortmöglichkeiten durch Eintragen des entsprechenden Buchstabens (aus A bis F) jeweils die zutreffende Auswahlmöglichkeit zuordnet.';
+        return 'Elemente einander zuordnen.';
+
       default:
         return '';
     }
@@ -705,5 +711,10 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
         this.emitSelectedFocus();
         this.markDirty();
       });
+  }
+
+  onTypeChange(type: ExampleTypes) {
+    this.example.type = type;
+    this.markDirty();
   }
 }

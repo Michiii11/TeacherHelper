@@ -1,31 +1,21 @@
 <main class="schools-dashboard" aria-label="School Overview">
   <header class="page-header">
-    <div class="header-copy">
-      <div class="title-row">
-        <div class="title-icon">
-          <mat-icon>school</mat-icon>
-        </div>
-        <div>
-          <h1 class="page-title">{{ 'home.title' | translate }}</h1>
-          <p class="page-subtitle">{{ 'home.subtitle' | translate }}</p>
-        </div>
+    <div>
+      <div class="title-icon">
+        <mat-icon>school</mat-icon>
       </div>
+      <h1 class="page-title">{{ 'home.title' | translate }}</h1>
     </div>
 
-    <div class="header-actions">
-      <button mat-flat-button color="primary" (click)="openCreateDialog()">
-        <mat-icon>add_circle</mat-icon>
-        {{ 'home.createSchool' | translate }}
-      </button>
-    </div>
+    <button mat-flat-button color="primary" (click)="openCreateDialog()">
+      <mat-icon>add_circle</mat-icon>
+      {{ 'home.createSchool' | translate }}
+    </button>
   </header>
 
   <section class="section">
     <div class="section-header">
-      <div>
-        <h2 class="section-title">{{ 'home.adminSection.title' | translate }}</h2>
-        <p class="section-subtitle">{{ 'home.adminSection.subtitle' | translate }}</p>
-      </div>
+      <h2 class="section-title">{{ 'home.adminSection.title' | translate }}</h2>
     </div>
 
     <div class="school-grid">
@@ -73,10 +63,7 @@
 
   <section class="section">
     <div class="section-header">
-      <div>
-        <h2 class="section-title">{{ 'home.memberSection.title' | translate }}</h2>
-        <p class="section-subtitle">{{ 'home.memberSection.subtitle' | translate }}</p>
-      </div>
+      <h2 class="section-title">{{ 'home.memberSection.title' | translate }}</h2>
     </div>
 
     <div class="school-grid">
@@ -118,63 +105,6 @@
       <mat-card *ngIf="!memberSchools?.length" class="empty-card">
         <mat-icon>groups</mat-icon>
         <p>{{ 'home.memberSection.empty' | translate }}</p>
-      </mat-card>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="section-header section-header-with-search">
-      <div>
-        <h2 class="section-title">{{ 'home.discoverSection.title' | translate }}</h2>
-        <p class="section-subtitle">{{ 'home.discoverSection.subtitle' | translate }}</p>
-      </div>
-
-      <mat-form-field appearance="outline" class="school-search">
-        <mat-label>{{ 'home.search.label' | translate }}</mat-label>
-        <input matInput (input)="filterSchools($event)" />
-        <mat-icon matSuffix>search</mat-icon>
-      </mat-form-field>
-    </div>
-
-    <div class="school-grid">
-      <mat-card
-        *ngFor="let school of otherSchools"
-        class="school-card discover-card"
-        (click)="openInvitationDialog(school)"
-      >
-        <div class="card-top-row">
-          @if(school.logoUrl){
-            <div class="school-avatar discover-avatar">
-              <img [src]="getSchoolLogoUrl(school)" alt="{{ school.name }} Logo" class="avatar-image" />
-            </div>
-          } @else{
-            <div class="school-avatar discover-avatar">{{ getSchoolInitials(school.name) }}</div>
-          }
-          <span class="role-badge discover-badge">{{ 'home.actions.join' | translate }}</span>
-        </div>
-
-        <h3 class="school-name">{{ school.name }}</h3>
-
-        <div class="school-info-list">
-          <div class="info-row">
-            <mat-icon>person</mat-icon>
-            <span>{{ 'home.labels.admin' | translate }}: {{ school.admin.username }}</span>
-          </div>
-          <div class="info-row">
-            <mat-icon>auto_stories</mat-icon>
-            <span>{{ 'home.labels.examples' | translate }}: {{ school.exampleCount }}</span>
-          </div>
-        </div>
-
-        <div class="card-action-hint">
-          <span>{{ 'home.actions.sendRequest' | translate }}</span>
-          <mat-icon>send</mat-icon>
-        </div>
-      </mat-card>
-
-      <mat-card *ngIf="!otherSchools?.length" class="empty-card">
-        <mat-icon>search_off</mat-icon>
-        <p>{{ 'home.discoverSection.empty' | translate }}</p>
       </mat-card>
     </div>
   </section>

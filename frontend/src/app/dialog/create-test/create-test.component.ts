@@ -24,6 +24,8 @@ import { HttpService } from '../../service/http.service';
 import { TestPrintService } from '../../service/test-print.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { MatPseudoCheckbox } from '@angular/material/core';
+import {MatButtonToggle, MatButtonToggleGroup} from '@angular/material/button-toggle'
+import {TranslatePipe} from '@ngx-translate/core'
 
 type GradeMode = 'auto' | 'manual';
 type GradePresetKey = 'AT' | 'DE' | 'US' | 'MITARBEIT' | 'CUSTOM';
@@ -57,6 +59,8 @@ type PersistedTestSettings = {
     MatDividerModule,
     MatIconButton,
     MatPseudoCheckbox,
+    MatButtonToggle,
+    MatButtonToggleGroup,
   ],
   templateUrl: './create-test.component.html',
   styleUrl: './create-test.component.scss',

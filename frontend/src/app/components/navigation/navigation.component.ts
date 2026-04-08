@@ -13,6 +13,7 @@ import { HttpService } from '../../service/http.service';
 import { User } from '../../model/User';
 import { NotificationDTO, NotificationActionType, NotificationType } from '../../model/Notification';
 import {TranslatePipe} from '@ngx-translate/core'
+import {MatButtonToggle, MatButtonToggleGroup} from '@angular/material/button-toggle'
 
 @Component({
   selector: 'app-navigation',
@@ -31,7 +32,9 @@ import {TranslatePipe} from '@ngx-translate/core'
     MatButton,
     MatSnackBarModule,
     MatTooltip,
-    TranslatePipe
+    TranslatePipe,
+    MatButtonToggle,
+    MatButtonToggleGroup
   ],
   templateUrl: './navigation.component.html',
   styleUrl: './navigation.component.scss'
@@ -219,8 +222,6 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
   isResultNotification(n: NotificationDTO): boolean {
     return [
-      NotificationType.JOIN_REQUEST_ACCEPTED,
-      NotificationType.JOIN_REQUEST_DECLINED,
       NotificationType.INVITATION_ACCEPTED,
       NotificationType.INVITATION_DECLINED
     ].includes(n.type);
@@ -229,9 +230,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   hasDecisionActions(n: NotificationDTO): boolean {
     const decisionActions = [
       NotificationActionType.ACCEPT_INVITATION,
-      NotificationActionType.DECLINE_INVITATION,
-      NotificationActionType.ACCEPT_JOIN_REQUEST,
-      NotificationActionType.DECLINE_JOIN_REQUEST
+      NotificationActionType.DECLINE_INVITATION
     ];
 
     return decisionActions.includes(n.primaryAction as NotificationActionType)
@@ -338,40 +337,6 @@ export class NavigationComponent implements OnInit, OnDestroy {
         });
         break;
 
-      case NotificationActionType.ACCEPT_JOIN_REQUEST:
-        this.service.respondToJoinRequest(n.relatedEntityId!, true).subscribe({
-          next: () => {
-            this.snackBar.open('Anfrage bestätigt.', 'OK', { duration: 2200 });
-            this.loadNotifications();
-            this.loadUser();
-          },
-          error: (err) => {
-            console.error('Fehler beim Annehmen der Beitrittsanfrage:', err);
-            this.snackBar.open(this.extractError(err, 'Anfrage konnte nicht bestätigt werden.'), 'Schließen', {
-              duration: 3600
-            });
-          },
-          complete: () => this.processingIds.delete(n.id)
-        });
-        break;
-
-      case NotificationActionType.DECLINE_JOIN_REQUEST:
-        this.service.respondToJoinRequest(n.relatedEntityId!, false).subscribe({
-          next: () => {
-            this.snackBar.open('Anfrage abgelehnt.', 'OK', { duration: 2200 });
-            this.loadNotifications();
-            this.loadUser();
-          },
-          error: (err) => {
-            console.error('Fehler beim Ablehnen der Beitrittsanfrage:', err);
-            this.snackBar.open(this.extractError(err, 'Anfrage konnte nicht abgelehnt werden.'), 'Schließen', {
-              duration: 3600
-            });
-          },
-          complete: () => this.processingIds.delete(n.id)
-        });
-        break;
-
       default:
         this.service.executeAction(n.id, action).subscribe({
           next: () => {
@@ -432,9 +397,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   requiresRelatedEntity(action: NotificationActionType): boolean {
     return [
       NotificationActionType.ACCEPT_INVITATION,
-      NotificationActionType.DECLINE_INVITATION,
-      NotificationActionType.ACCEPT_JOIN_REQUEST,
-      NotificationActionType.DECLINE_JOIN_REQUEST
+      NotificationActionType.DECLINE_INVITATION
     ].includes(action);
   }
 
@@ -445,10 +408,8 @@ export class NavigationComponent implements OnInit, OnDestroy {
   getActionLabel(action?: NotificationActionType): string {
     switch (action) {
       case NotificationActionType.ACCEPT_INVITATION:
-      case NotificationActionType.ACCEPT_JOIN_REQUEST:
         return 'Bestätigen';
       case NotificationActionType.DECLINE_INVITATION:
-      case NotificationActionType.DECLINE_JOIN_REQUEST:
         return 'Ablehnen';
       case NotificationActionType.OPEN_LINK:
         return 'Öffnen';
@@ -467,10 +428,8 @@ export class NavigationComponent implements OnInit, OnDestroy {
         return 'Anfrage';
       case NotificationType.SCHOOL_INVITATION:
         return 'Einladung';
-      case NotificationType.JOIN_REQUEST_ACCEPTED:
       case NotificationType.INVITATION_ACCEPTED:
         return 'Bestätigt';
-      case NotificationType.JOIN_REQUEST_DECLINED:
       case NotificationType.INVITATION_DECLINED:
         return 'Abgelehnt';
       case NotificationType.SCHOOL_NEWS:
@@ -488,10 +447,8 @@ export class NavigationComponent implements OnInit, OnDestroy {
         return 'person_add';
       case NotificationType.SCHOOL_INVITATION:
         return 'mail';
-      case NotificationType.JOIN_REQUEST_ACCEPTED:
       case NotificationType.INVITATION_ACCEPTED:
         return 'check_circle';
-      case NotificationType.JOIN_REQUEST_DECLINED:
       case NotificationType.INVITATION_DECLINED:
         return 'cancel';
       case NotificationType.SCHOOL_NEWS:

@@ -73,13 +73,6 @@ export class SchoolComponent implements OnInit, AfterViewInit {
 
   exampleDisplayedColumns = ['type', 'instruction', 'question', 'focus', 'adminUsername', 'actions'];
 
-  kpis = [
-    { title: 'Tests', value: this.tests.length, sub: 'Verfügbar', icon: 'assignment' },
-    { title: 'Beispiele', value: this.exampleCount, sub: 'Fragen', icon: 'library_books' },
-    { title: 'Lehrer', value: this.school.members?.length || 0, sub: 'Konten', icon: 'people' },
-    { title: 'Letzte Änderung', value: '', sub: '', icon: 'history' }
-  ];
-
   currentUserId = -1;
   menuOpen: boolean | undefined;
 
@@ -98,8 +91,6 @@ export class SchoolComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.loadExamples();
     this.loadTests();
-
-    setInterval(() => this.loadLastChange(), 30000);
 
     this.service.getUserId().subscribe(id => {
       this.currentUserId = id as number;
@@ -137,70 +128,19 @@ export class SchoolComponent implements OnInit, AfterViewInit {
 
     this.service.getSchoolById(this.schoolId).subscribe(school => {
       this.school = school;
-
-      this.kpis[2].value = this.getTeacherCount().toString();
     });
-
-    this.loadLastChange();
   }
 
   loadExamples() {
     this.service.getExamples(this.schoolId).subscribe(examples => {
       this.exampleDataSource.data = examples as ExampleOverviewDTO[];
-      this.kpis[1].value = this.exampleCount.toString();
     });
-
-    this.loadLastChange();
   }
 
   loadTests() {
     this.service.getTests(this.schoolId).subscribe(tests => {
       this.tests = tests as TestOverviewDTO[];
-      this.kpis[0].value = this.tests.length.toString();
     });
-
-    this.loadLastChange();
-  }
-
-  loadLastChange() {
-    this.service.getLastChange(this.schoolId).subscribe(change => {
-
-      if(change){
-        this.kpis[3].value = this.formatTimeAgo(change.createdAt);
-        this.kpis[3].sub = 'von ' + change.username;
-      }
-    });
-  }
-
-  private formatTimeAgo(date: Date | string): string {
-    const now = Date.now();
-    const past = new Date(date).getTime();
-    const diffSeconds = Math.floor((now - past) / 1000);
-
-    if (diffSeconds < 5) {
-      return 'gerade eben';
-    }
-
-    if (diffSeconds < 60) {
-      return `${diffSeconds} Sek. zuvor`;
-    }
-
-    const diffMinutes = Math.floor(diffSeconds / 60);
-    if (diffMinutes < 60) {
-      return `${diffMinutes} Min. zuvor`;
-    }
-
-    const diffHours = Math.floor(diffMinutes / 60);
-    if (diffHours < 24) {
-      return `${diffHours} Std zuvor`;
-    }
-
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays} Tag${diffDays === 1 ? '' : 'e'} zuvor`;
-  }
-
-  get exampleCount(): number {
-    return this.exampleDataSource.data.length;
   }
 
   getExampleTypeLabel(type: ExampleTypes | string): string {
@@ -213,28 +153,13 @@ export class SchoolComponent implements OnInit, AfterViewInit {
     return ExampleTypeLabels[enumKey];
   }
 
-  getAvatarUrl(user?: UserDTO | null): string | null {
-    return this.service.getAvatarUrl((user ?? null) as any);
-  }
-
-  getInitials(user?: UserDTO | null): string {
-    return this.service.getUserInitials((user ?? null) as any);
-  }
-
-  getTeacherCount(): number {
-    const memberCount = this.school.members?.length ?? 0;
-    const hasAdmin = !!this.school.admin;
-    return memberCount + (hasAdmin ? 1 : 0);
-  }
-
   openCreateExample() {
     const isMobile = window.innerWidth <= 768;
 
     this.dialog.open(CreateExampleComponent, {
       width: isMobile ? '100vw' : 'min(96vw, 1400px)',
-      maxWidth: isMobile ? '100vw' : '96vw',
-      height: isMobile ? '100dvh' : '92vh',
-      maxHeight: isMobile ? '100dvh' : '92vh',
+      maxWidth: isMobile ? '100vw' : '70vw',
+      maxHeight: isMobile ? '100dvh' : '90vh',
       panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-example-dialog-panel',
       data: { schoolId: this.schoolId }
     }).afterClosed().subscribe(() => {
@@ -246,10 +171,9 @@ export class SchoolComponent implements OnInit, AfterViewInit {
     const isMobile = window.innerWidth <= 768;
 
     this.dialog.open(ExamplePreviewComponent, {
-      width: isMobile ? '100vw' : 'min(90vw, 900px)',
-      maxWidth: isMobile ? '100vw' : '90vw',
-      height: isMobile ? '100dvh' : '90vh',
-      maxHeight: isMobile ? '100dvh' : '90vh',
+      width: isMobile ? '100vw' : '40vw',
+      height: isMobile ? '100dvh' : '40vh',
+      maxHeight: isMobile ? '100dvh' : '70vh',
       panelClass: isMobile ? 'mobile-fullscreen-dialog' : undefined,
       data: { schoolId: this.schoolId, exampleId: e.id }
     }).afterClosed().subscribe(() => {
@@ -262,9 +186,8 @@ export class SchoolComponent implements OnInit, AfterViewInit {
 
     this.dialog.open(CreateExampleComponent, {
       width: isMobile ? '100vw' : 'min(96vw, 1400px)',
-      maxWidth: isMobile ? '100vw' : '96vw',
-      height: isMobile ? '100dvh' : '92vh',
-      maxHeight: isMobile ? '100dvh' : '92vh',
+      maxWidth: isMobile ? '100vw' : '70vw',
+      maxHeight: isMobile ? '100dvh' : '90vh',
       panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-example-dialog-panel',
       data: { schoolId: this.schoolId, exampleId: e.id }
     }).afterClosed().subscribe(() => {

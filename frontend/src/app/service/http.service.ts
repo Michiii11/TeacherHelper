@@ -330,20 +330,6 @@ export class HttpService {
     });
   }
 
-  respondToJoinRequest(inviteId: number, accept: boolean) {
-    return this.http.post(`${Config.API_URL}/school/join-request/${inviteId}/respond`, {
-      authToken: this.authToken(),
-      accept
-    });
-  }
-
-  sendJoinRequest(id: number, result: any) {
-    return this.http.post(`${Config.API_URL}/school/${id}/join-request`, {
-      authToken: this.authToken(),
-      message: result.message
-    });
-  }
-
   inviteTeacher(id: string | number, dto: CreateSchoolInviteDTO) {
     dto.authToken = this.authToken();
     return this.http.post(`${Config.API_URL}/school/${id}/invite-teacher`, dto);
