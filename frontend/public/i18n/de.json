@@ -5,7 +5,8 @@
     "delete": "Löschen",
     "logout": "Logout",
     "reset": "Zurücksetzen",
-    "loading": "Wird geladen..."
+    "loading": "Wird geladen...",
+    "saving": "Wird gespeichert..."
   },
   "profile": {
     "title": "Mein Profil",

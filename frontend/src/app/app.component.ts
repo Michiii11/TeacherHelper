@@ -8,6 +8,7 @@ import { FooterComponent } from './components/footer/footer.component';
 import { AuthService } from './service/auth.service';
 import { ThemeService } from './service/theme.service';
 import { LanguageService } from './service/language.service';
+import {Config} from './config'
 
 @Component({
   selector: 'app-root',
@@ -102,4 +103,6 @@ export class AppComponent implements OnInit {
   get showFooter(): boolean {
     return this.isLoggedIn || this.isLandingRoute;
   }
+
+  protected readonly Config = Config
 }

@@ -27,7 +27,7 @@
             #chipGrid
             aria-label="Selection"
             class="focus-chip-grid"
-            [class.hidden-chip-grid]="!example.focusList?.length"
+            [class.hidden-chip-grid]="!example.focusList.length"
           >
             <mat-chip-row *ngFor="let focus of example.focusList" (removed)="remove(focus)">
               {{ focus.label }}

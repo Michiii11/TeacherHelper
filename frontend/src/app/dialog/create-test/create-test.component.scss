@@ -159,12 +159,6 @@
   gap: 0.6rem;
 }
 
-.mode-switch button,
-.print-toggle-group button,
-button{
-  border-radius: 12px !important;
-}
-
 .mode-switch button.active,
 .print-toggle-group button.active {
   background: var(--primary) !important;
@@ -241,7 +235,34 @@ button{
 }
 
 .print-controls-grid {
-  align-items: center;
+  display: flex;
+  gap: 1rem;
+
+  .section {
+    display: flex;
+    flex-direction: column;
+
+    p {
+      color: var(--text);
+      font-weight: 400;
+    }
+
+    .print-toggle-group {
+      display: flex;
+      border-radius: 14px;
+      overflow: hidden;
+
+      button {
+        border-radius: 0;
+        border: 1px solid var(--border);
+
+        &.active {
+          background: var(--surface-2) !important;
+          color: var(--primary-strong) !important;
+        }
+      }
+    }
+  }
 }
 
 .count-picker {
@@ -261,6 +282,10 @@ button{
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
+
+  button{
+    width: 1rem;
+  }
 }
 
 .stepper input {
@@ -272,13 +297,6 @@ button{
   text-align: center;
   font: inherit;
   font-weight: 700;
-}
-
-.print-toggle-group {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.6rem;
-  flex-wrap: wrap;
 }
 
 .preview-surface {
@@ -548,7 +566,6 @@ button{
   .selected-task-main,
   .task-head,
   .settings-head,
-  .print-controls-grid,
   .count-picker {
     flex-direction: column;
     align-items: stretch;
@@ -722,8 +739,6 @@ button{
   .layout-toolbar,
   .preset-toolbar,
   .mode-switch,
-  .print-controls-grid,
-  .print-toggle-group,
   .selected-task-main,
   .task-settings-grid,
   .header-tables,

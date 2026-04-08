@@ -335,9 +335,10 @@
     </div>
 
     <div class="print-controls settings-card">
-      <div class="print-controls-grid compact-grid two-cols">
-        <div class="count-picker">
-          <span class="label">Anzahl</span>
+      <div class="print-controls-grid">
+        <div class="section">
+          <p>Seiten</p>
+
           <div class="stepper">
             <button mat-stroked-button type="button" (click)="decreaseCount()">−</button>
             <input type="number" min="1" max="100" [(ngModel)]="printCopies" (ngModelChange)="onPrintCopiesChange($event)">
@@ -345,20 +346,32 @@
           </div>
         </div>
 
-        <div class="print-toggle-group">
-          <button
-            mat-stroked-button
-            type="button"
-            [class.active]="!includeSolutionSheet"
-            (click)="setIncludeSolutionSheet(false)">
-            Nur Test
-          </button>
-          <button
-            mat-stroked-button
-            type="button"
-            [class.active]="includeSolutionSheet"
-            (click)="setIncludeSolutionSheet(true)">
-            Lösung mitdrucken
+        <div class="section">
+          <p>Modus</p>
+
+          <div class="print-toggle-group">
+            <button
+              mat-stroked-button
+              type="button"
+              [class.active]="!includeSolutionSheet"
+              (click)="setIncludeSolutionSheet(false)">
+              Nur Test
+            </button>
+            <button
+              mat-stroked-button
+              type="button"
+              [class.active]="includeSolutionSheet"
+              (click)="setIncludeSolutionSheet(true)">
+              Lösung mitdrucken
+            </button>
+          </div>
+        </div>
+
+        <div class="section">
+          <p></p>
+
+          <button mat-flat-button color="primary" type="button" (click)="printPreview()">
+            Drucken
           </button>
         </div>
       </div>
@@ -512,12 +525,6 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <div class="print-actions">
-      <button mat-flat-button color="primary" type="button" (click)="printPreview()">
-        Drucken
-      </button>
     </div>
   </mat-dialog-content>
 </main>
