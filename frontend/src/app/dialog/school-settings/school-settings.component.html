@@ -5,11 +5,6 @@
     <mat-tab-group animationDuration="200ms">
       <mat-tab label="Allgemein">
         <div class="tab-content">
-          <div class="section-head">
-            <h3>Name & Basisdaten</h3>
-            <p>Hier kannst du die wichtigsten Schul-Einstellungen verwalten.</p>
-          </div>
-
           <form [formGroup]="generalForm" class="settings-form">
             <mat-form-field appearance="outline">
               <mat-label>Schulname</mat-label>
@@ -20,9 +15,62 @@
               <mat-progress-bar mode="indeterminate"></mat-progress-bar>
             }
 
+            <div class="logo-layout">
+              <div class="logo-preview-card">
+                <div class="preview-box">
+                  @if(logoPreviewUrl){
+                    <img [src]="logoPreviewUrl" alt="Logo Vorschau" class="logo-preview-image">
+                  }
+                  @else if(getSchoolLogoUrl()){
+                    <img [src]="getSchoolLogoUrl()" alt="Logo Vorschau" class="logo-preview-image">
+                  } @else {
+                    <div class="logo-fallback">
+                      <mat-icon>school</mat-icon>
+                      <span>Kein Logo vorhanden</span>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <div class="logo-actions-card">
+                <input
+                  #logoInput
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  (change)="onLogoSelected($event)"
+                >
+
+                <div class="upload-actions">
+                  <button mat-stroked-button type="button" (click)="logoInput.click()">
+                    <mat-icon>upload</mat-icon>
+                    Logo auswählen
+                  </button>
+
+                  <button
+                    mat-button
+                    type="button"
+                    color="warn"
+                    (click)="removeSelectedLogo()"
+                    [disabled]="!selectedLogoFile"
+                  >
+                    Auswahl entfernen
+                  </button>
+                </div>
+
+                <p class="hint">
+                  Empfohlen: quadratisches PNG mit transparentem Hintergrund.
+                </p>
+
+                @if(uploadingLogo){
+                  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+                }
+              </div>
+            </div>
+
             <div class="form-actions">
               <button mat-stroked-button type="button" (click)="close()">Abbrechen</button>
-              <button mat-flat-button color="primary" type="button" (click)="saveGeneral()">
+              <button mat-flat-button color="primary" type="button" (click)="uploadLogo(); saveGeneral()">
                 Speichern
               </button>
             </div>
@@ -30,76 +78,134 @@
         </div>
       </mat-tab>
 
-      <mat-tab label="Logo">
-        <div class="tab-content">
-          <div class="section-head">
-            <h3>Schullogo</h3>
-            <p>Logo hochladen und später überall in der School-Ansicht verwenden.</p>
-          </div>
-
-          <div class="logo-layout">
-            <div class="logo-preview-card">
-              <div class="preview-box">
-                @if(logoPreviewUrl){
-                  <img [src]="logoPreviewUrl" alt="Logo Vorschau" class="logo-preview-image">
-                }
-                @else if(getSchoolLogoUrl()){
-                  <img [src]="getSchoolLogoUrl()" alt="Logo Vorschau" class="logo-preview-image">
-                } @else {
-                  <div class="logo-fallback">
-                    <mat-icon>school</mat-icon>
-                    <span>Kein Logo vorhanden</span>
-                  </div>
-                }
+      <mat-tab label="Lehrer">
+        <div class="tab-content teacher-tab">
+          <div class="teacher-layout">
+            <div class="teacher-card member-list-card">
+              <div class="teacher-card-head">
+                <div>
+                  <h4>Mitglieder</h4>
+                  <p>{{ getMemberCountLabel() }}</p>
+                </div>
+                <div class="head-badge">
+                  <mat-icon>groups</mat-icon>
+                </div>
               </div>
+
+              @if(data.school.members.length + 1 > 0){
+                <div class="member-list">
+                  <div class="member-item">
+                    <div class="avatar">
+                      @if (getAvatarUrl(data.school.admin)) {
+                        <img class="avatar-image" [src]="getAvatarUrl(data.school.admin)!" alt="Profilbild">
+                      } @else {
+                        <div class="avatar-circle">{{ getInitials(data.school.admin) }}</div>
+                      }
+                    </div>
+
+                    <div class="member-info">
+                      <div class="member-top-row">
+                        <strong>{{ data.school.admin.username }}</strong>
+                        <span class="member-role role-admin">Admin</span>
+                      </div>
+                    </div>
+                  </div>
+                  @for(member of data.school.members; track member.id){
+                    <div class="member-item">
+                      <div class="avatar">
+                        @if (getAvatarUrl(member)) {
+                          <img class="avatar-image" [src]="getAvatarUrl(member)!" alt="Profilbild">
+                        } @else {
+                          <div class="avatar-circle">{{ getInitials(member) }}</div>
+                        }
+                      </div>
+
+                      <div class="member-info">
+                        <div class="member-top-row">
+                          <strong>{{ member.username }}</strong>
+                          <span class="member-role">Lehrer</span>
+                        </div>
+
+                        <div class="member-email">
+                          @if(member.email){
+                            {{ member.email }}
+                          } @else {
+                            <span class="muted">Keine E-Mail hinterlegt</span>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="empty-state">
+                  <mat-icon>person_off</mat-icon>
+                  <div>
+                    <strong>Noch keine Mitglieder gefunden</strong>
+                    <p>Sobald Lehrer zugeordnet sind, erscheinen sie hier in der Liste.</p>
+                  </div>
+                </div>
+              }
             </div>
 
-            <div class="logo-actions-card">
-              <input
-                #logoInput
-                type="file"
-                accept="image/*"
-                hidden
-                (change)="onLogoSelected($event)"
-              >
-
-              <div class="upload-actions">
-                <button mat-stroked-button type="button" (click)="logoInput.click()">
-                  <mat-icon>upload</mat-icon>
-                  Logo auswählen
-                </button>
-
-                <button
-                  mat-button
-                  type="button"
-                  color="warn"
-                  (click)="removeSelectedLogo()"
-                  [disabled]="!selectedLogoFile"
-                >
-                  Auswahl entfernen
-                </button>
+            <div class="teacher-card invite-card">
+              <div class="teacher-card-head">
+                <div>
+                  <h4>Einladung senden</h4>
+                  <p>Neue Lehrkraft zur Schule einladen</p>
+                </div>
+                <div class="head-badge">
+                  <mat-icon>mail</mat-icon>
+                </div>
               </div>
 
-              <p class="hint">
-                Empfohlen: quadratisches PNG mit transparentem Hintergrund.
-              </p>
+              <form [formGroup]="inviteForm" class="invite-form">
+                <mat-form-field appearance="outline">
+                  <mat-label>E-Mail-Adresse</mat-label>
+                  <input
+                    matInput
+                    type="email"
+                    formControlName="email"
+                    (keydown.enter)="sendTeacherInvite()"
+                  >
+                  @if(inviteForm.controls.email.hasError('required')){
+                    <mat-error>E-Mail ist erforderlich.</mat-error>
+                  }
+                  @else if(inviteForm.controls.email.hasError('email')){
+                    <mat-error>Bitte gib eine gültige E-Mail-Adresse ein.</mat-error>
+                  }
+                </mat-form-field>
 
-              @if(uploadingLogo){
-                <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-              }
-
-              <div class="form-actions">
-                <button mat-stroked-button type="button" (click)="close()">Schließen</button>
                 <button
                   mat-flat-button
                   color="primary"
                   type="button"
-                  (click)="uploadLogo()"
-                  [disabled]="!selectedLogoFile"
+                  class="invite-button"
+                  (click)="sendTeacherInvite()"
+                  [disabled]="invitingTeacher"
                 >
-                  Logo speichern
+                  <mat-icon>send</mat-icon>
+                  Einladung senden
                 </button>
-              </div>
+
+                @if(invitingTeacher){
+                  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+                }
+
+                @if(inviteSuccessMessage){
+                  <div class="inline-message success-message">
+                    <mat-icon>check_circle</mat-icon>
+                    <span>{{ inviteSuccessMessage }}</span>
+                  </div>
+                }
+
+                @if(inviteErrorMessage){
+                  <div class="inline-message error-message">
+                    <mat-icon>error</mat-icon>
+                    <span>{{ inviteErrorMessage }}</span>
+                  </div>
+                }
+              </form>
             </div>
           </div>
         </div>
@@ -107,10 +213,6 @@
 
       <mat-tab label="Templates">
         <div class="tab-content">
-          <div class="section-head">
-            <h3>Schul-Templates</h3>
-            <p>Bereich für zukünftige Vorlagen und Standard-Layouts.</p>
-          </div>
 
           <mat-card class="coming-soon-card">
             <mat-card-content>
@@ -131,10 +233,6 @@
 
       <mat-tab label="Weitere Einstellungen">
         <div class="tab-content">
-          <div class="section-head">
-            <h3>Weitere wichtige Einstellungen</h3>
-          </div>
-
           <div class="settings-placeholder-list">
             <div class="placeholder-item">
               <mat-icon>grading</mat-icon>

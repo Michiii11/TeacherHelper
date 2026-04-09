@@ -128,7 +128,7 @@ public class UserRepository {
     }
 
     @Transactional
-    public AuthResult register(UserDTO dto) {
+    public AuthResult register(FullUserDTO dto) {
         if (dto == null || dto.username() == null || dto.username().isBlank()
                 || dto.email() == null || dto.email().isBlank()
                 || dto.password() == null || dto.password().isBlank()) {

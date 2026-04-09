@@ -282,10 +282,14 @@ public class SchoolRepository {
         return Response.ok(toSchoolDTO(school)).build();
     }
 
-    public Response inviteTeacher(Long schoolId, Long userId, int teacherId, String message) {
+    public Response inviteTeacher(Long schoolId, Long userId, String email) {
         School school = em.find(School.class, schoolId);
         User sender = em.find(User.class, userId);
-        User teacher = em.find(User.class, (long) teacherId);
+        User teacher = em.createQuery("SELECT t FROM User t WHERE t.email = :email", User.class)
+                .setParameter("email", email)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
 
         if (school == null || sender == null || teacher == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("School, sender or teacher not found").build();
@@ -325,7 +329,7 @@ public class SchoolRepository {
                 sender,
                 teacher,
                 SchoolInviteType.TEACHER_INVITATION,
-                message == null ? "" : message
+                ""
         );
         em.persist(invite);
         em.flush();
@@ -338,7 +342,7 @@ public class SchoolRepository {
                 "Einladung zu " + school.getName(),
                 appendOptionalMessage(
                         sender.getUsername() + " hat dich eingeladen, der Schule " + school.getName() + " beizutreten.",
-                        message
+                        ""
                 ),
                 null,
                 invite.getId(),
@@ -390,7 +394,7 @@ public class SchoolRepository {
                     NotificationType.INVITATION_ACCEPTED,
                     "Invitation accepted",
                     recipient.getUsername() + " accepted the invitation to " + school.getName() + ".",
-                    "/school/" + school.getId(),
+                    "/collection/" + school.getId(),
                     invite.getId(),
                     null,
                     null
@@ -407,7 +411,7 @@ public class SchoolRepository {
                     NotificationType.INVITATION_DECLINED,
                     "Invitation declined",
                     recipient.getUsername() + " declined the invitation to " + school.getName() + ".",
-                    "/school/" + school.getId(),
+                    "/collection/" + school.getId(),
                     invite.getId(),
                     null,
                     null

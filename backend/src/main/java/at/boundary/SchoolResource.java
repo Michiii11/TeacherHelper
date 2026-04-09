@@ -189,18 +189,14 @@ public class SchoolResource {
     }
 
     @POST
-    @Path("{id}/invite-teacher")
+    @Path("{id}/invite")
     public Response inviteTeacher(@PathParam("id") Long id, CreateSchoolInviteDTO dto) {
         Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }
 
-        if (dto.teacherId() == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("teacherId is required").build();
-        }
-
-        return schoolRepository.inviteTeacher(id, userId, dto.teacherId(), dto.message());
+        return schoolRepository.inviteTeacher(id, userId, dto.email());
     }
 
     @POST

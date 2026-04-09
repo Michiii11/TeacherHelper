@@ -342,9 +342,11 @@ export class HttpService {
     });
   }
 
-  inviteTeacher(id: string | number, dto: CreateSchoolInviteDTO) {
-    dto.authToken = this.authToken();
-    return this.http.post(`${Config.API_URL}/school/${id}/invite-teacher`, dto);
+  sendInvite(schoolId: string | null, email: string) {
+    return this.http.post(`${Config.API_URL}/school/${schoolId}/invite`, {
+      authToken: this.authToken(),
+      email
+    })
   }
 
   cancelPendingEmailChange() {
@@ -376,7 +378,7 @@ export class HttpService {
     return `${Config.API_URL}/user/profile-image/${user?.id}`;
   }
 
-  getUserInitials(user: User | null): string {
+  getUserInitials(user: User | null | UserDTO): string {
     const username = user?.username?.trim();
 
     if (username) {

@@ -34,7 +34,7 @@ public class UserResource {
 
     @POST
     @Path("register")
-    public AuthResult register(UserDTO dto) {
+    public AuthResult register(FullUserDTO dto) {
         return repo.register(dto);
     }
 

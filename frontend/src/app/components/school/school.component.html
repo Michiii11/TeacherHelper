@@ -74,125 +74,217 @@
 
         <div class="toolbar">
           @if (activeTab === 'examples') {
-            <div class="toolbar-grid">
+            <div class="toolbar-grid filter-panel">
               <label class="control search-control search-control-wide">
-                <span>Suche</span>
                 <mat-icon>search</mat-icon>
                 <input
                   type="text"
                   [(ngModel)]="exampleSearch"
-                  placeholder="Examples, Fokus, Autor oder Typ durchsuchen"
                 >
               </label>
 
-              <label class="control">
-                <span>Typ</span>
-                <select [(ngModel)]="exampleTypeFilter">
-                  <option value="all">Alle</option>
-                  @for (item of availableExampleTypes; track item.value) {
-                    <option [value]="item.value">{{ item.label }}</option>
-                  }
-                </select>
-              </label>
+              <div class="control filter-dropdown" [class.open]="openFilterMenu === 'exampleTypes'">
+                <button type="button" class="filter-select-trigger" (click)="toggleFilterMenu('exampleTypes')">
+                  <span>{{ getExampleTypeFilterLabel() }}</span>
+                  <mat-icon>expand_more</mat-icon>
+                </button>
 
-              <label class="control">
-                <span>Autor</span>
-                <select [(ngModel)]="exampleAuthorFilter">
-                  <option value="all">Alle</option>
-                  <option value="mine">Nur meine</option>
-                </select>
-              </label>
+                @if (openFilterMenu === 'exampleTypes') {
+                  <div class="filter-select-panel">
+                    @for (item of availableExampleTypes; track item.value) {
+                      <button
+                        type="button"
+                        class="filter-option"
+                        [class.checked]="isExampleTypeSelected(item.value)"
+                        (click)="toggleExampleType(item.value)"
+                      >
+                        <span class="filter-checkbox" [class.checked]="isExampleTypeSelected(item.value)">
+                          <mat-icon>check</mat-icon>
+                        </span>
+                        <span class="filter-option-label">{{ item.label }}</span>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
 
-              <label class="control">
-                <span>Sortierung</span>
-                <select [(ngModel)]="exampleSort">
-                  <option value="nameAsc">Name A–Z</option>
-                  <option value="nameDesc">Name Z–A</option>
-                  <option value="createdDesc">Zuletzt geändert</option>
-                  <option value="createdAsc">Älteste zuerst</option>
-                  <option value="authorAsc">Autor A–Z</option>
-                </select>
-              </label>
+              <div class="control filter-dropdown" [class.open]="openFilterMenu === 'exampleFocuses'">
+                <button type="button" class="filter-select-trigger" (click)="toggleFilterMenu('exampleFocuses')">
+                  <span>{{ getExampleFocusFilterLabel() }}</span>
+                  <mat-icon>expand_more</mat-icon>
+                </button>
 
-              <button type="button" class="ghost-btn" (click)="resetExampleFilters()">
+                @if (openFilterMenu === 'exampleFocuses') {
+                  <div class="filter-select-panel">
+                    @for (focus of availableExampleFocuses; track focus) {
+                      <button
+                        type="button"
+                        class="filter-option"
+                        [class.checked]="isExampleFocusSelected(focus)"
+                        (click)="toggleExampleFocus(focus)"
+                      >
+                        <span class="filter-checkbox" [class.checked]="isExampleFocusSelected(focus)">
+                          <mat-icon>check</mat-icon>
+                        </span>
+                        <span class="filter-option-label">{{ focus }}</span>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+
+              <div class="control filter-dropdown" [class.open]="openFilterMenu === 'exampleAuthors'">
+                <button type="button" class="filter-select-trigger" (click)="toggleFilterMenu('exampleAuthors')">
+                  <span>{{ getExampleAuthorFilterLabel() }}</span>
+                  <mat-icon>expand_more</mat-icon>
+                </button>
+
+                @if (openFilterMenu === 'exampleAuthors') {
+                  <div class="filter-select-panel">
+                    @for (author of availableExampleAuthors; track author) {
+                      <button
+                        type="button"
+                        class="filter-option"
+                        [class.checked]="isExampleAuthorSelected(author)"
+                        (click)="toggleExampleAuthor(author)"
+                      >
+                        <span class="filter-checkbox" [class.checked]="isExampleAuthorSelected(author)">
+                          <mat-icon>check</mat-icon>
+                        </span>
+                        <span class="filter-option-label">{{ author }}</span>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+
+              <button type="button" class="ghost-btn reset-btn" (click)="resetExampleFilters()">
+                <mat-icon>restart_alt</mat-icon>
                 Zurücksetzen
               </button>
             </div>
+
+            <div class="selected-chip-row selected-chip-row-box">
+              @for (type of selectedExampleTypes; track type) {
+                <button type="button" class="selected-chip" (click)="removeExampleType(type)">
+                  <span>{{ getExampleTypeLabel(type) }}</span>
+                  <mat-icon>close</mat-icon>
+                </button>
+              }
+
+              @for (focus of selectedExampleFocuses; track focus) {
+                <button type="button" class="selected-chip" (click)="removeExampleFocus(focus)">
+                  <span>{{ focus }}</span>
+                  <mat-icon>close</mat-icon>
+                </button>
+              }
+
+              @for (author of selectedExampleAuthors; track author) {
+                <button type="button" class="selected-chip" (click)="removeExampleAuthor(author)">
+                  <span>{{ author }}</span>
+                  <mat-icon>close</mat-icon>
+                </button>
+              }
+            </div>
           } @else {
-            <div class="toolbar-grid toolbar-grid-tests">
+            <div class="toolbar-grid toolbar-grid-tests filter-panel">
               <label class="control search-control search-control-wide">
-                <span>Suche</span>
                 <mat-icon>search</mat-icon>
                 <input
                   type="text"
                   [(ngModel)]="testSearch"
-                  placeholder="Tests, Anzahl Fragen oder Autor durchsuchen"
                 >
               </label>
 
-              <label class="control">
-                <span>Autor</span>
-                <select [(ngModel)]="testAuthorFilter">
-                  <option value="all">Alle</option>
-                  <option value="mine">Nur meine</option>
-                </select>
-              </label>
+              <div class="control filter-dropdown" [class.open]="openFilterMenu === 'testAuthors'">
+                <button type="button" class="filter-select-trigger" (click)="toggleFilterMenu('testAuthors')">
+                  <span>{{ getTestAuthorFilterLabel() }}</span>
+                  <mat-icon>expand_more</mat-icon>
+                </button>
 
-              <label class="control">
-                <span>Sortierung</span>
-                <select [(ngModel)]="testSort">
-                  <option value="nameAsc">Name A–Z</option>
-                  <option value="nameDesc">Name Z–A</option>
-                  <option value="createdDesc">Zuletzt geändert</option>
-                  <option value="createdAsc">Älteste zuerst</option>
-                  <option value="authorAsc">Autor A–Z</option>
-                </select>
-              </label>
+                @if (openFilterMenu === 'testAuthors') {
+                  <div class="filter-select-panel">
+                    @for (author of availableTestAuthors; track author) {
+                      <button
+                        type="button"
+                        class="filter-option"
+                        [class.checked]="isTestAuthorSelected(author)"
+                        (click)="toggleTestAuthor(author)"
+                      >
+                        <span class="filter-checkbox" [class.checked]="isTestAuthorSelected(author)">
+                          <mat-icon>check</mat-icon>
+                        </span>
+                        <span class="filter-option-label">{{ author }}</span>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
 
-              <button type="button" class="ghost-btn" (click)="resetTestFilters()">
+              <button type="button" class="ghost-btn reset-btn" (click)="resetTestFilters()">
+                <mat-icon>restart_alt</mat-icon>
                 Zurücksetzen
               </button>
             </div>
+
+            <div class="selected-chip-row selected-chip-row-box">
+              @for (author of selectedTestAuthors; track author) {
+                <button type="button" class="selected-chip" (click)="removeTestAuthor(author)">
+                  <span>{{ author }}</span>
+                  <mat-icon>close</mat-icon>
+                </button>
+              }
+            </div>
           }
 
-          <div class="active-filter-bar">
-            <div class="filter-chip soft">
-              <mat-icon>tune</mat-icon>
-              <span>{{ activeFilterCount }} aktive Filter</span>
+          <div class="toolbar-meta">
+            <div class="active-filter-bar">
+              <div class="filter-chip">
+                <mat-icon>folder_open</mat-icon>
+                <span>{{ totalVisibleFolderCount }} Ordner</span>
+              </div>
+
+              <div class="filter-chip">
+                <mat-icon>inventory_2</mat-icon>
+                <span>{{ totalVisibleItemCount }} sichtbar</span>
+              </div>
+
+              @if (!isSearching) {
+                <div class="filter-chip">
+                  <mat-icon>place</mat-icon>
+                  <span>{{ currentPathLabel }}</span>
+                </div>
+              }
+
+              @if (isSearching) {
+                <div class="filter-chip primary">
+                  <mat-icon>travel_explore</mat-icon>
+                  <span>Globale Suche über alle Ordner</span>
+                </div>
+              }
             </div>
 
-            <div class="filter-chip">
-              <mat-icon>inventory_2</mat-icon>
-              <span>{{ totalVisibleItemCount }} sichtbar</span>
+            <div class="view-toggle" role="tablist" aria-label="Ansicht wählen">
+              <button
+                type="button"
+                class="view-toggle-btn"
+                [class.active]="currentViewMode === 'grid'"
+                (click)="setCurrentViewMode('grid')"
+              >
+                <mat-icon>grid_view</mat-icon>
+                Grid
+              </button>
+
+              <button
+                type="button"
+                class="view-toggle-btn"
+                [class.active]="currentViewMode === 'compact'"
+                (click)="setCurrentViewMode('compact')"
+              >
+                <mat-icon>table_rows</mat-icon>
+                Kompakt
+              </button>
             </div>
-
-            @if (activeSearch) {
-              <div class="filter-chip primary">
-                <mat-icon>search</mat-icon>
-                <span>{{ activeSearch }}</span>
-              </div>
-            }
-
-            @if (activeTab === 'examples' && exampleTypeFilter !== 'all') {
-              <div class="filter-chip primary">
-                <mat-icon>category</mat-icon>
-                <span>{{ getExampleTypeLabel(exampleTypeFilter) }}</span>
-              </div>
-            }
-
-            @if (activeTab === 'examples' && exampleAuthorFilter === 'mine') {
-              <div class="filter-chip primary">
-                <mat-icon>person</mat-icon>
-                <span>Nur meine</span>
-              </div>
-            }
-
-            @if (activeTab === 'tests' && testAuthorFilter === 'mine') {
-              <div class="filter-chip primary">
-                <mat-icon>person</mat-icon>
-                <span>Nur meine</span>
-              </div>
-            }
           </div>
         </div>
       </div>
@@ -210,45 +302,31 @@
             </button>
           </div>
 
-          <div class="location-card">
-            <div class="location-card-top">
-              <span class="location-label">Aktueller Pfad</span>
-              <span class="location-badge">{{ activeTab === 'examples' ? 'Examples' : 'Tests' }}</span>
-            </div>
-
-            <div class="location-title">
-              @if (currentFolder) {
-                {{ currentFolder.name }}
-              } @else {
-                Root
-              }
-            </div>
-
-            <div class="location-path">
-              <button type="button" class="path-pill" (click)="navigateToBreadcrumb(null)">Root</button>
+          <div class="sidebar-path">
+            <span class="sidebar-path-label">{{ activeTab === 'examples' ? 'Examples' : 'Tests' }}</span>
+            <div class="sidebar-path-line">
+              <button type="button" class="path-link" (click)="navigateToBreadcrumb(null)">Root</button>
 
               @for (crumb of currentBreadcrumbs; track crumb.id) {
                 <span class="path-separator">/</span>
-                <button type="button" class="path-pill" (click)="navigateToBreadcrumb(crumb.id)">
+                <button type="button" class="path-link" (click)="navigateToBreadcrumb(crumb.id)">
                   {{ crumb.name }}
                 </button>
               }
             </div>
 
-            @if (parentFolder || currentFolder) {
-              <div class="location-actions">
-                <button type="button" class="ghost-inline-btn" (click)="goToParentFolder()">
-                  <mat-icon>arrow_upward</mat-icon>
-                  Eine Ebene hoch
-                </button>
-              </div>
+            @if (!isSearching && (parentFolder || currentFolder)) {
+              <button type="button" class="ghost-inline-btn" (click)="goToParentFolder()">
+                <mat-icon>arrow_upward</mat-icon>
+                Eine Ebene hoch
+              </button>
             }
           </div>
 
           <button
             type="button"
             class="folder-node root-node"
-            [class.active]="selectedFolderId === null"
+            [class.active]="selectedFolderId === null && !isSearching"
             [class.drop-active]="dropTarget === 'root'"
             (click)="selectFolder(null)"
             (dragover)="allowDrop($event, 'root')"
@@ -264,7 +342,7 @@
             </div>
           </button>
 
-          @if (parentFolder) {
+          @if (!isSearching && parentFolder) {
             <button
               type="button"
               class="folder-node parent-node"
@@ -281,15 +359,19 @@
           }
 
           <div class="sidebar-section-label">
-            {{ currentFolder ? 'Unterordner von ' + currentFolder.name : 'Ordner auf Root-Ebene' }}
+            @if (isSearching) {
+              Suchtreffer in allen Ordnern
+            } @else {
+              {{ currentFolder ? 'Unterordner von ' + currentFolder.name : 'Ordner auf Root-Ebene' }}
+            }
           </div>
 
           <div class="folder-tree">
-            @for (folder of currentChildFolders; track folder.id) {
+            @for (folder of visibleFolders; track folder.id) {
               <button
                 type="button"
                 class="folder-node"
-                [class.active]="selectedFolderId === folder.id"
+                [class.active]="selectedFolderId === folder.id && !isSearching"
                 [class.drop-active]="dropTarget === 'folder-' + folder.id"
                 (click)="openFolder(folder)"
                 (dragover)="allowDrop($event, 'folder-' + folder.id)"
@@ -303,6 +385,9 @@
                     <span class="folder-meta">
                       {{ getFolderChildrenCount(folder) }} Unterordner · {{ getFolderItemCount(folder) }} Inhalte
                     </span>
+                    @if (isSearching) {
+                      <span class="folder-meta soft">{{ getFolderPathLabel(folder.id) }}</span>
+                    }
                   </div>
                 </div>
 
@@ -321,50 +406,46 @@
         </aside>
 
         <div class="explorer-main">
-          <div class="breadcrumbs-card">
-            <div class="breadcrumbs-top">
-              <div class="breadcrumbs-label">Du bist hier</div>
-              <div class="breadcrumbs-count">
-                {{ currentChildFolders.length }} Ordner · {{ totalVisibleItemCount }}
-                {{ activeTab === 'examples' ? 'Examples' : 'Tests' }}
-              </div>
-            </div>
-
-            <div class="breadcrumbs">
-              <button type="button" class="crumb" (click)="navigateToBreadcrumb(null)">Root</button>
-
-              @for (crumb of currentBreadcrumbs; track crumb.id) {
-                <span class="crumb-separator">/</span>
-                <button type="button" class="crumb" (click)="navigateToBreadcrumb(crumb.id)">
-                  {{ crumb.name }}
-                </button>
-              }
-            </div>
-          </div>
-
-          <div
-            class="current-folder-banner"
-            [class.drop-active]="dropTarget === 'current'"
-            (dragover)="allowDrop($event, 'current')"
-            (dragleave)="dropTarget = dropTarget === 'current' ? null : dropTarget"
-            (drop)="onDropToCurrentFolder($event)"
-          >
-            <div class="current-folder-banner-text">
-              <span class="eyebrow">Drop-Zone</span>
+          <div class="content-header">
+            <div class="content-header-text">
+              <div class="content-header-kicker">{{ activeTab === 'examples' ? 'Examples' : 'Tests' }}</div>
               <h2 class="content-title">
-                @if (currentFolder) {
+                @if (isSearching) {
+                  Suchergebnisse
+                } @else if (currentFolder) {
                   {{ currentFolder.name }}
                 } @else {
                   Root
                 }
               </h2>
-
               <p class="content-subtitle">
-                Zieh {{ activeTab === 'examples' ? 'Examples' : 'Tests' }} hier hinein oder nutze den Move-Button direkt an der Karte.
+                {{ totalVisibleFolderCount }} Ordner · {{ totalVisibleItemCount }}
+                {{ activeTab === 'examples' ? 'Einträge' : 'Tests' }}
               </p>
             </div>
 
             <div class="content-header-actions">
+              <label class="sort-control">
+                <span>Sortierung</span>
+                @if (activeTab === 'examples') {
+                  <select [(ngModel)]="exampleSort">
+                    <option value="nameAsc">Name A–Z</option>
+                    <option value="nameDesc">Name Z–A</option>
+                    <option value="createdDesc">Zuletzt geändert</option>
+                    <option value="createdAsc">Älteste zuerst</option>
+                    <option value="authorAsc">Autor A–Z</option>
+                  </select>
+                } @else {
+                  <select [(ngModel)]="testSort">
+                    <option value="nameAsc">Name A–Z</option>
+                    <option value="nameDesc">Name Z–A</option>
+                    <option value="createdDesc">Zuletzt geändert</option>
+                    <option value="createdAsc">Älteste zuerst</option>
+                    <option value="authorAsc">Autor A–Z</option>
+                  </select>
+                }
+              </label>
+
               <button mat-stroked-button color="primary" (click)="createFolder()">
                 <mat-icon>create_new_folder</mat-icon>
                 Neuer Ordner
@@ -384,191 +465,304 @@
             </div>
           </div>
 
-          <div class="content-grid">
-            @for (folder of currentChildFolders; track folder.id) {
-              <div
-                class="content-card folder-card"
-                [class.drop-active]="dropTarget === 'folder-' + folder.id"
-                (click)="openFolder(folder)"
-                (dragover)="allowDrop($event, 'folder-' + folder.id)"
-                (dragleave)="dropTarget = dropTarget === 'folder-' + folder.id ? null : dropTarget"
-                (drop)="onDropToFolder($event, folder.id)"
-              >
-                <div class="content-card-icon folder-icon">
-                  <mat-icon>folder</mat-icon>
-                </div>
-
-                <div class="content-card-body">
-                  <div class="content-card-title">{{ folder.name }}</div>
-                  <div class="content-card-meta">
-                    {{ getFolderChildrenCount(folder) }} Unterordner · {{ getFolderItemCount(folder) }} Inhalte
-                  </div>
-                  <div class="content-card-meta soft">
-                    Ziel für Drag & Drop
-                  </div>
-                </div>
-
-                <div class="content-card-actions" (click)="$event.stopPropagation()">
-                  <button mat-icon-button (click)="renameFolder(folder, $event)">
-                    <mat-icon>edit</mat-icon>
-                  </button>
-
-                  <button mat-icon-button color="warn" (click)="deleteFolder(folder, $event)">
-                    <mat-icon>delete</mat-icon>
-                  </button>
-                </div>
-              </div>
-            }
-
-            @if (activeTab === 'examples') {
-              @for (example of filteredExamples; track example.id) {
+          @if (currentViewMode === 'grid') {
+            <div class="content-grid">
+              @for (folder of visibleFolders; track folder.id) {
                 <div
-                  class="content-card item-card"
-                  [class.draggable]="canManageExample(example)"
-                  [attr.draggable]="canManageExample(example)"
-                  (dragstart)="canManageExample(example) && onItemDragStart('examples', example.id)"
-                  (dragend)="onItemDragEnd()"
+                  class="content-card folder-card"
+                  [class.drop-active]="dropTarget === 'folder-' + folder.id"
+                  (click)="openFolder(folder)"
+                  (dragover)="allowDrop($event, 'folder-' + folder.id)"
+                  (dragleave)="dropTarget = dropTarget === 'folder-' + folder.id ? null : dropTarget"
+                  (drop)="onDropToFolder($event, folder.id)"
                 >
-                  <div class="content-card-icon item-icon">
-                    <mat-icon>description</mat-icon>
+                  <div class="content-card-icon folder-icon">
+                    <mat-icon>folder</mat-icon>
                   </div>
+
+                  <div class="content-card-body">
+                    <div class="content-card-title">{{ folder.name }}</div>
+                    <div class="content-card-meta">
+                      {{ getFolderChildrenCount(folder) }} Unterordner · {{ getFolderItemCount(folder) }} Inhalte
+                    </div>
+                  </div>
+
+                  <div class="content-card-actions" (click)="$event.stopPropagation()">
+                    <button mat-icon-button (click)="renameFolder(folder, $event)">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+
+                    <button mat-icon-button color="warn" (click)="deleteFolder(folder, $event)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              }
+
+              @if (activeTab === 'examples') {
+                @for (example of filteredExamples; track example.id) {
+                  <div
+                    class="content-card item-card"
+                    [class.draggable]="canManageExample(example)"
+                    [class.drop-source]="draggedItem?.type === 'examples' && draggedItem?.itemId === example.id"
+                    [attr.draggable]="canManageExample(example)"
+                    (dragstart)="canManageExample(example) && onItemDragStart('examples', example.id)"
+                    (dragend)="onItemDragEnd()"
+                  >
+                    <div class="content-card-icon item-icon">
+                      <mat-icon>description</mat-icon>
+                    </div>
 
                   <div class="content-card-body">
                     <div class="content-card-title">{{ example.question || 'Ohne Titel' }}</div>
                     <div class="content-card-meta">
-                      {{ getExampleTypeLabel(example.type) }}
+                      {{ getExampleTypeLabel(example.type) }} · {{ example.adminUsername || '—' }} · {{ getFolderPathLabel(example.folderId) }}
                       @if (example.focusList.length) {
-                        · {{ getFocusList(example.focusList) }}
+                        <div class="tag-list">
+                          @for (focus of example.focusList; track focus.label) {
+                            <span class="tag-chip">{{ focus.label }}</span>
+                          }
+                        </div>
                       }
                     </div>
-                    <div class="content-card-meta soft">
-                      {{ example.adminUsername || '—' }}
+                    </div>
+
+                    <div class="content-card-actions">
+                      @if (canManageExample(example)) {
+                        <button mat-icon-button (click)="editExample(example)">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+
+                        <button
+                          mat-icon-button
+                          (click)="moveExampleWithPicker(example)"
+                          title="In anderen Ordner verschieben"
+                        >
+                          <mat-icon>drive_file_move</mat-icon>
+                        </button>
+
+                        <button mat-icon-button color="warn" (click)="deleteExample(example)">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      } @else {
+                        <button mat-icon-button (click)="openExample(example)">
+                          <mat-icon>visibility</mat-icon>
+                        </button>
+                      }
                     </div>
                   </div>
+                }
 
-                  <div class="content-card-actions">
-                    @if (canManageExample(example)) {
-                      <button mat-icon-button (click)="editExample(example)">
-                        <mat-icon>edit</mat-icon>
-                      </button>
+                @if (!visibleFolders.length && !filteredExamples.length) {
+                  <div class="empty-state">
+                    <mat-icon>folder_off</mat-icon>
+                    <h3>Keine Examples gefunden</h3>
+                    <p>Erstelle einen Ordner oder lege direkt ein Example an.</p>
+                  </div>
+                }
+              } @else {
+                @for (test of filteredTests; track test.id) {
+                  <div
+                    class="content-card item-card"
+                    [class.draggable]="canManageTest(test)"
+                    [class.drop-source]="draggedItem?.type === 'tests' && draggedItem?.itemId === test.id"
+                    [attr.draggable]="canManageTest(test)"
+                    (dragstart)="canManageTest(test) && onItemDragStart('tests', test.id)"
+                    (dragend)="onItemDragEnd()"
+                  >
+                    <div class="content-card-icon item-icon">
+                      <mat-icon>assignment</mat-icon>
+                    </div>
 
-                      <button
-                        mat-icon-button
-                        (click)="moveExampleToCurrentFolder(example)"
-                        title="Im aktuellen Ordner speichern"
-                      >
-                        <mat-icon>drive_file_move</mat-icon>
-                      </button>
+                    <div class="content-card-body">
+                      <div class="content-card-title">{{ test.name }}</div>
+                      <div class="content-card-meta">
+                        {{ test.amountOfQuestions }} {{ 'school.questions' | translate }} · {{ test.adminUsername || '—' }} · {{ getFolderPathLabel(test.folderId ?? null, 'tests') }}
+                      </div>
+                    </div>
 
-                      <button mat-icon-button color="warn" (click)="deleteExample(example)">
-                        <mat-icon>delete</mat-icon>
-                      </button>
-                    } @else {
-                      <button mat-icon-button (click)="openExample(example)">
+                    <div class="content-card-actions">
+                      <button mat-icon-button (click)="openTest(test)">
                         <mat-icon>visibility</mat-icon>
                       </button>
-                    }
-                  </div>
-                </div>
-              }
 
-              @if (!currentChildFolders.length && !filteredExamples.length) {
-                <div class="empty-state">
-                  <mat-icon>folder_off</mat-icon>
-                  <h3>Keine Examples gefunden</h3>
-                  <p>Erstelle einen Ordner oder lege direkt ein Example an.</p>
-                </div>
+                      @if (canManageTest(test)) {
+                        <button mat-icon-button (click)="editTest(test)">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+
+                        <button
+                          mat-icon-button
+                          (click)="moveTestWithPicker(test)"
+                          title="In anderen Ordner verschieben"
+                        >
+                          <mat-icon>drive_file_move</mat-icon>
+                        </button>
+
+                        <button mat-icon-button color="warn" (click)="deleteTest(test)">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+
+                @if (!visibleFolders.length && !filteredTests.length) {
+                  <div class="empty-state">
+                    <mat-icon>folder_off</mat-icon>
+                    <h3>Keine Tests gefunden</h3>
+                    <p>Erstelle einen Ordner oder lege direkt einen Test an.</p>
+                  </div>
+                }
               }
-            } @else {
-              @for (test of filteredTests; track test.id) {
+            </div>
+          } @else {
+            <div class="compact-list">
+              @for (folder of visibleFolders; track folder.id) {
                 <div
-                  class="content-card item-card"
-                  [class.draggable]="canManageTest(test)"
-                  [attr.draggable]="canManageTest(test)"
-                  (dragstart)="canManageTest(test) && onItemDragStart('tests', test.id)"
-                  (dragend)="onItemDragEnd()"
+                  class="compact-row folder-row"
+                  [class.drop-active]="dropTarget === 'folder-' + folder.id"
+                  (click)="openFolder(folder)"
+                  (dragover)="allowDrop($event, 'folder-' + folder.id)"
+                  (dragleave)="dropTarget = dropTarget === 'folder-' + folder.id ? null : dropTarget"
+                  (drop)="onDropToFolder($event, folder.id)"
                 >
-                  <div class="content-card-icon item-icon">
-                    <mat-icon>assignment</mat-icon>
-                  </div>
-
-                  <div class="content-card-body">
-                    <div class="content-card-title">{{ test.name }}</div>
-                    <div class="content-card-meta">
-                      {{ test.amountOfQuestions }} {{ 'school.questions' | translate }}
-                    </div>
-                    <div class="content-card-meta soft">
-                      {{ test.adminUsername || '—' }}
+                  <div class="compact-main">
+                    <div class="compact-title-wrap">
+                      <mat-icon class="compact-icon folder">folder</mat-icon>
+                      <div class="compact-title-block">
+                        <div class="compact-title">{{ folder.name }}</div>
+                        <div class="compact-subtitle">
+                          {{ getFolderChildrenCount(folder) }} Unterordner · {{ getFolderItemCount(folder) }} Inhalte · {{ getFolderPathLabel(folder.id) }}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <div class="content-card-actions">
-                    <button mat-icon-button (click)="openTest(test)">
-                      <mat-icon>visibility</mat-icon>
+                  <div class="compact-actions" (click)="$event.stopPropagation()">
+                    <button mat-icon-button (click)="renameFolder(folder, $event)">
+                      <mat-icon>edit</mat-icon>
                     </button>
 
-                    @if (canManageTest(test)) {
-                      <button mat-icon-button (click)="editTest(test)">
-                        <mat-icon>edit</mat-icon>
-                      </button>
-
-                      <button
-                        mat-icon-button
-                        (click)="moveTestToCurrentFolder(test)"
-                        title="Im aktuellen Ordner speichern"
-                      >
-                        <mat-icon>drive_file_move</mat-icon>
-                      </button>
-
-                      <button mat-icon-button color="warn" (click)="deleteTest(test)">
-                        <mat-icon>delete</mat-icon>
-                      </button>
-                    }
+                    <button mat-icon-button color="warn" (click)="deleteFolder(folder, $event)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
                   </div>
                 </div>
               }
 
-              @if (!currentChildFolders.length && !filteredTests.length) {
-                <div class="empty-state">
-                  <mat-icon>folder_off</mat-icon>
-                  <h3>Keine Tests gefunden</h3>
-                  <p>Erstelle einen Ordner oder lege direkt einen Test an.</p>
-                </div>
+              @if (activeTab === 'examples') {
+                @for (example of filteredExamples; track example.id) {
+                  <div
+                    class="compact-row"
+                    [class.draggable]="canManageExample(example)"
+                    [class.drop-source]="draggedItem?.type === 'examples' && draggedItem?.itemId === example.id"
+                    [attr.draggable]="canManageExample(example)"
+                    (dragstart)="canManageExample(example) && onItemDragStart('examples', example.id)"
+                    (dragend)="onItemDragEnd()"
+                  >
+                    <div class="compact-main">
+                      <div class="compact-title-wrap">
+                        <mat-icon class="compact-icon item">description</mat-icon>
+                        <div class="compact-title-block">
+                          <div class="compact-title">{{ example.question || 'Ohne Titel' }}</div>
+                          <div class="compact-subtitle">
+                            {{ getExampleTypeLabel(example.type) }} · {{ example.adminUsername || '—' }} · {{ getFolderPathLabel(example.folderId) }}
+                          </div>
+                        </div>
+                      </div>
+
+                      @if (example.focusList.length) {
+                        <div class="compact-tags">
+                          @for (focus of example.focusList; track focus.label) {
+                            <span class="tag-chip">{{ focus.label }}</span>
+                          }
+                        </div>
+                      }
+                    </div>
+
+                    <div class="compact-actions">
+                      @if (canManageExample(example)) {
+                        <button mat-icon-button (click)="editExample(example)">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+
+                        <button mat-icon-button (click)="moveExampleWithPicker(example)">
+                          <mat-icon>drive_file_move</mat-icon>
+                        </button>
+
+                        <button mat-icon-button color="warn" (click)="deleteExample(example)">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      } @else {
+                        <button mat-icon-button (click)="openExample(example)">
+                          <mat-icon>visibility</mat-icon>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+
+                @if (!visibleFolders.length && !filteredExamples.length) {
+                  <div class="empty-state">
+                    <mat-icon>folder_off</mat-icon>
+                    <h3>Keine Examples gefunden</h3>
+                    <p>Erstelle einen Ordner oder lege direkt ein Example an.</p>
+                  </div>
+                }
+              } @else {
+                @for (test of filteredTests; track test.id) {
+                  <div
+                    class="compact-row"
+                    [class.draggable]="canManageTest(test)"
+                    [class.drop-source]="draggedItem?.type === 'tests' && draggedItem?.itemId === test.id"
+                    [attr.draggable]="canManageTest(test)"
+                    (dragstart)="canManageTest(test) && onItemDragStart('tests', test.id)"
+                    (dragend)="onItemDragEnd()"
+                  >
+                    <div class="compact-main">
+                      <div class="compact-title-wrap">
+                        <mat-icon class="compact-icon item">assignment</mat-icon>
+                        <div class="compact-title-block">
+                          <div class="compact-title">{{ test.name }}</div>
+                          <div class="compact-subtitle">
+                            {{ test.amountOfQuestions }} {{ 'school.questions' | translate }} · {{ test.adminUsername || '—' }} · {{ getFolderPathLabel(test.folderId ?? null, 'tests') }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="compact-actions">
+                      <button mat-icon-button (click)="openTest(test)">
+                        <mat-icon>visibility</mat-icon>
+                      </button>
+
+                      @if (canManageTest(test)) {
+                        <button mat-icon-button (click)="editTest(test)">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+
+                        <button mat-icon-button (click)="moveTestWithPicker(test)">
+                          <mat-icon>drive_file_move</mat-icon>
+                        </button>
+
+                        <button mat-icon-button color="warn" (click)="deleteTest(test)">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+
+                @if (!visibleFolders.length && !filteredTests.length) {
+                  <div class="empty-state">
+                    <mat-icon>folder_off</mat-icon>
+                    <h3>Keine Tests gefunden</h3>
+                    <p>Erstelle einen Ordner oder lege direkt einen Test an.</p>
+                  </div>
+                }
               }
-            }
-          </div>
-        </div>
-      </div>
-    </article>
-
-    <article class="panel teachers">
-      <div class="panel-header">
-        <h2 class="panel-title">{{ 'school.teachers' | translate }}</h2>
-        <button mat-mini-fab color="primary" (click)="openAddTeacher()">
-          <mat-icon>person_add</mat-icon>
-        </button>
-      </div>
-
-      <div class="panel-body teachers-list">
-        <div class="teacher-card" *ngIf="school.admin">
-          <div class="teacher-text">
-            <div class="name">{{ school.admin.username }}</div>
-            <div class="role">{{ 'school.admin' | translate }}</div>
-          </div>
-        </div>
-
-        <div *ngFor="let t of school.members" class="teacher-card">
-          <div class="teacher-text">
-            <div class="name">{{ t.username }}</div>
-            <div class="role">
-              {{ school.admin.username == t.username ? ('school.admin' | translate) : ('school.teacher' | translate) }}
             </div>
-          </div>
-
-          @if (school.admin.id == currentUserId) {
-            <button mat-icon-button (click)="kickTeacher(t)">
-              <mat-icon>delete</mat-icon>
-            </button>
           }
         </div>
       </div>

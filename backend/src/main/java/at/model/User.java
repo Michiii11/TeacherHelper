@@ -204,6 +204,6 @@ public class User {
     }
 
     public UserDTO toUserDTO() {
-        return new UserDTO(id, username, email, password, getProfileImageUrl());
+        return new UserDTO(id, username, getProfileImageUrl());
     }
 }
