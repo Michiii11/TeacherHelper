@@ -475,7 +475,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
   goToSchool(): void {
     const lastId = localStorage.getItem('lastViewedSchoolId');
-    this.router.navigate(lastId ? ['/school', lastId] : ['/school']);
+    this.router.navigate(lastId ? ['/collection', lastId] : ['/collection']);
   }
 
   canSendSystemInfo(): boolean {

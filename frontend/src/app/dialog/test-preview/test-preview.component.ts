@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { MAT_DIALOG_DATA, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
-import { MatButton } from '@angular/material/button';
+import {MatButton, MatIconButton} from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatPseudoCheckbox } from '@angular/material/core';
 
@@ -11,6 +11,8 @@ import { Example, ExampleTypes } from '../../model/Example';
 import { CreateTestDTO, TestExampleDTO } from '../../model/Test';
 import { HttpService } from '../../service/http.service';
 import { PersistedTestSettings, TestPrintService } from '../../service/test-print.service';
+import {MatButtonToggle, MatButtonToggleGroup} from '@angular/material/button-toggle'
+import {MatIcon} from '@angular/material/icon'
 
 @Component({
   selector: 'app-test-preview',
@@ -21,6 +23,10 @@ import { PersistedTestSettings, TestPrintService } from '../../service/test-prin
     MatDialogContent,
     MatButton,
     MatPseudoCheckbox,
+    MatButtonToggle,
+    MatButtonToggleGroup,
+    MatIcon,
+    MatIconButton,
   ],
   templateUrl: './test-preview.component.html',
   styleUrl: './test-preview.component.scss',

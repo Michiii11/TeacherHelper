@@ -32,10 +32,10 @@
 
   <div class="grid">
     <div class="create-example-dialog">
-      <form class="example-form" (ngSubmit)="saveExample()">
+      <form class="example-form">
         <div class="row">
           <mat-form-field appearance="outline" class="full-width focus-field">
-            <mat-label>Schwerpunkt</mat-label>
+            <mat-label>Tags</mat-label>
 
             <mat-chip-grid
               #chipGrid
@@ -52,7 +52,7 @@
             <input
               matInput
               class="focus-input"
-              placeholder="Schwerpunkt auswählen oder erstellen"
+              placeholder="Tags auswählen oder erstellen"
               [matChipInputFor]="chipGrid"
               [matAutocomplete]="auto"
               [formControl]="inputCtrl"
@@ -60,18 +60,33 @@
               #inputEl
             />
 
-            <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption (optionSelected)="selected($event)">
+            <mat-autocomplete
+              #auto="matAutocomplete"
+              autoActiveFirstOption
+              (optionSelected)="selected($event)"
+              class="focus-autocomplete"
+            >
               <mat-option *ngFor="let focus of filteredFocusList | async" [value]="focus">
-                <div class="option-row">
-                  <span>{{ focus.label }}</span>
-                  <button mat-icon-button tabindex="-1" type="button" (click)="deleteFocus(focus, $event)">
+                <div class="focus-option-row">
+                  <span class="focus-option-label">{{ focus.label }}</span>
+
+                  <button
+                    mat-icon-button
+                    class="focus-option-delete"
+                    tabindex="-1"
+                    type="button"
+                    (click)="deleteFocus(focus, $event)"
+                    aria-label="Tag löschen"
+                  >
                     <mat-icon fontIcon="delete"></mat-icon>
                   </button>
                 </div>
               </mat-option>
 
-              <mat-option *ngIf="showCreateOption(inputCtrl.value)" [value]="inputCtrl.value">
-                ➕ Create "{{ inputCtrl.value }}"
+              <mat-option *ngIf="showCreateOption(inputCtrl.value)" [value]="inputCtrl.value" class="focus-create-option">
+                <div class="focus-option-row">
+                  <span class="focus-option-label">"{{ inputCtrl.value }}" hinzufügen</span>
+                </div>
               </mat-option>
             </mat-autocomplete>
           </mat-form-field>
@@ -164,7 +179,9 @@
             <div class="panel-box multiple-choice-options">
               <div class="panel-title">Optionen</div>
               <div *ngFor="let opt of example.options; let i = index; trackBy: trackByOptionId" class="item-row">
-                <mat-checkbox [(ngModel)]="opt.correct" name="correctOption{{i}}" (change)="markDirty()" [matTooltip]="'Als richtige Antwort markieren'" [matTooltipShowDelay]="500">
+                <mat-checkbox [(ngModel)]="opt.correct" name="correctOption{{i}}"
+                              (change)="markDirty()" [matTooltip]="'Als richtige Antwort markieren'"
+                              [matTooltipShowDelay]="500">
                 </mat-checkbox>
 
                 <mat-form-field appearance="outline" class="item-input">
@@ -199,6 +216,7 @@
               name="gapFillType"
               (change)="onGapFillTypeChange(example.gapFillType)"
               class="styled-toggle-group"
+              [hideSingleSelectionIndicator]="true"
             >
               <mat-button-toggle value="SELECT">Auswahl</mat-button-toggle>
               <mat-button-toggle value="INPUT">Freitext</mat-button-toggle>
@@ -439,11 +457,11 @@
           </div>
         }
       </div>
+
+      <mat-dialog-actions>
+        <button mat-stroked-button type="button" (click)="closeDialog()">Abbrechen</button>
+        <button mat-flat-button color="primary" type="submit" [disabled]="isSaving" (click)="saveExample()">{{ isSaving ? 'Wird gespeichert...' : 'Speichern' }}</button>
+      </mat-dialog-actions>
     </div>
   </div>
-
-  <mat-dialog-actions>
-    <button mat-stroked-button type="button" (click)="closeDialog()">Abbrechen</button>
-    <button mat-flat-button color="primary" type="submit" [disabled]="isSaving">{{ isSaving ? 'Wird gespeichert...' : 'Speichern' }}</button>
-  </mat-dialog-actions>
 </main>

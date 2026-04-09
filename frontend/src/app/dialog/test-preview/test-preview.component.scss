@@ -40,6 +40,28 @@
   flex-direction: column;
 }
 
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mat-mdc-icon-button{
+  font-size: .8rem;
+  padding-inline: .25rem;
+  background: var(--primary) !important;
+  color: white !important;
+
+  &:hover{
+    background: var(--primary-2) !important;
+  }
+
+  &:disabled{
+    color: var(--primary-soft) !important;
+    background: var(--primary-surface) !important;
+  }
+}
+
 .print-page {
   width: 100%;
   min-height: 100%;

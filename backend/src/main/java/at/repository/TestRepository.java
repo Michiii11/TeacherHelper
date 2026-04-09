@@ -50,8 +50,6 @@ public class TestRepository {
         applySettings(test, dto);
         em.persist(test);
 
-        em.persist(new ChangeLog("Test", test.getId(), "CREATE", admin, test.getSchool()));
-
         addExamplesToTest(test, dto.exampleList());
 
         return Response.ok().build();
@@ -90,8 +88,6 @@ public class TestRepository {
 
         addExamplesToTest(test, dto.exampleList());
 
-        em.persist(new ChangeLog("Test", test.getId(), "UPDATE", test.getAdmin(), test.getSchool()));
-
         return Response.ok().build();
     }
 
@@ -113,7 +109,6 @@ public class TestRepository {
                     .build();
         }
 
-        em.persist(new ChangeLog("Test", test.getId(), "DELETE", test.getAdmin(), test.getSchool()));
         em.remove(test);
 
         return Response.ok().build();

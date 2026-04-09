@@ -310,6 +310,117 @@ button{
 }
 
 
+:host {
+  display: block;
+  background: var(--menu-bg);
+}
+
+.dialog-shell {
+  padding: 1.35rem 1.5rem 1.45rem;
+}
+
+.dialog-header {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.dialog-icon {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: var(--danger);
+  color: var(--bg);
+}
+
+.header-text h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.header-text p {
+  margin: .35rem 0 0;
+  font-size: .92rem;
+  color: var(--text-subtle);
+  line-height: 1.5;
+}
+
+.checkbox-wrapper {
+  margin-top: 1rem;
+  padding: .9rem 1rem;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.confirm-check {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: .85rem;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.confirm-check:hover .confirm-check-box {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+.confirm-check.checked .confirm-check-box {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.confirm-check-box {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 7px;
+  border: 1.5px solid var(--border-strong);
+  display: grid;
+  place-items: center;
+  margin-top: 1px;
+  transition: all 140ms ease;
+}
+
+.confirm-check-box mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.confirm-check-label {
+  color: var(--text);
+  font-size: .96rem;
+  line-height: 1.45;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: .65rem;
+  margin-top: 1.2rem;
+  flex-wrap: wrap;
+}
+
+.dialog-actions button {
+  min-width: 120px;
+  font-weight: 600;
+  border-radius: 10px;
+}
+
 
 .card,
 .panel,

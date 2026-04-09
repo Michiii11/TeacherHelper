@@ -96,12 +96,8 @@ public class NotificationRepository {
         if (notification.getPrimaryAction() != null || notification.getSecondaryAction() != null) {
             boolean isDecisionNotification = notification.getPrimaryAction() == NotificationActionType.ACCEPT_INVITATION
                     || notification.getPrimaryAction() == NotificationActionType.DECLINE_INVITATION
-                    || notification.getPrimaryAction() == NotificationActionType.ACCEPT_JOIN_REQUEST
-                    || notification.getPrimaryAction() == NotificationActionType.DECLINE_JOIN_REQUEST
                     || notification.getSecondaryAction() == NotificationActionType.ACCEPT_INVITATION
-                    || notification.getSecondaryAction() == NotificationActionType.DECLINE_INVITATION
-                    || notification.getSecondaryAction() == NotificationActionType.ACCEPT_JOIN_REQUEST
-                    || notification.getSecondaryAction() == NotificationActionType.DECLINE_JOIN_REQUEST;
+                    || notification.getSecondaryAction() == NotificationActionType.DECLINE_INVITATION;
 
             if (isDecisionNotification && action == NotificationActionType.MARK_AS_READ) {
                 return Response.status(Response.Status.BAD_REQUEST)

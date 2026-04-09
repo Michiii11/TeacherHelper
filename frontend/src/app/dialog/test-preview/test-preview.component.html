@@ -7,44 +7,40 @@
       </div>
 
       <div class="preview-toolbar-actions">
-        <div class="print-controls settings-card">
-          <div class="print-controls-grid compact-grid two-cols">
-            <div class="count-picker">
-              <span class="label">Anzahl</span>
-              <div class="stepper">
-                <button mat-stroked-button type="button" (click)="decreaseCount()">−</button>
-                <input
-                  type="number"
-                  min="1"
-                  max="100"
-                  [(ngModel)]="printCopies"
-                  (ngModelChange)="onPrintCopiesChange($event)">
-                <button mat-stroked-button type="button" (click)="increaseCount()">+</button>
-              </div>
-            </div>
-
-            <div class="print-toggle-group">
-              <button
-                mat-stroked-button
-                type="button"
-                [class.active]="!includeSolutionSheet"
-                (click)="setIncludeSolutionSheet(false)">
-                Nur Test
+        <div class="print-controls-grid">
+          <div class="section">
+            <div class="stepper">
+              <button mat-icon-button type="button" (click)="decreaseCount()">
+                <mat-icon>remove</mat-icon>
               </button>
-              <button
-                mat-stroked-button
-                type="button"
-                [class.active]="includeSolutionSheet"
-                (click)="setIncludeSolutionSheet(true)">
-                Lösung mitdrucken
+              <input type="number" min="1" max="100" [(ngModel)]="printCopies" (ngModelChange)="onPrintCopiesChange($event)">
+              <button mat-icon-button type="button" (click)="increaseCount()">
+                <mat-icon>add</mat-icon>
               </button>
             </div>
           </div>
-        </div>
 
-        <div class="toolbar-buttons">
-          <button mat-stroked-button type="button" (click)="close()">Schließen</button>
-          <button mat-flat-button color="primary" type="button" (click)="printPreview()">Drucken</button>
+          <div class="section">
+            <mat-button-toggle-group [(ngModel)]="includeSolutionSheet" [hideSingleSelectionIndicator]="true">
+              <mat-button-toggle [value]="false"
+                                 (click)="setIncludeSolutionSheet(false)">
+                Nur Test
+              </mat-button-toggle>
+              <mat-button-toggle [value]="true"
+                                 (click)="setIncludeSolutionSheet(true)">
+                Lösung mitdrucken
+              </mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+
+          <div class="section">
+            <button mat-flat-button color="primary" type="button" (click)="printPreview()">
+              Drucken
+              <mat-icon>
+                print
+              </mat-icon>
+            </button>
+          </div>
         </div>
       </div>
     </div>

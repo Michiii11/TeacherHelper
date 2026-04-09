@@ -47,7 +47,6 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
     MatCheckboxModule,
     MatButtonToggleModule,
     MatDialogActions,
-    MatDialogContent,
     MatTooltip,
     MatPseudoCheckbox,
     MatDivider,
@@ -263,7 +262,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   }
 
   updateGapsFromText(): void {
-    const regex = /\{Lücke (\d+)\}/g;
+    const regex = /\{(\d+)\}/g;
     const matches = Array.from(this.example.question.matchAll(regex));
 
     const oldGaps = [...this.example.gaps];
@@ -298,8 +297,8 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     const end = textarea.selectionEnd;
     const value = textarea.value;
 
-    const nextIdx = (value.match(/\{Lücke (\d+)\}/g)?.length ?? 0) + 1;
-    const gapText = `{Lücke ${nextIdx}}`;
+    const nextIdx = (value.match(/\{(\d+)\}/g)?.length ?? 0) + 1;
+    const gapText = `{${nextIdx}}`;
 
     textarea.value = value.slice(0, start) + gapText + value.slice(end);
     textarea.dispatchEvent(new Event('input', { bubbles: true }));
@@ -560,7 +559,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
   getQuestionWithGapLabels(): string {
     let idx = 0;
-    return this.example.question.replace(/\{Lücke \d+\}/g, () => {
+    return this.example.question.replace(/\{\d+\}/g, () => {
       const label = this.example.gaps[idx]?.label?.trim();
       idx++;
       return label ? `_____(${label})_____` : `______________`;

@@ -77,7 +77,7 @@ export class HomeComponent implements OnInit{
   }
 
   openSchool(school: SchoolDTO) {
-    this.router.navigate(['/school', school.id]);
+    this.router.navigate(['/collection', school.id]);
   }
 
   getSchoolInitials(name?: string): string {

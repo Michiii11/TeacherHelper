@@ -81,6 +81,9 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   isExportingPdf = false;
   isExportingWord = false;
 
+  isSaving = false;
+
+
   test: CreateTestDTO & PersistedTestSettings = {
     authToken: '',
     schoolId: this.data.schoolId,
@@ -312,10 +315,16 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     return this.useAutomaticGrading ? 'ab %' : 'ab Punkten';
   }
 
-  protected saveTest(): void {
+  saveTest(): void {
     this.test.authToken = localStorage.getItem('teacher_authToken') || '';
     this.test.schoolId = Number(this.test.schoolId || this.data.schoolId);
     this.test.exampleList = this.selectedExamplesSubject.value;
+
+    if (this.isSaving) {
+      return;
+    }
+
+    this.isSaving = true;
 
     this.attachPersistedSettingsToPayload();
 
@@ -334,6 +343,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
           );
           this.hasUnsavedChanges = false;
           this.dialogRef.close(this.test);
+
+          this.isSaving = false;
         }
       });
   }
@@ -860,5 +871,10 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   decreaseCount(): void {
     this.printCopies = Math.max(1, (this.printCopies || 1) - 1);
+  }
+
+
+  openAddExampleDialog() {
+
   }
 }

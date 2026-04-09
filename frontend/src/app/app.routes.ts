@@ -11,7 +11,7 @@ import {LandingPageComponent} from './components/landing-page/landing-page.compo
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
   { path: 'home', component: HomeComponent, canActivate: [AuthGuard] },
-  { path: 'school/:id', component: SchoolComponent, canActivate: [AuthGuard] },
+  { path: 'collection/:id', component: SchoolComponent, canActivate: [AuthGuard] },
   { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
   { path: 'login', component: LoginComponent },
 

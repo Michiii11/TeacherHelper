@@ -91,8 +91,7 @@ export class SchoolInvitationDialogComponent implements OnInit{
     }
 
     this.filteredTeachers = this.teachers.filter(teacher =>
-      (teacher.username?.toLowerCase().includes(value) ?? false) ||
-      (teacher.email?.toLowerCase().includes(value) ?? false)
+      (teacher.username?.toLowerCase().includes(value) ?? false)
     );
   }
 

@@ -17,7 +17,7 @@
       matInput
       [(ngModel)]="searchTerm"
       (input)="filterTeachers()"
-      placeholder="Name oder E-Mail eingeben">
+      placeholder="Username eingeben">
     <mat-icon matSuffix>search</mat-icon>
   </mat-form-field>
 
@@ -28,7 +28,7 @@
       </div>
       <div class="empty-title">Keine Lehrer gefunden</div>
       <div class="empty-text">
-        Versuche einen anderen Namen oder eine andere E-Mail-Adresse.
+        Versuche einen anderen Usernamen.
       </div>
     </div>
   }
@@ -55,8 +55,6 @@
                 </span>
               }
             </div>
-
-            <div class="teacher-mail">{{ teacher.email }}</div>
           </div>
         </div>
 

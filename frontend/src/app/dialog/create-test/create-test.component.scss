@@ -3,21 +3,21 @@
   color: var(--text);
   background: var(--menu-bg);
   padding: 1.15rem 1.15rem 1.2rem;
+  height: 100%;
+  overflow: hidden !important;
 }
 
 .create-test-shell {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  border-radius: 14px;
 }
 
 .editor-pane,
 .preview-pane {
   margin: 0 !important;
-  max-height: 75vh;
-  overflow: auto !important;
   backdrop-filter: blur(12px);
+  max-height: 88vh;
 }
 
 .editor-pane {
@@ -25,6 +25,7 @@
   flex-direction: column;
   gap: 1rem;
   padding: 1.35rem 1.35rem 1.15rem !important;
+  overflow: auto;
 }
 
 .preview-pane {
@@ -45,6 +46,11 @@
 .example-form {
   display: flex;
   flex-direction: column;
+  gap: 1rem;
+}
+
+.actions{
+  display: flex;
   gap: 1rem;
 }
 
@@ -321,11 +327,10 @@
   background: var(--bg-soft);
   border: 1px solid var(--border);
   flex: 1;
-  overflow: auto;
 }
 
-.preview-scale {
-  min-width: min-content;
+.print-area{
+  height: 60%;
 }
 
 .print-page {
@@ -334,6 +339,9 @@
   border-color: var(--border);
   background: var(--bg-soft);
   padding: 36px 44px;
+
+  overflow-y: auto;
+  height: 100%;
 }
 
 .test-header {

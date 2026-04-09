@@ -187,6 +187,7 @@ export class SchoolComponent implements OnInit, AfterViewInit {
     this.dialog.open(CreateExampleComponent, {
       width: isMobile ? '100vw' : 'min(96vw, 1400px)',
       maxWidth: isMobile ? '100vw' : '70vw',
+      height: isMobile ? '100dvh' : '90vh',
       maxHeight: isMobile ? '100dvh' : '90vh',
       panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-example-dialog-panel',
       data: { schoolId: this.schoolId, exampleId: e.id }
@@ -201,8 +202,8 @@ export class SchoolComponent implements OnInit, AfterViewInit {
     this.dialog.open(CreateTestComponent, {
       width: isMobile ? '100vw' : 'min(96vw, 1680px)',
       maxWidth: isMobile ? '100vw' : '96vw',
-      height: isMobile ? '100dvh' : '94vh',
-      maxHeight: isMobile ? '100dvh' : '94vh',
+      height: isMobile ? '100dvh' : '90vh',
+      maxHeight: isMobile ? '100dvh' : '90vh',
       panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-test-dialog-panel',
       data: { schoolId: this.schoolId }
     }).afterClosed().subscribe(() => {
@@ -216,8 +217,8 @@ export class SchoolComponent implements OnInit, AfterViewInit {
     this.dialog.open(CreateTestComponent, {
       width: isMobile ? '100vw' : 'min(96vw, 1680px)',
       maxWidth: isMobile ? '100vw' : '96vw',
-      height: isMobile ? '100dvh' : '94vh',
-      maxHeight: isMobile ? '100dvh' : '94vh',
+      height: isMobile ? '100dvh' : '90vh',
+      maxHeight: isMobile ? '100dvh' : '90vh',
       panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-test-dialog-panel',
       data: { schoolId: this.schoolId, testId: test.id }
     }).afterClosed().subscribe(() => {

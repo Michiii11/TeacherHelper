@@ -33,9 +33,21 @@ import { MatIconModule } from '@angular/material/icon';
       </div>
 
       <div *ngIf="data.requireConfirmation" class="checkbox-wrapper">
-        <mat-checkbox [(ngModel)]="isChecked">
-          {{ data.confirmationText || 'Ich bestätige diese Aktion' }}
-        </mat-checkbox>
+        <button
+          type="button"
+          class="confirm-check"
+          [class.checked]="isChecked"
+          (click)="isChecked = !isChecked"
+          [attr.aria-pressed]="isChecked"
+        >
+          <span class="confirm-check-box">
+            <mat-icon *ngIf="isChecked">check</mat-icon>
+          </span>
+
+          <span class="confirm-check-label">
+            {{ data.confirmationText || 'Ich bestätige diese Aktion' }}
+          </span>
+        </button>
       </div>
 
       <div class="dialog-actions">
