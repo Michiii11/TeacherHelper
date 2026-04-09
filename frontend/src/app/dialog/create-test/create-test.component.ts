@@ -49,7 +49,6 @@ type PersistedTestSettings = {
     ReactiveFormsModule,
     MatButton,
     MatDialogActions,
-    MatDialogContent,
     CdkTextareaAutosize,
     MatFormField,
     MatInput,

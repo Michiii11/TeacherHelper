@@ -3,8 +3,20 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Config } from '../config';
 import { ChangeLog, CreateSchoolInviteDTO, LastActivityDTO, SchoolDTO } from '../model/School';
-import { CreateExampleDTO, Focus } from '../model/Example';
-import { CreateTestDTO } from '../model/Test';
+import {
+  CreateExampleDTO,
+  CreateExampleFolderDTO,
+  ExampleFolderDTO,
+  Focus, MoveExampleToFolderDTO,
+  UpdateExampleFolderDTO
+} from '../model/Example';
+import {
+  CreateTestDTO,
+  CreateTestFolderDTO,
+  MoveTestToFolderDTO,
+  TestFolderDTO,
+  UpdateTestFolderDTO
+} from '../model/Test';
 import { AuthResult, User, UserDTO, UserSettings } from '../model/User';
 import { NotificationActionType, NotificationDTO } from '../model/Notification';
 
@@ -387,10 +399,6 @@ export class HttpService {
     });
   }
 
-  getLastChange(schoolId: string | null) {
-    return this.http.get<LastActivityDTO>(`${Config.API_URL}/school/${schoolId}/last-activity`);
-  }
-
   updateSchool(schoolId: string, payload: { name?: string }) {
     return this.http.put<SchoolDTO>(`${Config.API_URL}/school/${schoolId}/settings`, payload);
   }
@@ -410,5 +418,83 @@ export class HttpService {
     }
 
     return `${Config.API_URL}/school/${schoolId}/logo`;
+  }
+
+  getExampleFolders(schoolId: string) {
+    return this.http.get<ExampleFolderDTO[]>(
+      `${Config.API_URL}/example-folder/school/${schoolId}`,
+      { params: { authToken: this.authToken() } }
+    );
+  }
+
+  createExampleFolder(schoolId: string, dto: { name: string; parentId: string | null }) {
+    return this.http.post<ExampleFolderDTO>(
+      `${Config.API_URL}/example-folder/school/${schoolId}`,
+      { ...dto, authToken: this.authToken() }
+    );
+  }
+
+  renameExampleFolder(folderId: string, dto: { name: string }) {
+    return this.http.put<ExampleFolderDTO>(
+      `${Config.API_URL}/example-folder/${folderId}`,
+      { ...dto, authToken: this.authToken() }
+    );
+  }
+
+  deleteExampleFolder(folderId: string) {
+    return this.http.delete(
+      `${Config.API_URL}/example-folder/${folderId}`,
+      {
+        params: { authToken: this.authToken() },
+        responseType: 'text' as 'json'
+      }
+    );
+  }
+
+  moveExampleToFolder(exampleId: number, dto: { folderId: string | null }) {
+    return this.http.put(
+      `${Config.API_URL}/example/${exampleId}/folder`,
+      { ...dto, authToken: this.authToken() },
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  getTestFolders(schoolId: string) {
+    return this.http.get<TestFolderDTO[]>(
+      `${Config.API_URL}/test-folder/school/${schoolId}`,
+      { params: { authToken: this.authToken() } }
+    );
+  }
+
+  createTestFolder(schoolId: string, dto: { name: string; parentId: string | null }) {
+    return this.http.post<TestFolderDTO>(
+      `${Config.API_URL}/test-folder/school/${schoolId}`,
+      { ...dto, authToken: this.authToken() }
+    );
+  }
+
+  renameTestFolder(folderId: string, dto: { name: string }) {
+    return this.http.put<TestFolderDTO>(
+      `${Config.API_URL}/test-folder/${folderId}`,
+      { ...dto, authToken: this.authToken() }
+    );
+  }
+
+  deleteTestFolder(folderId: string) {
+    return this.http.delete(
+      `${Config.API_URL}/test-folder/${folderId}`,
+      {
+        params: { authToken: this.authToken() },
+        responseType: 'text' as 'json'
+      }
+    );
+  }
+
+  moveTestToFolder(testId: number, dto: { folderId: string | null }) {
+    return this.http.put(
+      `${Config.API_URL}/test/${testId}/folder`,
+      { ...dto, authToken: this.authToken() },
+      { responseType: 'text' as 'json' }
+    );
   }
 }

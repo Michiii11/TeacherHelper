@@ -71,6 +71,10 @@ public class Example {
     @Column(name = "right_item")
     private List<String> assignRightItems = new ArrayList<>();
 
+    @ManyToOne
+    @JoinColumn(name = "folder_id")
+    private ExampleFolder folder;
+
     public Example() {}
 
     public Example(User admin, ExampleTypes type, String instruction, String question, String solution, School school) {
@@ -143,4 +147,12 @@ public class Example {
 
     public List<Focus> getFocusList() { return focusList; }
     public void setFocusList(List<Focus> focusList) { this.focusList = focusList; }
+
+    public ExampleFolder getFolder() {
+        return folder;
+    }
+
+    public void setFolder(ExampleFolder folder) {
+        this.folder = folder;
+    }
 }

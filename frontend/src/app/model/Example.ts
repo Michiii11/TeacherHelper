@@ -112,4 +112,28 @@ export interface ExampleOverviewDTO {
   adminUsername: string;
   adminId: number;
   focusList: Focus[];
+  folderId: string | null;
+}
+
+
+export interface ExampleFolderDTO {
+  id: string;
+  name: string;
+  schoolId: string;
+  parentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateExampleFolderDTO {
+  name: string;
+  parentId: string | null;
+}
+
+export interface UpdateExampleFolderDTO {
+  name: string;
+}
+
+export interface MoveExampleToFolderDTO {
+  folderId: string | null;
 }

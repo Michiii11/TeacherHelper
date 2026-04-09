@@ -12,6 +12,7 @@ public record ExampleOverviewDTO(
         String question,
         String adminUsername,
         Long adminId,
-        List<Focus> focusList
+        List<Focus> focusList,
+        String folderId
 ) {
 }

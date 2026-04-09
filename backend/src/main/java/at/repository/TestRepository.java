@@ -2,6 +2,7 @@ package at.repository;
 
 import at.dtos.Test.CreateTestDTO;
 import at.dtos.Test.GradingLevelDTO;
+import at.dtos.Test.MoveTestToFolderDTO;
 import at.dtos.Test.TestExampleDTO;
 import at.dtos.Test.TestOverviewDTO;
 import at.model.*;
@@ -25,10 +26,14 @@ public class TestRepository {
     @Inject
     TokenService tokenService;
 
+    @Inject
+    TestFolderRepository testFolderRepository;
+
     public List<TestOverviewDTO> getAllTest(Long schoolId) {
         return em.createQuery(
                         "SELECT new at.dtos.Test.TestOverviewDTO(" +
-                                "t.id, t.name, SIZE(t.exampleList), t.duration, t.admin.username, t.admin.id) " +
+                                "t.id, t.name, SIZE(t.exampleList), t.duration, t.admin.username, t.admin.id, " +
+                                "CASE WHEN t.folder IS NULL THEN null ELSE t.folder.id END) " +
                                 "FROM Test t WHERE t.school.id = :schoolId ORDER BY t.id",
                         TestOverviewDTO.class
                 )
@@ -46,7 +51,20 @@ public class TestRepository {
         User admin = em.find(User.class, userId);
         School school = em.find(School.class, dto.schoolId());
 
+        if (school == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Schule nicht gefunden.").build();
+        }
+
+        TestFolder folder = null;
+        if (dto.folderId() != null && !dto.folderId().isBlank()) {
+            folder = testFolderRepository.findById(dto.folderId());
+            if (folder == null || !folder.getSchool().getId().equals(school.getId())) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Ordner.").build();
+            }
+        }
+
         Test test = new Test(dto.name(), dto.note(), admin, school, dto.duration());
+        test.setFolder(folder);
         applySettings(test, dto);
         em.persist(test);
 
@@ -73,9 +91,18 @@ public class TestRepository {
                     .build();
         }
 
+        TestFolder folder = null;
+        if (dto.folderId() != null && !dto.folderId().isBlank()) {
+            folder = testFolderRepository.findById(dto.folderId());
+            if (folder == null || !folder.getSchool().getId().equals(test.getSchool().getId())) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Ordner.").build();
+            }
+        }
+
         test.setName(dto.name());
         test.setNote(dto.note());
         test.setDuration(dto.duration());
+        test.setFolder(folder);
         applySettings(test, dto);
 
         List<TestExample> existingEntries = em.createQuery(
@@ -88,6 +115,37 @@ public class TestRepository {
 
         addExamplesToTest(test, dto.exampleList());
 
+        return Response.ok().build();
+    }
+
+    @Transactional
+    public Response moveTestToFolder(Long testId, MoveTestToFolderDTO dto) {
+        Test test = em.find(Test.class, testId);
+        if (test == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Test nicht gefunden.").build();
+        }
+
+        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+
+        if (!test.getAdmin().getId().equals(userId) && !test.getSchool().getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("Not allowed to move this test.")
+                    .build();
+        }
+
+        TestFolder folder = null;
+        if (dto.folderId() != null && !dto.folderId().isBlank()) {
+            folder = testFolderRepository.findById(dto.folderId());
+            if (folder == null || !folder.getSchool().getId().equals(test.getSchool().getId())) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Zielordner.").build();
+            }
+        }
+
+        test.setFolder(folder);
+        em.merge(test);
         return Response.ok().build();
     }
 
@@ -110,7 +168,6 @@ public class TestRepository {
         }
 
         em.remove(test);
-
         return Response.ok().build();
     }
 
@@ -142,7 +199,8 @@ public class TestRepository {
                 t.getGradingSystemName(),
                 mapDtoSchemaToEntitySchema(t.getGradingSchema()),
                 copyMap(t.getGradePercentages()),
-                copyMap(t.getManualGradeMinimums())
+                copyMap(t.getManualGradeMinimums()),
+                t.getFolder() != null ? t.getFolder().getId() : null
         );
     }
 

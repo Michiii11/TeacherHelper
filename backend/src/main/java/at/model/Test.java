@@ -62,6 +62,10 @@ public class Test {
     @Column(name = "minimum_points")
     private Map<Integer, Integer> manualGradeMinimums = new HashMap<>();
 
+    @ManyToOne
+    @JoinColumn(name = "folder_id")
+    private TestFolder folder;
+
     public Test() {
     }
 
@@ -183,5 +187,13 @@ public class Test {
 
     public void setManualGradeMinimums(Map<Integer, Integer> manualGradeMinimums) {
         this.manualGradeMinimums = manualGradeMinimums != null ? new HashMap<>(manualGradeMinimums) : new HashMap<>();
+    }
+
+    public TestFolder getFolder() {
+        return folder;
+    }
+
+    public void setFolder(TestFolder folder) {
+        this.folder = folder;
     }
 }

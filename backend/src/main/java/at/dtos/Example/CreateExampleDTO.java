@@ -25,6 +25,7 @@ public record CreateExampleDTO(
         String solutionUrl,
         List<Focus> focusList,
         Integer imageWidth,
-        Integer solutionImageWidth
+        Integer solutionImageWidth,
+        String folderId
 ) {
 }

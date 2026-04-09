@@ -51,6 +51,7 @@ export interface TestOverviewDTO {
   duration: number;
   adminUsername: string;
   adminId: number;
+  folderId: string | null;
 }
 
 export interface CreateTestDTO {
@@ -67,4 +68,27 @@ export interface CreateTestDTO {
   gradingSchema?: GradingLevel[];
   gradePercentages?: Record<number, number>;
   manualGradeMinimums?: Record<number, number>;
+}
+
+
+export interface TestFolderDTO {
+  id: string;
+  name: string;
+  schoolId: string;
+  parentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateTestFolderDTO {
+  name: string;
+  parentId: string | null;
+}
+
+export interface UpdateTestFolderDTO {
+  name: string;
+}
+
+export interface MoveTestToFolderDTO {
+  folderId: string | null;
 }

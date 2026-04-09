@@ -4,7 +4,9 @@ import at.dtos.Example.CreateExampleDTO;
 import at.dtos.Example.ExampleDTO;
 import at.dtos.Example.ExampleOverviewDTO;
 import at.dtos.Example.GapDTO;
+import at.dtos.Example.MoveExampleToFolderDTO;
 import at.model.Example;
+import at.model.ExampleFolder;
 import at.model.School;
 import at.model.User;
 import at.model.helper.Gap;
@@ -27,6 +29,9 @@ public class ExampleRepository {
     @Inject
     TokenService tokenService;
 
+    @Inject
+    ExampleFolderRepository exampleFolderRepository;
+
     public List<ExampleOverviewDTO> getAllExamples(Long schoolId) {
         List<Example> examples = em.createQuery(
                 "SELECT e FROM Example e WHERE e.school.id = :schoolId ORDER BY e.id",
@@ -41,7 +46,8 @@ public class ExampleRepository {
                         e.getQuestion(),
                         e.getAdmin().getUsername(),
                         e.getAdmin().getId(),
-                        e.getFocusList()
+                        e.getFocusList(),
+                        e.getFolder() != null ? e.getFolder().getId() : null
                 )
         ).collect(Collectors.toList());
     }
@@ -82,9 +88,24 @@ public class ExampleRepository {
         User admin = em.find(User.class, userId);
         School school = em.find(School.class, dto.schoolId());
 
+        if (school == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Schule nicht gefunden.").build();
+        }
+
+        ExampleFolder folder = null;
+        if (dto.folderId() != null && !dto.folderId().isBlank()) {
+            folder = exampleFolderRepository.findById(dto.folderId());
+            if (folder == null || !folder.getSchool().getId().equals(school.getId())) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Ordner.").build();
+            }
+        }
+
         Example example = new Example(admin, dto.type(), dto.instruction(), dto.question(), dto.solution(), school);
+        example.setFolder(folder);
         example.getFocusList().clear();
         example.getFocusList().addAll(dto.focusList());
+
+        clearTypeSpecificFields(example);
 
         switch (dto.type()) {
             case HALF_OPEN -> example.setAnswers(dto.answers());
@@ -135,12 +156,23 @@ public class ExampleRepository {
                     .build();
         }
 
+        ExampleFolder folder = null;
+        if (dto.folderId() != null && !dto.folderId().isBlank()) {
+            folder = exampleFolderRepository.findById(dto.folderId());
+            if (folder == null || !folder.getSchool().getId().equals(example.getSchool().getId())) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Ordner.").build();
+            }
+        }
+
         example.setType(dto.type());
         example.setInstruction(dto.instruction());
         example.setQuestion(dto.question());
         example.setSolution(dto.solution());
+        example.setFolder(folder);
         example.getFocusList().clear();
         example.getFocusList().addAll(dto.focusList());
+
+        clearTypeSpecificFields(example);
 
         switch (dto.type()) {
             case HALF_OPEN -> example.setAnswers(dto.answers());
@@ -169,24 +201,59 @@ public class ExampleRepository {
         }
 
         em.merge(example);
-
         return Response.ok(example.getId()).build();
+    }
+
+    @Transactional
+    public Response moveExampleToFolder(Long exampleId, MoveExampleToFolderDTO dto) {
+        Example example = em.find(Example.class, exampleId);
+        if (example == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Beispiel nicht gefunden.").build();
+        }
+
+        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+
+        if (!example.getAdmin().getId().equals(userId) && !example.getSchool().getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("Not allowed to move this Example.")
+                    .build();
+        }
+
+        ExampleFolder folder = null;
+        if (dto.folderId() != null && !dto.folderId().isBlank()) {
+            folder = exampleFolderRepository.findById(dto.folderId());
+            if (folder == null || !folder.getSchool().getId().equals(example.getSchool().getId())) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Zielordner.").build();
+            }
+        }
+
+        example.setFolder(folder);
+        em.merge(example);
+        return Response.ok().build();
     }
 
     @Transactional
     public Response deleteExample(String authToken, Long exampleId) {
         Example example = em.find(Example.class, exampleId);
+        if (example == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
 
         Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
 
         if (!example.getAdmin().getId().equals(userId) && !example.getSchool().getAdmin().getId().equals(userId)) {
             return Response.status(403)
                     .entity("Not allowed to delete this Example.")
                     .build();
         }
+
         em.remove(example);
-
-
         return Response.ok().build();
     }
 
@@ -212,7 +279,8 @@ public class ExampleRepository {
                 e.getSolutionUrl(),
                 e.getFocusList(),
                 e.getImageWidth(),
-                e.getSolutionImageWidth()
+                e.getSolutionImageWidth(),
+                e.getFolder() != null ? e.getFolder().getId() : null
         );
     }
 
@@ -243,5 +311,21 @@ public class ExampleRepository {
 
     public Example findById(Long exampleId) {
         return em.find(Example.class, exampleId);
+    }
+
+    private void clearTypeSpecificFields(Example example) {
+        example.setAnswers(new LinkedList<>());
+        example.setOptions(new LinkedList<>());
+        example.setGapFillType(null);
+        example.getGaps().clear();
+        example.setAssigns(new LinkedList<>());
+        example.setAssignRightItems(new LinkedList<>());
+        example.setImageWidth(null);
+        example.setSolutionImageWidth(null);
+
+        if (example.getType() != at.enums.ExampleTypes.CONSTRUCTION) {
+            example.setImageUrl(null);
+            example.setSolutionUrl(null);
+        }
     }
 }
