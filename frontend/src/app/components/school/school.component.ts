@@ -21,6 +21,7 @@ import { TestPreviewComponent } from '../../dialog/test-preview/test-preview.com
 import { ExamplePreviewComponent } from '../../dialog/example-preview/example-preview.component';
 import { SchoolSettingsComponent } from '../../dialog/school-settings/school-settings.component';
 import { ConfirmDialogComponent } from '../../dialog/confirm-dialog/confirm-dialog.component';
+import {MatFormField, MatOption, MatSelect} from '@angular/material/select'
 
 type ExplorerTab = 'examples' | 'tests';
 type SortOption = 'nameAsc' | 'nameDesc' | 'createdDesc' | 'createdAsc' | 'authorAsc';
@@ -60,7 +61,10 @@ interface DraggedExplorerItem {
     MatButtonModule,
     MatIcon,
     MatIconButton,
-    TranslatePipe
+    TranslatePipe,
+    MatSelect,
+    MatOption,
+    MatFormField
   ],
   templateUrl: './school.component.html',
   styleUrl: './school.component.scss'

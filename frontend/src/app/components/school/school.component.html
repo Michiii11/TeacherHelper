@@ -76,7 +76,6 @@
           @if (activeTab === 'examples') {
             <div class="toolbar-grid filter-panel">
               <label class="control search-control search-control-wide">
-                <mat-icon>search</mat-icon>
                 <input
                   type="text"
                   [(ngModel)]="exampleSearch"
@@ -163,33 +162,9 @@
                 Zurücksetzen
               </button>
             </div>
-
-            <div class="selected-chip-row selected-chip-row-box">
-              @for (type of selectedExampleTypes; track type) {
-                <button type="button" class="selected-chip" (click)="removeExampleType(type)">
-                  <span>{{ getExampleTypeLabel(type) }}</span>
-                  <mat-icon>close</mat-icon>
-                </button>
-              }
-
-              @for (focus of selectedExampleFocuses; track focus) {
-                <button type="button" class="selected-chip" (click)="removeExampleFocus(focus)">
-                  <span>{{ focus }}</span>
-                  <mat-icon>close</mat-icon>
-                </button>
-              }
-
-              @for (author of selectedExampleAuthors; track author) {
-                <button type="button" class="selected-chip" (click)="removeExampleAuthor(author)">
-                  <span>{{ author }}</span>
-                  <mat-icon>close</mat-icon>
-                </button>
-              }
-            </div>
           } @else {
             <div class="toolbar-grid toolbar-grid-tests filter-panel">
               <label class="control search-control search-control-wide">
-                <mat-icon>search</mat-icon>
                 <input
                   type="text"
                   [(ngModel)]="testSearch"
@@ -226,41 +201,38 @@
                 Zurücksetzen
               </button>
             </div>
-
-            <div class="selected-chip-row selected-chip-row-box">
-              @for (author of selectedTestAuthors; track author) {
-                <button type="button" class="selected-chip" (click)="removeTestAuthor(author)">
-                  <span>{{ author }}</span>
-                  <mat-icon>close</mat-icon>
-                </button>
-              }
-            </div>
           }
 
           <div class="toolbar-meta">
-            <div class="active-filter-bar">
-              <div class="filter-chip">
-                <mat-icon>folder_open</mat-icon>
-                <span>{{ totalVisibleFolderCount }} Ordner</span>
-              </div>
+            <div class="selected-chip-row selected-chip-row-box">
+              @if(activeTab == "tests"){
+                @for (author of selectedTestAuthors; track author) {
+                  <button type="button" class="selected-chip" (click)="removeTestAuthor(author)">
+                    <span>{{ author }}</span>
+                    <mat-icon>close</mat-icon>
+                  </button>
+                }
+              } @else {
+                @for (type of selectedExampleTypes; track type) {
+                  <button type="button" class="selected-chip" (click)="removeExampleType(type)">
+                    <span>{{ getExampleTypeLabel(type) }}</span>
+                    <mat-icon>close</mat-icon>
+                  </button>
+                }
 
-              <div class="filter-chip">
-                <mat-icon>inventory_2</mat-icon>
-                <span>{{ totalVisibleItemCount }} sichtbar</span>
-              </div>
+                @for (focus of selectedExampleFocuses; track focus) {
+                  <button type="button" class="selected-chip" (click)="removeExampleFocus(focus)">
+                    <span>{{ focus }}</span>
+                    <mat-icon>close</mat-icon>
+                  </button>
+                }
 
-              @if (!isSearching) {
-                <div class="filter-chip">
-                  <mat-icon>place</mat-icon>
-                  <span>{{ currentPathLabel }}</span>
-                </div>
-              }
-
-              @if (isSearching) {
-                <div class="filter-chip primary">
-                  <mat-icon>travel_explore</mat-icon>
-                  <span>Globale Suche über alle Ordner</span>
-                </div>
+                @for (author of selectedExampleAuthors; track author) {
+                  <button type="button" class="selected-chip" (click)="removeExampleAuthor(author)">
+                    <span>{{ author }}</span>
+                    <mat-icon>close</mat-icon>
+                  </button>
+                }
               }
             </div>
 
@@ -425,26 +397,25 @@
             </div>
 
             <div class="content-header-actions">
-              <label class="sort-control">
-                <span>Sortierung</span>
+              <mat-form-field>
                 @if (activeTab === 'examples') {
-                  <select [(ngModel)]="exampleSort">
-                    <option value="nameAsc">Name A–Z</option>
-                    <option value="nameDesc">Name Z–A</option>
-                    <option value="createdDesc">Zuletzt geändert</option>
-                    <option value="createdAsc">Älteste zuerst</option>
-                    <option value="authorAsc">Autor A–Z</option>
-                  </select>
+                  <mat-select [(ngModel)]="exampleSort">
+                    <mat-option value="nameAsc">Name A–Z</mat-option>
+                    <mat-option value="nameDesc">Name Z–A</mat-option>
+                    <mat-option value="createdDesc">Zuletzt geändert</mat-option>
+                    <mat-option value="createdAsc">Älteste zuerst</mat-option>
+                    <mat-option value="authorAsc">Autor A–Z</mat-option>
+                  </mat-select>
                 } @else {
-                  <select [(ngModel)]="testSort">
-                    <option value="nameAsc">Name A–Z</option>
-                    <option value="nameDesc">Name Z–A</option>
-                    <option value="createdDesc">Zuletzt geändert</option>
-                    <option value="createdAsc">Älteste zuerst</option>
-                    <option value="authorAsc">Autor A–Z</option>
-                  </select>
+                  <mat-select [(ngModel)]="testSort">
+                    <mat-option value="nameAsc">Name A–Z</mat-option>
+                    <mat-option value="nameDesc">Name Z–A</mat-option>
+                    <mat-option value="createdDesc">Zuletzt geändert</mat-option>
+                    <mat-option value="createdAsc">Älteste zuerst</mat-option>
+                    <mat-option value="authorAsc">Autor A–Z</mat-option>
+                  </mat-select>
                 }
-              </label>
+              </mat-form-field>
 
               <button mat-stroked-button color="primary" (click)="createFolder()">
                 <mat-icon>create_new_folder</mat-icon>
