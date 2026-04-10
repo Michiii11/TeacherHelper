@@ -102,9 +102,9 @@ public class MediaStorageService {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         Thumbnails.of(file.toFile())
-                .size(1600, 1600)
+                .size(512, 512)
                 .outputFormat("jpg")
-                .outputQuality(0.82)
+                .outputQuality(0.72)
                 .toOutputStream(out);
 
         String objectName = "examples/" + exampleId + "/construction/" + variant + "/current.jpg";

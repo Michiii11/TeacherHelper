@@ -11,6 +11,7 @@ import at.model.School;
 import at.model.User;
 import at.model.helper.Gap;
 import at.security.TokenService;
+import at.service.MediaStorageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -32,6 +33,9 @@ public class ExampleRepository {
 
     @Inject
     ExampleFolderRepository exampleFolderRepository;
+
+    @Inject
+    MediaStorageService mediaStorageService;
 
     public List<ExampleOverviewDTO> getAllExamples(Long schoolId) {
         List<Example> examples = em.createQuery(
@@ -259,6 +263,12 @@ public class ExampleRepository {
                     .build();
         }
 
+        if(example.getImageUrl() != null) {
+            mediaStorageService.delete(example.getImageUrl());
+        }
+        if(example.getSolutionUrl() != null) {
+            mediaStorageService.delete(example.getSolutionUrl());
+        }
         em.remove(example);
         return Response.ok().build();
     }

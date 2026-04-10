@@ -34,6 +34,7 @@ import {
 import { HttpService } from '../../service/http.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { TranslateModule } from '@ngx-translate/core';
+import {MatProgressBar} from '@angular/material/progress-bar'
 
 @Component({
   selector: 'app-create-example',
@@ -58,6 +59,7 @@ import { TranslateModule } from '@ngx-translate/core';
     MatAutocompleteTrigger,
     MatAutocomplete,
     TranslateModule,
+    MatProgressBar,
   ],
   templateUrl: './create-example.component.html',
   styleUrls: ['./create-example.component.scss']
@@ -386,13 +388,11 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     this.markDirty();
   }
 
-  onImageSelected(event: Event, type: 'solution' | 'preview'): void {
+  async onImageSelected(event: Event, type: 'solution' | 'preview'): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
 
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     if (!this.allowedImageTypes.includes(file.type)) {
       this.snackBar.open('Bitte nur JPG, PNG oder WEBP hochladen.', 'OK', { duration: 3000 });
@@ -400,24 +400,21 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (file.size > this.maxImageBytes) {
-      this.snackBar.open('Das Bild darf maximal 5 MB groß sein.', 'OK', { duration: 3200 });
-      input.value = '';
-      return;
-    }
+    const compressed = await this.compressImage(file, 512, 0.72);
 
     const reader = new FileReader();
     reader.onload = () => {
       if (type === 'solution') {
-        this.selectedConstructionSolutionFile = file;
+        this.selectedConstructionSolutionFile = compressed;
         this.constructionSolutionPreviewUrl = reader.result as string;
       } else {
-        this.selectedConstructionImageFile = file;
+        this.selectedConstructionImageFile = compressed;
         this.constructionImagePreviewUrl = reader.result as string;
       }
       this.markDirty();
     };
-    reader.readAsDataURL(file);
+
+    reader.readAsDataURL(compressed);
   }
 
   async removeSelectedImage(type: 'solution' | 'preview'): Promise<void> {
@@ -777,5 +774,63 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   onTypeChange(type: ExampleTypes) {
     this.example.type = type;
     this.markDirty();
+  }
+
+  private async compressImage(file: File, maxSize = 512, quality = 0.72): Promise<File> {
+    const img = new Image();
+    const reader = new FileReader();
+
+    return new Promise((resolve, reject) => {
+      reader.onerror = () => reject(new Error('Datei konnte nicht gelesen werden.'));
+      img.onerror = () => reject(new Error('Bild konnte nicht verarbeitet werden.'));
+
+      reader.onload = () => {
+        img.src = reader.result as string;
+      };
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+
+        let { width, height } = img;
+
+        if (width > height && width > maxSize) {
+          height = Math.round(height * (maxSize / width));
+          width = maxSize;
+        } else if (height > maxSize) {
+          width = Math.round(width * (maxSize / height));
+          height = maxSize;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Canvas-Kontext konnte nicht erstellt werden.'));
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          blob => {
+            if (!blob) {
+              reject(new Error('Bild konnte nicht komprimiert werden.'));
+              return;
+            }
+
+            resolve(new File(
+              [blob],
+              file.name.replace(/\.\w+$/, '.jpg'),
+              { type: 'image/jpeg' }
+            ));
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+
+      reader.readAsDataURL(file);
+    });
   }
 }

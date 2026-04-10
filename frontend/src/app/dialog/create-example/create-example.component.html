@@ -303,54 +303,10 @@
 
             <div class="panel-box image-upload image-upload-modern construction-card">
               <div class="construction-card-header">
-                <div>
-                  <div class="panel-title">{{ 'exampleDialog.taskImage' | translate }}</div>
-                  <div class="construction-card-subtitle">{{ 'exampleDialog.taskImageHelp' | translate }}</div>
-                </div>
+                <div class="panel-title">{{ 'exampleDialog.taskImage' | translate }}</div>
               </div>
 
               <input #previewFileInput hidden type="file" accept="image/png,image/jpeg,image/webp" (change)="onImageSelected($event, 'preview')" />
-
-              <div class="construction-image-stage" [class.has-image]="!!constructionImagePreviewUrl">
-                <div
-                  class="upload-dropzone construction-dropzone"
-                  [class.is-dragging]="isDraggingConstructionPreview"
-                  [class.has-image]="!!constructionImagePreviewUrl"
-                  (click)="previewFileInput.click()"
-                  (dragover)="$event.preventDefault(); setDragState('preview', true)"
-                  (dragleave)="setDragState('preview', false)"
-                  (drop)="onFileDrop($event, 'preview')"
-                >
-                  <div class="upload-dropzone-icon">
-                    <mat-icon>{{ constructionImagePreviewUrl ? 'image' : 'upload_file' }}</mat-icon>
-                  </div>
-                  <div class="upload-dropzone-copy">
-                    <div class="upload-dropzone-title">{{ 'exampleDialog.dropImageTitle' | translate }}</div>
-                    <div class="upload-dropzone-text">{{ 'exampleDialog.dropImageText' | translate }}</div>
-                  </div>
-                </div>
-
-                <div class="construction-stage-preview">
-                  <img *ngIf="constructionImagePreviewUrl" [src]="constructionImagePreviewUrl" alt="Task image preview" class="image-preview construction-preview-image" [style.width.px]="example.imageWidth || 320" />
-                  <div *ngIf="!constructionImagePreviewUrl" class="construction-empty-state">
-                    <mat-icon>image</mat-icon>
-                    <span>{{ 'exampleDialog.noTaskImage' | translate }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="image-width-card">
-                <div class="image-width-head">
-                  <div>
-                    <div class="panel-title small-title">{{ 'exampleDialog.imageWidth' | translate }}</div>
-                    <div class="image-width-value">{{ example.imageWidth || defaultImageWidth }} px</div>
-                  </div>
-                </div>
-
-                <mat-slider min="80" max="1200" step="10" discrete>
-                  <input matSliderThumb [(ngModel)]="example.imageWidth" name="imageWidth" (valueChange)="markDirty()" />
-                </mat-slider>
-              </div>
 
               <div class="panel-actions">
                 <button mat-stroked-button color="primary" type="button" (click)="previewFileInput.click()">
@@ -362,60 +318,37 @@
                   {{ selectedConstructionImageFile ? ('exampleDialog.discardSelection' | translate) : ('exampleDialog.deleteImage' | translate) }}
                 </button>
               </div>
-            </div>
 
-            <mat-divider></mat-divider>
-
-            <div class="panel-box image-upload image-upload-modern construction-card">
-              <div class="construction-card-header">
-                <div>
-                  <div class="panel-title">{{ 'exampleDialog.solutionImage' | translate }}</div>
-                  <div class="construction-card-subtitle">{{ 'exampleDialog.solutionImageHelp' | translate }}</div>
-                </div>
-              </div>
-
-              <input #solutionFileInput hidden type="file" accept="image/png,image/jpeg,image/webp" (change)="onImageSelected($event, 'solution')" />
-
-              <div class="construction-image-stage" [class.has-image]="!!constructionSolutionPreviewUrl">
-                <div
-                  class="upload-dropzone construction-dropzone"
-                  [class.is-dragging]="isDraggingConstructionSolution"
-                  [class.has-image]="!!constructionSolutionPreviewUrl"
-                  (click)="solutionFileInput.click()"
-                  (dragover)="$event.preventDefault(); setDragState('solution', true)"
-                  (dragleave)="setDragState('solution', false)"
-                  (drop)="onFileDrop($event, 'solution')"
-                >
-                  <div class="upload-dropzone-icon">
-                    <mat-icon>{{ constructionSolutionPreviewUrl ? 'imagesmode' : 'upload_file' }}</mat-icon>
-                  </div>
-                  <div class="upload-dropzone-copy">
-                    <div class="upload-dropzone-title">{{ 'exampleDialog.dropSolutionImageTitle' | translate }}</div>
-                    <div class="upload-dropzone-text">{{ 'exampleDialog.dropImageText' | translate }}</div>
-                  </div>
-                </div>
-
-                <div class="construction-stage-preview">
-                  <img *ngIf="constructionSolutionPreviewUrl" [src]="constructionSolutionPreviewUrl" alt="Solution image preview" class="image-preview construction-preview-image" [style.width.px]="example.solutionImageWidth || 320" />
-                  <div *ngIf="!constructionSolutionPreviewUrl" class="construction-empty-state">
-                    <mat-icon>imagesmode</mat-icon>
-                    <span>{{ 'exampleDialog.noSolutionImage' | translate }}</span>
-                  </div>
+              <div class="construction-stage-preview">
+                <img *ngIf="constructionImagePreviewUrl" [src]="constructionImagePreviewUrl" alt="Task image preview" class="image-preview construction-preview-image" [style.width.px]="example.imageWidth || 320" />
+                <div *ngIf="!constructionImagePreviewUrl" class="construction-empty-state">
+                  <mat-icon>image</mat-icon>
+                  <span>{{ 'exampleDialog.noTaskImage' | translate }}</span>
                 </div>
               </div>
 
               <div class="image-width-card">
                 <div class="image-width-head">
                   <div>
-                    <div class="panel-title small-title">{{ 'exampleDialog.solutionImageWidth' | translate }}</div>
-                    <div class="image-width-value">{{ example.solutionImageWidth || defaultImageWidth }} px</div>
+                    <div class="panel-title small-title">{{ 'exampleDialog.imageWidth' | translate }}</div>
                   </div>
                 </div>
 
-                <mat-slider min="80" max="1200" step="10" discrete>
-                  <input matSliderThumb [(ngModel)]="example.solutionImageWidth" name="solutionImageWidth" (valueChange)="markDirty()" />
+                <mat-slider min="30" max="360" step="10" discrete>
+                  <input matSliderThumb [(ngModel)]="example.imageWidth" name="imageWidth" (valueChange)="markDirty()" />
                 </mat-slider>
               </div>
+
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="panel-box image-upload image-upload-modern construction-card">
+              <div class="construction-card-header">
+                <div class="panel-title">{{ 'exampleDialog.solutionImage' | translate }}</div>
+              </div>
+
+              <input #solutionFileInput hidden type="file" accept="image/png,image/jpeg,image/webp" (change)="onImageSelected($event, 'solution')" />
 
               <div class="panel-actions">
                 <button mat-stroked-button color="primary" type="button" (click)="solutionFileInput.click()">
@@ -426,6 +359,26 @@
                 <button *ngIf="constructionSolutionPreviewUrl" mat-stroked-button color="warn" type="button" (click)="removeSelectedImage('solution')">
                   {{ selectedConstructionSolutionFile ? ('exampleDialog.discardSelection' | translate) : ('exampleDialog.deleteImage' | translate) }}
                 </button>
+              </div>
+
+              <div class="construction-stage-preview">
+                <img *ngIf="constructionSolutionPreviewUrl" [src]="constructionSolutionPreviewUrl" alt="Solution image preview" class="image-preview construction-preview-image" [style.width.px]="example.solutionImageWidth || 320" />
+                <div *ngIf="!constructionSolutionPreviewUrl" class="construction-empty-state">
+                  <mat-icon>imagesmode</mat-icon>
+                  <span>{{ 'exampleDialog.noSolutionImage' | translate }}</span>
+                </div>
+              </div>
+
+              <div class="image-width-card">
+                <div class="image-width-head">
+                  <div>
+                    <div class="panel-title small-title">{{ 'exampleDialog.solutionImageWidth' | translate }}</div>
+                  </div>
+                </div>
+
+                <mat-slider min="30" max="360" step="10" discrete>
+                  <input matSliderThumb [(ngModel)]="example.solutionImageWidth" name="solutionImageWidth" (valueChange)="markDirty()" />
+                </mat-slider>
               </div>
             </div>
           </ng-container>
@@ -582,9 +535,30 @@
       </div>
 
       <mat-dialog-actions>
-        <button mat-stroked-button type="button" (click)="closeDialog()">{{ 'common.cancel' | translate }}</button>
-        <button mat-flat-button color="primary" type="submit" [disabled]="isSaving" (click)="saveExample()">{{ isSaving ? ('common.saving' | translate) : ('common.save' | translate) }}</button>
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="closeDialog()"
+          [disabled]="isSaving"
+        >
+          {{ 'common.cancel' | translate }}
+        </button>
+
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="isSaving"
+          (click)="saveExample()"
+        >
+          <mat-icon>{{ isSaving ? 'hourglass_top' : 'save' }}</mat-icon>
+          {{ isSaving ? ('common.saving' | translate) : ('common.save' | translate) }}
+        </button>
       </mat-dialog-actions>
+
+      @if (isSaving) {
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+      }
     </div>
   </div>
 </main>

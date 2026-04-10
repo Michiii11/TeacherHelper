@@ -184,7 +184,6 @@
 
 .panel-title,
 .column-title {
-  margin-bottom: 0.7rem;
   font-size: 0.92rem;
   font-weight: 700;
   color: color-mix(in srgb, var(--text) 78%, var(--text-soft));
@@ -197,11 +196,6 @@
   gap: 0.7rem;
   align-items: center;
   min-width: 0;
-}
-
-.item-row,
-.assign-row {
-  margin-bottom: 0.75rem;
 }
 
 .item-row-column {
@@ -219,7 +213,6 @@
 .panel-actions {
   display: flex;
   justify-content: flex-start;
-  margin-top: 0.75rem;
 }
 
 .half-open-answers,
@@ -229,6 +222,10 @@
   display: flex;
   flex-direction: column;
   background: none;
+}
+
+.image-upload{
+  gap: .5rem;
 }
 
 .image-upload input{
@@ -265,6 +262,12 @@
   border-radius: 14px;
   border: 1px solid var(--border);
   min-width: 0;
+}
+
+.assign-column, .multiple-choice-options, .half-open-answers{
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
 }
 
 .image-preview {
@@ -606,56 +609,6 @@ mat-divider{
   border: 1px solid var(--border-strong);
   background: var(--surface);
   font-size: 0.88rem;
-}
-
-.image-upload-modern {
-  gap: 1rem;
-}
-
-.upload-dropzone {
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  padding: 1rem;
-  border-radius: 18px;
-  border: 1.5px dashed var(--primary-border-medium);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--primary) 4%, var(--surface)), var(--surface));
-  cursor: pointer;
-  transition: border-color 160ms ease, transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
-}
-
-.upload-dropzone:hover,
-.upload-dropzone.is-dragging {
-  border-color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
-}
-
-.upload-dropzone.has-image {
-  border-style: solid;
-}
-
-.upload-dropzone-icon {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
-  color: var(--primary);
-  flex: 0 0 auto;
-}
-
-.upload-dropzone-title {
-  font-weight: 700;
-  color: var(--text);
-}
-
-.upload-dropzone-text,
-.upload-empty-text {
-  color: var(--text-subtle);
-  font-size: 0.9rem;
 }
 
 .image-width-card {
