@@ -6,7 +6,8 @@
     "logout": "Logout",
     "reset": "Reset",
     "loading": "Loading...",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "deleting": "Deleting..."
   },
   "profile": {
     "title": "My Profile",
@@ -406,7 +407,8 @@
       "teacherKickError": "Teacher could not be removed",
       "schoolDeleted": "School was deleted",
       "schoolDeleteError": "School could not be deleted"
-    }
+    },
+    "logoUploadHint": "JPG, PNG or WEBP · max. 2 MB · Upload starts when you save"
   },
   "exampleDialog": {
     "tags": "Tags",

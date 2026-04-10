@@ -208,6 +208,12 @@ body.dark-mode {
   background: linear-gradient(135deg, var(--primary), var(--primary-2));
   color: var(--on-primary);
   overflow: hidden;
+
+  img{
+    aspect-ratio: 1/1;
+    object-fit: cover;
+    object-position: center;
+  }
 }
 
 .title-icon mat-icon{

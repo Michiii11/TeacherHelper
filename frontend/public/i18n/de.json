@@ -6,7 +6,8 @@
     "logout": "Logout",
     "reset": "Zurücksetzen",
     "loading": "Wird geladen...",
-    "saving": "Wird gespeichert..."
+    "saving": "Wird gespeichert...",
+    "deleting": "Wird gelöscht..."
   },
   "profile": {
     "title": "Mein Profil",
@@ -398,7 +399,8 @@
       "teacherKickError": "Lehrer konnte nicht entfernt werden",
       "schoolDeleted": "Schule wurde gelöscht",
       "schoolDeleteError": "Schule konnte nicht gelöscht werden"
-    }
+    },
+    "logoUploadHint": "JPG, PNG oder WEBP · max. 2 MB · Wird erst beim Speichern hochgeladen"
   },
   "exampleDialog": {
     "tags": "Tags",

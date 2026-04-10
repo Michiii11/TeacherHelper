@@ -48,9 +48,9 @@ public class MediaStorageService {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         Thumbnails.of(file.toFile())
-                .size(1200, 1200)
+                .size(512, 512)
                 .outputFormat("jpg")
-                .outputQuality(0.82)
+                .outputQuality(0.8)
                 .toOutputStream(out);
 
         String objectName = "schools/" + schoolId + "/logo/current.jpg";

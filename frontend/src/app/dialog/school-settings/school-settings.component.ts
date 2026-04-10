@@ -15,7 +15,7 @@ import { UserDTO } from '../../model/User';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { finalize } from 'rxjs/operators';
-import {Router} from '@angular/router'
+import { Router } from '@angular/router';
 
 export interface SchoolSettingsDialogData {
   schoolId: string;
@@ -62,6 +62,9 @@ export class SchoolSettingsComponent implements OnInit {
   inviteSuccessMessage: string | null = null;
   inviteErrorMessage: string | null = null;
 
+  readonly maxLogoBytes = 2 * 1024 * 1024;
+  readonly allowedLogoTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
   generalForm = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(120)]]
   });
@@ -95,6 +98,10 @@ export class SchoolSettingsComponent implements OnInit {
     return this.service.getSchoolLogo(this.data.school, this.data.schoolId);
   }
 
+  getDisplayedLogoUrl(): string | null {
+    return this.logoPreviewUrl || this.getSchoolLogoUrl();
+  }
+
   hasExistingLogo(): boolean {
     return !!this.data.school?.logoUrl;
   }
@@ -109,8 +116,21 @@ export class SchoolSettingsComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
 
-    if (!file) return;
-    if (!file.type.startsWith('image/')) return;
+    if (!file) {
+      return;
+    }
+
+    if (!this.allowedLogoTypes.includes(file.type)) {
+      this.snack.open(this.translate.instant('snackbar.imageTypeError'), 'OK', { duration: 3000 });
+      input.value = '';
+      return;
+    }
+
+    if (file.size > this.maxLogoBytes) {
+      this.snack.open(this.translate.instant('snackbar.imageSizeError'), 'OK', { duration: 3200 });
+      input.value = '';
+      return;
+    }
 
     this.selectedLogoFile = file;
 
@@ -121,12 +141,16 @@ export class SchoolSettingsComponent implements OnInit {
     reader.readAsDataURL(file);
   }
 
-  removeSelectedLogo(): void {
+  removeSelectedLogo(input?: HTMLInputElement): void {
     this.selectedLogoFile = null;
     this.logoPreviewUrl = this.getSchoolLogoUrl();
+
+    if (input) {
+      input.value = '';
+    }
   }
 
-  deleteSchoolLogo(): void {
+  deleteSchoolLogo(input?: HTMLInputElement): void {
     if (!this.isAdmin || !this.hasExistingLogo()) {
       return;
     }
@@ -154,6 +178,10 @@ export class SchoolSettingsComponent implements OnInit {
             this.selectedLogoFile = null;
             this.logoPreviewUrl = null;
             this.data.school.logoUrl = null as any;
+
+            if (input) {
+              input.value = '';
+            }
 
             this.snack.open(
               this.translate.instant('schoolSettings.snackbar.logoDeleted'),
@@ -213,7 +241,7 @@ export class SchoolSettingsComponent implements OnInit {
   }
 
   uploadLogo(): void {
-    if (!this.isAdmin || !this.selectedLogoFile) {
+    if (!this.isAdmin || !this.selectedLogoFile || this.uploadingLogo) {
       return;
     }
 
@@ -243,6 +271,9 @@ export class SchoolSettingsComponent implements OnInit {
           });
         },
         error: () => {
+          this.selectedLogoFile = null;
+          this.logoPreviewUrl = this.getSchoolLogoUrl();
+
           this.snack.open(
             this.translate.instant('schoolSettings.snackbar.logoUpdateError'),
             'OK',
@@ -283,14 +314,13 @@ export class SchoolSettingsComponent implements OnInit {
           this.inviteForm.reset();
           this.inviteSuccessMessage = this.translate.instant('schoolSettings.snackbar.inviteSent');
           if (this.inviteSuccessMessage != null) {
-            this.snack.open(this.inviteSuccessMessage, 'OK', {duration: 4000});
+            this.snack.open(this.inviteSuccessMessage, 'OK', { duration: 4000 });
           }
         },
         error: error => {
-          this.inviteErrorMessage =
-            error.error
+          this.inviteErrorMessage = error.error;
           if (this.inviteErrorMessage != null) {
-            this.snack.open(this.inviteErrorMessage, 'OK', {duration: 5000});
+            this.snack.open(this.inviteErrorMessage, 'OK', { duration: 5000 });
           }
         }
       });
@@ -379,7 +409,7 @@ export class SchoolSettingsComponent implements OnInit {
             { duration: 4000 }
           );
 
-          this.router.navigate(["/home"])
+          this.router.navigate(['/home']);
           this.dialogRef.close({ deleted: true });
         },
         error: () => {

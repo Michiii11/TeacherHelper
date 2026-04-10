@@ -18,16 +18,9 @@
             <div class="logo-layout">
               <div class="logo-preview-card">
                 <div class="preview-box">
-                  @if(logoPreviewUrl){
+                  @if(getDisplayedLogoUrl()){
                     <img
-                      [src]="logoPreviewUrl"
-                      [alt]="'schoolSettings.logoPreviewAlt' | translate"
-                      class="logo-preview-image"
-                    >
-                  }
-                  @else if(getSchoolLogoUrl()){
-                    <img
-                      [src]="getSchoolLogoUrl()"
+                      [src]="getDisplayedLogoUrl()!"
                       [alt]="'schoolSettings.logoPreviewAlt' | translate"
                       class="logo-preview-image"
                     >
@@ -44,13 +37,18 @@
                 <input
                   #logoInput
                   type="file"
-                  accept="image/*"
+                  accept="image/png,image/jpeg,image/webp"
                   hidden
                   (change)="onLogoSelected($event)"
                 >
 
                 <div class="upload-actions">
-                  <button mat-stroked-button type="button" (click)="logoInput.click()">
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    (click)="logoInput.click()"
+                    [disabled]="uploadingLogo || deletingLogo"
+                  >
                     <mat-icon>upload</mat-icon>
                     {{ 'schoolSettings.selectLogo' | translate }}
                   </button>
@@ -59,8 +57,8 @@
                     mat-button
                     type="button"
                     class="ghost-action-button"
-                    (click)="removeSelectedLogo()"
-                    [disabled]="!selectedLogoFile"
+                    (click)="removeSelectedLogo(logoInput)"
+                    [disabled]="!logoPreviewUrl || uploadingLogo"
                   >
                     {{ 'schoolSettings.removeSelection' | translate }}
                   </button>
@@ -72,8 +70,8 @@
                     type="button"
                     color="warn"
                     class="danger-soft-button"
-                    (click)="deleteSchoolLogo()"
-                    [disabled]="!hasExistingLogo() || deletingLogo"
+                    (click)="deleteSchoolLogo(logoInput)"
+                    [disabled]="!hasExistingLogo() || deletingLogo || uploadingLogo"
                   >
                     <mat-icon>delete</mat-icon>
                     {{ 'schoolSettings.deleteLogo' | translate }}
@@ -82,6 +80,10 @@
 
                 <p class="hint">
                   {{ 'schoolSettings.logoHint' | translate }}
+                </p>
+
+                <p class="hint subtle-hint">
+                  {{ 'schoolSettings.logoUploadHint' | translate }}
                 </p>
 
                 @if(uploadingLogo || deletingLogo){
@@ -94,7 +96,7 @@
               <button mat-stroked-button type="button" (click)="close()">
                 {{ 'common.cancel' | translate }}
               </button>
-              <button mat-flat-button color="primary" type="button" (click)="saveAll()">
+              <button mat-flat-button color="primary" type="button" (click)="saveAll()" [disabled]="uploadingLogo">
                 {{ 'common.save' | translate }}
               </button>
             </div>
