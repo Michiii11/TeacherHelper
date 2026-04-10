@@ -22,6 +22,8 @@ export const ExampleTypeLabels: Record<ExampleTypes, string> = {
 export interface Example {
   id: number;
   admin: User;
+  adminUsername?: string;
+  folderId?: string | null;
   focusList: Focus[];
   type: ExampleTypes;
   instruction: string;
@@ -41,6 +43,8 @@ export interface Example {
 export interface ExampleDTO {
   id: number;
   admin: UserDTO;
+  adminUsername?: string;
+  folderId?: string | null;
   type: ExampleTypes;
   instruction: string;
   question: string;
@@ -113,6 +117,9 @@ export interface ExampleOverviewDTO {
   adminId: number;
   focusList: Focus[];
   folderId: string | null;
+
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 

@@ -107,7 +107,7 @@ public class ExampleResource {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Datei ist zu groß. Maximal 5 MB erlaubt.").build();
             }
 
-            if (example.getImageUrl() != null && !example.getImageUrl().isBlank()) {
+            if (example.getImageUrl() != null) {
                 mediaStorageService.delete(example.getImageUrl());
             }
 
@@ -144,7 +144,7 @@ public class ExampleResource {
             return Response.status(Response.Status.FORBIDDEN).entity("Nicht berechtigt.").build();
         }
 
-        if (example.getImageUrl() != null && !example.getImageUrl().isBlank()) {
+        if (example.getImageUrl() != null) {
             mediaStorageService.delete(example.getImageUrl());
         }
 
@@ -187,7 +187,7 @@ public class ExampleResource {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Datei ist zu groß. Maximal 5 MB erlaubt.").build();
             }
 
-            if (example.getSolutionUrl() != null && !example.getSolutionUrl().isBlank()) {
+            if (example.getSolutionUrl() != null) {
                 mediaStorageService.delete(example.getSolutionUrl());
             }
 
@@ -224,7 +224,7 @@ public class ExampleResource {
             return Response.status(Response.Status.FORBIDDEN).entity("Nicht berechtigt.").build();
         }
 
-        if (example.getSolutionUrl() != null && !example.getSolutionUrl().isBlank()) {
+        if (example.getSolutionUrl() != null) {
             mediaStorageService.delete(example.getSolutionUrl());
         }
 

@@ -17,6 +17,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
+import java.sql.Timestamp;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,7 +48,9 @@ public class ExampleRepository {
                         e.getAdmin().getUsername(),
                         e.getAdmin().getId(),
                         e.getFocusList(),
-                        e.getFolder() != null ? e.getFolder().getId() : null
+                        e.getFolder() != null ? e.getFolder().getId() : null,
+                        e.getCreatedAt(),
+                        e.getUpdatedAt()
                 )
         ).collect(Collectors.toList());
     }
@@ -104,6 +107,8 @@ public class ExampleRepository {
         example.setFolder(folder);
         example.getFocusList().clear();
         example.getFocusList().addAll(dto.focusList());
+        example.setCreatedAt(Timestamp.from(java.time.Instant.now()));
+        example.setUpdatedAt(Timestamp.from(java.time.Instant.now()));
 
         clearTypeSpecificFields(example);
 
@@ -171,6 +176,7 @@ public class ExampleRepository {
         example.setFolder(folder);
         example.getFocusList().clear();
         example.getFocusList().addAll(dto.focusList());
+        example.setUpdatedAt(Timestamp.from(java.time.Instant.now()));
 
         clearTypeSpecificFields(example);
 

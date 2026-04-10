@@ -1,5 +1,6 @@
 import { Component, ElementRef, HostListener, ViewChild, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { MAT_DIALOG_DATA, MatDialog, MatDialogActions, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
@@ -32,6 +33,7 @@ import {
 } from '../../model/Example';
 import { HttpService } from '../../service/http.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-create-example',
@@ -55,6 +57,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
     MatChipsModule,
     MatAutocompleteTrigger,
     MatAutocomplete,
+    TranslateModule,
   ],
   templateUrl: './create-example.component.html',
   styleUrls: ['./create-example.component.scss']
@@ -64,6 +67,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   private readonly http = inject(HttpService);
+  private readonly sanitizer = inject(DomSanitizer);
 
   hasUnsavedChanges = false;
   isEditMode = false;
@@ -78,6 +82,9 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   readonly maxImageBytes = 5 * 1024 * 1024;
   readonly allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
   readonly defaultImageWidth = 320;
+
+  isDraggingConstructionPreview = false;
+  isDraggingConstructionSolution = false;
 
   example: CreateExampleDTO = {
     authToken: '',
@@ -313,6 +320,61 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     this.markDirty();
   }
 
+  private escapeHtml(value: string): string {
+    return (value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/\n/g, '<br>');
+  }
+
+  getQuestionPreviewHtml(): SafeHtml {
+    const escapedQuestion = this.escapeHtml(this.example.question || '');
+    let idx = 0;
+
+    const html = escapedQuestion.replace(/\{\d+\}/g, () => {
+      const gap = this.example.gaps[idx];
+      idx++;
+
+      const label = gap?.label?.trim()
+        ? `<span class="gap-inline-label">${this.escapeHtml(gap.label.trim())}</span>`
+        : '';
+
+      if (this.example.gapFillType === 'INPUT') {
+        return `<span class="gap-inline gap-inline-input">${label}<span class="gap-inline-line"></span></span>`;
+      }
+
+      return `<span class="gap-inline gap-inline-select">${label}<span class="gap-inline-select-stack"><span class="gap-inline-pill"></span></span></span>`;
+    });
+
+    return this.sanitizer.bypassSecurityTrustHtml(html);
+  }
+
+  setDragState(type: 'preview' | 'solution', active: boolean): void {
+    if (type === 'preview') {
+      this.isDraggingConstructionPreview = active;
+      return;
+    }
+
+    this.isDraggingConstructionSolution = active;
+  }
+
+  onFileDrop(event: DragEvent, type: 'preview' | 'solution'): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.setDragState(type, false);
+
+    const file = event.dataTransfer?.files?.[0] ?? null;
+    if (!file) {
+      return;
+    }
+
+    const input = { files: event.dataTransfer?.files ?? null, value: '' } as HTMLInputElement;
+    this.onImageSelected({ target: input } as unknown as Event, type);
+  }
+
   addGapOption(gi: number): void {
     this.example.gaps[gi].options = this.example.gaps[gi].options || [];
     this.example.gaps[gi].options.push({ text: '', correct: false } as Option);
@@ -465,7 +527,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
   async saveExample(): Promise<void> {
     if (!this.example.instruction.trim() || !this.example.question.trim()) {
-      this.snackBar.open('Bitte füllen Sie sowohl die Aufgabenstellung als auch die Angabe aus.', 'OK', {
+      this.snackBar.open('Bitte füllen Sie sowohl die Angabe als auch die Aufgabenstellung aus.', 'OK', {
         duration: 3000
       });
       return;
@@ -476,7 +538,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     }
 
     if (this.example.type === ExampleTypes.CONSTRUCTION && !this.isEditMode && !this.selectedConstructionImageFile) {
-      this.snackBar.open('Bitte ein Aufgabenbild auswählen.', 'OK', { duration: 3000 });
+      this.snackBar.open('Bitte zuerst ein Aufgabenbild auswählen.', 'OK', { duration: 3000 });
       return;
     }
 
@@ -523,9 +585,9 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     if (this.hasUnsavedChanges) {
       const confirmRef = this.dialog.open(ConfirmDialogComponent, {
         data: {
-          title: 'Warnung',
-          message: 'Möchten Sie wirklich schließen? Nicht gespeicherte Änderungen gehen verloren.',
-          cancelText: 'Abbrechen',
+          title: 'Dialog schließen?',
+          message: 'Nicht gespeicherte Änderungen gehen verloren. Möchten Sie den Dialog wirklich schließen?',
+          cancelText: 'Weiter bearbeiten',
           confirmText: 'Schließen'
         }
       });
@@ -562,7 +624,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     return this.example.question.replace(/\{\d+\}/g, () => {
       const label = this.example.gaps[idx]?.label?.trim();
       idx++;
-      return label ? `_____(${label})_____` : `______________`;
+      return label ? `[${label}]` : `[   ]`;
     });
   }
 
@@ -684,8 +746,8 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
     this.dialog.open(ConfirmDialogComponent, {
       data: {
-        title: 'Warnung',
-        message: 'Möchten Sie diesen Schwerpunkt wirklich löschen? Es kann sein das er noch bei anderen Beispielen verwenden wird.',
+        title: 'Schwerpunkt löschen?',
+        message: 'Möchten Sie diesen Schwerpunkt wirklich löschen? Er kann auch in anderen Beispielen verwendet werden.',
         cancelText: 'Abbrechen',
         confirmText: 'Löschen',
         requireConfirmation: true,

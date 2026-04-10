@@ -175,6 +175,46 @@
   color: var(--on-primary) !important;
 }
 
+
+.selection-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.selection-toolbar-copy h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.selection-toolbar-copy p {
+  margin: 0.3rem 0 0;
+  color: var(--text-soft);
+  line-height: 1.45;
+}
+
+.selection-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.selection-count-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  color: var(--text);
+  font-weight: 700;
+}
+
 .selected-section {
   display: flex;
   flex-direction: column;
@@ -873,4 +913,10 @@
   mat-dialog-actions button {
     width: 100%;
   }
+}
+
+
+::ng-deep .example-picker-dialog-panel .mdc-dialog__surface {
+  background: transparent !important;
+  box-shadow: none !important;
 }

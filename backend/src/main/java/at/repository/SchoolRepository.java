@@ -10,6 +10,7 @@ import at.enums.SchoolInviteType;
 import at.model.*;
 import at.model.helper.Focus;
 import at.security.TokenService;
+import at.service.MediaStorageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -30,6 +31,9 @@ public class SchoolRepository {
 
     @Inject
     NotificationRepository notificationRepository;
+
+    @Inject
+    MediaStorageService mediaStorageService;
 
     public Response addSchool(String schoolName, Long userId) {
         try {
@@ -218,9 +222,12 @@ public class SchoolRepository {
             return Response.status(Response.Status.FORBIDDEN).entity("Only the school admin can remove teachers").build();
         }
 
-        if (!school.getUsers().removeIf(u -> u.getId().equals(teacherId))) {
+        if(!school.getUsers().contains(teacher)){
             return Response.status(Response.Status.BAD_REQUEST).entity("This teacher is not a member of the school").build();
         }
+
+        school.getUsers().remove(teacher);
+
 
         em.merge(school);
 
@@ -276,10 +283,86 @@ public class SchoolRepository {
         }
 
         school.setLogoUrl(logoUrl);
-
         em.merge(school);
 
         return Response.ok(toSchoolDTO(school)).build();
+    }
+
+    public Response deleteSchoolLogo(Long schoolId, Long userId) {
+        School school = em.find(School.class, schoolId);
+
+        if (school == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("School not found").build();
+        }
+
+        if (!school.getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Only the school admin can delete the logo").build();
+        }
+
+        if (school.getLogoUrl() == null || school.getLogoUrl().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("School has no logo").build();
+        }
+
+        if(school.getLogoUrl() != null && !school.getLogoUrl().isBlank()) {
+            mediaStorageService.delete(school.getLogoUrl());
+        }
+
+        school.setLogoUrl(null);
+        em.merge(school);
+
+        return Response.ok(toSchoolDTO(school)).build();
+    }
+
+    public Response deleteSchool(Long schoolId, Long userId) {
+        School school = em.find(School.class, schoolId);
+
+        if (school == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("School not found").build();
+        }
+
+        if (!school.getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Only the school admin can delete the school").build();
+        }
+
+        em.createQuery("DELETE FROM SchoolInvite i WHERE i.school.id = :schoolId")
+                .setParameter("schoolId", schoolId)
+                .executeUpdate();
+
+        school.getUsers().clear();
+
+        if (school.getFocusList() != null) {
+            for (Focus focus : school.getFocusList()) {
+                em.remove(em.contains(focus) ? focus : em.merge(focus));
+            }
+            school.getFocusList().clear();
+        }
+
+        List<Example> examples = em.createQuery("SELECT e FROM Example e WHERE e.school.id = :schoolId", Example.class)
+                .setParameter("schoolId", schoolId)
+                .getResultList();
+
+        for(Example example : examples) {
+            em.remove(example);
+        }
+
+        List<Test> tests = em.createQuery("SELECT t FROM Test t WHERE t.school.id = :schoolId", Test.class)
+                .setParameter("schoolId", schoolId)
+                .getResultList();
+
+        for(Test test : tests) {
+            em.remove(test);
+        }
+
+
+        System.out.println(school.getLogoUrl());
+        if(school.getLogoUrl() != null) {
+            mediaStorageService.delete(school.getLogoUrl());
+        }
+
+        em.merge(school);
+        em.remove(school);
+
+        return Response.ok().build();
     }
 
     public Response inviteTeacher(Long schoolId, Long userId, String email) {

@@ -1,5 +1,6 @@
 package at.service;
 
+import at.model.User;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;

@@ -14,6 +14,7 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -32,9 +33,19 @@ public class TestRepository {
     public List<TestOverviewDTO> getAllTest(Long schoolId) {
         return em.createQuery(
                         "SELECT new at.dtos.Test.TestOverviewDTO(" +
-                                "t.id, t.name, SIZE(t.exampleList), t.duration, t.admin.username, t.admin.id, " +
-                                "CASE WHEN t.folder IS NULL THEN null ELSE t.folder.id END) " +
-                                "FROM Test t WHERE t.school.id = :schoolId ORDER BY t.id",
+                                "t.id, " +
+                                "t.name, " +
+                                "SIZE(t.exampleList), " +
+                                "t.duration, " +
+                                "t.admin.username, " +
+                                "t.admin.id, " +
+                                "t.createdAt, " +
+                                "t.updatedAt, " +
+                                "t.folder.id" +
+                                ") " +
+                                "FROM Test t " +
+                                "WHERE t.school.id = :schoolId " +
+                                "ORDER BY t.id",
                         TestOverviewDTO.class
                 )
                 .setParameter("schoolId", schoolId)
@@ -65,6 +76,8 @@ public class TestRepository {
 
         Test test = new Test(dto.name(), dto.note(), admin, school, dto.duration());
         test.setFolder(folder);
+        test.setCreatedAt(Timestamp.from(java.time.Instant.now()));
+        test.setUpdatedAt(Timestamp.from(java.time.Instant.now()));
         applySettings(test, dto);
         em.persist(test);
 
@@ -103,6 +116,7 @@ public class TestRepository {
         test.setNote(dto.note());
         test.setDuration(dto.duration());
         test.setFolder(folder);
+        test.setUpdatedAt(Timestamp.from(java.time.Instant.now()));
         applySettings(test, dto);
 
         List<TestExample> existingEntries = em.createQuery(

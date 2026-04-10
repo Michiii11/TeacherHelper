@@ -15,10 +15,10 @@ import io.smallrye.common.annotation.Blocking;
 import jakarta.inject.Inject;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.Response;
@@ -110,6 +110,21 @@ public class SchoolResource {
         }
     }
 
+    @DELETE
+    @Path("{id}/logo")
+    public Response deleteSchoolLogo(@PathParam("id") Long id, JsonObject request) {
+        if (request == null || !request.containsKey("authToken")) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Missing or invalid Authorization token").build();
+        }
+
+        Long userId = tokenService.validateTokenAndGetUserId(request.getString("authToken"));
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
+        }
+
+        return schoolRepository.deleteSchoolLogo(id, userId);
+    }
+
     @GET
     @Path("{id}/logo")
     public Response getSchoolLogo(@PathParam("id") Long id) {
@@ -124,6 +139,21 @@ public class SchoolResource {
         }
 
         return Response.ok(image.data()).type(image.contentType()).build();
+    }
+
+    @DELETE
+    @Path("{id}")
+    public Response deleteSchool(@PathParam("id") Long id, JsonObject request) {
+        if (request == null || !request.containsKey("authToken")) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Missing or invalid Authorization token").build();
+        }
+
+        Long userId = tokenService.validateTokenAndGetUserId(request.getString("authToken"));
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
+        }
+
+        return schoolRepository.deleteSchool(id, userId);
     }
 
     @GET

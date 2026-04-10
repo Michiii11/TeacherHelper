@@ -64,6 +64,11 @@ public class ExampleFolderRepository {
             return Response.status(Response.Status.FORBIDDEN).entity("Nicht berechtigt.").build();
         }
 
+        String name = dto.name() == null ? "" : dto.name().trim();
+        if (name.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Name darf nicht leer sein.").build();
+        }
+
         ExampleFolder parent = null;
         if (dto.parentId() != null && !dto.parentId().isBlank()) {
             parent = em.find(ExampleFolder.class, dto.parentId());
@@ -72,7 +77,7 @@ public class ExampleFolderRepository {
             }
         }
 
-        ExampleFolder folder = new ExampleFolder(dto.name().trim(), school, parent);
+        ExampleFolder folder = new ExampleFolder(name, school, parent);
         em.persist(folder);
         em.flush();
 
@@ -100,7 +105,30 @@ public class ExampleFolderRepository {
             return Response.status(Response.Status.BAD_REQUEST).entity("Name darf nicht leer sein.").build();
         }
 
+        ExampleFolder newParent = null;
+        if (dto.parentId() != null && !dto.parentId().isBlank()) {
+            newParent = em.find(ExampleFolder.class, dto.parentId());
+
+            if (newParent == null || !newParent.getSchool().getId().equals(folder.getSchool().getId())) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Parent-Ordner.").build();
+            }
+
+            if (newParent.getId().equals(folder.getId())) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("Ein Ordner kann nicht in sich selbst verschoben werden.")
+                        .build();
+            }
+
+            if (isDescendant(newParent, folder.getId())) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("Ein Ordner kann nicht in einen eigenen Unterordner verschoben werden.")
+                        .build();
+            }
+        }
+
         folder.setName(name);
+        folder.setParent(newParent);
+
         em.merge(folder);
         em.flush();
 
@@ -160,6 +188,19 @@ public class ExampleFolderRepository {
                 folder.getCreatedAt().toString(),
                 folder.getUpdatedAt().toString()
         );
+    }
+
+    private boolean isDescendant(ExampleFolder candidateParent, String folderId) {
+        ExampleFolder current = candidateParent;
+
+        while (current != null) {
+            if (current.getId().equals(folderId)) {
+                return true;
+            }
+            current = current.getParent();
+        }
+
+        return false;
     }
 
     private boolean isSchoolMember(School school, Long userId) {

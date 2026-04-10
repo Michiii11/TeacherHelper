@@ -35,7 +35,7 @@
       <form class="example-form">
         <div class="row">
           <mat-form-field appearance="outline" class="full-width focus-field">
-            <mat-label>Tags</mat-label>
+            <mat-label>{{ 'exampleDialog.tags' | translate }}</mat-label>
 
             <mat-chip-grid
               #chipGrid
@@ -45,14 +45,14 @@
             >
               <mat-chip-row *ngFor="let focus of example.focusList" (removed)="remove(focus)">
                 {{ focus.label }}
-                <button matChipRemove type="button" aria-label="Tag entfernen">✕</button>
+                <button matChipRemove type="button" [attr.aria-label]="'exampleDialog.removeTag' | translate">✕</button>
               </mat-chip-row>
             </mat-chip-grid>
 
             <input
               matInput
               class="focus-input"
-              placeholder="Tags auswählen oder erstellen"
+              placeholder="{{ 'exampleDialog.tagsPlaceholder' | translate }}"
               [matChipInputFor]="chipGrid"
               [matAutocomplete]="auto"
               [formControl]="inputCtrl"
@@ -76,7 +76,7 @@
                     tabindex="-1"
                     type="button"
                     (click)="deleteFocus(focus, $event)"
-                    aria-label="Tag löschen"
+                    [attr.aria-label]="'exampleDialog.deleteTag' | translate"
                   >
                     <mat-icon fontIcon="delete"></mat-icon>
                   </button>
@@ -94,13 +94,13 @@
 
         <div class="row">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Angabe</mat-label>
+            <mat-label>{{ 'school.instruction' | translate }}</mat-label>
             <textarea
               matInput
               [(ngModel)]="example.instruction"
               name="instruction"
               (input)="markDirty()"
-              placeholder="Gegeben ist ..."
+              placeholder="{{ 'exampleDialog.instructionPlaceholder' | translate }}"
               cdkTextareaAutosize
               cdkAutosizeMinRows="2"
               cdkAutosizeMaxRows="10">
@@ -111,13 +111,13 @@
         <section class="example-panel">
           <ng-container *ngIf="example.type === ExampleTypes.OPEN">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Aufgabenstellung</mat-label>
+              <mat-label>{{ 'school.question' | translate }}</mat-label>
               <textarea
                 matInput
                 [(ngModel)]="example.question"
                 name="question"
                 (input)="markDirty()"
-                placeholder="Ermitteln Sie ..."
+                placeholder="{{ 'exampleDialog.openQuestionPlaceholder' | translate }}"
                 cdkTextareaAutosize
                 cdkAutosizeMinRows="2"
                 cdkAutosizeMaxRows="10">
@@ -127,13 +127,13 @@
             <mat-divider></mat-divider>
 
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Lösung</mat-label>
+              <mat-label>{{ 'exampleDialog.solution' | translate }}</mat-label>
               <textarea
                 matInput
                 [(ngModel)]="example.solution"
                 name="solution"
                 (input)="markDirty()"
-                placeholder="Geben Sie die richtige Antwort an ..."
+                placeholder="{{ 'exampleDialog.solutionPlaceholder' | translate }}"
                 cdkTextareaAutosize
                 cdkAutosizeMinRows="2"
                 cdkAutosizeMaxRows="10">
@@ -143,41 +143,41 @@
 
           <ng-container *ngIf="example.type === ExampleTypes.HALF_OPEN">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Aufgabenstellung</mat-label>
-              <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="Geben Sie die Antworten an ..."
+              <mat-label>{{ 'school.question' | translate }}</mat-label>
+              <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="{{ 'exampleDialog.halfOpenQuestionPlaceholder' | translate }}"
                         cdkTextareaAutosize
                         cdkAutosizeMinRows="2"
                         cdkAutosizeMaxRows="10"></textarea>
             </mat-form-field>
 
             <div class="panel-box half-open-answers">
-              <div class="panel-title">Antworten</div>
+              <div class="panel-title">{{ 'exampleDialog.answers' | translate }}</div>
               <div *ngFor="let a of example.answers; let i = index; trackBy: trackByIndex" class="item-row">
                 <mat-form-field appearance="outline" class="item-input">
-                  <input matInput [(ngModel)]="example.answers[i][0]" name="halfOpenAnswer{{i}}" (input)="markDirty()" placeholder="Antwort {{ i + 1 }}">
+                  <input matInput [(ngModel)]="example.answers[i][0]" name="halfOpenAnswer{{i}}" (input)="markDirty()" placeholder="{{ ('exampleDialog.answer' | translate) + ' ' + (i + 1) }}">
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="item-input">
-                  <input matInput [(ngModel)]="example.answers[i][1]" name="halfOpenCorrectAnswer{{i}}" (input)="markDirty()" placeholder="Korrekte Lösung {{ i + 1 }}">
+                  <input matInput [(ngModel)]="example.answers[i][1]" name="halfOpenCorrectAnswer{{i}}" (input)="markDirty()" placeholder="{{ ('exampleDialog.correctSolution' | translate) + ' ' + (i + 1) }}">
                 </mat-form-field>
-                <button mat-icon-button color="warn" type="button" (click)="removeHalfOpenAnswer(i)" aria-label="Antwort entfernen">
+                <button mat-icon-button color="warn" type="button" (click)="removeHalfOpenAnswer(i)" [attr.aria-label]="'exampleDialog.removeAnswer' | translate">
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>
-              <button mat-mini-fab color="primary" type="button" (click)="addHalfOpenAnswer()" aria-label="Antwort hinzufügen"><mat-icon>add</mat-icon></button>
+              <button mat-mini-fab color="primary" type="button" (click)="addHalfOpenAnswer()" [attr.aria-label]="'exampleDialog.addAnswer' | translate"><mat-icon>add</mat-icon></button>
             </div>
           </ng-container>
 
           <ng-container *ngIf="example.type === ExampleTypes.MULTIPLE_CHOICE">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Aufgabenstellung</mat-label>
-              <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="Wählen Sie die richtige Lösung aus ..."
+              <mat-label>{{ 'school.question' | translate }}</mat-label>
+              <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="{{ 'exampleDialog.multipleChoicePlaceholder' | translate }}"
                         cdkTextareaAutosize
                         cdkAutosizeMinRows="2"
                         cdkAutosizeMaxRows="10"></textarea>
             </mat-form-field>
 
             <div class="panel-box multiple-choice-options">
-              <div class="panel-title">Optionen</div>
+              <div class="panel-title">{{ 'exampleDialog.options' | translate }}</div>
               <div *ngFor="let opt of example.options; let i = index; trackBy: trackByOptionId" class="item-row">
                 <mat-checkbox [(ngModel)]="opt.correct" name="correctOption{{i}}"
                               (change)="markDirty()" [matTooltip]="'Als richtige Antwort markieren'"
@@ -185,7 +185,7 @@
                 </mat-checkbox>
 
                 <mat-form-field appearance="outline" class="item-input">
-                  <input matInput [(ngModel)]="opt.text" name="option{{i}}" (input)="markDirty()" placeholder="Option {{ i + 1 }}">
+                  <input matInput [(ngModel)]="opt.text" name="option{{i}}" (input)="markDirty()" placeholder="{{ ('exampleDialog.option' | translate) + ' ' + (i + 1) }}">
                 </mat-form-field>
 
                 <button mat-icon-button color="warn" (click)="removeOption(i)" type="button" aria-label="Option entfernen">
@@ -201,13 +201,13 @@
 
           <ng-container *ngIf="example.type === ExampleTypes.GAP_FILL">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Aufgabenstellung</mat-label>
-              <textarea matInput [(ngModel)]="example.question" name="question" (input)="updateGapsFromText(); markDirty()" placeholder="Ergänzen Sie die Textlücken ..."
+              <mat-label>{{ 'school.question' | translate }}</mat-label>
+              <textarea matInput [(ngModel)]="example.question" name="question" (input)="updateGapsFromText(); markDirty()" placeholder="{{ 'exampleDialog.gapFillPlaceholder' | translate }}"
                         cdkTextareaAutosize
                         cdkAutosizeMinRows="2"
                         cdkAutosizeMaxRows="10"></textarea>
-              <button mat-stroked-button type="button" (click)="insertGapAtCursor()" matTooltip="Lücke an Cursorposition einfügen" class="insert-gap-btn">
-                <mat-icon>add</mat-icon> Lücke
+              <button mat-stroked-button type="button" (click)="insertGapAtCursor()" matTooltip="{{ 'exampleDialog.insertGapTooltip' | translate }}" class="insert-gap-btn">
+                <mat-icon>add</mat-icon> {{ 'exampleDialog.gap' | translate }}
               </button>
             </mat-form-field>
 
@@ -218,43 +218,75 @@
               class="styled-toggle-group"
               [hideSingleSelectionIndicator]="true"
             >
-              <mat-button-toggle value="SELECT">Auswahl</mat-button-toggle>
-              <mat-button-toggle value="INPUT">Freitext</mat-button-toggle>
+              <mat-button-toggle value="SELECT">{{ 'exampleDialog.selection' | translate }}</mat-button-toggle>
+              <mat-button-toggle value="INPUT">{{ 'exampleDialog.freeText' | translate }}</mat-button-toggle>
             </mat-button-toggle-group>
 
             <div class="panel-box gap-fill-luecken" *ngIf="example.gapFillType === 'SELECT'">
-              <div *ngFor="let gap of example.gaps; let gi = index; trackBy: trackByGapId" class="item-row item-row-column">
-                <div class="panel-title">Lücke {{gi+1}} ({{gap.label}})</div>
+              <div class="panel-title">{{ 'exampleDialog.selectionGapHelp' | translate }}</div>
+
+              <div *ngFor="let gap of example.gaps; let gi = index; trackBy: trackByGapId" class="gap-editor-card">
+                <div class="gap-editor-head">
+                  <div class="gap-editor-index">{{ 'exampleDialog.gap' | translate }} {{ gi + 1 }}</div>
+                  <div class="gap-editor-preview">
+                    <span class="gap-preview-label">{{ gap.label || ('exampleDialog.gapLabelPreview' | translate) }}</span>
+                    <span class="gap-preview-box"></span>
+                  </div>
+                </div>
+
                 <mat-form-field appearance="outline" class="item-input">
-                  <input matInput [(ngModel)]="gap.label" name="gapLabel{{gi}}" (input)="markDirty()" placeholder="Beschreibung der Lücke">
+                  <mat-label>{{ 'exampleDialog.gapLabel' | translate }}</mat-label>
+                  <input matInput [(ngModel)]="gap.label" name="gapLabel{{gi}}" (input)="markDirty()" placeholder="{{ 'exampleDialog.gapLabelPlaceholder' | translate }}">
                 </mat-form-field>
 
-                <div *ngIf="example.gapFillType === 'SELECT'" class="gap-options">
-                  <div *ngFor="let opt of gap.options; let oi = index;" class="option-row">
-                    <mat-checkbox [(ngModel)]="gap.options[oi].correct" name="gapOptionCorrect{{gi}}_{{oi}}" (change)="markDirty()" [matTooltip]="'Als richtige Antwort markieren'" [matTooltipShowDelay]="500">
+                <div class="gap-options">
+                  <div *ngFor="let opt of gap.options; let oi = index;" class="option-row gap-option-row">
+                    <mat-checkbox
+                      [(ngModel)]="gap.options[oi].correct"
+                      name="gapOptionCorrect{{gi}}_{{oi}}"
+                      (change)="markDirty()"
+                      [matTooltip]="'exampleDialog.markAsCorrect' | translate"
+                      [matTooltipShowDelay]="500">
                     </mat-checkbox>
+
                     <mat-form-field appearance="outline" class="option-input">
-                      <input matInput [(ngModel)]="gap.options[oi].text" name="gapOption{{gi}}_{{oi}}" (input)="markDirty()" placeholder="Antwortmöglichkeit {{oi + 1}}">
+                      <mat-label>{{ ('exampleDialog.answerOption' | translate) + ' ' + (oi + 1) }}</mat-label>
+                      <input matInput [(ngModel)]="gap.options[oi].text" name="gapOption{{gi}}_{{oi}}" (input)="markDirty()" placeholder="{{ 'exampleDialog.answerOptionPlaceholder' | translate }}">
                     </mat-form-field>
-                    <button mat-icon-button color="warn" type="button" (click)="removeGapOption(gi, oi)" aria-label="Antwortmöglichkeit entfernen">
+
+                    <button mat-icon-button color="warn" type="button" (click)="removeGapOption(gi, oi)" [attr.aria-label]="'exampleDialog.removeOption' | translate">
                       <mat-icon>delete</mat-icon>
                     </button>
                   </div>
-                  <button mat-mini-fab color="primary" type="button" (click)="addGapOption(gi)" aria-label="Antwortmöglichkeit hinzufügen">
+
+                  <button mat-stroked-button color="primary" type="button" class="gap-add-option-btn" (click)="addGapOption(gi)" [attr.aria-label]="'exampleDialog.addOption' | translate">
                     <mat-icon>add</mat-icon>
+                    {{ 'exampleDialog.addOption' | translate }}
                   </button>
                 </div>
               </div>
             </div>
 
             <div class="panel-box gap-fill-luecken" *ngIf="example.gapFillType === 'INPUT'">
-              <div *ngFor="let gap of example.gaps; let gi = index; trackBy: trackByGapId" class="item-row item-row-column">
-                <div class="panel-title">Lücke {{gi+1}}</div>
+              <div class="panel-title">{{ 'exampleDialog.freeTextGapHelp' | translate }}</div>
+
+              <div *ngFor="let gap of example.gaps; let gi = index; trackBy: trackByGapId" class="gap-editor-card gap-editor-card-input">
+                <div class="gap-editor-head gap-editor-head-input">
+                  <div class="gap-editor-index">{{ 'exampleDialog.gap' | translate }} {{ gi + 1 }}</div>
+                  <div class="gap-editor-preview gap-editor-preview-input">
+                    <span class="gap-preview-label gap-preview-label-small">{{ gap.label || ('exampleDialog.gapLabelPreview' | translate) }}</span>
+                    <span class="gap-preview-line"></span>
+                  </div>
+                </div>
+
                 <mat-form-field appearance="outline" class="item-input">
-                  <input matInput [(ngModel)]="gap.label" name="gapLabel{{gi}}" (input)="markDirty()" placeholder="Beschreibung der Lücke">
+                  <mat-label>{{ 'exampleDialog.gapLabel' | translate }}</mat-label>
+                  <input matInput [(ngModel)]="gap.label" name="gapLabel{{gi}}" (input)="markDirty()" placeholder="{{ 'exampleDialog.gapLabelPlaceholderSmall' | translate }}">
                 </mat-form-field>
+
                 <mat-form-field appearance="outline" class="item-input">
-                  <input matInput [(ngModel)]="gap.solution" name="gapCorrectAnswer{{gi}}" (input)="markDirty()" placeholder="Korrekte Antwort">
+                  <mat-label>{{ 'exampleDialog.correctAnswer' | translate }}</mat-label>
+                  <input matInput [(ngModel)]="gap.solution" name="gapCorrectAnswer{{gi}}" (input)="markDirty()" placeholder="{{ 'exampleDialog.correctAnswerPlaceholder' | translate }}">
                 </mat-form-field>
               </div>
             </div>
@@ -262,49 +294,137 @@
 
           <ng-container *ngIf="example.type === ExampleTypes.CONSTRUCTION">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Aufgabenstellung</mat-label>
-              <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="Zeichnen Sie ..."
+              <mat-label>{{ 'school.question' | translate }}</mat-label>
+              <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="{{ 'exampleDialog.constructionPlaceholder' | translate }}"
                         cdkTextareaAutosize
                         cdkAutosizeMinRows="2"
                         cdkAutosizeMaxRows="10"></textarea>
             </mat-form-field>
 
-            <div class="panel-box image-upload">
-              <div class="panel-title">Aufgabenbild</div>
-              <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onImageSelected($event, 'preview')" />
+            <div class="panel-box image-upload image-upload-modern construction-card">
+              <div class="construction-card-header">
+                <div>
+                  <div class="panel-title">{{ 'exampleDialog.taskImage' | translate }}</div>
+                  <div class="construction-card-subtitle">{{ 'exampleDialog.taskImageHelp' | translate }}</div>
+                </div>
+              </div>
 
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Bildbreite im Beispiel/Test (Preview + Druck)</mat-label>
-                <input matInput type="number" min="80" max="1200" [(ngModel)]="example.imageWidth" name="imageWidth" (input)="markDirty()" />
-              </mat-form-field>
+              <input #previewFileInput hidden type="file" accept="image/png,image/jpeg,image/webp" (change)="onImageSelected($event, 'preview')" />
 
-              <img *ngIf="constructionImagePreviewUrl" [src]="constructionImagePreviewUrl" alt="Aufgabenbild Vorschau" class="image-preview" [style.width.px]="example.imageWidth || 320" />
-              <p *ngIf="!constructionImagePreviewUrl">Kein Bild ausgewählt.</p>
+              <div class="construction-image-stage" [class.has-image]="!!constructionImagePreviewUrl">
+                <div
+                  class="upload-dropzone construction-dropzone"
+                  [class.is-dragging]="isDraggingConstructionPreview"
+                  [class.has-image]="!!constructionImagePreviewUrl"
+                  (click)="previewFileInput.click()"
+                  (dragover)="$event.preventDefault(); setDragState('preview', true)"
+                  (dragleave)="setDragState('preview', false)"
+                  (drop)="onFileDrop($event, 'preview')"
+                >
+                  <div class="upload-dropzone-icon">
+                    <mat-icon>{{ constructionImagePreviewUrl ? 'image' : 'upload_file' }}</mat-icon>
+                  </div>
+                  <div class="upload-dropzone-copy">
+                    <div class="upload-dropzone-title">{{ 'exampleDialog.dropImageTitle' | translate }}</div>
+                    <div class="upload-dropzone-text">{{ 'exampleDialog.dropImageText' | translate }}</div>
+                  </div>
+                </div>
+
+                <div class="construction-stage-preview">
+                  <img *ngIf="constructionImagePreviewUrl" [src]="constructionImagePreviewUrl" alt="Task image preview" class="image-preview construction-preview-image" [style.width.px]="example.imageWidth || 320" />
+                  <div *ngIf="!constructionImagePreviewUrl" class="construction-empty-state">
+                    <mat-icon>image</mat-icon>
+                    <span>{{ 'exampleDialog.noTaskImage' | translate }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="image-width-card">
+                <div class="image-width-head">
+                  <div>
+                    <div class="panel-title small-title">{{ 'exampleDialog.imageWidth' | translate }}</div>
+                    <div class="image-width-value">{{ example.imageWidth || defaultImageWidth }} px</div>
+                  </div>
+                </div>
+
+                <mat-slider min="80" max="1200" step="10" discrete>
+                  <input matSliderThumb [(ngModel)]="example.imageWidth" name="imageWidth" (valueChange)="markDirty()" />
+                </mat-slider>
+              </div>
 
               <div class="panel-actions">
+                <button mat-stroked-button color="primary" type="button" (click)="previewFileInput.click()">
+                  <mat-icon>upload</mat-icon>
+                  {{ constructionImagePreviewUrl ? ('exampleDialog.replaceImage' | translate) : ('exampleDialog.selectImage' | translate) }}
+                </button>
+
                 <button *ngIf="constructionImagePreviewUrl" mat-stroked-button color="warn" type="button" (click)="removeSelectedImage('preview')">
-                  {{ selectedConstructionImageFile ? 'Neue Auswahl verwerfen' : 'Bild löschen' }}
+                  {{ selectedConstructionImageFile ? ('exampleDialog.discardSelection' | translate) : ('exampleDialog.deleteImage' | translate) }}
                 </button>
               </div>
             </div>
 
             <mat-divider></mat-divider>
 
-            <div class="panel-box image-upload">
-              <div class="panel-title">Lösungsbild</div>
-              <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onImageSelected($event, 'solution')" />
+            <div class="panel-box image-upload image-upload-modern construction-card">
+              <div class="construction-card-header">
+                <div>
+                  <div class="panel-title">{{ 'exampleDialog.solutionImage' | translate }}</div>
+                  <div class="construction-card-subtitle">{{ 'exampleDialog.solutionImageHelp' | translate }}</div>
+                </div>
+              </div>
 
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Bildbreite Lösung im Beispiel/Test (Preview + Druck)</mat-label>
-                <input matInput type="number" min="80" max="1200" [(ngModel)]="example.solutionImageWidth" name="solutionImageWidth" (input)="markDirty()" />
-              </mat-form-field>
+              <input #solutionFileInput hidden type="file" accept="image/png,image/jpeg,image/webp" (change)="onImageSelected($event, 'solution')" />
 
-              <img *ngIf="constructionSolutionPreviewUrl" [src]="constructionSolutionPreviewUrl" alt="Lösungsbild Vorschau" class="image-preview" [style.width.px]="example.solutionImageWidth || 320" />
-              <p *ngIf="!constructionSolutionPreviewUrl">Kein Lösungsbild ausgewählt.</p>
+              <div class="construction-image-stage" [class.has-image]="!!constructionSolutionPreviewUrl">
+                <div
+                  class="upload-dropzone construction-dropzone"
+                  [class.is-dragging]="isDraggingConstructionSolution"
+                  [class.has-image]="!!constructionSolutionPreviewUrl"
+                  (click)="solutionFileInput.click()"
+                  (dragover)="$event.preventDefault(); setDragState('solution', true)"
+                  (dragleave)="setDragState('solution', false)"
+                  (drop)="onFileDrop($event, 'solution')"
+                >
+                  <div class="upload-dropzone-icon">
+                    <mat-icon>{{ constructionSolutionPreviewUrl ? 'imagesmode' : 'upload_file' }}</mat-icon>
+                  </div>
+                  <div class="upload-dropzone-copy">
+                    <div class="upload-dropzone-title">{{ 'exampleDialog.dropSolutionImageTitle' | translate }}</div>
+                    <div class="upload-dropzone-text">{{ 'exampleDialog.dropImageText' | translate }}</div>
+                  </div>
+                </div>
+
+                <div class="construction-stage-preview">
+                  <img *ngIf="constructionSolutionPreviewUrl" [src]="constructionSolutionPreviewUrl" alt="Solution image preview" class="image-preview construction-preview-image" [style.width.px]="example.solutionImageWidth || 320" />
+                  <div *ngIf="!constructionSolutionPreviewUrl" class="construction-empty-state">
+                    <mat-icon>imagesmode</mat-icon>
+                    <span>{{ 'exampleDialog.noSolutionImage' | translate }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="image-width-card">
+                <div class="image-width-head">
+                  <div>
+                    <div class="panel-title small-title">{{ 'exampleDialog.solutionImageWidth' | translate }}</div>
+                    <div class="image-width-value">{{ example.solutionImageWidth || defaultImageWidth }} px</div>
+                  </div>
+                </div>
+
+                <mat-slider min="80" max="1200" step="10" discrete>
+                  <input matSliderThumb [(ngModel)]="example.solutionImageWidth" name="solutionImageWidth" (valueChange)="markDirty()" />
+                </mat-slider>
+              </div>
 
               <div class="panel-actions">
+                <button mat-stroked-button color="primary" type="button" (click)="solutionFileInput.click()">
+                  <mat-icon>upload</mat-icon>
+                  {{ constructionSolutionPreviewUrl ? ('exampleDialog.replaceImage' | translate) : ('exampleDialog.selectImage' | translate) }}
+                </button>
+
                 <button *ngIf="constructionSolutionPreviewUrl" mat-stroked-button color="warn" type="button" (click)="removeSelectedImage('solution')">
-                  {{ selectedConstructionSolutionFile ? 'Neue Auswahl verwerfen' : 'Bild löschen' }}
+                  {{ selectedConstructionSolutionFile ? ('exampleDialog.discardSelection' | translate) : ('exampleDialog.deleteImage' | translate) }}
                 </button>
               </div>
             </div>
@@ -312,8 +432,8 @@
 
           <ng-container *ngIf="example.type === ExampleTypes.ASSIGN">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Aufgabenstellung</mat-label>
-              <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="Ordnen Sie ..."
+              <mat-label>{{ 'school.question' | translate }}</mat-label>
+              <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="{{ 'exampleDialog.assignPlaceholder' | translate }}"
                         cdkTextareaAutosize
                         cdkAutosizeMinRows="2"
                         cdkAutosizeMaxRows="10"></textarea>
@@ -370,9 +490,10 @@
         <div>
           <p style="white-space: pre-line;">{{ example.instruction }}</p>
         </div>
-        <p><strong>Aufgabenstellung:</strong></p>
-        <div>
-          <p style="white-space: pre-line;">{{ getQuestionWithGapLabels()}}</p>
+        <p><strong>{{ 'school.question' | translate }}:</strong></p>
+        <div class="question-preview">
+          <p *ngIf="example.type !== ExampleTypes.GAP_FILL" style="white-space: pre-line;">{{ getQuestionWithGapLabels()}}</p>
+          <div *ngIf="example.type === ExampleTypes.GAP_FILL" class="question-preview-rich" [innerHTML]="getQuestionPreviewHtml()"></div>
         </div>
 
         @if(example.type === ExampleTypes.HALF_OPEN){
@@ -386,15 +507,8 @@
         @if(example.type === ExampleTypes.CONSTRUCTION){
           <div class="construction-preview">
             <div>
-              <p><strong>Aufgabenbild</strong></p>
+              <p><strong>{{ 'exampleDialog.taskImage' | translate }}</strong></p>
               <img *ngIf="constructionImagePreviewUrl" [src]="constructionImagePreviewUrl" alt="Aufgabenbild Vorschau" class="image-preview" [style.width.px]="example.imageWidth || 320" />
-              <p *ngIf="!constructionImagePreviewUrl">Kein Bild ausgewählt.</p>
-            </div>
-
-            <div style="margin-top: 16px;">
-              <p><strong>Lösungsbild</strong></p>
-              <img *ngIf="constructionSolutionPreviewUrl" [src]="constructionSolutionPreviewUrl" alt="Lösungsbild Vorschau" class="image-preview" [style.width.px]="example.solutionImageWidth || 320" />
-              <p *ngIf="!constructionSolutionPreviewUrl">Kein Lösungsbild ausgewählt.</p>
             </div>
           </div>
         }
@@ -420,7 +534,7 @@
               @for (gap of example.gaps; track gap){
                 <table>
                   <tr>
-                    <th>({{gap.label}})</th>
+                    <th>{{ gap.label || ('exampleDialog.gap' | translate) }}</th>
                   </tr>
 
                   @for(opt of gap.options; track opt){
@@ -432,6 +546,15 @@
                     </tr>
                   }
                 </table>
+              }
+            </div>
+          } @else {
+            <div class="gap-input-preview-list">
+              @for (gap of example.gaps; track gap; let gi = $index){
+                <div class="gap-input-preview-item">
+                  <span class="gap-input-preview-index">{{ gi + 1 }}.</span>
+                  <span class="gap-input-preview-box">{{ gap.label || ('exampleDialog.gap' | translate) }}</span>
+                </div>
               }
             </div>
           }
@@ -459,8 +582,8 @@
       </div>
 
       <mat-dialog-actions>
-        <button mat-stroked-button type="button" (click)="closeDialog()">Abbrechen</button>
-        <button mat-flat-button color="primary" type="submit" [disabled]="isSaving" (click)="saveExample()">{{ isSaving ? 'Wird gespeichert...' : 'Speichern' }}</button>
+        <button mat-stroked-button type="button" (click)="closeDialog()">{{ 'common.cancel' | translate }}</button>
+        <button mat-flat-button color="primary" type="submit" [disabled]="isSaving" (click)="saveExample()">{{ isSaving ? ('common.saving' | translate) : ('common.save' | translate) }}</button>
       </mat-dialog-actions>
     </div>
   </div>

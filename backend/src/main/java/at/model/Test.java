@@ -2,6 +2,7 @@ package at.model;
 
 import jakarta.persistence.*;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -66,10 +67,16 @@ public class Test {
     @JoinColumn(name = "folder_id")
     private TestFolder folder;
 
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
+
     public Test() {
+        createdAt = new Timestamp(System.currentTimeMillis());
+        updatedAt = new Timestamp(System.currentTimeMillis());
     }
 
     public Test(String name, String note, User admin, School school, int duration) {
+        super();
         this.name = name;
         this.note = note;
         this.school = school;
@@ -195,5 +202,21 @@ public class Test {
 
     public void setFolder(TestFolder folder) {
         this.folder = folder;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

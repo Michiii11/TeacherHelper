@@ -33,14 +33,26 @@
         </mat-form-field>
       </div>
 
-      <button mat-flat-button type="button" (click)="openAddExampleDialog()">
-        Beispiele hinzufügen
-      </button>
+      <div class="selection-toolbar settings-card">
+        <div class="selection-toolbar-copy">
+          <h3>Beispiele</h3>
+          <p>Wähle Aufgaben gesammelt über ein übersichtliches Popup mit Filtern und Ordnern.</p>
+        </div>
+
+        <div class="selection-toolbar-actions">
+          <div class="selection-count-badge">{{ selectedExamples.length }} ausgewählt</div>
+          <button mat-flat-button type="button" (click)="openAddExampleDialog()">
+            <mat-icon>playlist_add</mat-icon>
+            Beispiele hinzufügen
+          </button>
+        </div>
+      </div>
 
       <div *ngIf="selectedExamples.length > 0" class="selected-section">
         <div class="section-head">
           <div>
             <h3>Ausgewählte Aufgaben</h3>
+            <p class="section-note">Reihenfolge, Punkte und Layout kannst du hier direkt weiter anpassen.</p>
           </div>
         </div>
 
@@ -49,8 +61,8 @@
             <div class="task-index-badge">{{ i + 1 }}</div>
 
             <div class="task-copy">
-              <strong>{{ entry.example.question }}</strong>
-              <div class="task-subline">{{ entry.example.instruction }}</div>
+              <strong>{{ getExampleHeading(entry.example) }}</strong>
+              <div class="task-subline">{{ getExampleMeta(entry) }}</div>
             </div>
 
             <button mat-icon-button color="warn" type="button" (click)="removeSelectedExample(entry)">

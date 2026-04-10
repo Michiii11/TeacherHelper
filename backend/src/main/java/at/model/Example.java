@@ -9,6 +9,7 @@ import at.model.helper.Gap;
 import at.model.helper.Option;
 import jakarta.persistence.*;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -75,9 +76,16 @@ public class Example {
     @JoinColumn(name = "folder_id")
     private ExampleFolder folder;
 
-    public Example() {}
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
+
+    public Example() {
+        createdAt = new Timestamp(System.currentTimeMillis());
+        updatedAt = new Timestamp(System.currentTimeMillis());
+    }
 
     public Example(User admin, ExampleTypes type, String instruction, String question, String solution, School school) {
+        super();
         this.admin = admin;
         this.type = type;
         this.instruction = instruction;
@@ -154,5 +162,21 @@ public class Example {
 
     public void setFolder(ExampleFolder folder) {
         this.folder = folder;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

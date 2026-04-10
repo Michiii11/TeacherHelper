@@ -1,18 +1,14 @@
-<main class="dashboard" aria-label="School dashboard">
+<main class="dashboard" [attr.aria-label]="'school.dashboardAria' | translate">
   <header class="page-header">
-    <div class="page-title-wrap">
-      <div class="title-icon" aria-hidden="true">
+    <div>
+      <div class="title-icon">
         @if (school.logoUrl) {
-          <img [src]="getSchoolLogo()" alt="Schullogo" class="school-logo-image">
+          <img [src]="getSchoolLogo()" [alt]="'school.logoAlt' | translate">
         } @else {
-          <mat-icon class="school-icon">school</mat-icon>
+          <mat-icon>school</mat-icon>
         }
       </div>
-
-      <div class="brand-text">
-        <h1 class="brand-title">{{ school.name }}</h1>
-        <p class="brand-sub">Content Explorer für Examples und Tests</p>
-      </div>
+      <h1 class="page-title">{{ school.name }}</h1>
     </div>
 
     <div class="topbar-actions">
@@ -23,7 +19,7 @@
       <div class="actions" [class.show]="menuOpen">
         <button mat-stroked-button color="primary" (click)="createFolder()">
           <mat-icon>create_new_folder</mat-icon>
-          Ordner
+          {{ 'school.folderShort' | translate }}
         </button>
 
         @if (activeTab === 'examples') {
@@ -79,6 +75,7 @@
                 <input
                   type="text"
                   [(ngModel)]="exampleSearch"
+                  [placeholder]="'school.searchExamplesPlaceholder' | translate"
                 >
               </label>
 
@@ -159,7 +156,7 @@
 
               <button type="button" class="ghost-btn reset-btn" (click)="resetExampleFilters()">
                 <mat-icon>restart_alt</mat-icon>
-                Zurücksetzen
+                {{ 'common.reset' | translate }}
               </button>
             </div>
           } @else {
@@ -168,6 +165,7 @@
                 <input
                   type="text"
                   [(ngModel)]="testSearch"
+                  [placeholder]="'school.searchTestsPlaceholder' | translate"
                 >
               </label>
 
@@ -198,7 +196,7 @@
 
               <button type="button" class="ghost-btn reset-btn" (click)="resetTestFilters()">
                 <mat-icon>restart_alt</mat-icon>
-                Zurücksetzen
+                {{ 'common.reset' | translate }}
               </button>
             </div>
           }
@@ -236,7 +234,7 @@
               }
             </div>
 
-            <div class="view-toggle" role="tablist" aria-label="Ansicht wählen">
+            <div class="view-toggle" role="tablist" [attr.aria-label]="'school.viewAria' | translate">
               <button
                 type="button"
                 class="view-toggle-btn"
@@ -244,7 +242,7 @@
                 (click)="setCurrentViewMode('grid')"
               >
                 <mat-icon>grid_view</mat-icon>
-                Grid
+                {{ 'school.grid' | translate }}
               </button>
 
               <button
@@ -254,7 +252,7 @@
                 (click)="setCurrentViewMode('compact')"
               >
                 <mat-icon>table_rows</mat-icon>
-                Kompakt
+                {{ 'school.compact' | translate }}
               </button>
             </div>
           </div>
@@ -266,7 +264,7 @@
           <div class="sidebar-head">
             <div class="sidebar-title">
               <mat-icon>folder_open</mat-icon>
-              <span>Ordner</span>
+              <span>{{ 'school.folders' | translate }}</span>
             </div>
 
             <button mat-icon-button (click)="createFolder()">
@@ -275,9 +273,9 @@
           </div>
 
           <div class="sidebar-path">
-            <span class="sidebar-path-label">{{ activeTab === 'examples' ? 'Examples' : 'Tests' }}</span>
+            <span class="sidebar-path-label">{{ activeTab === 'examples' ? ('school.examples' | translate) : ('school.tests' | translate) }}</span>
             <div class="sidebar-path-line">
-              <button type="button" class="path-link" (click)="navigateToBreadcrumb(null)">Root</button>
+              <button type="button" class="path-link" (click)="navigateToBreadcrumb(null)">{{ 'school.root' | translate }}</button>
 
               @for (crumb of currentBreadcrumbs; track crumb.id) {
                 <span class="path-separator">/</span>
@@ -290,7 +288,7 @@
             @if (!isSearching && (parentFolder || currentFolder)) {
               <button type="button" class="ghost-inline-btn" (click)="goToParentFolder()">
                 <mat-icon>arrow_upward</mat-icon>
-                Eine Ebene hoch
+                {{ 'school.goUp' | translate }}
               </button>
             }
           </div>
@@ -302,14 +300,14 @@
             [class.drop-active]="dropTarget === 'root'"
             (click)="selectFolder(null)"
             (dragover)="allowDrop($event, 'root')"
-            (dragleave)="dropTarget = dropTarget === 'root' ? null : dropTarget"
+            (dragleave)="onDropLeave($event, 'root')"
             (drop)="onDropToRoot($event)"
           >
             <div class="folder-node-main">
               <mat-icon>home</mat-icon>
               <div class="folder-node-text">
-                <span class="folder-name">Root</span>
-                <span class="folder-meta">Oberste Ebene</span>
+                <span class="folder-name">{{ 'school.root' | translate }}</span>
+                <span class="folder-meta">{{ 'school.rootLevel' | translate }}</span>
               </div>
             </div>
           </button>
@@ -324,7 +322,7 @@
                 <mat-icon>keyboard_double_arrow_up</mat-icon>
                 <div class="folder-node-text">
                   <span class="folder-name">{{ parentFolder.name }}</span>
-                  <span class="folder-meta">Übergeordneter Ordner</span>
+                  <span class="folder-meta">{{ 'school.parentFolder' | translate }}</span>
                 </div>
               </div>
             </button>
@@ -332,9 +330,13 @@
 
           <div class="sidebar-section-label">
             @if (isSearching) {
-              Suchtreffer in allen Ordnern
+              {{ 'school.searchResultsInAllFolders' | translate }}
             } @else {
-              {{ currentFolder ? 'Unterordner von ' + currentFolder.name : 'Ordner auf Root-Ebene' }}
+              @if (currentFolder) {
+                {{ 'school.subfoldersOf' | translate:{ name: currentFolder.name } }}
+              } @else {
+                {{ 'school.foldersOnRoot' | translate }}
+              }
             }
           </div>
 
@@ -345,9 +347,13 @@
                 class="folder-node"
                 [class.active]="selectedFolderId === folder.id && !isSearching"
                 [class.drop-active]="dropTarget === 'folder-' + folder.id"
+                [class.drop-source]="draggedFolder?.folderId === folder.id"
+                draggable="true"
                 (click)="openFolder(folder)"
+                (dragstart)="onFolderDragStart(folder, $event)"
+                (dragend)="onFolderDragEnd()"
                 (dragover)="allowDrop($event, 'folder-' + folder.id)"
-                (dragleave)="dropTarget = dropTarget === 'folder-' + folder.id ? null : dropTarget"
+                (dragleave)="onDropLeave($event, 'folder-' + folder.id)"
                 (drop)="onDropToFolder($event, folder.id)"
               >
                 <div class="folder-node-main">
@@ -355,7 +361,7 @@
                   <div class="folder-node-text">
                     <span class="folder-name">{{ folder.name }}</span>
                     <span class="folder-meta">
-                      {{ getFolderChildrenCount(folder) }} Unterordner · {{ getFolderItemCount(folder) }} Inhalte
+                      {{ getFolderChildrenCount(folder) }} {{ 'school.subfolders' | translate }} · {{ getFolderItemCount(folder) }} {{ 'school.items' | translate }}
                     </span>
                     @if (isSearching) {
                       <span class="folder-meta soft">{{ getFolderPathLabel(folder.id) }}</span>
@@ -366,6 +372,10 @@
                 <div class="folder-node-actions" (click)="$event.stopPropagation()">
                   <button mat-icon-button (click)="renameFolder(folder, $event)">
                     <mat-icon>edit</mat-icon>
+                  </button>
+
+                  <button mat-icon-button (click)="moveFolderWithPicker(folder, $event)" [title]="'school.moveToOtherFolder' | translate">
+                    <mat-icon>drive_file_move</mat-icon>
                   </button>
 
                   <button mat-icon-button color="warn" (click)="deleteFolder(folder, $event)">
@@ -380,19 +390,19 @@
         <div class="explorer-main">
           <div class="content-header">
             <div class="content-header-text">
-              <div class="content-header-kicker">{{ activeTab === 'examples' ? 'Examples' : 'Tests' }}</div>
+              <div class="content-header-kicker">{{ activeTab === 'examples' ? ('school.examples' | translate) : ('school.tests' | translate) }}</div>
               <h2 class="content-title">
                 @if (isSearching) {
-                  Suchergebnisse
+                  {{ 'school.searchResults' | translate }}
                 } @else if (currentFolder) {
                   {{ currentFolder.name }}
                 } @else {
-                  Root
+                  {{ 'school.root' | translate }}
                 }
               </h2>
               <p class="content-subtitle">
-                {{ totalVisibleFolderCount }} Ordner · {{ totalVisibleItemCount }}
-                {{ activeTab === 'examples' ? 'Einträge' : 'Tests' }}
+                {{ totalVisibleFolderCount }} {{ 'school.folders' | translate }} · {{ totalVisibleItemCount }}
+                {{ activeTab === 'examples' ? ('school.entries' | translate) : ('school.tests' | translate) }}
               </p>
             </div>
 
@@ -400,37 +410,37 @@
               <mat-form-field>
                 @if (activeTab === 'examples') {
                   <mat-select [(ngModel)]="exampleSort">
-                    <mat-option value="nameAsc">Name A–Z</mat-option>
-                    <mat-option value="nameDesc">Name Z–A</mat-option>
-                    <mat-option value="createdDesc">Zuletzt geändert</mat-option>
-                    <mat-option value="createdAsc">Älteste zuerst</mat-option>
-                    <mat-option value="authorAsc">Autor A–Z</mat-option>
+                    <mat-option value="nameAsc">{{ 'school.sort.nameAsc' | translate }}</mat-option>
+                    <mat-option value="nameDesc">{{ 'school.sort.nameDesc' | translate }}</mat-option>
+                    <mat-option value="createdDesc">{{ 'school.sort.updatedDesc' | translate }}</mat-option>
+                    <mat-option value="createdAsc">{{ 'school.sort.updatedAsc' | translate }}</mat-option>
+                    <mat-option value="authorAsc">{{ 'school.sort.authorAsc' | translate }}</mat-option>
                   </mat-select>
                 } @else {
                   <mat-select [(ngModel)]="testSort">
-                    <mat-option value="nameAsc">Name A–Z</mat-option>
-                    <mat-option value="nameDesc">Name Z–A</mat-option>
-                    <mat-option value="createdDesc">Zuletzt geändert</mat-option>
-                    <mat-option value="createdAsc">Älteste zuerst</mat-option>
-                    <mat-option value="authorAsc">Autor A–Z</mat-option>
+                    <mat-option value="nameAsc">{{ 'school.sort.nameAsc' | translate }}</mat-option>
+                    <mat-option value="nameDesc">{{ 'school.sort.nameDesc' | translate }}</mat-option>
+                    <mat-option value="createdDesc">{{ 'school.sort.updatedDesc' | translate }}</mat-option>
+                    <mat-option value="createdAsc">{{ 'school.sort.updatedAsc' | translate }}</mat-option>
+                    <mat-option value="authorAsc">{{ 'school.sort.authorAsc' | translate }}</mat-option>
                   </mat-select>
                 }
               </mat-form-field>
 
               <button mat-stroked-button color="primary" (click)="createFolder()">
                 <mat-icon>create_new_folder</mat-icon>
-                Neuer Ordner
+                {{ 'school.newFolder' | translate }}
               </button>
 
               @if (activeTab === 'examples') {
                 <button mat-flat-button color="primary" (click)="openCreateExample()">
                   <mat-icon>add</mat-icon>
-                  Example
+                  {{ 'school.example' | translate }}
                 </button>
               } @else {
                 <button mat-flat-button color="primary" (click)="createTest()">
                   <mat-icon>add</mat-icon>
-                  Test
+                  {{ 'school.test' | translate }}
                 </button>
               }
             </div>
@@ -442,9 +452,13 @@
                 <div
                   class="content-card folder-card"
                   [class.drop-active]="dropTarget === 'folder-' + folder.id"
+                  [class.drop-source]="draggedFolder?.folderId === folder.id"
+                  draggable="true"
                   (click)="openFolder(folder)"
+                  (dragstart)="onFolderDragStart(folder, $event)"
+                  (dragend)="onFolderDragEnd()"
                   (dragover)="allowDrop($event, 'folder-' + folder.id)"
-                  (dragleave)="dropTarget = dropTarget === 'folder-' + folder.id ? null : dropTarget"
+                  (dragleave)="onDropLeave($event, 'folder-' + folder.id)"
                   (drop)="onDropToFolder($event, folder.id)"
                 >
                   <div class="content-card-icon folder-icon">
@@ -454,13 +468,17 @@
                   <div class="content-card-body">
                     <div class="content-card-title">{{ folder.name }}</div>
                     <div class="content-card-meta">
-                      {{ getFolderChildrenCount(folder) }} Unterordner · {{ getFolderItemCount(folder) }} Inhalte
+                      {{ getFolderChildrenCount(folder) }} {{ 'school.subfolders' | translate }} · {{ getFolderItemCount(folder) }} {{ 'school.items' | translate }}
                     </div>
                   </div>
 
                   <div class="content-card-actions" (click)="$event.stopPropagation()">
                     <button mat-icon-button (click)="renameFolder(folder, $event)">
                       <mat-icon>edit</mat-icon>
+                    </button>
+
+                    <button mat-icon-button (click)="moveFolderWithPicker(folder, $event)" [title]="'school.moveToOtherFolder' | translate">
+                      <mat-icon>drive_file_move</mat-icon>
                     </button>
 
                     <button mat-icon-button color="warn" (click)="deleteFolder(folder, $event)">
@@ -484,18 +502,18 @@
                       <mat-icon>description</mat-icon>
                     </div>
 
-                  <div class="content-card-body">
-                    <div class="content-card-title">{{ example.question || 'Ohne Titel' }}</div>
-                    <div class="content-card-meta">
-                      {{ getExampleTypeLabel(example.type) }} · {{ example.adminUsername || '—' }} · {{ getFolderPathLabel(example.folderId) }}
-                      @if (example.focusList.length) {
-                        <div class="tag-list">
-                          @for (focus of example.focusList; track focus.label) {
-                            <span class="tag-chip">{{ focus.label }}</span>
-                          }
-                        </div>
-                      }
-                    </div>
+                    <div class="content-card-body">
+                      <div class="content-card-title">{{ example.instruction || ('school.untitled' | translate) }}</div>
+                      <div class="content-card-meta">
+                        {{ getExampleTypeLabel(example.type) }} · {{ example.adminUsername || '—' }} · {{ getFolderPathLabel(example.folderId) }}
+                        @if (example.focusList.length) {
+                          <div class="tag-list">
+                            @for (focus of example.focusList; track focus.label) {
+                              <span class="tag-chip">{{ focus.label }}</span>
+                            }
+                          </div>
+                        }
+                      </div>
                     </div>
 
                     <div class="content-card-actions">
@@ -507,7 +525,7 @@
                         <button
                           mat-icon-button
                           (click)="moveExampleWithPicker(example)"
-                          title="In anderen Ordner verschieben"
+                          [title]="'school.moveToOtherFolder' | translate"
                         >
                           <mat-icon>drive_file_move</mat-icon>
                         </button>
@@ -527,8 +545,8 @@
                 @if (!visibleFolders.length && !filteredExamples.length) {
                   <div class="empty-state">
                     <mat-icon>folder_off</mat-icon>
-                    <h3>Keine Examples gefunden</h3>
-                    <p>Erstelle einen Ordner oder lege direkt ein Example an.</p>
+                    <h3>{{ 'school.emptyExamplesTitle' | translate }}</h3>
+                    <p>{{ 'school.emptyExamplesText' | translate }}</p>
                   </div>
                 }
               } @else {
@@ -565,7 +583,7 @@
                         <button
                           mat-icon-button
                           (click)="moveTestWithPicker(test)"
-                          title="In anderen Ordner verschieben"
+                          [title]="'school.moveToOtherFolder' | translate"
                         >
                           <mat-icon>drive_file_move</mat-icon>
                         </button>
@@ -581,8 +599,8 @@
                 @if (!visibleFolders.length && !filteredTests.length) {
                   <div class="empty-state">
                     <mat-icon>folder_off</mat-icon>
-                    <h3>Keine Tests gefunden</h3>
-                    <p>Erstelle einen Ordner oder lege direkt einen Test an.</p>
+                    <h3>{{ 'school.emptyTestsTitle' | translate }}</h3>
+                    <p>{{ 'school.emptyTestsText' | translate }}</p>
                   </div>
                 }
               }
@@ -593,9 +611,13 @@
                 <div
                   class="compact-row folder-row"
                   [class.drop-active]="dropTarget === 'folder-' + folder.id"
+                  [class.drop-source]="draggedFolder?.folderId === folder.id"
+                  draggable="true"
                   (click)="openFolder(folder)"
+                  (dragstart)="onFolderDragStart(folder, $event)"
+                  (dragend)="onFolderDragEnd()"
                   (dragover)="allowDrop($event, 'folder-' + folder.id)"
-                  (dragleave)="dropTarget = dropTarget === 'folder-' + folder.id ? null : dropTarget"
+                  (dragleave)="onDropLeave($event, 'folder-' + folder.id)"
                   (drop)="onDropToFolder($event, folder.id)"
                 >
                   <div class="compact-main">
@@ -604,7 +626,7 @@
                       <div class="compact-title-block">
                         <div class="compact-title">{{ folder.name }}</div>
                         <div class="compact-subtitle">
-                          {{ getFolderChildrenCount(folder) }} Unterordner · {{ getFolderItemCount(folder) }} Inhalte · {{ getFolderPathLabel(folder.id) }}
+                          {{ getFolderChildrenCount(folder) }} {{ 'school.subfolders' | translate }} · {{ getFolderItemCount(folder) }} {{ 'school.items' | translate }} · {{ getFolderPathLabel(folder.id) }}
                         </div>
                       </div>
                     </div>
@@ -613,6 +635,10 @@
                   <div class="compact-actions" (click)="$event.stopPropagation()">
                     <button mat-icon-button (click)="renameFolder(folder, $event)">
                       <mat-icon>edit</mat-icon>
+                    </button>
+
+                    <button mat-icon-button (click)="moveFolderWithPicker(folder, $event)" [title]="'school.moveToOtherFolder' | translate">
+                      <mat-icon>drive_file_move</mat-icon>
                     </button>
 
                     <button mat-icon-button color="warn" (click)="deleteFolder(folder, $event)">
@@ -636,7 +662,7 @@
                       <div class="compact-title-wrap">
                         <mat-icon class="compact-icon item">description</mat-icon>
                         <div class="compact-title-block">
-                          <div class="compact-title">{{ example.question || 'Ohne Titel' }}</div>
+                          <div class="compact-title">{{ example.instruction || ('school.untitled' | translate) }}</div>
                           <div class="compact-subtitle">
                             {{ getExampleTypeLabel(example.type) }} · {{ example.adminUsername || '—' }} · {{ getFolderPathLabel(example.folderId) }}
                           </div>
@@ -677,8 +703,8 @@
                 @if (!visibleFolders.length && !filteredExamples.length) {
                   <div class="empty-state">
                     <mat-icon>folder_off</mat-icon>
-                    <h3>Keine Examples gefunden</h3>
-                    <p>Erstelle einen Ordner oder lege direkt ein Example an.</p>
+                    <h3>{{ 'school.emptyExamplesTitle' | translate }}</h3>
+                    <p>{{ 'school.emptyExamplesText' | translate }}</p>
                   </div>
                 }
               } @else {
@@ -728,8 +754,8 @@
                 @if (!visibleFolders.length && !filteredTests.length) {
                   <div class="empty-state">
                     <mat-icon>folder_off</mat-icon>
-                    <h3>Keine Tests gefunden</h3>
-                    <p>Erstelle einen Ordner oder lege direkt einen Test an.</p>
+                    <h3>{{ 'school.emptyTestsTitle' | translate }}</h3>
+                    <p>{{ 'school.emptyTestsText' | translate }}</p>
                   </div>
                 }
               }

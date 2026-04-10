@@ -422,6 +422,34 @@ button{
 }
 
 
+.page-title {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.page-subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--text-soft);
+}
+
+.mat-mdc-icon-button {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  color: var(--text-subtle-2) !important;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.mat-mdc-icon-button:hover {
+  background: var(--primary-soft) !important;
+  color: var(--primary-strong) !important;
+}
+
+
 .card,
 .panel,
 .profile-hero,

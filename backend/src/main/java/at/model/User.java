@@ -57,9 +57,6 @@ public class User {
     @Column(name = "preferred_language", length = 10)
     private String language;
 
-    @Column(name = "deleted", nullable = false)
-    private boolean deleted = false;
-
     public User() {
     }
 
@@ -72,7 +69,6 @@ public class User {
         this.allowInvitations = true;
         this.darkMode = null;
         this.language = null;
-        this.deleted = false;
     }
 
     public Long getId() {
@@ -193,14 +189,6 @@ public class User {
 
     public void setLanguage(String language) {
         this.language = language;
-    }
-
-    public boolean isDeleted() {
-        return deleted;
-    }
-
-    public void setDeleted(boolean deleted) {
-        this.deleted = deleted;
     }
 
     public UserDTO toUserDTO() {

@@ -1,6 +1,5 @@
 import { Component, HostListener, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NgForOf, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { catchError, forkJoin, of } from 'rxjs';
 
@@ -8,12 +7,11 @@ import { HttpService } from '../../service/http.service';
 import { SchoolDTO } from '../../model/School';
 import { ExampleOverviewDTO, ExampleTypeLabels, ExampleTypes, Focus } from '../../model/Example';
 import { TestOverviewDTO } from '../../model/Test';
-import { UserDTO } from '../../model/User';
 
 import { MatDialog } from '@angular/material/dialog';
-import { MatButton, MatButtonModule, MatIconButton, MatMiniFabButton } from '@angular/material/button';
+import { MatButton, MatButtonModule, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { CreateExampleComponent } from '../../dialog/create-example/create-example.component';
 import { CreateTestComponent } from '../../dialog/create-test/create-test.component';
@@ -21,7 +19,8 @@ import { TestPreviewComponent } from '../../dialog/test-preview/test-preview.com
 import { ExamplePreviewComponent } from '../../dialog/example-preview/example-preview.component';
 import { SchoolSettingsComponent } from '../../dialog/school-settings/school-settings.component';
 import { ConfirmDialogComponent } from '../../dialog/confirm-dialog/confirm-dialog.component';
-import {MatFormField, MatOption, MatSelect} from '@angular/material/select'
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatOption, MatSelect } from '@angular/material/select';
 
 type ExplorerTab = 'examples' | 'tests';
 type SortOption = 'nameAsc' | 'nameDesc' | 'createdDesc' | 'createdAsc' | 'authorAsc';
@@ -37,19 +36,14 @@ interface ExplorerFolder {
   updatedAt: string;
 }
 
-interface ExplorerExample extends ExampleOverviewDTO {
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-interface ExplorerTest extends TestOverviewDTO {
-  createdAt?: string;
-  updatedAt?: string;
-}
-
 interface DraggedExplorerItem {
   type: ExplorerTab;
   itemId: number;
+}
+
+interface DraggedExplorerFolder {
+  type: ExplorerTab;
+  folderId: string;
 }
 
 @Component({
@@ -64,7 +58,7 @@ interface DraggedExplorerItem {
     TranslatePipe,
     MatSelect,
     MatOption,
-    MatFormField
+    MatFormFieldModule
   ],
   templateUrl: './school.component.html',
   styleUrl: './school.component.scss'
@@ -72,6 +66,7 @@ interface DraggedExplorerItem {
 export class SchoolComponent implements OnInit {
   service = inject(HttpService);
   dialog = inject(MatDialog);
+  translate = inject(TranslateService);
 
   school: SchoolDTO = {} as SchoolDTO;
   schoolId: string | null = null;
@@ -81,8 +76,8 @@ export class SchoolComponent implements OnInit {
 
   activeTab: ExplorerTab = 'examples';
 
-  examples: ExplorerExample[] = [];
-  tests: ExplorerTest[] = [];
+  examples: ExampleOverviewDTO[] = [];
+  tests: TestOverviewDTO[] = [];
 
   exampleFolders: ExplorerFolder[] = [];
   testFolders: ExplorerFolder[] = [];
@@ -107,6 +102,7 @@ export class SchoolComponent implements OnInit {
   testViewMode: ViewMode = 'grid';
 
   draggedItem: DraggedExplorerItem | null = null;
+  draggedFolder: DraggedExplorerFolder | null = null;
   dropTarget: string | null = null;
 
   constructor(
@@ -130,6 +126,10 @@ export class SchoolComponent implements OnInit {
     this.service.getUserId().subscribe(id => {
       this.currentUserId = id as number;
     });
+  }
+
+  private t(key: string, params?: Record<string, any>): string {
+    return this.translate.instant(key, params);
   }
 
   get isAdmin(): boolean {
@@ -176,24 +176,6 @@ export class SchoolComponent implements OnInit {
     return this.activeSearch.trim().length > 0;
   }
 
-  get activeFilterCount(): number {
-    if (this.activeTab === 'examples') {
-      return [
-        this.exampleSearch.trim(),
-        this.selectedExampleTypes.length,
-        this.selectedExampleFocuses.length,
-        this.selectedExampleAuthors.length,
-        this.exampleSort !== 'nameAsc'
-      ].filter(Boolean).length;
-    }
-
-    return [
-      this.testSearch.trim(),
-      this.selectedTestAuthors.length,
-      this.testSort !== 'nameAsc'
-    ].filter(Boolean).length;
-  }
-
   get availableExampleTypes(): { value: string; label: string }[] {
     const values = Object.values(ExampleTypes).filter(v => typeof v !== 'number') as string[];
     return values.map(value => ({
@@ -214,7 +196,7 @@ export class SchoolComponent implements OnInit {
       }
     }
 
-    return [...values].sort((a, b) => a.localeCompare(b, 'de', { sensitivity: 'base' }));
+    return [...values].sort((a, b) => a.localeCompare(b, this.translate.currentLang || 'de', { sensitivity: 'base' }));
   }
 
   get availableExampleAuthors(): string[] {
@@ -227,7 +209,7 @@ export class SchoolComponent implements OnInit {
       }
     }
 
-    return [...values].sort((a, b) => a.localeCompare(b, 'de', { sensitivity: 'base' }));
+    return [...values].sort((a, b) => a.localeCompare(b, this.translate.currentLang || 'de', { sensitivity: 'base' }));
   }
 
   get availableTestAuthors(): string[] {
@@ -240,10 +222,10 @@ export class SchoolComponent implements OnInit {
       }
     }
 
-    return [...values].sort((a, b) => a.localeCompare(b, 'de', { sensitivity: 'base' }));
+    return [...values].sort((a, b) => a.localeCompare(b, this.translate.currentLang || 'de', { sensitivity: 'base' }));
   }
 
-  get filteredExamples(): ExplorerExample[] {
+  get filteredExamples(): ExampleOverviewDTO[] {
     let items = this.isSearching
       ? [...this.examples]
       : this.examples.filter(item => (item.folderId ?? null) === this.selectedExampleFolderId);
@@ -278,7 +260,7 @@ export class SchoolComponent implements OnInit {
     return this.sortItems(items, this.exampleSort, item => item.question ?? '', item => item.adminUsername ?? '');
   }
 
-  get filteredTests(): ExplorerTest[] {
+  get filteredTests(): TestOverviewDTO[] {
     let items = this.isSearching
       ? [...this.tests]
       : this.tests.filter(item => (item.folderId ?? null) === this.selectedTestFolderId);
@@ -313,7 +295,7 @@ export class SchoolComponent implements OnInit {
         folder.name.toLowerCase().includes(search) ||
         this.getFolderPathLabel(folder.id, this.activeTab).toLowerCase().includes(search)
       )
-      .sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
+      .sort((a, b) => a.name.localeCompare(b.name, this.translate.currentLang || 'de', { sensitivity: 'base' }));
   }
 
   get totalVisibleItemCount(): number {
@@ -322,10 +304,6 @@ export class SchoolComponent implements OnInit {
 
   get totalVisibleFolderCount(): number {
     return this.visibleFolders.length;
-  }
-
-  get currentPathLabel(): string {
-    return this.getFolderPathLabel(this.selectedFolderId, this.activeTab);
   }
 
   private loadSchool(): void {
@@ -340,7 +318,7 @@ export class SchoolComponent implements OnInit {
     if (!this.schoolId) return;
 
     this.service.getExamples(this.schoolId).subscribe(examples => {
-      this.examples = (examples as ExplorerExample[]).map(example => ({
+      this.examples = (examples as ExampleOverviewDTO[]).map(example => ({
         ...example,
         folderId: example.folderId ?? null
       }));
@@ -351,7 +329,7 @@ export class SchoolComponent implements OnInit {
     if (!this.schoolId) return;
 
     this.service.getTests(this.schoolId).subscribe(tests => {
-      this.tests = (tests as ExplorerTest[]).map(test => ({
+      this.tests = (tests as TestOverviewDTO[]).map(test => ({
         ...test,
         folderId: test.folderId ?? null
       }));
@@ -404,16 +382,16 @@ export class SchoolComponent implements OnInit {
     return [...items].sort((a: any, b: any) => {
       switch (sort) {
         case 'nameDesc':
-          return getName(b).localeCompare(getName(a), 'de', { sensitivity: 'base' });
+          return getName(b).localeCompare(getName(a), this.translate.currentLang || 'de', { sensitivity: 'base' });
         case 'createdDesc':
           return String(b.updatedAt ?? b.createdAt ?? '').localeCompare(String(a.updatedAt ?? a.createdAt ?? ''));
         case 'createdAsc':
           return String(a.updatedAt ?? a.createdAt ?? '').localeCompare(String(b.updatedAt ?? b.createdAt ?? ''));
         case 'authorAsc':
-          return getAuthor(a).localeCompare(getAuthor(b), 'de', { sensitivity: 'base' });
+          return getAuthor(a).localeCompare(getAuthor(b), this.translate.currentLang || 'de', { sensitivity: 'base' });
         case 'nameAsc':
         default:
-          return getName(a).localeCompare(getName(b), 'de', { sensitivity: 'base' });
+          return getName(a).localeCompare(getName(b), this.translate.currentLang || 'de', { sensitivity: 'base' });
       }
     });
   }
@@ -457,7 +435,7 @@ export class SchoolComponent implements OnInit {
   getChildFolders(folders: ExplorerFolder[], parentId: string | null): ExplorerFolder[] {
     return folders
       .filter(folder => folder.parentId === parentId)
-      .sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
+      .sort((a, b) => a.name.localeCompare(b.name, this.translate.currentLang || 'de', { sensitivity: 'base' }));
   }
 
   private buildBreadcrumbs(folders: ExplorerFolder[], folderId: string | null): ExplorerFolder[] {
@@ -477,7 +455,7 @@ export class SchoolComponent implements OnInit {
   createFolder(parentId: string | null = this.selectedFolderId): void {
     if (!this.schoolId) return;
 
-    const name = window.prompt('Ordnername eingeben');
+    const name = window.prompt(this.t('school.prompts.createFolder'));
     if (!name?.trim()) return;
 
     const now = new Date().toISOString();
@@ -518,7 +496,7 @@ export class SchoolComponent implements OnInit {
   renameFolder(folder: ExplorerFolder, event?: MouseEvent): void {
     event?.stopPropagation();
 
-    const name = window.prompt('Neuen Ordnernamen eingeben', folder.name);
+    const name = window.prompt(this.t('school.prompts.renameFolder'), folder.name);
     if (!name?.trim() || name.trim() === folder.name) return;
 
     const updated: ExplorerFolder = {
@@ -530,8 +508,8 @@ export class SchoolComponent implements OnInit {
     this.replaceFolderLocal(updated);
 
     const request = folder.type === 'examples'
-      ? this.service.renameExampleFolder(folder.id, { name: updated.name })
-      : this.service.renameTestFolder(folder.id, { name: updated.name });
+      ? this.service.renameExampleFolder(folder.id, { name: updated.name, parentId: updated.parentId })
+      : this.service.renameTestFolder(folder.id, { name: updated.name, parentId: updated.parentId });
 
     request.pipe(
       catchError(() => of(updated))
@@ -554,11 +532,11 @@ export class SchoolComponent implements OnInit {
       : this.tests.some(item => (item.folderId ?? null) === folder.id);
 
     if (hasChildFolders || hasItems) {
-      window.alert('Der Ordner ist nicht leer. Bitte zuerst Unterordner und Inhalte verschieben oder löschen.');
+      window.alert(this.t('school.folderNotEmpty'));
       return;
     }
 
-    if (!window.confirm(`Ordner "${folder.name}" wirklich löschen?`)) {
+    if (!window.confirm(this.t('school.folderDeleteConfirm', { name: folder.name }))) {
       return;
     }
 
@@ -583,19 +561,29 @@ export class SchoolComponent implements OnInit {
     });
   }
 
-  moveExampleWithPicker(example: ExplorerExample): void {
+  moveExampleWithPicker(example: ExampleOverviewDTO): void {
     const targetFolderId = this.pickFolderTarget('examples', example.folderId ?? null);
     if (targetFolderId === undefined) return;
     this.moveExampleToFolder(example, targetFolderId);
   }
 
-  moveTestWithPicker(test: ExplorerTest): void {
+  moveTestWithPicker(test: TestOverviewDTO): void {
     const targetFolderId = this.pickFolderTarget('tests', test.folderId ?? null);
     if (targetFolderId === undefined) return;
     this.moveTestToFolder(test, targetFolderId);
   }
 
-  moveExampleToFolder(example: ExplorerExample, folderId: string | null): void {
+
+  moveFolderWithPicker(folder: ExplorerFolder, event?: MouseEvent): void {
+    event?.stopPropagation();
+
+    const targetFolderId = this.pickFolderTarget(folder.type, folder.parentId ?? null, folder.id);
+    if (targetFolderId === undefined) return;
+
+    this.moveFolderToParent(folder, targetFolderId);
+  }
+
+  moveExampleToFolder(example: ExampleOverviewDTO, folderId: string | null): void {
     if (!this.schoolId || (example.folderId ?? null) === folderId) return;
 
     const previousFolderId = example.folderId ?? null;
@@ -611,7 +599,7 @@ export class SchoolComponent implements OnInit {
     });
   }
 
-  moveTestToFolder(test: ExplorerTest, folderId: string | null): void {
+  moveTestToFolder(test: TestOverviewDTO, folderId: string | null): void {
     if (!this.schoolId || (test.folderId ?? null) === folderId) return;
 
     const previousFolderId = test.folderId ?? null;
@@ -627,12 +615,19 @@ export class SchoolComponent implements OnInit {
     });
   }
 
-  private pickFolderTarget(type: ExplorerTab, currentFolderId: string | null): string | null | undefined {
+  private pickFolderTarget(type: ExplorerTab, currentFolderId: string | null, excludeFolderId?: string): string | null | undefined {
     const folders = [...(type === 'examples' ? this.exampleFolders : this.testFolders)]
-      .sort((a, b) => this.getFolderPathLabel(a.id, type).localeCompare(this.getFolderPathLabel(b.id, type), 'de', { sensitivity: 'base' }));
+      .filter(folder => !excludeFolderId || (folder.id !== excludeFolderId && !this.isDescendantFolder(folder.id, excludeFolderId, type)))
+      .sort((a, b) =>
+        this.getFolderPathLabel(a.id, type).localeCompare(
+          this.getFolderPathLabel(b.id, type),
+          this.translate.currentLang || 'de',
+          { sensitivity: 'base' }
+        )
+      );
 
     const lines = [
-      '0) Root',
+      `0) ${this.t('school.root')}`,
       ...folders.map((folder, index) => `${index + 1}) ${this.getFolderPathLabel(folder.id, type)}`)
     ];
 
@@ -641,7 +636,7 @@ export class SchoolComponent implements OnInit {
       : String(folders.findIndex(folder => folder.id === currentFolderId) + 1);
 
     const input = window.prompt(
-      `Zielordner wählen:\n\n${lines.join('\n')}\n\nNummer eingeben:`,
+      `${this.t('school.prompts.chooseTargetFolder')}\n\n${lines.join('\n')}\n\n${this.t('school.prompts.enterNumber')}`,
       currentIndex
     );
 
@@ -652,22 +647,23 @@ export class SchoolComponent implements OnInit {
     const parsed = Number(input);
 
     if (!Number.isInteger(parsed) || parsed < 0 || parsed > folders.length) {
-      window.alert('Ungültige Auswahl.');
+      window.alert(this.t('school.invalidSelection'));
       return undefined;
     }
 
     return parsed === 0 ? null : folders[parsed - 1].id;
   }
 
-  canManageExample(example: ExplorerExample): boolean {
+  canManageExample(example: ExampleOverviewDTO): boolean {
     return this.currentUserId === this.school?.admin?.id || this.currentUserId === example.adminId;
   }
 
-  canManageTest(test: ExplorerTest): boolean {
+  canManageTest(test: TestOverviewDTO): boolean {
     return this.currentUserId === this.school?.admin?.id || this.currentUserId === test.adminId;
   }
 
   onItemDragStart(type: ExplorerTab, itemId: number): void {
+    this.draggedFolder = null;
     this.draggedItem = { type, itemId };
   }
 
@@ -675,25 +671,82 @@ export class SchoolComponent implements OnInit {
     this.clearDropState();
   }
 
-  allowDrop(event: DragEvent, target: string): void {
-    if (!this.draggedItem || this.draggedItem.type !== this.activeTab) return;
+  onFolderDragStart(folder: ExplorerFolder, event?: DragEvent): void {
+    event?.stopPropagation();
+    event?.dataTransfer?.setData('text/plain', folder.id);
+    if (event?.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+    }
+    this.draggedItem = null;
+    this.draggedFolder = {
+      type: folder.type,
+      folderId: folder.id
+    };
+  }
 
-    event.preventDefault();
-    this.dropTarget = target;
+  onFolderDragEnd(): void {
+    this.clearDropState();
+  }
+
+  allowDrop(event: DragEvent, target: string): void {
+    if (this.draggedItem && this.draggedItem.type === this.activeTab) {
+      event.preventDefault();
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = 'move';
+      }
+      this.dropTarget = target;
+      return;
+    }
+
+    if (this.draggedFolder && this.draggedFolder.type === this.activeTab) {
+      event.preventDefault();
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = 'move';
+      }
+      this.dropTarget = target;
+    }
+  }
+
+  onDropLeave(event: DragEvent, target: string): void {
+    const currentTarget = event.currentTarget as HTMLElement | null;
+    const relatedTarget = event.relatedTarget as Node | null;
+
+    if (currentTarget && relatedTarget && currentTarget.contains(relatedTarget)) {
+      return;
+    }
+
+    if (this.dropTarget === target) {
+      this.dropTarget = null;
+    }
   }
 
   clearDropState(): void {
     this.draggedItem = null;
+    this.draggedFolder = null;
     this.dropTarget = null;
   }
 
   onDropToRoot(event: DragEvent): void {
     event.preventDefault();
+    event.stopPropagation();
+
+    if (this.draggedFolder) {
+      this.moveDraggedFolderTo(null);
+      return;
+    }
+
     this.moveDraggedItemTo(null);
   }
 
   onDropToFolder(event: DragEvent, folderId: string): void {
     event.preventDefault();
+    event.stopPropagation();
+
+    if (this.draggedFolder) {
+      this.moveDraggedFolderTo(folderId);
+      return;
+    }
+
     this.moveDraggedItemTo(folderId);
   }
 
@@ -715,6 +768,84 @@ export class SchoolComponent implements OnInit {
     this.clearDropState();
   }
 
+  private moveDraggedFolderTo(parentId: string | null): void {
+    if (!this.draggedFolder) return;
+
+    const folder = this.currentFolders.find(item => item.id === this.draggedFolder?.folderId);
+    if (!folder) {
+      this.clearDropState();
+      return;
+    }
+
+    this.moveFolderToParent(folder, parentId);
+    this.clearDropState();
+  }
+
+  private moveFolderToParent(folder: ExplorerFolder, parentId: string | null): void {
+    if ((folder.parentId ?? null) === parentId) {
+      return;
+    }
+
+    if (parentId === folder.id) {
+      return;
+    }
+
+    if (parentId && this.isDescendantFolder(parentId, folder.id, folder.type)) {
+      window.alert(this.t('school.folderMoveInvalid'));
+      return;
+    }
+
+    const previousFolders = folder.type === 'examples'
+      ? [...this.exampleFolders]
+      : [...this.testFolders];
+
+    const updated: ExplorerFolder = {
+      ...folder,
+      parentId,
+      updatedAt: new Date().toISOString()
+    };
+
+    this.replaceFolderLocal(updated);
+
+    const request = folder.type === 'examples'
+      ? this.service.moveExampleFolder(folder.id, { name: updated.name, parentId })
+      : this.service.moveTestFolder(folder.id, { name: updated.name, parentId });
+
+    request.pipe(
+      catchError(() => {
+        if (folder.type === 'examples') {
+          this.exampleFolders = previousFolders;
+        } else {
+          this.testFolders = previousFolders;
+        }
+        this.saveLocalFolders();
+        return of(null);
+      })
+    ).subscribe((folderFromApi: any) => {
+      if (folderFromApi) {
+        this.replaceFolderLocal({
+          ...updated,
+          ...(folderFromApi as Partial<ExplorerFolder>),
+          type: folder.type
+        });
+      }
+      this.saveLocalFolders();
+    });
+  }
+
+  private isDescendantFolder(candidateParentId: string, draggedFolderId: string, type: ExplorerTab): boolean {
+    const folders = type === 'examples' ? this.exampleFolders : this.testFolders;
+    let current = folders.find(folder => folder.id === candidateParentId) ?? null;
+
+    while (current) {
+      if (current.id === draggedFolderId) {
+        return true;
+      }
+      current = folders.find(folder => folder.id === current?.parentId) ?? null;
+    }
+
+    return false;
+  }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
@@ -766,19 +897,19 @@ export class SchoolComponent implements OnInit {
   }
 
   getExampleTypeFilterLabel(): string {
-    return this.getFilterSummary(this.selectedExampleTypes.length, 'Alle Typen');
+    return this.getFilterSummary(this.selectedExampleTypes.length, this.t('school.allTypes'));
   }
 
   getExampleFocusFilterLabel(): string {
-    return this.getFilterSummary(this.selectedExampleFocuses.length, 'Alle Focus');
+    return this.getFilterSummary(this.selectedExampleFocuses.length, this.t('school.allFocuses'));
   }
 
   getExampleAuthorFilterLabel(): string {
-    return this.getFilterSummary(this.selectedExampleAuthors.length, 'Alle Autoren');
+    return this.getFilterSummary(this.selectedExampleAuthors.length, this.t('school.allAuthors'));
   }
 
   getTestAuthorFilterLabel(): string {
-    return this.getFilterSummary(this.selectedTestAuthors.length, 'Alle Autoren');
+    return this.getFilterSummary(this.selectedTestAuthors.length, this.t('school.allAuthors'));
   }
 
   private getFilterSummary(count: number, emptyLabel: string): string {
@@ -787,36 +918,16 @@ export class SchoolComponent implements OnInit {
     }
 
     if (count === 1) {
-      return '1 ausgewählt';
+      return this.t('school.selectedOne');
     }
 
-    return `${count} ausgewählt`;
+    return this.t('school.selectedMany', { count });
   }
 
   private toggleSelection(values: string[], value: string): string[] {
     return values.includes(value)
       ? values.filter(item => item !== value)
       : [...values, value];
-  }
-
-  onMultiSelectChange(event: Event, target: 'exampleTypes' | 'exampleFocuses' | 'exampleAuthors' | 'testAuthors'): void {
-    const select = event.target as HTMLSelectElement;
-    const values = Array.from(select.selectedOptions).map(option => option.value);
-
-    switch (target) {
-      case 'exampleTypes':
-        this.selectedExampleTypes = values;
-        break;
-      case 'exampleFocuses':
-        this.selectedExampleFocuses = values;
-        break;
-      case 'exampleAuthors':
-        this.selectedExampleAuthors = values;
-        break;
-      case 'testAuthors':
-        this.selectedTestAuthors = values;
-        break;
-    }
   }
 
   removeExampleType(value: string): void {
@@ -960,17 +1071,17 @@ export class SchoolComponent implements OnInit {
 
   getFolderPathLabel(folderId: string | null, type: ExplorerTab = this.activeTab): string {
     if (folderId === null) {
-      return 'Root';
+      return this.t('school.root');
     }
 
     const folders = type === 'examples' ? this.exampleFolders : this.testFolders;
     const crumbs = this.buildBreadcrumbs(folders, folderId);
 
     if (!crumbs.length) {
-      return 'Root';
+      return this.t('school.root');
     }
 
-    return ['Root', ...crumbs.map(crumb => crumb.name)].join(' / ');
+    return [this.t('school.root'), ...crumbs.map(crumb => crumb.name)].join(' / ');
   }
 
   openCreateExample(): void {
@@ -991,7 +1102,7 @@ export class SchoolComponent implements OnInit {
     });
   }
 
-  openExample(e: ExplorerExample): void {
+  openExample(e: ExampleOverviewDTO): void {
     const isMobile = window.innerWidth <= 768;
 
     this.dialog.open(ExamplePreviewComponent, {
@@ -1005,7 +1116,7 @@ export class SchoolComponent implements OnInit {
     });
   }
 
-  editExample(e: ExplorerExample): void {
+  editExample(e: ExampleOverviewDTO): void {
     const isMobile = window.innerWidth <= 768;
 
     this.dialog.open(CreateExampleComponent, {
@@ -1039,7 +1150,7 @@ export class SchoolComponent implements OnInit {
     });
   }
 
-  editTest(test: ExplorerTest): void {
+  editTest(test: TestOverviewDTO): void {
     const isMobile = window.innerWidth <= 768;
 
     this.dialog.open(CreateTestComponent, {
@@ -1054,7 +1165,7 @@ export class SchoolComponent implements OnInit {
     });
   }
 
-  openTest(test: ExplorerTest): void {
+  openTest(test: TestOverviewDTO): void {
     this.dialog.open(TestPreviewComponent, {
       width: 'min(80vw, 950px)',
       maxWidth: '80vw',
@@ -1067,16 +1178,16 @@ export class SchoolComponent implements OnInit {
     });
   }
 
-  deleteTest(test: ExplorerTest): void {
-    const title = test.name || test.id || 'der Test';
+  deleteTest(test: TestOverviewDTO): void {
+    const title = test.name || String(test.id) || this.t('school.test');
 
     const ref = this.dialog.open(ConfirmDialogComponent, {
       width: '420px',
       data: {
-        title: 'Test löschen',
-        message: `Test "${title}" wirklich löschen?`,
-        confirmText: 'Löschen',
-        cancelText: 'Abbrechen'
+        title: this.t('school.deleteTestTitle'),
+        message: this.t('school.deleteTestMessage', { name: title }),
+        confirmText: this.t('common.delete'),
+        cancelText: this.t('common.cancel')
       }
     });
 
@@ -1088,16 +1199,16 @@ export class SchoolComponent implements OnInit {
     });
   }
 
-  deleteExample(e: ExplorerExample): void {
-    const title = e.question || e.id || 'das Beispiel';
+  deleteExample(e: ExampleOverviewDTO): void {
+    const title = e.question || String(e.id) || this.t('school.example');
 
     const ref = this.dialog.open(ConfirmDialogComponent, {
       width: '420px',
       data: {
-        title: 'Beispiel löschen',
-        message: `Beispiel "${title}" wirklich löschen?`,
-        confirmText: 'Löschen',
-        cancelText: 'Abbrechen'
+        title: this.t('school.deleteExampleTitle'),
+        message: this.t('school.deleteExampleMessage', { name: title }),
+        confirmText: this.t('common.delete'),
+        cancelText: this.t('common.cancel')
       }
     });
 

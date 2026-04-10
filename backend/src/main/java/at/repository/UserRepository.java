@@ -2,9 +2,13 @@ package at.repository;
 
 import at.dtos.User.*;
 import at.enums.SubscriptionModel;
+import at.model.Example;
+import at.model.School;
+import at.model.Test;
 import at.model.User;
 import at.security.TokenService;
 import at.service.MailService;
+import at.service.MediaStorageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -13,6 +17,7 @@ import jakarta.transaction.Transactional;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -30,6 +35,12 @@ public class UserRepository {
     @Inject
     MailService mailService;
 
+    @Inject
+    SchoolRepository schoolRepository;
+
+    @Inject
+    MediaStorageService mediaStorageService;
+
     @Transactional
     public User save(User user) {
         em.persist(user);
@@ -39,7 +50,7 @@ public class UserRepository {
     public User findByEmail(String email) {
         try {
             return em.createQuery(
-                            "SELECT u FROM User u WHERE lower(u.email) = :email AND u.deleted = false",
+                            "SELECT u FROM User u WHERE lower(u.email) = :email",
                             User.class
                     )
                     .setParameter("email", email.toLowerCase().trim())
@@ -52,7 +63,7 @@ public class UserRepository {
     public User findByUsername(String username) {
         try {
             return em.createQuery(
-                            "SELECT u FROM User u WHERE lower(u.username) = :username AND u.deleted = false",
+                            "SELECT u FROM User u WHERE lower(u.username) = :username",
                             User.class
                     )
                     .setParameter("username", username.toLowerCase().trim())
@@ -65,7 +76,7 @@ public class UserRepository {
     public User findByVerificationToken(String token) {
         try {
             return em.createQuery(
-                            "SELECT u FROM User u WHERE u.emailVerificationToken = :token AND u.deleted = false",
+                            "SELECT u FROM User u WHERE u.emailVerificationToken = :token",
                             User.class
                     )
                     .setParameter("token", token)
@@ -78,7 +89,7 @@ public class UserRepository {
     public User findByPasswordResetToken(String token) {
         try {
             return em.createQuery(
-                            "SELECT u FROM User u WHERE u.passwordResetToken = :token AND u.deleted = false",
+                            "SELECT u FROM User u WHERE u.passwordResetToken = :token",
                             User.class
                     )
                     .setParameter("token", token)
@@ -91,7 +102,7 @@ public class UserRepository {
     public User findById(Long userId) {
         if (userId == null) return null;
         User user = em.find(User.class, userId);
-        return user == null || user.isDeleted() ? null : user;
+        return user == null ? null : user;
     }
 
     public boolean validateToken(String token) {
@@ -102,7 +113,7 @@ public class UserRepository {
 
         try {
             User user = em.find(User.class, userId);
-            return user != null && !user.isDeleted();
+            return user != null;
         } catch (Exception e) {
             return false;
         }
@@ -172,7 +183,6 @@ public class UserRepository {
         user.setAllowInvitations(true);
         user.setDarkMode(null);
         user.setLanguage(null);
-        user.setDeleted(false);
 
         save(user);
         mailService.sendRegistrationVerification(user.getEmail(), user.getEmailVerificationToken());
@@ -265,7 +275,7 @@ public class UserRepository {
     @Transactional
     public String updateUsername(Long userId, String username) {
         User user = em.find(User.class, userId);
-        if (user == null || user.isDeleted()) return "USER_NOT_FOUND";
+        if (user == null) return "USER_NOT_FOUND";
         if (username == null || username.isBlank()) return "USERNAME_REQUIRED";
 
         String normalized = username.trim();
@@ -286,7 +296,7 @@ public class UserRepository {
     @Transactional
     public String requestEmailChange(Long userId, String email) {
         User user = em.find(User.class, userId);
-        if (user == null || user.isDeleted()) return "USER_NOT_FOUND";
+        if (user == null) return "USER_NOT_FOUND";
         if (email == null || email.isBlank()) return "EMAIL_REQUIRED";
 
         String normalized = email.trim().toLowerCase();
@@ -320,7 +330,7 @@ public class UserRepository {
     @Transactional
     public String cancelPendingEmailChange(Long userId) {
         User user = em.find(User.class, userId);
-        if (user == null || user.isDeleted()) return "USER_NOT_FOUND";
+        if (user == null) return "USER_NOT_FOUND";
         if (user.getPendingEmail() == null || user.getPendingEmail().isBlank()) return "NO_PENDING_EMAIL";
 
         user.setPendingEmail(null);
@@ -334,7 +344,7 @@ public class UserRepository {
     @Transactional
     public String changePassword(Long userId, String currentPassword, String newPassword) {
         User user = em.find(User.class, userId);
-        if (user == null || user.isDeleted()) return "USER_NOT_FOUND";
+        if (user == null) return "USER_NOT_FOUND";
 
         if (currentPassword == null || currentPassword.isBlank()
                 || newPassword == null || newPassword.isBlank()) {
@@ -402,7 +412,7 @@ public class UserRepository {
     @Transactional
     public String updateProfileImageUrl(Long userId, String profileImageUrl) {
         User user = em.find(User.class, userId);
-        if (user == null || user.isDeleted()) return "USER_NOT_FOUND";
+        if (user == null) return "USER_NOT_FOUND";
 
         user.setProfileImageUrl(profileImageUrl);
         em.merge(user);
@@ -412,7 +422,7 @@ public class UserRepository {
     @Transactional
     public String updateSubscription(Long userId, SubscriptionModel subscriptionModel) {
         User user = em.find(User.class, userId);
-        if (user == null || user.isDeleted()) return "USER_NOT_FOUND";
+        if (user == null) return "USER_NOT_FOUND";
         if (subscriptionModel == null) return "SUBSCRIPTION_REQUIRED";
 
         user.setSubscriptionModel(subscriptionModel);
@@ -423,7 +433,7 @@ public class UserRepository {
     @Transactional
     public String updateUserSettings(Long userId, UserSettingsDTO settings) {
         User user = em.find(User.class, userId);
-        if (user == null || user.isDeleted()) return "USER_NOT_FOUND";
+        if (user == null) return "USER_NOT_FOUND";
         if (settings == null) return "SETTINGS_REQUIRED";
         if (settings.allowInvitations() == null) return "ALLOW_INVITATIONS_REQUIRED";
 
@@ -445,7 +455,7 @@ public class UserRepository {
     @Transactional
     public String updateAllowInvitations(Long userId, Boolean allowInvitations) {
         User user = em.find(User.class, userId);
-        if (user == null || user.isDeleted()) return "USER_NOT_FOUND";
+        if (user == null) return "USER_NOT_FOUND";
         if (allowInvitations == null) return "ALLOW_INVITATIONS_REQUIRED";
 
         user.setAllowInvitations(allowInvitations);
@@ -456,28 +466,43 @@ public class UserRepository {
     @Transactional
     public String deleteAccount(Long userId, String currentPassword) {
         User user = em.find(User.class, userId);
-        if (user == null || user.isDeleted()) return "USER_NOT_FOUND";
+        if (user == null) return "USER_NOT_FOUND";
         if (currentPassword == null || currentPassword.isBlank()) return "PASSWORD_REQUIRED";
 
         if (!BCrypt.checkpw(currentPassword, user.getPassword())) {
             return "CURRENT_PASSWORD_INVALID";
         }
 
-        String suffix = "deleted-" + user.getId() + "-" + System.currentTimeMillis();
+        List<School> schools = em.createQuery(
+                        "SELECT s FROM School s WHERE s.admin.id = :userId",
+                        School.class).setParameter("userId", userId).getResultList();
 
-        user.setDeleted(true);
-        user.setUsername(suffix);
-        user.setEmail(suffix + "@deleted.local");
-        user.setPendingEmail(null);
-        user.setEmailVerificationToken(null);
-        user.setEmailVerificationExpiresAt(null);
-        user.setPasswordResetToken(null);
-        user.setPasswordResetExpiresAt(null);
-        user.setProfileImageUrl(null);
-        user.setDarkMode(null);
-        user.setLanguage(null);
+        for (School school : schools) {
+            schoolRepository.deleteSchool(school.getId(), userId);
+        }
+
+        List<Example> examples = em.createQuery(
+                        "SELECT e FROM Example e WHERE e.admin.id = :userId",
+                        Example.class).setParameter("userId", userId).getResultList();
+
+        for(Example example : examples) {
+            example.setAdmin(example.getSchool().getAdmin());
+        }
+
+        List<Test> tests = em.createQuery(
+                        "SELECT t FROM Test t WHERE t.admin.id = :userId",
+                        Test.class).setParameter("userId", userId).getResultList();
+
+        for (Test test : tests) {
+            test.setAdmin(test.getSchool().getAdmin());
+        }
+
+        if(user.getProfileImageUrl() != null) {
+            mediaStorageService.delete(user.getProfileImageUrl());
+        }
 
         em.merge(user);
+        em.remove(user);
         return null;
     }
 

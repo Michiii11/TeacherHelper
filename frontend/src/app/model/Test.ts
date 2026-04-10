@@ -28,6 +28,7 @@ export interface Test {
   gradingSchema?: GradingLevel[];
   gradePercentages?: Record<number, number>;
   manualGradeMinimums?: Record<number, number>;
+  folderId?: string | null;
 }
 
 export interface TestExample{
@@ -52,6 +53,9 @@ export interface TestOverviewDTO {
   adminUsername: string;
   adminId: number;
   folderId: string | null;
+
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CreateTestDTO {
@@ -68,6 +72,7 @@ export interface CreateTestDTO {
   gradingSchema?: GradingLevel[];
   gradePercentages?: Record<number, number>;
   manualGradeMinimums?: Record<number, number>;
+  folderId?: string | null;
 }
 
 

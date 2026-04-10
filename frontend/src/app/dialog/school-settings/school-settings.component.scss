@@ -10,6 +10,12 @@
 
 .tab-content {
   padding: 1.25rem 0.25rem 0.5rem;
+
+  &.temp {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+  }
 }
 
 .section-head {
@@ -53,6 +59,9 @@ mat-form-field {
 
 .logo-preview-card,
 .logo-actions-card {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
   border: 1px solid var(--border);
   border-radius: 20px;
   background: var(--surface-solid);
@@ -99,7 +108,6 @@ mat-form-field {
 }
 
 .hint {
-  margin: 1rem 0;
   color: var(--text-soft);
   font-size: 0.92rem;
 }
@@ -166,7 +174,7 @@ mat-form-field {
 
 .member-item {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-columns: 48px minmax(0, 1fr) auto;
   gap: 0.85rem;
   align-items: center;
   padding: 0.85rem;
@@ -504,3 +512,77 @@ mat-form-field {
   display: block;
 }
 
+
+.danger-zone-card {
+  border: 1px solid rgba(244, 67, 54, 0.25);
+  border-radius: 14px;
+  padding: 20px;
+  background: rgba(244, 67, 54, 0.03);
+}
+
+.danger-zone-head {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.danger-zone-icon {
+  background: rgba(244, 67, 54, 0.12);
+  color: #f44336;
+  border-radius: 10px;
+  padding: 10px;
+  height: fit-content;
+}
+
+.danger-zone-copy h4 {
+  margin: 0;
+  font-weight: 600;
+}
+
+.danger-zone-copy p {
+  margin: 4px 0 0 0;
+  opacity: 0.7;
+}
+
+.danger-zone-box {
+  background: rgba(244, 67, 54, 0.05);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.danger-zone-warning {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  color: #f44336;
+}
+
+.danger-zone-warning strong {
+  display: block;
+}
+
+.danger-confirm-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.confirm-label {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.danger-confirm-field {
+  width: 100%;
+}
+
+.danger-delete-button {
+  width: 100%;
+  height: 44px;
+  font-weight: 600;
+  letter-spacing: .3px;
+}
+
+.danger-delete-button:disabled {
+  opacity: 0.5;
+}
