@@ -829,3 +829,105 @@ mat-divider{
     flex-direction: column;
   }
 }
+
+
+.gap-width-controls {
+  display: grid;
+  grid-template-columns: minmax(120px, 170px) 1fr;
+  gap: 0.9rem;
+  align-items: center;
+}
+
+.gap-width-input-field {
+  max-width: 170px;
+}
+
+.gap-editor-preview-select-numbered,
+.gap-editor-preview-input-numbered {
+  align-items: center;
+}
+
+.gap-preview-box-numbered {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 8.5rem;
+  height: 2.35rem;
+  padding: 0 0.9rem;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-strong);
+  background: var(--surface);
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--border-strong) 55%, transparent);
+  font-weight: 700;
+  color: var(--text-subtle);
+}
+
+.gap-preview-line-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+}
+
+.gap-preview-line-wrap .gap-preview-line {
+  width: 100%;
+}
+
+::ng-deep .question-preview-rich .gap-inline-select {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+::ng-deep .question-preview-rich .gap-inline-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 5rem;
+  height: 2.25rem;
+  padding: 0 1rem;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-strong);
+  background: var(--surface);
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--border-strong) 55%, transparent);
+}
+
+::ng-deep .question-preview-rich .gap-inline-pill-number {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-subtle);
+}
+
+::ng-deep .question-preview-rich .gap-inline-input {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.12rem;
+  margin: 0 0.35rem 0.2rem 0.2rem;
+  vertical-align: middle;
+}
+
+::ng-deep .question-preview-rich .gap-inline-input .gap-inline-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-subtle);
+  line-height: 1;
+  text-align: left;
+}
+
+::ng-deep .question-preview-rich .gap-inline-input .gap-inline-line {
+  display: block;
+  width: 100%;
+  border-bottom: 2px solid var(--border-strong);
+}
+
+@media (max-width: 760px) {
+  .gap-width-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .gap-width-input-field {
+    max-width: 100%;
+  }
+}

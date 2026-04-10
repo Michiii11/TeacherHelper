@@ -77,7 +77,8 @@
     "confirmPhrase": "I want to permanently delete my account",
     "createSchoolSubtitle": "Create a new collection in your system",
     "schoolName": "Collection name",
-    "schoolPlaceholder": "e.g. HTL 1 - German"
+    "schoolPlaceholder": "e.g. HTL 1 - German",
+    "confirmAction": "I confirm this action"
   },
   "navbar": {
     "home": "Home",

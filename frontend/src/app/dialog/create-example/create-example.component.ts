@@ -185,10 +185,12 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
               this.example.solutionUrl = this.constructionSolutionPreviewUrl ?? '';
             }
 
+            this.normalizeLoadedGapState();
             this.emitSelectedFocus();
           }
         });
     } else {
+      this.normalizeLoadedGapState();
       this.emitSelectedFocus();
     }
   }
@@ -279,19 +281,23 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
     matches.forEach(match => {
       const gapIndex = Number(match[1]) - 1;
-      const existing = oldGaps[gapIndex];
+      const existing = oldGaps[gapIndex] as (Gap & { width?: number }) | undefined;
 
       if (existing) {
-        newGaps.push(existing);
+        newGaps.push({
+          ...existing,
+          width: this.normalizeGapWidth(existing.width, existing.solution)
+        } as Gap);
       } else {
         newGaps.push({
           id: '',
           label: '',
           solution: '',
+          width: this.getDefaultGapWidth(''),
           options: this.example.gapFillType === 'SELECT'
             ? [{ id: this.generateUniqueId(), text: '', correct: false }]
             : []
-        });
+        } as Gap);
       }
     });
 
@@ -319,6 +325,11 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   onGapFillTypeChange(type: 'SELECT' | 'INPUT'): void {
     this.example.gapFillType = type;
     this.updateGapsFromText();
+
+    if (type === 'INPUT') {
+      this.example.gaps.forEach(gap => this.ensureGapWidth(gap));
+    }
+
     this.markDirty();
   }
 
@@ -338,20 +349,103 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
     const html = escapedQuestion.replace(/\{\d+\}/g, () => {
       const gap = this.example.gaps[idx];
+      const gapNumber = this.escapeHtml(this.getGapNumber(idx));
+      const width = gap ? this.getGapWidth(gap) : this.getDefaultGapWidth('');
       idx++;
 
-      const label = gap?.label?.trim()
-        ? `<span class="gap-inline-label">${this.escapeHtml(gap.label.trim())}</span>`
-        : '';
-
       if (this.example.gapFillType === 'INPUT') {
-        return `<span class="gap-inline gap-inline-input">${label}<span class="gap-inline-line"></span></span>`;
+        return `
+          <span class="gap-inline gap-inline-input" style="width:${width}px;">
+            <span class="gap-inline-label gap-inline-label-number">${gapNumber}</span>
+            <span class="gap-inline-line"></span>
+          </span>
+        `;
       }
 
-      return `<span class="gap-inline gap-inline-select">${label}<span class="gap-inline-select-stack"><span class="gap-inline-pill"></span></span></span>`;
+      return `
+        <span class="gap-inline gap-inline-select">
+          <span class="gap-inline-pill">
+            <span class="gap-inline-pill-number">${gapNumber}</span>
+          </span>
+        </span>
+      `;
     });
 
     return this.sanitizer.bypassSecurityTrustHtml(html);
+  }
+
+  getGapNumber(index: number): string {
+    return String(index + 1);
+  }
+
+  private getGapWidthValue(gap: Gap): number | undefined {
+    const width = Number((gap as Gap & { width?: number }).width);
+    return Number.isFinite(width) ? width : undefined;
+  }
+
+  private setGapWidthValue(gap: Gap, width: number): void {
+    (gap as Gap & { width?: number }).width = width;
+  }
+
+  private getDefaultGapWidth(solution: string | null | undefined): number {
+    const solutionLength = (solution ?? '').trim().length;
+    const estimated = 90 + solutionLength * 9;
+    return Math.max(90, Math.min(420, estimated));
+  }
+
+  private normalizeGapWidth(value: number | null | undefined, solution: string | null | undefined): number {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+      return this.getDefaultGapWidth(solution);
+    }
+
+    return Math.max(90, Math.min(420, Math.round(parsed)));
+  }
+
+  ensureGapWidth(gap: Gap): void {
+    this.setGapWidthValue(gap, this.normalizeGapWidth(this.getGapWidthValue(gap), gap.solution));
+  }
+
+  getGapWidth(gap: Gap): number {
+    const normalized = this.normalizeGapWidth(this.getGapWidthValue(gap), gap.solution);
+
+    if (this.getGapWidthValue(gap) !== normalized) {
+      this.setGapWidthValue(gap, normalized);
+    }
+
+    return normalized;
+  }
+
+  setGapWidth(gap: Gap, value: number | string | null): void {
+    const normalized = this.normalizeGapWidth(value as number | null | undefined, gap.solution);
+    this.setGapWidthValue(gap, normalized);
+    this.markDirty();
+  }
+
+  onGapSolutionChange(gap: Gap): void {
+    const currentWidth = this.getGapWidthValue(gap);
+    const normalizedCurrentWidth = this.normalizeGapWidth(currentWidth, '');
+    const autoWidth = this.getDefaultGapWidth(gap.solution);
+
+    if (currentWidth === undefined || normalizedCurrentWidth === this.getDefaultGapWidth('')) {
+      this.setGapWidthValue(gap, autoWidth);
+    } else {
+      this.setGapWidthValue(gap, this.normalizeGapWidth(currentWidth, gap.solution));
+    }
+
+    this.markDirty();
+  }
+
+  private normalizeLoadedGapState(): void {
+    this.example.gaps = (this.example.gaps ?? []).map(gap => {
+      const normalizedGap = { ...gap } as Gap;
+
+      if (this.example.gapFillType === 'INPUT') {
+        this.setGapWidthValue(normalizedGap, this.normalizeGapWidth(this.getGapWidthValue(normalizedGap), normalizedGap.solution));
+      }
+
+      return normalizedGap;
+    });
   }
 
   setDragState(type: 'preview' | 'solution', active: boolean): void {
@@ -619,9 +713,8 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   getQuestionWithGapLabels(): string {
     let idx = 0;
     return this.example.question.replace(/\{\d+\}/g, () => {
-      const label = this.example.gaps[idx]?.label?.trim();
       idx++;
-      return label ? `[${label}]` : `[   ]`;
+      return `[${idx}]`;
     });
   }
 
@@ -773,6 +866,14 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
   onTypeChange(type: ExampleTypes) {
     this.example.type = type;
+
+    if (type === ExampleTypes.GAP_FILL) {
+      this.updateGapsFromText();
+      if (this.example.gapFillType === 'INPUT') {
+        this.example.gaps.forEach(gap => this.ensureGapWidth(gap));
+      }
+    }
+
     this.markDirty();
   }
 

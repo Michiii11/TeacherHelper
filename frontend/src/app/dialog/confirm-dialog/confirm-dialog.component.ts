@@ -8,6 +8,7 @@ import { MatButton } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
+import {TranslatePipe} from '@ngx-translate/core'
 
 @Component({
   selector: 'app-confirm-dialog',
@@ -17,7 +18,8 @@ import { MatIconModule } from '@angular/material/icon';
     FormsModule,
     MatCheckboxModule,
     MatIconModule,
-    NgIf
+    NgIf,
+    TranslatePipe
   ],
   template: `
     <div class="dialog-shell">
@@ -45,7 +47,7 @@ import { MatIconModule } from '@angular/material/icon';
           </span>
 
           <span class="confirm-check-label">
-            {{ data.confirmationText || 'Ich bestätige diese Aktion' }}
+            {{ data.confirmationText || ('dialog.confirmAction' | translate) }}
           </span>
         </button>
       </div>

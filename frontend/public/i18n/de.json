@@ -77,7 +77,8 @@
     "confirmPhrase": "Ich möchte meinen Account endgültig löschen",
     "createSchoolSubtitle": "Lege eine neue Sammlung in deinem System an",
     "schoolName": "Sammlungsname",
-    "schoolPlaceholder": "z.B. HTL 1 - Deutsch"
+    "schoolPlaceholder": "z.B. HTL 1 - Deutsch",
+    "confirmAction": "Ich bestätige diese Aktion"
   },
   "navbar": {
     "home": "Startseite",
