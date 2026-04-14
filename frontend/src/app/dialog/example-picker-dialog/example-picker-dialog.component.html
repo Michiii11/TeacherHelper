@@ -1,0 +1,169 @@
+<div class="picker-shell">
+  <div class="picker-header">
+    <div>
+      <h2>{{ 'createTest.examplePicker.title' | translate }}</h2>
+    </div>
+
+    <div class="picker-summary">
+      <strong>{{ selectedCount }} {{ 'createTest.examplePicker.selected' | translate }}</strong>
+    </div>
+  </div>
+
+  <div class="picker-toolbar">
+    <label class="picker-search">
+      <mat-icon>search</mat-icon>
+      <input
+        [(ngModel)]="search"
+        type="text"
+        [placeholder]="'createTest.examplePicker.searchPlaceholder' | translate" />
+    </label>
+
+    <div class="picker-filter-group">
+      <button
+        type="button"
+        class="picker-filter-chip"
+        [class.active]="selectedTypes.length === 0"
+        (click)="clearTypes()">
+        {{ 'createTest.examplePicker.allTypes' | translate }}
+      </button>
+
+      @for (type of availableTypes; track type.value) {
+        <button
+          type="button"
+          class="picker-filter-chip"
+          [class.active]="isTypeSelected(type.value)"
+          (click)="toggleType(type.value)">
+          {{ type.label }}
+        </button>
+      }
+    </div>
+
+    @if (availableFocuses.length) {
+      <div class="picker-filter-group">
+        <button
+          type="button"
+          class="picker-filter-chip"
+          [class.active]="selectedFocuses.length === 0"
+          (click)="clearFocuses()">
+          {{ 'createTest.examplePicker.allFocuses' | translate }}
+        </button>
+
+        @for (focus of availableFocuses; track focus) {
+          <button
+            type="button"
+            class="picker-filter-chip"
+            [class.active]="isFocusSelected(focus)"
+            (click)="toggleFocus(focus)">
+            {{ focus }}
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="picker-layout">
+    <aside class="picker-sidebar">
+      <div class="picker-sidebar-title">{{ 'school.folders' | translate }}</div>
+
+      <button
+        type="button"
+        class="folder-chip"
+        [class.active]="selectedFolderId === null"
+        (click)="selectedFolderId = null">
+        {{ 'school.root' | translate }}
+      </button>
+
+      @for (folder of orderedFolders; track folder.id) {
+        <button
+          type="button"
+          class="folder-chip"
+          [class.active]="selectedFolderId === folder.id"
+          (click)="selectedFolderId = folder.id">
+          <span class="folder-chip-name">{{ folder.name }}</span>
+          <span class="folder-chip-path">{{ getFolderPathLabel(folder.id) }}</span>
+        </button>
+      }
+    </aside>
+
+    <div class="picker-list-wrap">
+      @if (selectedTypes.length || selectedFocuses.length || selectedFolderId !== null || search.trim()) {
+        <div class="active-filters">
+          @if (selectedFolderId !== null) {
+            <span class="active-filter">{{ 'school.folder' | translate }}: {{ getFolderPathLabel(selectedFolderId) }}</span>
+          }
+          @for (type of selectedTypes; track type) {
+            <span class="active-filter">{{ getTypeLabel(type) }}</span>
+          }
+          @for (focus of selectedFocuses; track focus) {
+            <span class="active-filter">{{ focus }}</span>
+          }
+          @if (search.trim()) {
+            <span class="active-filter">{{ 'createTest.examplePicker.search' | translate }}: {{ search.trim() }}</span>
+          }
+        </div>
+      }
+
+      <div class="picker-list">
+        @for (example of filteredExamples; track example.id) {
+          <label class="picker-row" [class.disabled]="isAlreadySelected(example.id)">
+            <mat-checkbox
+              [checked]="isWorkingSelected(example.id)"
+              [disabled]="isAlreadySelected(example.id)"
+              (change)="toggleExample(example.id, $event.checked)">
+            </mat-checkbox>
+
+            <div class="picker-row-copy">
+              <div class="picker-row-head">
+                <strong>{{ getExampleTitle(example) }}</strong>
+
+                <div class="picker-row-meta-right">
+                  <span class="type-badge">{{ getTypeLabel(example.type) }}</span>
+
+                  @if (isAlreadySelected(example.id)) {
+                    <span class="state-badge muted">{{ 'createTest.examplePicker.alreadyAdded' | translate }}</span>
+                  } @else if (isWorkingSelected(example.id)) {
+                    <span class="state-badge">{{ 'createTest.examplePicker.chosen' | translate }}</span>
+                  }
+                </div>
+              </div>
+
+              @if (example.question && example.instruction && example.question !== example.instruction) {
+                <p class="picker-row-text muted">{{ example.question }}</p>
+              }
+
+              <div class="picker-row-subline">
+                <span>{{ getFolderPathLabel(example.folderId ?? null) }}</span>
+                @if (example.admin.username || example.adminUsername) {
+                  <span>· {{ example.admin.username || example.adminUsername }}</span>
+                }
+              </div>
+
+              @if (example.focusList.length) {
+                <div class="picker-focus-list">
+                  @for (focus of example.focusList; track focus.label) {
+                    <span class="focus-badge">{{ focus.label }}</span>
+                  }
+                </div>
+              }
+            </div>
+          </label>
+        } @empty {
+          <div class="picker-empty">
+            <mat-icon>filter_alt_off</mat-icon>
+            <h3>{{ 'createTest.examplePicker.emptyTitle' | translate }}</h3>
+            <p>{{ 'createTest.examplePicker.emptyText' | translate }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <mat-dialog-actions align="end">
+    <button mat-stroked-button type="button" (click)="close()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button mat-flat-button color="primary" type="button" (click)="confirm()">
+      {{ 'createTest.examplePicker.done' | translate }} ({{ selectedCount }})
+    </button>
+  </mat-dialog-actions>
+</div>

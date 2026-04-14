@@ -5,10 +5,7 @@ import at.dtos.Example.ExampleDTO;
 import at.dtos.Example.ExampleOverviewDTO;
 import at.dtos.Example.GapDTO;
 import at.dtos.Example.MoveExampleToFolderDTO;
-import at.model.Example;
-import at.model.ExampleFolder;
-import at.model.School;
-import at.model.User;
+import at.model.*;
 import at.model.helper.Gap;
 import at.security.TokenService;
 import at.service.MediaStorageService;
@@ -260,6 +257,17 @@ public class ExampleRepository {
         if (!example.getAdmin().getId().equals(userId) && !example.getSchool().getAdmin().getId().equals(userId)) {
             return Response.status(403)
                     .entity("Not allowed to delete this Example.")
+                    .build();
+        }
+
+        List<Test> tests = em.createQuery(
+                "SELECT t FROM Test t JOIN t.exampleList e WHERE e.example.id = :exampleId",
+                Test.class
+        ).setParameter("exampleId", exampleId).getResultList();
+
+        if(!tests.isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Example is part of a Test and cannot be deleted.")
                     .build();
         }
 

@@ -1,29 +1,30 @@
-import { Component, HostListener, Inject, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-import { MAT_DIALOG_DATA, MatDialog, MatDialogActions, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogActions, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule, MatIconButton } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CdkTextareaAutosize } from '@angular/cdk/text-field';
 
-import { MatFormField } from '@angular/material/input';
+import {MatFormField} from '@angular/material/input';
 import { MatInput } from '@angular/material/input';
 import { MatLabel } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 
 import { Subject, takeUntil } from 'rxjs';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { Example, ExampleDTO, ExampleTypeLabels, ExampleTypes } from '../../model/Example';
 import { CreateTestDTO, GradingLevel, TestExample, TestExampleDTO } from '../../model/Test';
 import { HttpService } from '../../service/http.service';
 import { TestPrintService } from '../../service/test-print.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
+import { ExamplePickerDialogComponent, ExamplePickerDialogResult } from '../example-picker-dialog/example-picker-dialog.component';
 import { MatPseudoCheckbox } from '@angular/material/core';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 type GradeMode = 'auto' | 'manual';
 type GradePresetKey = 'AT' | 'DE' | 'US' | 'MITARBEIT' | 'CUSTOM';
@@ -47,697 +48,6 @@ type PersistedTestSettings = {
   manualGradeMinimums?: Record<number, number> | Record<string, number>;
 };
 
-type ExamplePickerDialogData = {
-  examples: ExampleDTO[];
-  selectedIds: number[];
-  folders: ExplorerFolder[];
-};
-
-type ExamplePickerDialogResult = {
-  selectedIds: number[];
-};
-
-@Component({
-  selector: 'app-example-picker-dialog',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatDialogActions,
-    MatButtonModule,
-    MatIconModule,
-    MatCheckboxModule,
-    MatChipsModule,
-  ],
-  template: `
-    <div class="picker-shell">
-      <div class="picker-header">
-        <div>
-          <h2>Beispiele auswählen</h2>
-          <p>Übersichtliche Auswahl mit Ordnern, Filtern und Mehrfachauswahl.</p>
-        </div>
-        <div class="picker-summary">
-          <span>{{ availableCount }} verfügbar</span>
-          <strong>{{ workingSelection.size }} markiert</strong>
-        </div>
-      </div>
-
-      <div class="picker-toolbar">
-        <label class="picker-search">
-          <mat-icon>search</mat-icon>
-          <input
-            [(ngModel)]="search"
-            type="text"
-            placeholder="Nach Titel, Frage, Fokus, Typ oder Pfad suchen" />
-        </label>
-
-        <div class="picker-filter-group">
-          <button
-            type="button"
-            class="picker-filter-chip"
-            [class.active]="selectedTypes.length === 0"
-            (click)="clearTypes()">
-            Alle Typen
-          </button>
-          @for (type of availableTypes; track type.value) {
-            <button
-              type="button"
-              class="picker-filter-chip"
-              [class.active]="isTypeSelected(type.value)"
-              (click)="toggleType(type.value)">
-              {{ type.label }}
-            </button>
-          }
-        </div>
-
-        @if (availableFocuses.length) {
-          <div class="picker-filter-group">
-            <button
-              type="button"
-              class="picker-filter-chip"
-              [class.active]="selectedFocuses.length === 0"
-              (click)="clearFocuses()">
-              Alle Schwerpunkte
-            </button>
-            @for (focus of availableFocuses; track focus) {
-              <button
-                type="button"
-                class="picker-filter-chip"
-                [class.active]="isFocusSelected(focus)"
-                (click)="toggleFocus(focus)">
-                {{ focus }}
-              </button>
-            }
-          </div>
-        }
-      </div>
-
-      <div class="picker-layout">
-        <aside class="picker-sidebar">
-          <div class="picker-sidebar-title">Ordner</div>
-
-          <button
-            type="button"
-            class="folder-chip"
-            [class.active]="selectedFolderId === null"
-            (click)="selectedFolderId = null">
-            Root
-          </button>
-
-          @for (folder of orderedFolders; track folder.id) {
-            <button
-              type="button"
-              class="folder-chip"
-              [class.active]="selectedFolderId === folder.id"
-              (click)="selectedFolderId = folder.id">
-              <span class="folder-chip-name">{{ folder.name }}</span>
-              <span class="folder-chip-path">{{ getFolderPathLabel(folder.id) }}</span>
-            </button>
-          }
-        </aside>
-
-        <div class="picker-list-wrap">
-          @if (selectedTypes.length || selectedFocuses.length || selectedFolderId !== null || search.trim()) {
-            <div class="active-filters">
-              @if (selectedFolderId !== null) {
-                <span class="active-filter">Ordner: {{ getFolderPathLabel(selectedFolderId) }}</span>
-              }
-              @for (type of selectedTypes; track type) {
-                <span class="active-filter">{{ getTypeLabel(type) }}</span>
-              }
-              @for (focus of selectedFocuses; track focus) {
-                <span class="active-filter">{{ focus }}</span>
-              }
-              @if (search.trim()) {
-                <span class="active-filter">Suche: {{ search.trim() }}</span>
-              }
-            </div>
-          }
-
-          <div class="picker-list">
-            @for (example of filteredExamples; track example.id) {
-              <label class="picker-row" [class.disabled]="isAlreadySelected(example.id)">
-                <mat-checkbox
-                  [checked]="workingSelection.has(example.id)"
-                  [disabled]="isAlreadySelected(example.id)"
-                  (change)="toggleExample(example.id, $event.checked)">
-                </mat-checkbox>
-
-                <div class="picker-row-copy">
-                  <div class="picker-row-head">
-                    <strong>{{ getExampleTitle(example) }}</strong>
-                    <div class="picker-row-meta-right">
-                      <span class="type-badge">{{ getTypeLabel(example.type) }}</span>
-                      @if (isAlreadySelected(example.id)) {
-                        <span class="state-badge muted">Schon hinzugefügt</span>
-                      } @else if (workingSelection.has(example.id)) {
-                        <span class="state-badge">Ausgewählt</span>
-                      }
-                    </div>
-                  </div>
-
-                  @if (example.question && example.instruction && example.question !== example.instruction) {
-                    <p class="picker-row-text muted">{{ example.question }}</p>
-                  }
-
-                  <div class="picker-row-subline">
-                    <span>{{ getFolderPathLabel(example.folderId ?? null) }}</span>
-                    @if (example.admin.username || example.adminUsername) {
-                      <span>· {{ example.admin.username || example.adminUsername }}</span>
-                    }
-                  </div>
-
-                  @if (example.focusList.length) {
-                    <div class="picker-focus-list">
-                      @for (focus of example.focusList; track focus.label) {
-                        <span class="focus-badge">{{ focus.label }}</span>
-                      }
-                    </div>
-                  }
-                </div>
-              </label>
-            } @empty {
-              <div class="picker-empty">
-                <mat-icon>filter_alt_off</mat-icon>
-                <h3>Keine Beispiele gefunden</h3>
-                <p>Probier andere Filter, eine andere Suche oder einen anderen Ordner.</p>
-              </div>
-            }
-          </div>
-        </div>
-      </div>
-
-      <mat-dialog-actions align="end">
-        <button mat-stroked-button type="button" (click)="close()">Abbrechen</button>
-        <button mat-flat-button color="primary" type="button" (click)="confirm()">
-          Fertig ({{ workingSelection.size }})
-        </button>
-      </mat-dialog-actions>
-    </div>
-  `,
-  styles: [`
-    :host {
-      display: block;
-      color: var(--text);
-    }
-
-    .picker-shell {
-      width: min(1180px, 92vw);
-      max-height: min(88vh, 980px);
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      padding: 1.2rem;
-      background: var(--menu-bg);
-      border-radius: 22px;
-      border: 1px solid color-mix(in srgb, var(--text-soft) 14%, transparent);
-    }
-
-    .picker-header {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      align-items: flex-start;
-    }
-
-    .picker-header h2 {
-      margin: 0;
-      font-size: 1.35rem;
-      font-weight: 800;
-    }
-
-    .picker-header p {
-      margin: 0.3rem 0 0;
-      color: var(--text-soft);
-    }
-
-    .picker-summary {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 0.2rem;
-      padding: 0.85rem 1rem;
-      min-width: 160px;
-      border-radius: 16px;
-      background: color-mix(in srgb, var(--surface) 92%, transparent);
-      border: 1px solid color-mix(in srgb, var(--text-soft) 16%, transparent);
-    }
-
-    .picker-summary span {
-      font-size: 0.82rem;
-      color: var(--text-soft);
-    }
-
-    .picker-summary strong {
-      font-size: 1.15rem;
-    }
-
-    .picker-toolbar {
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-    }
-
-    .picker-search {
-      display: flex;
-      align-items: center;
-      gap: 0.65rem;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 0.8rem 0.95rem;
-      background: var(--surface);
-    }
-
-    .picker-search input {
-      flex: 1;
-      min-width: 0;
-      border: 0;
-      outline: none;
-      background: transparent;
-      color: var(--text);
-      font: inherit;
-    }
-
-    .picker-filter-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-
-    .picker-filter-chip,
-    .folder-chip,
-    .active-filter {
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--text);
-      padding: 0.55rem 0.85rem;
-      font: inherit;
-    }
-
-    .picker-filter-chip.active,
-    .folder-chip.active {
-      background: color-mix(in srgb, var(--primary) 16%, var(--surface));
-      border-color: color-mix(in srgb, var(--primary) 42%, var(--border));
-      color: var(--text);
-    }
-
-    .picker-layout {
-      min-height: 0;
-      display: grid;
-      grid-template-columns: 260px minmax(0, 1fr);
-      gap: 1rem;
-      flex: 1;
-    }
-
-    .picker-sidebar,
-    .picker-list {
-      min-height: 0;
-      overflow: auto;
-    }
-
-    .picker-sidebar {
-      display: flex;
-      flex-direction: column;
-      gap: 0.55rem;
-      padding: 0.2rem;
-    }
-
-    .picker-sidebar-title {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--text-soft);
-      margin-bottom: 0.2rem;
-    }
-
-    .folder-chip {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      text-align: left;
-      width: 100%;
-      cursor: pointer;
-    }
-
-    .folder-chip-name {
-      font-weight: 700;
-    }
-
-    .folder-chip-path {
-      font-size: 0.78rem;
-      color: var(--text-soft);
-      margin-top: 0.18rem;
-      line-height: 1.35;
-    }
-
-    .picker-list-wrap {
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-    }
-
-    .active-filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.45rem;
-    }
-
-    .active-filter {
-      padding: 0.35rem 0.7rem;
-      font-size: 0.78rem;
-    }
-
-    .picker-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.7rem;
-      padding-right: 0.2rem;
-    }
-
-    .picker-row {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
-      gap: 0.85rem;
-      align-items: flex-start;
-      padding: 0.95rem 1rem;
-      border-radius: 18px;
-      background: color-mix(in srgb, var(--surface) 92%, transparent);
-      border: 1px solid color-mix(in srgb, var(--text-soft) 16%, transparent);
-      cursor: pointer;
-    }
-
-    .picker-row.disabled {
-      opacity: 0.58;
-      cursor: not-allowed;
-    }
-
-    .picker-row-copy {
-      min-width: 0;
-    }
-
-    .picker-row-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 0.8rem;
-    }
-
-    .picker-row-head strong {
-      line-height: 1.4;
-    }
-
-    .picker-row-meta-right {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      gap: 0.45rem;
-    }
-
-    .picker-row-text,
-    .picker-row-subline {
-      margin: 0.35rem 0 0;
-      color: var(--text-soft);
-      line-height: 1.45;
-    }
-
-    .picker-row-subline {
-      font-size: 0.84rem;
-    }
-
-    .picker-focus-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      margin-top: 0.55rem;
-    }
-
-    .focus-badge,
-    .type-badge,
-    .state-badge {
-      display: inline-flex;
-      align-items: center;
-      min-height: 28px;
-      padding: 0.16rem 0.65rem;
-      border-radius: 999px;
-      font-size: 0.76rem;
-      font-weight: 700;
-      border: 1px solid color-mix(in srgb, var(--primary) 14%, transparent);
-      color: var(--primary);
-    }
-
-    .type-badge {
-      background: color-mix(in srgb, var(--surface-2) 94%, transparent);
-      color: var(--text);
-      border-color: var(--border);
-    }
-
-    .state-badge {
-      background: color-mix(in srgb, var(--primary) 14%, transparent);
-      border-color: color-mix(in srgb, var(--primary) 30%, transparent);
-      color: var(--text);
-    }
-
-    .state-badge.muted {
-      background: color-mix(in srgb, var(--text-soft) 12%, transparent);
-      border-color: color-mix(in srgb, var(--text-soft) 20%, transparent);
-      color: var(--text-soft);
-    }
-
-    .muted {
-      color: var(--text-soft);
-    }
-
-    .picker-empty {
-      padding: 2rem 1rem;
-      border-radius: 18px;
-      border: 1px dashed var(--border);
-      text-align: center;
-      color: var(--text-soft);
-    }
-
-    .picker-empty h3 {
-      color: var(--text);
-      margin: 0.65rem 0 0.35rem;
-    }
-
-    @media (max-width: 900px) {
-      .picker-shell {
-        width: min(100vw, 100vw);
-        max-height: 100dvh;
-        border-radius: 0;
-        padding: 1rem;
-      }
-
-      .picker-header,
-      .picker-row-head {
-        flex-direction: column;
-      }
-
-      .picker-summary,
-      .picker-row-meta-right {
-        align-items: flex-start;
-      }
-
-      .picker-layout {
-        grid-template-columns: 1fr;
-      }
-
-      .picker-sidebar {
-        max-height: 180px;
-      }
-    }
-  `]
-})
-export class ExamplePickerDialogComponent implements OnInit {
-  readonly workingSelection = new Set<number>();
-  search = '';
-  selectedFolderId: string | null = null;
-  selectedTypes: string[] = [];
-  selectedFocuses: string[] = [];
-
-  constructor(
-    @Inject(MAT_DIALOG_DATA) readonly data: ExamplePickerDialogData,
-    private readonly dialogRef: MatDialogRef<ExamplePickerDialogComponent, ExamplePickerDialogResult>
-  ) {}
-
-  ngOnInit(): void {
-    this.data.selectedIds.forEach(id => this.workingSelection.add(id));
-  }
-
-  get orderedFolders(): ExplorerFolder[] {
-    return [...(this.data.folders ?? [])]
-      .filter(folder => folder.type === 'examples')
-      .sort((a, b) => this.getFolderPathLabel(a.id).localeCompare(this.getFolderPathLabel(b.id), 'de', { sensitivity: 'base' }));
-  }
-
-  get availableTypes(): { value: string; label: string }[] {
-    const values = new Set<string>();
-    for (const example of this.data.examples ?? []) {
-      if (example?.type != null) {
-        values.add(String(example.type));
-      }
-    }
-
-    return [...values]
-      .sort((a, b) => this.getTypeLabel(a).localeCompare(this.getTypeLabel(b), 'de', { sensitivity: 'base' }))
-      .map(value => ({ value, label: this.getTypeLabel(value) }));
-  }
-
-  get availableFocuses(): string[] {
-    const focuses = new Set<string>();
-    for (const example of this.data.examples ?? []) {
-      for (const focus of example.focusList ?? []) {
-        const label = (focus.label ?? '').trim();
-        if (label) focuses.add(label);
-      }
-    }
-    return [...focuses].sort((a, b) => a.localeCompare(b, 'de', { sensitivity: 'base' }));
-  }
-
-  get filteredExamples(): ExampleDTO[] {
-    const query = this.normalize(this.search);
-
-    return [...(this.data.examples ?? [])]
-      .filter(example => {
-        if (this.selectedFolderId !== null && (example.folderId ?? null) !== this.selectedFolderId) {
-          return false;
-        }
-
-        if (this.selectedTypes.length && !this.selectedTypes.includes(String(example.type))) {
-          return false;
-        }
-
-        if (this.selectedFocuses.length) {
-          const focusLabels = (example.focusList ?? []).map(f => this.normalize(f.label ?? ''));
-          if (!this.selectedFocuses.some(focus => focusLabels.includes(this.normalize(focus)))) {
-            return false;
-          }
-        }
-
-        if (!query) {
-          return true;
-        }
-
-        return this.matchesQuery(example, query);
-      })
-      .sort((a, b) => {
-        const pathCompare = this.getFolderPathLabel(a.folderId ?? null).localeCompare(this.getFolderPathLabel(b.folderId ?? null), 'de', { sensitivity: 'base' });
-        if (pathCompare !== 0) return pathCompare;
-        return this.getExampleTitle(a).localeCompare(this.getExampleTitle(b), 'de', { sensitivity: 'base' });
-      });
-  }
-
-  get availableCount(): number {
-    return (this.data.examples ?? []).filter(example => !this.isAlreadySelected(example.id)).length;
-  }
-
-  toggleExample(exampleId: number, checked: boolean): void {
-    if (this.isAlreadySelected(exampleId)) return;
-    if (checked) {
-      this.workingSelection.add(exampleId);
-    } else {
-      this.workingSelection.delete(exampleId);
-    }
-  }
-
-  isAlreadySelected(exampleId: number): boolean {
-    return this.data.selectedIds.includes(exampleId);
-  }
-
-  isTypeSelected(type: string): boolean {
-    return this.selectedTypes.includes(type);
-  }
-
-  isFocusSelected(focus: string): boolean {
-    return this.selectedFocuses.includes(focus);
-  }
-
-  toggleType(type: string): void {
-    this.selectedTypes = this.selectedTypes.includes(type)
-      ? this.selectedTypes.filter(item => item !== type)
-      : [...this.selectedTypes, type];
-  }
-
-  toggleFocus(focus: string): void {
-    this.selectedFocuses = this.selectedFocuses.includes(focus)
-      ? this.selectedFocuses.filter(item => item !== focus)
-      : [...this.selectedFocuses, focus];
-  }
-
-  clearTypes(): void {
-    this.selectedTypes = [];
-  }
-
-  clearFocuses(): void {
-    this.selectedFocuses = [];
-  }
-
-  getExampleTitle(example: ExampleDTO): string {
-    const instruction = (example.instruction ?? '').trim();
-    const question = (example.question ?? '').trim();
-    return instruction || question || `Beispiel #${example.id}`;
-  }
-
-  getTypeLabel(type: ExampleTypes | string): string {
-    if (type == null) return '—';
-
-    const normalized = String(type) as ExampleTypes;
-    return ExampleTypeLabels[normalized] ?? this.prettyEnumLabel(String(type));
-  }
-
-  getFolderPathLabel(folderId: string | null): string {
-    if (folderId === null) return 'Root';
-
-    const crumbs: string[] = [];
-    const folders = this.data.folders ?? [];
-    let current = folders.find(folder => folder.id === folderId) ?? null;
-
-    while (current) {
-      crumbs.unshift(current.name);
-      current = folders.find(folder => folder.id === current?.parentId) ?? null;
-    }
-
-    return crumbs.length ? ['Root', ...crumbs].join(' / ') : 'Root';
-  }
-
-  confirm(): void {
-    const result = [...this.workingSelection].filter(id => !this.data.selectedIds.includes(id));
-    this.dialogRef.close({ selectedIds: result });
-  }
-
-  close(): void {
-    this.dialogRef.close();
-  }
-
-  private matchesQuery(example: ExampleDTO, query: string): boolean {
-    const focusLabels = (example.focusList ?? []).map(focus => focus.label ?? '').join(' ');
-    const haystack = this.normalize([
-      example.question,
-      example.instruction,
-      example.admin?.username ?? '',
-      (example as any).adminUsername ?? '',
-      String(example.id),
-      this.getTypeLabel(example.type),
-      focusLabels,
-      this.getFolderPathLabel(example.folderId ?? null)
-    ].join(' '));
-
-    return haystack.includes(query);
-  }
-
-  private prettyEnumLabel(value: string): string {
-    return value
-      .replace(/_/g, ' ')
-      .toLowerCase()
-      .replace(/\b\w/g, char => char.toUpperCase());
-  }
-
-  private normalize(value: string): string {
-    return (value ?? '').toString().trim().toLowerCase();
-  }
-}
-
 @Component({
   selector: 'app-create-test',
   standalone: true,
@@ -757,6 +67,8 @@ export class ExamplePickerDialogComponent implements OnInit {
     MatPseudoCheckbox,
     MatButtonToggle,
     MatButtonToggleGroup,
+    MatProgressBarModule,
+    TranslateModule,
   ],
   templateUrl: './create-test.component.html',
   styleUrl: './create-test.component.scss',
@@ -766,6 +78,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   private dialogRef = inject(MatDialogRef<CreateTestComponent>);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
+  private translate = inject(TranslateService);
   private service = inject(HttpService);
   private testPrintService = inject(TestPrintService);
   private readonly destroy$ = new Subject<void>();
@@ -792,7 +105,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     defaultTaskSpacing: 48,
     taskSpacingMap: {},
     gradingMode: 'auto',
-    gradingSystemName: 'Österreich 1–5',
+    gradingSystemName: this.translate.instant('createTest.grading.presets.atName'),
     gradingSchema: [],
     gradePercentages: {},
     manualGradeMinimums: {}
@@ -806,57 +119,57 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   taskSpacingMap: Record<number, number> = {};
 
   useAutomaticGrading = true;
-  gradingSystemName = 'Österreich 1–5';
+  gradingSystemName = this.translate.instant('createTest.grading.presets.atName');
   gradingSchema: GradingLevel[] = [];
 
   readonly gradingPresets: Record<GradePresetKey, { name: string; levels: Omit<GradingLevel, 'order'>[] }> = {
     AT: {
-      name: 'Österreich 1–5',
+      name: this.translate.instant('createTest.grading.presets.atName'),
       levels: [
-        { key: '1', label: 'Sehr gut', shortLabel: '1', percentageFrom: 90, minimumPoints: 18 },
-        { key: '2', label: 'Gut', shortLabel: '2', percentageFrom: 78, minimumPoints: 16 },
-        { key: '3', label: 'Befriedigend', shortLabel: '3', percentageFrom: 65, minimumPoints: 13 },
-        { key: '4', label: 'Genügend', shortLabel: '4', percentageFrom: 50, minimumPoints: 10 },
-        { key: '5', label: 'Nicht genügend', shortLabel: '5', percentageFrom: 0, minimumPoints: 0 },
+        { key: '1', label: this.translate.instant('createTest.grading.labels.veryGood'), shortLabel: '1', percentageFrom: 90, minimumPoints: 18 },
+        { key: '2', label: this.translate.instant('createTest.grading.labels.good'), shortLabel: '2', percentageFrom: 78, minimumPoints: 16 },
+        { key: '3', label: this.translate.instant('createTest.grading.labels.satisfactory'), shortLabel: '3', percentageFrom: 65, minimumPoints: 13 },
+        { key: '4', label: this.translate.instant('createTest.grading.labels.passing'), shortLabel: '4', percentageFrom: 50, minimumPoints: 10 },
+        { key: '5', label: this.translate.instant('createTest.grading.labels.failed'), shortLabel: '5', percentageFrom: 0, minimumPoints: 0 },
       ]
     },
     DE: {
-      name: 'Deutschland 1–6',
+      name: this.translate.instant('createTest.grading.presets.deName'),
       levels: [
-        { key: '1', label: 'Sehr gut', shortLabel: '1', percentageFrom: 92, minimumPoints: 18 },
-        { key: '2', label: 'Gut', shortLabel: '2', percentageFrom: 81, minimumPoints: 16 },
-        { key: '3', label: 'Befriedigend', shortLabel: '3', percentageFrom: 67, minimumPoints: 13 },
-        { key: '4', label: 'Ausreichend', shortLabel: '4', percentageFrom: 50, minimumPoints: 10 },
-        { key: '5', label: 'Mangelhaft', shortLabel: '5', percentageFrom: 30, minimumPoints: 6 },
-        { key: '6', label: 'Ungenügend', shortLabel: '6', percentageFrom: 0, minimumPoints: 0 },
+        { key: '1', label: this.translate.instant('createTest.grading.labels.veryGood'), shortLabel: '1', percentageFrom: 92, minimumPoints: 18 },
+        { key: '2', label: this.translate.instant('createTest.grading.labels.good'), shortLabel: '2', percentageFrom: 81, minimumPoints: 16 },
+        { key: '3', label: this.translate.instant('createTest.grading.labels.satisfactory'), shortLabel: '3', percentageFrom: 67, minimumPoints: 13 },
+        { key: '4', label: this.translate.instant('createTest.grading.labels.sufficient'), shortLabel: '4', percentageFrom: 50, minimumPoints: 10 },
+        { key: '5', label: this.translate.instant('createTest.grading.labels.poor'), shortLabel: '5', percentageFrom: 30, minimumPoints: 6 },
+        { key: '6', label: this.translate.instant('createTest.grading.labels.insufficient'), shortLabel: '6', percentageFrom: 0, minimumPoints: 0 },
       ]
     },
     US: {
-      name: 'USA A–F',
+      name: this.translate.instant('createTest.grading.presets.usName'),
       levels: [
-        { key: 'A', label: 'Excellent', shortLabel: 'A', percentageFrom: 90, minimumPoints: 18 },
-        { key: 'B', label: 'Good', shortLabel: 'B', percentageFrom: 80, minimumPoints: 16 },
-        { key: 'C', label: 'Satisfactory', shortLabel: 'C', percentageFrom: 70, minimumPoints: 14 },
-        { key: 'D', label: 'Passing', shortLabel: 'D', percentageFrom: 60, minimumPoints: 12 },
-        { key: 'F', label: 'Fail', shortLabel: 'F', percentageFrom: 0, minimumPoints: 0 },
+        { key: 'A', label: this.translate.instant('createTest.grading.labels.excellent'), shortLabel: 'A', percentageFrom: 90, minimumPoints: 18 },
+        { key: 'B', label: this.translate.instant('createTest.grading.labels.goodEn'), shortLabel: 'B', percentageFrom: 80, minimumPoints: 16 },
+        { key: 'C', label: this.translate.instant('createTest.grading.labels.satisfactoryEn'), shortLabel: 'C', percentageFrom: 70, minimumPoints: 14 },
+        { key: 'D', label: this.translate.instant('createTest.grading.labels.passingEn'), shortLabel: 'D', percentageFrom: 60, minimumPoints: 12 },
+        { key: 'F', label: this.translate.instant('createTest.grading.labels.fail'), shortLabel: 'F', percentageFrom: 0, minimumPoints: 0 },
       ]
     },
     MITARBEIT: {
-      name: 'Mitarbeit ++ bis --',
+      name: this.translate.instant('createTest.grading.presets.participationName'),
       levels: [
-        { key: 'plusplus', label: 'Sehr aktiv', shortLabel: '++', percentageFrom: 90, minimumPoints: 18 },
-        { key: 'plus', label: 'Aktiv', shortLabel: '+', percentageFrom: 75, minimumPoints: 15 },
-        { key: 'neutral', label: 'In Ordnung', shortLabel: 'o', percentageFrom: 55, minimumPoints: 11 },
-        { key: 'minus', label: 'Wenig Mitarbeit', shortLabel: '-', percentageFrom: 30, minimumPoints: 6 },
-        { key: 'minusminus', label: 'Keine Mitarbeit', shortLabel: '--', percentageFrom: 0, minimumPoints: 0 },
+        { key: 'plusplus', label: this.translate.instant('createTest.grading.labels.veryActive'), shortLabel: '++', percentageFrom: 90, minimumPoints: 18 },
+        { key: 'plus', label: this.translate.instant('createTest.grading.labels.active'), shortLabel: '+', percentageFrom: 75, minimumPoints: 15 },
+        { key: 'neutral', label: this.translate.instant('createTest.grading.labels.ok'), shortLabel: 'o', percentageFrom: 55, minimumPoints: 11 },
+        { key: 'minus', label: this.translate.instant('createTest.grading.labels.lowParticipation'), shortLabel: '-', percentageFrom: 30, minimumPoints: 6 },
+        { key: 'minusminus', label: this.translate.instant('createTest.grading.labels.noParticipation'), shortLabel: '--', percentageFrom: 0, minimumPoints: 0 },
       ]
     },
     CUSTOM: {
-      name: 'Eigenes Schema',
+      name: this.translate.instant('createTest.grading.presets.customName'),
       levels: [
-        { key: 'top', label: 'Top', shortLabel: 'Top', percentageFrom: 90, minimumPoints: 18 },
-        { key: 'mid', label: 'Mittel', shortLabel: 'Mid', percentageFrom: 60, minimumPoints: 12 },
-        { key: 'low', label: 'Niedrig', shortLabel: 'Low', percentageFrom: 0, minimumPoints: 0 },
+        { key: 'top', label: this.translate.instant('createTest.grading.labels.top'), shortLabel: 'Top', percentageFrom: 90, minimumPoints: 18 },
+        { key: 'mid', label: this.translate.instant('createTest.grading.labels.mid'), shortLabel: 'Mid', percentageFrom: 60, minimumPoints: 12 },
+        { key: 'low', label: this.translate.instant('createTest.grading.labels.low'), shortLabel: 'Low', percentageFrom: 0, minimumPoints: 0 },
       ]
     }
   };
@@ -978,14 +291,41 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.markDirty();
   }
 
+  moveSelectedExample(index: number, direction: -1 | 1): void {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= this.selectedExamplesInternal.length) {
+      return;
+    }
+
+    const next = [...this.selectedExamplesInternal];
+    const current = next[index];
+    next[index] = next[targetIndex];
+    next[targetIndex] = current;
+
+    this.selectedExamplesInternal = next;
+    this.syncSelectionToTest(next);
+    this.markDirty();
+  }
+
+  trackBySelectedExample = (_: number, entry: TestExampleDTO): number => entry.example.id;
+
+  trackByGradingLevel = (_: number, level: GradingLevel): string =>
+    String(level.key ?? level.order ?? _);
+
   get selectedExamples(): TestExampleDTO[] {
     return this.selectedExamplesInternal;
   }
 
   get totalPoints(): number {
-    return this.selectedExamples.reduce((sum, entry) => sum + (Number(entry.points) || 0), 0);
+    const total = this.selectedExamples.reduce((sum, entry) => sum + (Number(entry.points) || 0), 0);
+    return this.roundToStep(total, 1);
   }
 
+
+
+  get gradingModeSelection(): GradeMode {
+    return this.useAutomaticGrading ? 'auto' : 'manual';
+  }
   get gradeHeaderLabel(): string {
     const name = this.normalize(this.gradingSystemName);
     if (name.includes('usa') || name.includes('a–f') || name.includes('a-f')) return 'Grade';
@@ -994,7 +334,9 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   get gradeTableHeading(): string {
-    return this.useAutomaticGrading ? 'ab %' : 'ab Punkten';
+    return this.useAutomaticGrading
+      ? this.translate.instant('createTest.grading.fromPercent')
+      : this.translate.instant('createTest.grading.fromPoints');
   }
 
   getExampleHeading(example: Example | ExampleDTO): string {
@@ -1023,7 +365,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   getFolderPathLabel(folderId: string | null): string {
-    if (folderId === null) return 'Root';
+    if (folderId === null) return this.translate.instant('school.root');
 
     const crumbs: string[] = [];
     let current = this.exampleFolders.find(folder => folder.id === folderId) ?? null;
@@ -1033,7 +375,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       current = this.exampleFolders.find(folder => folder.id === current?.parentId) ?? null;
     }
 
-    return crumbs.length ? ['Root', ...crumbs].join(' / ') : 'Root';
+    const rootLabel = this.translate.instant('school.root');
+    return crumbs.length ? [rootLabel, ...crumbs].join(' / ') : rootLabel;
   }
 
   saveTest(): void {
@@ -1059,7 +402,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.snackBar.open(
-            this.isEditMode ? 'Test erfolgreich gespeichert' : 'Test erfolgreich erstellt',
+            this.isEditMode ? this.translate.instant('createTest.snackbar.updated') : this.translate.instant('createTest.snackbar.created'),
             'OK',
             { duration: 3000 }
           );
@@ -1070,14 +413,14 @@ export class CreateTestComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.isSaving = false;
-          this.snackBar.open('Speichern fehlgeschlagen.', 'OK', { duration: 3000 });
+          this.snackBar.open(this.translate.instant('createTest.snackbar.saveError'), 'OK', { duration: 3000 });
         }
       });
   }
 
   async exportPdf(): Promise<void> {
     if (!this.selectedExamples.length) {
-      this.snackBar.open('Bitte zuerst mindestens eine Aufgabe auswählen.', 'OK', { duration: 2500 });
+      this.snackBar.open(this.translate.instant('createTest.snackbar.selectExampleFirst'), 'OK', { duration: 2500 });
       return;
     }
 
@@ -1096,7 +439,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.isExportingPdf = false;
 
     this.snackBar.open(
-      success ? 'PDF wurde heruntergeladen.' : 'PDF-Export fehlgeschlagen.',
+      success ? this.translate.instant('createTest.snackbar.pdfDownloaded') : this.translate.instant('createTest.snackbar.pdfError'),
       'OK',
       { duration: 3000 }
     );
@@ -1104,7 +447,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   async exportWord(): Promise<void> {
     if (!this.selectedExamples.length) {
-      this.snackBar.open('Bitte zuerst mindestens eine Aufgabe auswählen.', 'OK', { duration: 2500 });
+      this.snackBar.open(this.translate.instant('createTest.snackbar.selectExampleFirst'), 'OK', { duration: 2500 });
       return;
     }
 
@@ -1123,7 +466,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.isExportingWord = false;
 
     this.snackBar.open(
-      success ? 'Word-Datei wurde heruntergeladen.' : 'Word-Export fehlgeschlagen.',
+      success ? this.translate.instant('createTest.snackbar.wordDownloaded') : this.translate.instant('createTest.snackbar.wordError'),
       'OK',
       { duration: 3000 }
     );
@@ -1133,10 +476,10 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     if (this.hasUnsavedChanges) {
       const confirmRef = this.dialog.open(ConfirmDialogComponent, {
         data: {
-          title: 'Warnung',
-          message: 'Möchten Sie wirklich schließen? Nicht gespeicherte Änderungen gehen verloren.',
-          cancelText: 'Abbrechen',
-          confirmText: 'Schließen',
+          title: this.translate.instant('createTest.closeWarning.title'),
+          message: this.translate.instant('createTest.closeWarning.message'),
+          cancelText: this.translate.instant('common.cancel'),
+          confirmText: this.translate.instant('createTest.closeWarning.confirm'),
         },
       });
 
@@ -1164,6 +507,34 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     if (!this.useAutomaticGrading) {
       this.normalizeManualThresholds();
     }
+    this.markDirty();
+  }
+
+  onPointsInput(entry: TestExampleDTO, value: number | string | null): void {
+    entry.points = this.normalizeDecimalValue(value, 1);
+    this.markDirty();
+  }
+
+  onPointsBlur(entry: TestExampleDTO): void {
+    entry.points = this.normalizeDecimalValue(entry.points, 1);
+    if (!this.useAutomaticGrading) {
+      this.normalizeManualThresholds();
+    }
+    this.markDirty();
+  }
+
+  onAutomaticThresholdInput(level: GradingLevel, value: number | string | null): void {
+    level.percentageFrom = this.normalizeDecimalValue(value, 1);
+    this.markDirty();
+  }
+
+  onManualThresholdInput(level: GradingLevel, value: number | string | null): void {
+    level.minimumPoints = this.normalizeDecimalValue(value, 1);
+    this.markDirty();
+  }
+
+  onLevelBlur(): void {
+    this.normalizeCurrentThresholds();
     this.markDirty();
   }
 
@@ -1205,12 +576,19 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   onGradingModeChange(mode: GradeMode): void {
+    const switchingToManual = mode === 'manual' && this.useAutomaticGrading;
+
     this.useAutomaticGrading = mode === 'auto';
+
     if (this.useAutomaticGrading) {
       this.normalizeAutomaticThresholds();
     } else {
+      if (switchingToManual) {
+        this.syncManualThresholdsFromPercentages();
+      }
       this.normalizeManualThresholds();
     }
+
     this.markDirty();
   }
 
@@ -1221,6 +599,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       ...level,
       order: index,
     }));
+    this.syncManualThresholdsFromPercentages();
     this.normalizeCurrentThresholds();
     if (shouldMarkDirty) {
       this.markDirty();
@@ -1236,12 +615,12 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       ? Math.max(0, (previous?.percentageFrom ?? 0) - 10)
       : Math.max(0, (previous?.minimumPoints ?? 0) - 1);
 
-    this.gradingSystemName = this.gradingSystemName || 'Eigenes Schema';
+    this.gradingSystemName = this.gradingSystemName || this.translate.instant('createTest.grading.customSchema');
     this.gradingSchema = [
       ...this.gradingSchema,
       {
         key: `level-${Date.now()}-${nextIndex}`,
-        label: `Stufe ${nextIndex + 1}`,
+        label: `${this.translate.instant('createTest.grading.level')} ${nextIndex + 1}`,
         shortLabel: `${nextIndex + 1}`,
         order: nextIndex,
         percentageFrom: this.useAutomaticGrading ? threshold : 0,
@@ -1254,7 +633,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   removeGradingLevel(index: number): void {
     if (this.gradingSchema.length <= 2) {
-      this.snackBar.open('Mindestens zwei Bewertungsstufen sollten bestehen bleiben.', 'OK', { duration: 2500 });
+      this.snackBar.open(this.translate.instant('createTest.snackbar.minimumTwoLevels'), 'OK', { duration: 2500 });
       return;
     }
 
@@ -1281,12 +660,11 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   onGradingSystemNameChanged(value: string): void {
-    this.gradingSystemName = value?.trim() || 'Eigenes Schema';
+    this.gradingSystemName = value?.trim() || this.translate.instant('createTest.grading.customSchema');
     this.markDirty();
   }
 
   onLevelChanged(): void {
-    this.normalizeCurrentThresholds();
     this.markDirty();
   }
 
@@ -1301,18 +679,15 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   normalizeAutomaticThresholds(): void {
     let last = 100;
 
-    this.gradingSchema = this.gradingSchema.map((level, index) => {
+    this.gradingSchema.forEach((level, index) => {
       const raw = Number(level.percentageFrom ?? (index === this.gradingSchema.length - 1 ? 0 : last));
       const normalized = index === this.gradingSchema.length - 1
         ? 0
-        : Math.max(0, Math.min(last, Math.round(raw)));
+        : Math.max(0, Math.min(last, this.roundToStep(raw, 1)));
 
       last = normalized;
-      return {
-        ...level,
-        order: index,
-        percentageFrom: normalized,
-      };
+      level.order = index;
+      level.percentageFrom = normalized;
     });
 
     if (this.gradingSchema.length) {
@@ -1324,19 +699,15 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     const total = this.totalPoints;
     let last = total;
 
-    this.gradingSchema = this.gradingSchema.map((level, index) => {
+    this.gradingSchema.forEach((level, index) => {
       const raw = Number(level.minimumPoints ?? (index === this.gradingSchema.length - 1 ? 0 : last));
       const normalized = index === this.gradingSchema.length - 1
         ? 0
-        : Math.max(0, Math.min(last, Math.round(raw)));
+        : Math.max(0, Math.min(last, this.roundToStep(raw, 1)));
 
       last = normalized;
-
-      return {
-        ...level,
-        order: index,
-        minimumPoints: normalized,
-      };
+      level.order = index;
+      level.minimumPoints = normalized;
     });
 
     if (this.gradingSchema.length) {
@@ -1353,10 +724,21 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
     if (this.useAutomaticGrading) {
       const percentage = Number(this.gradingSchema[index].percentageFrom ?? 0);
-      return Math.max(0, Math.min(this.totalPoints, Math.ceil(this.totalPoints * (percentage / 100))));
+      const value = Math.ceil(this.totalPoints * (percentage / 100));
+      return Math.max(0, Math.min(this.totalPoints, value));
     }
 
-    return Math.max(0, Math.min(this.totalPoints, Math.round(Number(this.gradingSchema[index].minimumPoints ?? 0))));
+    return Math.max(
+      0,
+      Math.min(
+        this.totalPoints,
+        this.roundToStep(Number(this.gradingSchema[index].minimumPoints ?? 0), 1)
+      )
+    );
+  }
+
+  private isWholeNumber(value: number): boolean {
+    return Math.abs(value - Math.round(value)) < 0.0001;
   }
 
   getGradeRangeLabelByIndex(index: number): string {
@@ -1365,11 +747,30 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     if (!this.gradingSchema[index]) return '–';
 
     const min = this.getGradeMinimumByIndex(index);
-    const upper = index === 0 ? total : this.getGradeMinimumByIndex(index - 1) - 1;
 
-    if (upper < min) return `${min}`;
-    if (upper === min) return `${min}`;
-    return `${upper}-${min}`;
+    if (this.useAutomaticGrading) {
+      const upper = index === 0
+        ? Math.round(total)
+        : this.getGradeMinimumByIndex(index - 1) - 1;
+
+      if (upper < min) return String(min);
+      if (upper === min) return String(min);
+      return `${upper}-${min}`;
+    }
+
+    const previousMin = index === 0 ? total : this.getGradeMinimumByIndex(index - 1);
+    const shouldUseWholeNumbers = this.isWholeNumber(min) && this.isWholeNumber(previousMin);
+
+    const upper = index === 0
+      ? total
+      : shouldUseWholeNumbers
+        ? previousMin - 1
+        : this.roundToStep(previousMin - 0.1, 1);
+
+    if (upper < min) return this.formatScore(min);
+    if (upper === min) return this.formatScore(min);
+
+    return `${this.formatScore(upper)}-${this.formatScore(min)}`;
   }
 
   getPreviewImage(example: Example | ExampleDTO): string | null {
@@ -1498,12 +899,12 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.useAutomaticGrading = gradingMode !== 'manual';
 
     const schema = Array.isArray(response?.gradingSchema) ? response.gradingSchema : [];
-    this.gradingSystemName = response?.gradingSystemName ?? 'Österreich 1–5';
+    this.gradingSystemName = response?.gradingSystemName ?? this.translate.instant('createTest.grading.presets.atName');
 
     if (schema.length) {
       this.gradingSchema = schema.map((level: any, index: number) => ({
         key: level?.key ?? `level-${index}`,
-        label: level?.label ?? `Stufe ${index + 1}`,
+        label: level?.label ?? `${this.translate.instant('createTest.grading.level')} ${index + 1}`,
         shortLabel: level?.shortLabel ?? String(index + 1),
         order: Number(level?.order ?? index),
         percentageFrom: Number(level?.percentageFrom ?? 0),
@@ -1523,11 +924,11 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       );
 
       this.gradingSchema = [
-        { key: '1', label: 'Sehr gut', shortLabel: '1', order: 0, percentageFrom: percentages[1] ?? 90, minimumPoints: minimums[1] ?? 18 },
-        { key: '2', label: 'Gut', shortLabel: '2', order: 1, percentageFrom: percentages[2] ?? 78, minimumPoints: minimums[2] ?? 16 },
-        { key: '3', label: 'Befriedigend', shortLabel: '3', order: 2, percentageFrom: percentages[3] ?? 65, minimumPoints: minimums[3] ?? 13 },
-        { key: '4', label: 'Genügend', shortLabel: '4', order: 3, percentageFrom: percentages[4] ?? 50, minimumPoints: minimums[4] ?? 10 },
-        { key: '5', label: 'Nicht genügend', shortLabel: '5', order: 4, percentageFrom: 0, minimumPoints: 0 },
+        { key: '1', label: this.translate.instant('createTest.grading.labels.veryGood'), shortLabel: '1', order: 0, percentageFrom: percentages[1] ?? 90, minimumPoints: minimums[1] ?? 18 },
+        { key: '2', label: this.translate.instant('createTest.grading.labels.good'), shortLabel: '2', order: 1, percentageFrom: percentages[2] ?? 78, minimumPoints: minimums[2] ?? 16 },
+        { key: '3', label: this.translate.instant('createTest.grading.labels.satisfactory'), shortLabel: '3', order: 2, percentageFrom: percentages[3] ?? 65, minimumPoints: minimums[3] ?? 13 },
+        { key: '4', label: this.translate.instant('createTest.grading.labels.passing'), shortLabel: '4', order: 3, percentageFrom: percentages[4] ?? 50, minimumPoints: minimums[4] ?? 10 },
+        { key: '5', label: this.translate.instant('createTest.grading.labels.failed'), shortLabel: '5', order: 4, percentageFrom: 0, minimumPoints: 0 },
       ];
     }
 
@@ -1578,6 +979,24 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     return Math.max(0, Math.min(240, numeric));
   }
 
+  private normalizeDecimalValue(value: number | string | null | undefined, decimals = 1): number {
+    const numeric = Number(value ?? 0);
+    if (!Number.isFinite(numeric)) return 0;
+
+    const factor = Math.pow(10, decimals);
+    return Math.round(numeric * factor) / factor;
+  }
+
+  private roundToStep(value: number, decimals = 1): number {
+    const factor = Math.pow(10, decimals);
+    return Math.round((Number(value) || 0) * factor) / factor;
+  }
+
+  private formatScore(value: number): string {
+    const rounded = this.roundToStep(value, 1);
+    return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+  }
+
   private normalizeImageWidth(value: number | null | undefined): number {
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) {
@@ -1620,5 +1039,24 @@ export class CreateTestComponent implements OnInit, OnDestroy {
         const examplesToAdd = this.allExamples.filter(example => result.selectedIds.includes(example.id));
         examplesToAdd.forEach(example => this.addExampleToSelection(example));
       });
+  }
+
+  private syncManualThresholdsFromPercentages(): void {
+    const total = this.totalPoints;
+
+    this.gradingSchema = this.gradingSchema.map((level, index) => {
+      const percentage = Number(level.percentageFrom ?? 0);
+
+      const derivedMinimum =
+        index === this.gradingSchema.length - 1
+          ? 0
+          : Math.max(0, Math.min(total, Math.ceil(total * (percentage / 100))));
+
+      return {
+        ...level,
+        minimumPoints: derivedMinimum,
+        order: index,
+      };
+    });
   }
 }

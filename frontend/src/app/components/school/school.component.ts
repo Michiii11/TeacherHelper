@@ -21,6 +21,12 @@ import { SchoolSettingsComponent } from '../../dialog/school-settings/school-set
 import { ConfirmDialogComponent } from '../../dialog/confirm-dialog/confirm-dialog.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOption, MatSelect } from '@angular/material/select';
+import {
+  FolderPickerDialogComponent,
+  FolderPickerItem
+} from '../../dialog/folder-picker-dialog/folder-picker-dialog.component'
+import {FolderNameDialogComponent} from '../../dialog/folder-name-dialog/folder-name-dialog.component'
+import {MatSnackBar} from '@angular/material/snack-bar'
 
 type ExplorerTab = 'examples' | 'tests';
 type SortOption = 'nameAsc' | 'nameDesc' | 'createdDesc' | 'createdAsc' | 'authorAsc';
@@ -67,6 +73,7 @@ export class SchoolComponent implements OnInit {
   service = inject(HttpService);
   dialog = inject(MatDialog);
   translate = inject(TranslateService);
+  snack = inject(MatSnackBar);
 
   school: SchoolDTO = {} as SchoolDTO;
   schoolId: string | null = null;
@@ -455,71 +462,101 @@ export class SchoolComponent implements OnInit {
   createFolder(parentId: string | null = this.selectedFolderId): void {
     if (!this.schoolId) return;
 
-    const name = window.prompt(this.t('school.prompts.createFolder'));
-    if (!name?.trim()) return;
+    const ref = this.dialog.open(FolderNameDialogComponent, {
+      width: 'min(92vw, 500px)',
+      maxWidth: '92vw',
+      data: {
+        title: this.t('school.createFolderTitle'),
+        subtitle: this.t('school.createFolderSubtitle'),
+        label: this.t('school.folderNameLabel'),
+        placeholder: this.t('school.folderNamePlaceholder'),
+        confirmText: this.t('common.create'),
+        cancelText: this.t('common.cancel'),
+        initialValue: ''
+      }
+    });
 
-    const now = new Date().toISOString();
-    const folder: ExplorerFolder = {
-      id: this.generateId(),
-      schoolId: this.schoolId,
-      type: this.activeTab,
-      name: name.trim(),
-      parentId,
-      createdAt: now,
-      updatedAt: now
-    };
+    ref.afterClosed().subscribe(name => {
+      if (!name?.trim()) return;
 
-    this.addFolderLocal(folder);
+      const now = new Date().toISOString();
+      const folder: ExplorerFolder = {
+        id: this.generateId(),
+        schoolId: this.schoolId!,
+        type: this.activeTab,
+        name: name.trim(),
+        parentId,
+        createdAt: now,
+        updatedAt: now
+      };
 
-    const request = folder.type === 'examples'
-      ? this.service.createExampleFolder(this.schoolId, {
-        name: folder.name,
-        parentId: folder.parentId
-      })
-      : this.service.createTestFolder(this.schoolId, {
-        name: folder.name,
-        parentId: folder.parentId
+      this.addFolderLocal(folder);
+
+      const request = folder.type === 'examples'
+        ? this.service.createExampleFolder(this.schoolId!, {
+          name: folder.name,
+          parentId: folder.parentId
+        })
+        : this.service.createTestFolder(this.schoolId!, {
+          name: folder.name,
+          parentId: folder.parentId
+        });
+
+      request.pipe(
+        catchError(() => of(folder))
+      ).subscribe(createdFolder => {
+        this.replaceTemporaryFolder(folder, {
+          ...folder,
+          ...(createdFolder as Partial<ExplorerFolder>),
+          type: folder.type
+        });
+        this.saveLocalFolders();
       });
-
-    request.pipe(
-      catchError(() => of(folder))
-    ).subscribe(createdFolder => {
-      this.replaceTemporaryFolder(folder, {
-        ...folder,
-        ...(createdFolder as Partial<ExplorerFolder>),
-        type: folder.type
-      });
-      this.saveLocalFolders();
     });
   }
 
   renameFolder(folder: ExplorerFolder, event?: MouseEvent): void {
     event?.stopPropagation();
 
-    const name = window.prompt(this.t('school.prompts.renameFolder'), folder.name);
-    if (!name?.trim() || name.trim() === folder.name) return;
+    const ref = this.dialog.open(FolderNameDialogComponent, {
+      width: 'min(92vw, 500px)',
+      maxWidth: '92vw',
+      data: {
+        title: this.t('school.renameFolderTitle'),
+        subtitle: this.t('school.renameFolderSubtitle'),
+        label: this.t('school.folderNameLabel'),
+        placeholder: this.t('school.folderNamePlaceholder'),
+        confirmText: this.t('common.save'),
+        cancelText: this.t('common.cancel'),
+        initialValue: folder.name
+      }
+    });
 
-    const updated: ExplorerFolder = {
-      ...folder,
-      name: name.trim(),
-      updatedAt: new Date().toISOString()
-    };
+    ref.afterClosed().subscribe(name => {
+      if (!name?.trim() || name.trim() === folder.name) return;
 
-    this.replaceFolderLocal(updated);
+      const updated: ExplorerFolder = {
+        ...folder,
+        name: name.trim(),
+        updatedAt: new Date().toISOString()
+      };
 
-    const request = folder.type === 'examples'
-      ? this.service.renameExampleFolder(folder.id, { name: updated.name, parentId: updated.parentId })
-      : this.service.renameTestFolder(folder.id, { name: updated.name, parentId: updated.parentId });
+      this.replaceFolderLocal(updated);
 
-    request.pipe(
-      catchError(() => of(updated))
-    ).subscribe(folderFromApi => {
-      this.replaceFolderLocal({
-        ...updated,
-        ...(folderFromApi as Partial<ExplorerFolder>),
-        type: folder.type
+      const request = folder.type === 'examples'
+        ? this.service.renameExampleFolder(folder.id, { name: updated.name, parentId: updated.parentId })
+        : this.service.renameTestFolder(folder.id, { name: updated.name, parentId: updated.parentId });
+
+      request.pipe(
+        catchError(() => of(updated))
+      ).subscribe(folderFromApi => {
+        this.replaceFolderLocal({
+          ...updated,
+          ...(folderFromApi as Partial<ExplorerFolder>),
+          type: folder.type
+        });
+        this.saveLocalFolders();
       });
-      this.saveLocalFolders();
     });
   }
 
@@ -532,55 +569,80 @@ export class SchoolComponent implements OnInit {
       : this.tests.some(item => (item.folderId ?? null) === folder.id);
 
     if (hasChildFolders || hasItems) {
-      window.alert(this.t('school.folderNotEmpty'));
+      this.dialog.open(ConfirmDialogComponent, {
+        width: '420px',
+        data: {
+          title: this.t('school.folderNotEmptyTitle'),
+          message: this.t('school.folderNotEmpty'),
+          confirmText: this.t('common.ok'),
+          cancelText: this.t('common.close')
+        }
+      });
       return;
     }
 
-    if (!window.confirm(this.t('school.folderDeleteConfirm', { name: folder.name }))) {
-      return;
-    }
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      data: {
+        title: this.t('school.deleteFolderTitle'),
+        message: this.t('school.folderDeleteConfirm', { name: folder.name }),
+        confirmText: this.t('common.delete'),
+        cancelText: this.t('common.cancel'),
+        requireConfirmation: true,
+        confirmationText: this.t('school.confirmDeleteFolder')
+      }
+    });
 
-    const previousExampleFolders = [...this.exampleFolders];
-    const previousTestFolders = [...this.testFolders];
+    ref.afterClosed().subscribe(confirmed => {
+      if (!confirmed) return;
 
-    this.removeFolderLocal(folder);
+      const previousExampleFolders = [...this.exampleFolders];
+      const previousTestFolders = [...this.testFolders];
 
-    const request = folder.type === 'examples'
-      ? this.service.deleteExampleFolder(folder.id)
-      : this.service.deleteTestFolder(folder.id);
+      this.removeFolderLocal(folder);
 
-    request.pipe(
-      catchError(() => {
-        this.exampleFolders = previousExampleFolders;
-        this.testFolders = previousTestFolders;
+      const request = folder.type === 'examples'
+        ? this.service.deleteExampleFolder(folder.id)
+        : this.service.deleteTestFolder(folder.id);
+
+      request.pipe(
+        catchError(() => {
+          this.exampleFolders = previousExampleFolders;
+          this.testFolders = previousTestFolders;
+          this.saveLocalFolders();
+          return of(null);
+        })
+      ).subscribe(() => {
         this.saveLocalFolders();
-        return of(null);
-      })
-    ).subscribe(() => {
-      this.saveLocalFolders();
+      });
     });
   }
 
   moveExampleWithPicker(example: ExampleOverviewDTO): void {
-    const targetFolderId = this.pickFolderTarget('examples', example.folderId ?? null);
-    if (targetFolderId === undefined) return;
-    this.moveExampleToFolder(example, targetFolderId);
+    this.openFolderPicker('examples', example.folderId ?? null)
+      .subscribe(targetFolderId => {
+        if (targetFolderId === undefined) return;
+        this.moveExampleToFolder(example, targetFolderId);
+      });
   }
 
   moveTestWithPicker(test: TestOverviewDTO): void {
-    const targetFolderId = this.pickFolderTarget('tests', test.folderId ?? null);
-    if (targetFolderId === undefined) return;
-    this.moveTestToFolder(test, targetFolderId);
+    this.openFolderPicker('tests', test.folderId ?? null)
+      .subscribe(targetFolderId => {
+        if (targetFolderId === undefined) return;
+        this.moveTestToFolder(test, targetFolderId);
+      });
   }
 
 
   moveFolderWithPicker(folder: ExplorerFolder, event?: MouseEvent): void {
     event?.stopPropagation();
 
-    const targetFolderId = this.pickFolderTarget(folder.type, folder.parentId ?? null, folder.id);
-    if (targetFolderId === undefined) return;
-
-    this.moveFolderToParent(folder, targetFolderId);
+    this.openFolderPicker(folder.type, folder.parentId ?? null, folder.id)
+      .subscribe(targetFolderId => {
+        if (targetFolderId === undefined) return;
+        this.moveFolderToParent(folder, targetFolderId);
+      });
   }
 
   moveExampleToFolder(example: ExampleOverviewDTO, folderId: string | null): void {
@@ -647,7 +709,15 @@ export class SchoolComponent implements OnInit {
     const parsed = Number(input);
 
     if (!Number.isInteger(parsed) || parsed < 0 || parsed > folders.length) {
-      window.alert(this.t('school.invalidSelection'));
+      this.dialog.open(ConfirmDialogComponent, {
+        width: '420px',
+        data: {
+          title: this.t('common.error'),
+          message: this.t('school.invalidSelection'),
+          confirmText: this.t('common.ok'),
+          cancelText: this.t('common.close')
+        }
+      });
       return undefined;
     }
 
@@ -791,7 +861,15 @@ export class SchoolComponent implements OnInit {
     }
 
     if (parentId && this.isDescendantFolder(parentId, folder.id, folder.type)) {
-      window.alert(this.t('school.folderMoveInvalid'));
+      this.dialog.open(ConfirmDialogComponent, {
+        width: '420px',
+        data: {
+          title: this.t('common.error'),
+          message: this.t('school.folderMoveInvalid'),
+          confirmText: this.t('common.ok'),
+          cancelText: this.t('common.close')
+        }
+      });
       return;
     }
 
@@ -1193,8 +1271,14 @@ export class SchoolComponent implements OnInit {
 
     ref.afterClosed().subscribe(confirmed => {
       if (!confirmed) return;
-      this.service.deleteTest(test.id).subscribe(() => {
-        this.loadTests();
+
+      this.service.deleteTest(test.id).subscribe({
+        next: () => {
+          this.loadTests();
+        },
+        error: (err) => {
+          this.showErrorSnack(err);
+        }
       });
     });
   }
@@ -1214,9 +1298,29 @@ export class SchoolComponent implements OnInit {
 
     ref.afterClosed().subscribe(confirmed => {
       if (!confirmed) return;
-      this.service.deleteExample(e.id).subscribe(() => {
-        this.loadExamples();
+
+      this.service.deleteExample(e.id).subscribe({
+        next: () => {
+          this.loadExamples();
+        },
+        error: (err) => {
+          this.showErrorSnack(err);
+        }
       });
+    });
+  }
+
+  private showErrorSnack(err: any): void {
+    const message =
+      (typeof err?.error === 'string' && err.error.trim()) ||
+      err?.error?.message ||
+      err?.message ||
+      this.t('common.error');
+
+    this.snack.open(message, this.t('common.close'), {
+      duration: 5000,
+      verticalPosition: 'bottom',
+      panelClass: ['snackbar-error']
     });
   }
 
@@ -1241,5 +1345,42 @@ export class SchoolComponent implements OnInit {
 
   getSchoolLogo(): string | null {
     return this.service.getSchoolLogo(this.school, this.schoolId!);
+  }
+
+  private openFolderPicker(
+    type: ExplorerTab,
+    currentFolderId: string | null,
+    excludeFolderId?: string
+  ) {
+    const folders = [...(type === 'examples' ? this.exampleFolders : this.testFolders)]
+      .filter(folder =>
+        !excludeFolderId ||
+        (folder.id !== excludeFolderId && !this.isDescendantFolder(folder.id, excludeFolderId, type))
+      )
+      .sort((a, b) =>
+        this.getFolderPathLabel(a.id, type).localeCompare(
+          this.getFolderPathLabel(b.id, type),
+          this.translate.currentLang || 'de',
+          { sensitivity: 'base' }
+        )
+      );
+
+    const dialogFolders: FolderPickerItem[] = folders.map(folder => ({
+      id: folder.id,
+      name: folder.name,
+      path: this.getFolderPathLabel(folder.id, type)
+    }));
+
+    return this.dialog.open(FolderPickerDialogComponent, {
+      width: 'min(92vw, 640px)',
+      maxWidth: '92vw',
+      data: {
+        title: this.t('school.folderPickerTitle'),
+        subtitle: this.t('school.folderPickerSubtitle'),
+        rootLabel: this.t('school.root'),
+        currentFolderId,
+        folders: dialogFolders
+      }
+    }).afterClosed();
   }
 }

@@ -7,7 +7,10 @@
     "reset": "Zurücksetzen",
     "loading": "Wird geladen...",
     "saving": "Wird gespeichert...",
-    "deleting": "Wird gelöscht..."
+    "deleting": "Wird gelöscht...",
+    "close": "Schließen",
+    "ok": "OK",
+    "create": "Erstellen"
   },
   "profile": {
     "title": "Mein Profil",
@@ -319,7 +322,13 @@
     "folderNotEmpty": "Der Ordner ist nicht leer. Bitte zuerst Unterordner und Inhalte verschieben oder löschen.",
     "folderDeleteConfirm": "Ordner \"{{name}}\" wirklich löschen?",
     "folderMoveInvalid": "Ein Ordner kann nicht in sich selbst oder in einen eigenen Unterordner verschoben werden.",
+    "folderPickerTitle": "Ordner auswählen",
+    "folderPickerSubtitle": "Wähle aus, in welchen Ordner verschoben werden soll.",
+    "folderPickerSearch": "Nach Ordner oder Pfad suchen",
+    "moveConfirm": "Verschieben",
     "deleteExampleTitle": "Beispiel löschen",
+    "deleteFolderTitle": "Ordner löschen",
+    "confirmDeleteFolder": "Ordner wirklich löschen",
     "deleteExampleMessage": "Beispiel \"{{name}}\" wirklich löschen?",
     "deleteTestTitle": "Test löschen",
     "deleteTestMessage": "Test \"{{name}}\" wirklich löschen?",
@@ -332,7 +341,13 @@
       "renameFolder": "Neuen Ordnernamen eingeben",
       "chooseTargetFolder": "Zielordner wählen:",
       "enterNumber": "Nummer eingeben:"
-    }
+    },
+    "createFolderTitle": "Ordner erstellen",
+    "createFolderSubtitle": "Lege einen neuen Ordner für Beispiele oder Tests an.",
+    "renameFolderTitle": "Ordner umbenennen",
+    "renameFolderSubtitle": "Passe den Namen des Ordners an.",
+    "folderNameLabel": "Ordnername",
+    "folderNamePlaceholder": "z. B. Schularbeiten / Kapitel 1 / Übungen"
   },
   "schoolSettings": {
     "title": "Schul-Einstellungen",
@@ -455,6 +470,121 @@
     "taskImageHelp": "Lade hier das Bild für die Aufgabenstellung hoch. Rechts siehst du direkt die Vorschau.",
     "solutionImageHelp": "Optional kannst du auch ein Lösungsbild hinterlegen.",
     "replaceImage": "Bild ersetzen",
-    "selectImage": "Bild auswählen"
+    "selectImage": "Bild auswählen",
+    "gapWidth": "Breite der Lücke (px)"
+  },
+  "createTest": {
+    "titleLabel": "Titel",
+    "titlePlaceholder": "1. Schularbeit ...",
+    "descriptionLabel": "Beschreibung",
+    "descriptionPlaceholder": "Arbeite sauber, runde sinnvoll, Rechenweg angeben ...",
+    "exampleSelectionSubtitle": "Wähle Aufgaben gesammelt über ein übersichtliches Popup mit Filtern und Ordnern.",
+    "selectedCount": "ausgewählt",
+    "addExamples": "Beispiele hinzufügen",
+    "selectedTasksTitle": "Ausgewählte Aufgaben",
+    "selectedTasksSubtitle": "Reihenfolge, Punkte und Layout kannst du hier direkt weiter anpassen.",
+    "taskTitle": "Aufgabentitel",
+    "taskTitlePlaceholder": "z. B. Gewinde berechnen",
+    "points": "Erreichbare Punkte",
+    "spacingAfterTask": "Abstand nach Aufgabe (px)",
+    "hideLayoutAndGrading": "Layout & Bewertung ausblenden",
+    "editLayoutAndGrading": "Layout & Bewertung bearbeiten",
+    "layoutAndSpacing": "Abstände & Layout",
+    "defaultSpacing": "Standard-Abstand",
+    "applyToAll": "Für alle übernehmen",
+    "untitled": "Unbenannter Test",
+    "closeWarning": {
+      "title": "Warnung",
+      "message": "Möchten Sie wirklich schließen? Nicht gespeicherte Änderungen gehen verloren.",
+      "confirm": "Schließen"
+    },
+    "preview": {
+      "name": "Name",
+      "class": "Klasse",
+      "date": "Datum",
+      "achievedPoints": "Erreichte Punkte",
+      "gradingKey": "Notenschlüssel",
+      "goodLuck": "Viel Erfolg!",
+      "exampleShort": "Bsp.",
+      "imagePreviewAlt": "Vorschau"
+    },
+    "print": {
+      "onlyTest": "Nur Test",
+      "includeSolutions": "Lösung mitdrucken",
+      "print": "Drucken"
+    },
+    "snackbar": {
+      "updated": "Test erfolgreich gespeichert",
+      "created": "Test erfolgreich erstellt",
+      "saveError": "Speichern fehlgeschlagen.",
+      "selectExampleFirst": "Bitte zuerst mindestens eine Aufgabe auswählen.",
+      "pdfDownloaded": "PDF wurde heruntergeladen.",
+      "pdfError": "PDF-Export fehlgeschlagen.",
+      "wordDownloaded": "Word-Datei wurde heruntergeladen.",
+      "wordError": "Word-Export fehlgeschlagen.",
+      "minimumTwoLevels": "Mindestens zwei Bewertungsstufen sollten bestehen bleiben."
+    },
+    "grading": {
+      "percentDisplayMode": "Notenspiegel aus Prozent berechnen",
+      "decimalScale": "Mit Komma",
+      "roundUpScale": "Aufrunden",
+      "title": "Bewertungssystem",
+      "percent": "Prozent",
+      "points": "Punkte",
+      "custom": "Custom",
+      "fromPercent": "ab %",
+      "fromPoints": "ab Punkten",
+      "level": "Stufe",
+      "of": "von",
+      "label": "Bezeichnung",
+      "labelPlaceholder": "1 / A / ++",
+      "addLevel": "Stufe hinzufügen",
+      "customSchema": "Eigenes Schema",
+      "presets": {
+        "atName": "Österreich 1–5",
+        "deName": "Deutschland 1–6",
+        "usName": "USA A–F",
+        "participationName": "Mitarbeit ++ bis --",
+        "customName": "Eigenes Schema"
+      },
+      "labels": {
+        "veryGood": "Sehr gut",
+        "good": "Gut",
+        "satisfactory": "Befriedigend",
+        "passing": "Genügend",
+        "failed": "Nicht genügend",
+        "sufficient": "Ausreichend",
+        "poor": "Mangelhaft",
+        "insufficient": "Ungenügend",
+        "excellent": "Excellent",
+        "goodEn": "Good",
+        "satisfactoryEn": "Satisfactory",
+        "passingEn": "Passing",
+        "fail": "Fail",
+        "veryActive": "Sehr aktiv",
+        "active": "Aktiv",
+        "ok": "In Ordnung",
+        "lowParticipation": "Wenig Mitarbeit",
+        "noParticipation": "Keine Mitarbeit",
+        "top": "Top",
+        "mid": "Mittel",
+        "low": "Niedrig"
+      }
+    },
+    "examplePicker": {
+      "title": "Beispiele auswählen",
+      "subtitle": "Übersichtliche Auswahl mit Ordnern, Filtern und Mehrfachauswahl.",
+      "available": "verfügbar",
+      "selected": "markiert",
+      "searchPlaceholder": "Nach Titel, Frage, Fokus, Typ oder Pfad suchen",
+      "search": "Suche",
+      "allTypes": "Alle Typen",
+      "allFocuses": "Alle Schwerpunkte",
+      "alreadyAdded": "Schon hinzugefügt",
+      "chosen": "Ausgewählt",
+      "emptyTitle": "Keine Beispiele gefunden",
+      "emptyText": "Probier andere Filter, eine andere Suche oder einen anderen Ordner.",
+      "done": "Fertig"
+    }
   }
 }

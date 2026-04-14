@@ -920,3 +920,63 @@
   background: transparent !important;
   box-shadow: none !important;
 }
+
+
+mat-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+mat-dialog-actions .mat-mdc-progress-bar {
+  flex: 1 0 100%;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+mat-dialog-actions button[mat-flat-button] mat-icon {
+  margin-right: 0.35rem;
+}
+
+
+.task-main-actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex-wrap: nowrap;
+}
+
+.task-main-actions .mat-mdc-icon-button {
+  flex-shrink: 0;
+}
+
+.selected-task-card .mat-mdc-form-field {
+  width: 100%;
+}
+
+.selected-task-card .mat-mdc-form-field-subscript-wrapper {
+  min-height: 1.35rem;
+}
+
+@media (max-width: 920px) {
+  .task-main-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+
+.layout-helper-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.field-helper-text {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}

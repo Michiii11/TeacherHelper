@@ -7,7 +7,10 @@
     "reset": "Reset",
     "loading": "Loading...",
     "saving": "Saving...",
-    "deleting": "Deleting..."
+    "deleting": "Deleting...",
+    "close": "Close",
+    "ok": "OK",
+    "create": "Create"
   },
   "profile": {
     "title": "My Profile",
@@ -327,9 +330,15 @@
     "folderNotEmpty": "The folder is not empty. Please move or delete subfolders and items first.",
     "folderDeleteConfirm": "Delete folder \"{{name}}\"?",
     "folderMoveInvalid": "A folder cannot be moved into itself or into one of its own subfolders.",
+    "folderPickerTitle": "Choose folder",
+    "folderPickerSubtitle": "Select the folder the item should be moved to.",
+    "folderPickerSearch": "Search folder or path",
+    "moveConfirm": "Move",
     "deleteExampleTitle": "Delete example",
     "deleteExampleMessage": "Delete example \"{{name}}\"?",
     "deleteTestTitle": "Delete test",
+    "deleteFolderTitle": "Delete folder",
+    "confirmDeleteFolder": "Delete folder permanently?",
     "deleteTestMessage": "Delete test \"{{name}}\"?",
     "emptyExamplesTitle": "No examples found",
     "emptyExamplesText": "Create a folder or add an example directly.",
@@ -340,7 +349,13 @@
       "renameFolder": "Enter new folder name",
       "chooseTargetFolder": "Choose target folder:",
       "enterNumber": "Enter number:"
-    }
+    },
+    "createFolderTitle": "Create folder",
+    "createFolderSubtitle": "Create a new folder for examples or tests.",
+    "renameFolderTitle": "Rename folder",
+    "renameFolderSubtitle": "Adjust the folder name.",
+    "folderNameLabel": "Folder name",
+    "folderNamePlaceholder": "e.g. Exams / Chapter 1 / Exercises"
   },
   "schoolSettings": {
     "title": "School settings",
@@ -463,6 +478,121 @@
     "taskImageHelp": "Upload the image for the task here. The preview is shown directly on the right.",
     "solutionImageHelp": "Optionally, you can also store a solution image.",
     "replaceImage": "Replace image",
-    "selectImage": "Choose image"
+    "selectImage": "Choose image",
+    "gapWidth": "Gap width in px"
+  },
+  "createTest": {
+    "titleLabel": "Title",
+    "titlePlaceholder": "1st test ...",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Work neatly, round appropriately, show your calculations ...",
+    "exampleSelectionSubtitle": "Choose tasks in one clear popup with filters and folders.",
+    "selectedCount": "selected",
+    "addExamples": "Add examples",
+    "selectedTasksTitle": "Selected tasks",
+    "selectedTasksSubtitle": "You can adjust order, points and layout directly here.",
+    "taskTitle": "Task title",
+    "taskTitlePlaceholder": "e.g. Calculate threads",
+    "points": "Available points",
+    "spacingAfterTask": "Spacing after task (px)",
+    "hideLayoutAndGrading": "Hide layout & grading",
+    "editLayoutAndGrading": "Edit layout & grading",
+    "layoutAndSpacing": "Spacing & layout",
+    "defaultSpacing": "Default spacing",
+    "applyToAll": "Apply to all",
+    "untitled": "Untitled test",
+    "closeWarning": {
+      "title": "Warning",
+      "message": "Do you really want to close? Unsaved changes will be lost.",
+      "confirm": "Close"
+    },
+    "preview": {
+      "name": "Name",
+      "class": "Class",
+      "date": "Date",
+      "achievedPoints": "Achieved points",
+      "gradingKey": "Grading key",
+      "goodLuck": "Good luck!",
+      "exampleShort": "Ex.",
+      "imagePreviewAlt": "Preview"
+    },
+    "print": {
+      "onlyTest": "Test only",
+      "includeSolutions": "Print solutions",
+      "print": "Print"
+    },
+    "snackbar": {
+      "updated": "Test saved successfully",
+      "created": "Test created successfully",
+      "saveError": "Saving failed.",
+      "selectExampleFirst": "Please select at least one task first.",
+      "pdfDownloaded": "PDF was downloaded.",
+      "pdfError": "PDF export failed.",
+      "wordDownloaded": "Word file was downloaded.",
+      "wordError": "Word export failed.",
+      "minimumTwoLevels": "At least two grading levels should remain."
+    },
+    "grading": {
+      "percentDisplayMode": "Grading scale calculation",
+      "decimalScale": "Decimal values",
+      "roundUpScale": "Round up",
+      "title": "Grading system",
+      "percent": "Percent",
+      "points": "Points",
+      "custom": "Custom",
+      "fromPercent": "from %",
+      "fromPoints": "from points",
+      "level": "Level",
+      "of": "of",
+      "label": "Label",
+      "labelPlaceholder": "1 / A / ++",
+      "addLevel": "Add level",
+      "customSchema": "Custom schema",
+      "presets": {
+        "atName": "Austria 1–5",
+        "deName": "Germany 1–6",
+        "usName": "USA A–F",
+        "participationName": "Participation ++ to --",
+        "customName": "Custom schema"
+      },
+      "labels": {
+        "veryGood": "Very good",
+        "good": "Good",
+        "satisfactory": "Satisfactory",
+        "passing": "Passing",
+        "failed": "Failed",
+        "sufficient": "Sufficient",
+        "poor": "Poor",
+        "insufficient": "Insufficient",
+        "excellent": "Excellent",
+        "goodEn": "Good",
+        "satisfactoryEn": "Satisfactory",
+        "passingEn": "Passing",
+        "fail": "Fail",
+        "veryActive": "Very active",
+        "active": "Active",
+        "ok": "Okay",
+        "lowParticipation": "Low participation",
+        "noParticipation": "No participation",
+        "top": "Top",
+        "mid": "Mid",
+        "low": "Low"
+      }
+    },
+    "examplePicker": {
+      "title": "Choose examples",
+      "subtitle": "Clear selection with folders, filters and multi-select.",
+      "available": "available",
+      "selected": "selected",
+      "searchPlaceholder": "Search by title, question, focus, type or path",
+      "search": "Search",
+      "allTypes": "All types",
+      "allFocuses": "All focuses",
+      "alreadyAdded": "Already added",
+      "chosen": "Selected",
+      "emptyTitle": "No examples found",
+      "emptyText": "Try other filters, another search or a different folder.",
+      "done": "Done"
+    }
   }
 }

@@ -12,6 +12,7 @@ import {Router} from '@angular/router'
 import {MatIcon} from '@angular/material/icon'
 import {MatSnackBar} from '@angular/material/snack-bar'
 import {TranslatePipe} from '@ngx-translate/core'
+import {FolderNameDialogComponent} from '../../dialog/folder-name-dialog/folder-name-dialog.component'
 
 @Component({
   selector: 'app-home',
@@ -61,7 +62,10 @@ export class HomeComponent implements OnInit{
   }
 
   openCreateDialog() {
-    const dialogRef = this.dialog.open(AddSchoolDialogComponent);
+    const dialogRef = this.dialog.open(AddSchoolDialogComponent, {
+      width: 'min(92vw, 500px)',
+      maxWidth: '92vw',
+    });
     dialogRef.afterClosed().subscribe(schoolName => {
       if (schoolName) {
         this.http.addSchool(schoolName).subscribe({
