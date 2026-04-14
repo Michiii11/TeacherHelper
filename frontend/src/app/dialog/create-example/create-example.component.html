@@ -223,14 +223,9 @@
             </mat-button-toggle-group>
 
             <div class="panel-box gap-fill-luecken" *ngIf="example.gapFillType === 'SELECT'">
-              <div class="panel-title">{{ 'exampleDialog.selectionGapHelp' | translate }}</div>
-
               <div *ngFor="let gap of example.gaps; let gi = index; trackBy: trackByGapId" class="gap-editor-card">
                 <div class="gap-editor-head">
                   <div class="gap-editor-index">{{ 'exampleDialog.gap' | translate }} {{ gi + 1 }}</div>
-                  <div class="gap-editor-preview gap-editor-preview-select-numbered">
-                    <span class="gap-preview-box gap-preview-box-numbered">{{ getGapNumber(gi) }}</span>
-                  </div>
                 </div>
 
                 <div class="gap-options">
@@ -262,25 +257,17 @@
             </div>
 
             <div class="panel-box gap-fill-luecken" *ngIf="example.gapFillType === 'INPUT'">
-              <div class="panel-title">{{ 'exampleDialog.freeTextGapHelp' | translate }}</div>
-
               <div *ngFor="let gap of example.gaps; let gi = index; trackBy: trackByGapId" class="gap-editor-card gap-editor-card-input">
                 <div class="gap-editor-head gap-editor-head-input">
                   <div class="gap-editor-index">{{ 'exampleDialog.gap' | translate }} {{ gi + 1 }}</div>
-                  <div class="gap-editor-preview gap-editor-preview-input gap-editor-preview-input-numbered">
-                    <span class="gap-preview-line-wrap" [style.width.px]="getGapWidth(gap)">
-                      <span class="gap-preview-label gap-preview-label-small">{{ getGapNumber(gi) }}</span>
-                      <span class="gap-preview-line"></span>
-                    </span>
-                  </div>
                 </div>
 
-                <mat-form-field appearance="outline" class="item-input">
-                  <mat-label>{{ 'exampleDialog.correctAnswer' | translate }}</mat-label>
-                  <input matInput [(ngModel)]="gap.solution" name="gapCorrectAnswer{{gi}}" (input)="onGapSolutionChange(gap)" placeholder="{{ 'exampleDialog.correctAnswerPlaceholder' | translate }}">
-                </mat-form-field>
+                <div>
+                  <mat-form-field appearance="outline" class="item-input">
+                    <mat-label>{{ 'exampleDialog.correctAnswer' | translate }}</mat-label>
+                    <input matInput [(ngModel)]="gap.solution" name="gapCorrectAnswer{{gi}}" (input)="onGapSolutionChange(gap)" placeholder="{{ 'exampleDialog.correctAnswerPlaceholder' | translate }}">
+                  </mat-form-field>
 
-                <div class="gap-width-controls">
                   <mat-form-field appearance="outline" class="gap-width-input-field">
                     <mat-label>{{ 'exampleDialog.gapWidth' | translate }}</mat-label>
                     <input
@@ -296,7 +283,7 @@
                     <span matTextSuffix>px</span>
                   </mat-form-field>
 
-                  <mat-slider min="90" max="420" step="10" discrete>
+                  <mat-slider min="30" max="420" step="10" discrete>
                     <input
                       matSliderThumb
                       [ngModel]="getGapWidth(gap)"
@@ -516,15 +503,6 @@
                     </tr>
                   }
                 </table>
-              }
-            </div>
-          } @else {
-            <div class="gap-input-preview-list">
-              @for (gap of example.gaps; track gap; let gi = $index){
-                <div class="gap-input-preview-item">
-                  <span class="gap-input-preview-index">{{ gi + 1 }}.</span>
-                  <span class="gap-input-preview-box" [style.width.px]="getGapWidth(gap)">{{ getGapNumber(gi) }}</span>
-                </div>
               }
             </div>
           }
