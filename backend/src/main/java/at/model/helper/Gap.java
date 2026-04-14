@@ -1,4 +1,3 @@
-// src/main/java/at/model/Gap.java
 package at.model.helper;
 
 import at.model.Example;
@@ -17,6 +16,9 @@ public class Gap {
 
     private String solution;
 
+    @Column(name = "width_px")
+    private Integer width;
+
     @ElementCollection
     @CollectionTable(name = "gap_options", joinColumns = @JoinColumn(name = "gap_id"))
     private List<Option> options = new ArrayList<>();
@@ -27,9 +29,10 @@ public class Gap {
 
     public Gap() {}
 
-    public Gap(String label, String solution, List<Option> options, Example example) {
+    public Gap(String label, String solution, Integer width, List<Option> options, Example example) {
         this.label = label;
         this.solution = solution;
+        this.width = width;
         this.options = options;
         this.example = example;
     }
@@ -40,6 +43,7 @@ public class Gap {
                 "id=" + id +
                 ", label='" + label + '\'' +
                 ", solution='" + solution + '\'' +
+                ", width=" + width +
                 ", options=" + options +
                 '}';
     }
@@ -50,14 +54,6 @@ public class Gap {
     public String getLabel() { return label; }
     public void setLabel(String label) { this.label = label; }
 
-    public List<Option> getOptions() { return options; }
-    public void setOptions(List<Option> options) {
-        this.options = options;
-    }
-
-    public Example getExample() { return example; }
-    public void setExample(Example example) { this.example = example; }
-
     public String getSolution() {
         return solution;
     }
@@ -65,4 +61,20 @@ public class Gap {
     public void setSolution(String solution) {
         this.solution = solution;
     }
+
+    public Integer getWidth() {
+        return width;
+    }
+
+    public void setWidth(Integer width) {
+        this.width = width;
+    }
+
+    public List<Option> getOptions() { return options; }
+    public void setOptions(List<Option> options) {
+        this.options = options;
+    }
+
+    public Example getExample() { return example; }
+    public void setExample(Example example) { this.example = example; }
 }

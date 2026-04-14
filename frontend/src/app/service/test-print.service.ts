@@ -66,7 +66,7 @@ export type TestPrintOptions = {
 export class TestPrintService {
   private readonly defaultImageWidth = 320;
 
-buildPreviewHtml(test: PrintableTest, selectedExamples: TestExampleDTO[], options: TestPrintOptions): string {
+  buildPreviewHtml(test: PrintableTest, selectedExamples: TestExampleDTO[], options: TestPrintOptions): string {
     return `
       <div class="test-print-root preview-mode">
         ${this.buildSharedStyles()}
@@ -323,6 +323,56 @@ buildPreviewHtml(test: PrintableTest, selectedExamples: TestExampleDTO[], option
         .task-points { white-space: nowrap; }
         .preview-panel { line-height: 1.4; }
         .task-instruction, .task-question { margin: 0 0 10px; white-space: pre-line; }
+        .task-question.rich-gap-question { white-space: normal; }
+        .gap-inline {
+          display: inline-flex;
+          vertical-align: middle;
+          align-items: center;
+          justify-content: center;
+          margin: 0 0.2rem;
+        }
+        .gap-inline-select {
+          min-width: 2.4rem;
+        }
+        .gap-inline-pill {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 2.1rem;
+          min-height: 2rem;
+          padding: 0.2rem 0.65rem;
+          border-radius: 999px;
+          border: 1px solid #94a3b8;
+          background: #e2e8f0;
+          color: #0f172a;
+          font-weight: 700;
+          line-height: 1;
+        }
+        .gap-inline-pill-number {
+          font-size: 0.95rem;
+        }
+        .gap-inline-input {
+          position: relative;
+          min-height: 2rem;
+          justify-content: flex-start;
+          padding-left: 1.6rem;
+          border-bottom: 2px solid #64748b;
+        }
+        .gap-inline-label {
+          position: absolute;
+          left: 0;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #475569;
+          font-size: 0.78rem;
+          font-weight: 700;
+          line-height: 1;
+        }
+        .gap-inline-line {
+          display: inline-block;
+          width: 100%;
+          height: 1px;
+        }
         .student-list > div, .solution-list > div { margin-bottom: 8px; }
         .solution-box { border: 1px solid #222; padding: 10px; min-height: 48px; white-space: pre-line; }
         .muted { color: #777; }
@@ -457,7 +507,9 @@ buildPreviewHtml(test: PrintableTest, selectedExamples: TestExampleDTO[], option
       ? `<p class="task-instruction">${this.formatMultiline(entry.example.instruction)}</p>`
       : '';
 
-    const question = `<p class="task-question">${this.formatMultiline(options.getQuestionWithGapLabels(entry.example))}</p>`;
+    const question = entry.example.type === ExampleTypes.GAP_FILL
+      ? `<div class="task-question rich-gap-question">${this.buildGapQuestionHtml(entry.example)}</div>`
+      : `<p class="task-question">${this.formatMultiline(options.getQuestionWithGapLabels(entry.example))}</p>`;
 
     return `
       <div class="task print-task" style="margin-bottom:${margin}px;">
@@ -470,6 +522,48 @@ buildPreviewHtml(test: PrintableTest, selectedExamples: TestExampleDTO[], option
         </div>
       </div>
     `;
+  }
+
+  private buildGapQuestionHtml(example: Example): string {
+    const escapedQuestion = this.escapeHtml(example.question || '');
+    let gapIndex = 0;
+
+    return escapedQuestion
+      .replace(/\n/g, '<br>')
+      .replace(/\{\d+\}/g, () => {
+        const gap = (example.gaps ?? [])[gapIndex];
+        const gapNumber = this.escapeHtml(String(gapIndex + 1));
+        gapIndex += 1;
+
+        if (example.gapFillType === 'INPUT') {
+          const width = this.normalizeGapInlineWidth((gap as any)?.width, (gap as any)?.solution);
+          return `
+            <span class="gap-inline gap-inline-input" style="width:${width}px;">
+              <span class="gap-inline-label gap-inline-label-number">${gapNumber}</span>
+              <span class="gap-inline-line"></span>
+            </span>
+          `;
+        }
+
+        return `
+          <span class="gap-inline gap-inline-select">
+            <span class="gap-inline-pill">
+              <span class="gap-inline-pill-number">${gapNumber}</span>
+            </span>
+          </span>
+        `;
+      });
+  }
+
+  private normalizeGapInlineWidth(value: number | string | null | undefined, solution: string | null | undefined): number {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return Math.max(90, Math.min(420, Math.round(parsed)));
+    }
+
+    const solutionLength = String(solution ?? '').trim().length;
+    const estimated = 90 + solutionLength * 9;
+    return Math.max(90, Math.min(420, estimated));
   }
 
   private buildTaskBodyHtml(example: Example, isSolution: boolean, options: TestPrintOptions): string {
@@ -496,11 +590,13 @@ buildPreviewHtml(test: PrintableTest, selectedExamples: TestExampleDTO[], option
           ? this.getConstructionSolutionImage(example)
           : this.getConstructionTaskImage(example);
 
-        const width = this.normalizeImageWidth((example as any).imageWidth);
+        const width = isSolution
+          ? this.normalizeImageWidth((example as any).solutionImageWidth)
+          : this.normalizeImageWidth((example as any).imageWidth);
 
         return `
           <div class="construction-preview">
-            ${image ? `<img src="${this.escapeHtml(image)}" alt="${this.escapeHtml(labels.imagePreviewAlt)}" class="image-preview"" />` : ''}
+            ${image ? `<img src="${this.escapeHtml(image)}" alt="${this.escapeHtml(labels.imagePreviewAlt)}" class="image-preview" style="width:${width}px;height:auto;" />` : ''}
           </div>
         `;
       }

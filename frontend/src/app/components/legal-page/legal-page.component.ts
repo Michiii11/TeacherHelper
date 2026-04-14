@@ -170,13 +170,13 @@ export class LegalPageComponent {
           {
             heading: 'Essential cookies',
             paragraphs: [
-              'TeacherHelper may use essential cookies or similar local storage mechanisms required for login, authentication, security, and user preferences such as dark mode.'
+              'TeacherHelper may use essential cookies or similar local storage mechanisms required for login, authentication, security, and user preferences.'
             ]
           },
           {
             heading: 'No marketing cookies',
             paragraphs: [
-              'TeacherHelper does not intentionally use advertising or marketing cookies unless explicitly added later.'
+              'TeacherHelper does not intentionally use advertising or marketing cookies.'
             ]
           },
           {

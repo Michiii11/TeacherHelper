@@ -1,10 +1,14 @@
 package at.repository;
 
+import at.dtos.Example.ExampleDTO;
+import at.dtos.Example.GapDTO;
+import at.dtos.School.SchoolDTO;
 import at.dtos.Test.CreateTestDTO;
 import at.dtos.Test.GradingLevelDTO;
 import at.dtos.Test.MoveTestToFolderDTO;
 import at.dtos.Test.TestExampleDTO;
 import at.dtos.Test.TestOverviewDTO;
+import at.dtos.User.UserDTO;
 import at.model.*;
 import at.security.TokenService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -198,7 +202,7 @@ public class TestRepository {
 
         List<TestExampleDTO> exampleList = new LinkedList<>();
         t.getExampleList().forEach(example ->
-                exampleList.add(new TestExampleDTO(example.getExample(), example.getPoints(), example.getTitle())));
+                exampleList.add(new TestExampleDTO(mapToExampleDTO(example.getExample()), example.getPoints(), example.getTitle())));
 
         return new CreateTestDTO(
                 "",
@@ -218,13 +222,51 @@ public class TestRepository {
         );
     }
 
+    private ExampleDTO mapToExampleDTO(Example e) {
+        return new ExampleDTO(
+                e.getId(),
+                e.getAdmin().toUserDTO(),
+                e.getType(),
+                e.getInstruction(),
+                e.getQuestion(),
+                e.getSolution(),
+                e.getSolutionUrl(),
+                e.getImageUrl(),
+                e.getImageWidth(),
+                e.getSolutionImageWidth(),
+                e.getFocusList(),
+                new SchoolDTO(
+                        e.getSchool().getId(),
+                        e.getSchool().getName(),
+                        e.getSchool().getLogoUrl(),
+                        e.getSchool().getAdminDTO(),
+                        0,
+                        null
+                ),
+                e.getAnswers(),
+                e.getOptions(),
+                e.getGapFillType(),
+                new LinkedList<>(
+                        e.getGaps().stream().map(g -> new GapDTO(
+                                g.getId(),
+                                g.getLabel(),
+                                g.getSolution(),
+                                g.getWidth(),
+                                g.getOptions()
+                        )).toList()
+                ),
+                e.getAssigns(),
+                e.getAssignRightItems()
+        );
+    }
+
     private void addExamplesToTest(Test test, List<TestExampleDTO> exampleDTOs) {
         if (exampleDTOs == null) {
             return;
         }
 
         for (TestExampleDTO exampleDTO : exampleDTOs) {
-            Example managedExample = em.find(Example.class, exampleDTO.example().getId());
+            Example managedExample = em.find(Example.class, exampleDTO.example().id());
             TestExample testExample = new TestExample(test, managedExample, exampleDTO.points(), exampleDTO.title());
             em.persist(testExample);
             test.getExampleList().add(testExample);

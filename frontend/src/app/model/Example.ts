@@ -95,6 +95,7 @@ export interface Gap {
   id: string;
   label: string;
   solution: string;
+  width?: number | null;
   options: Option[];
 }
 

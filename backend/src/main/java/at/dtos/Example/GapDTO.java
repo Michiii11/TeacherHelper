@@ -4,5 +4,5 @@ import at.model.helper.Option;
 
 import java.util.List;
 
-public record GapDTO(Long id, String label, String solution, List<Option> options) {
+public record GapDTO(Long id, String label, String solution, Integer width, List<Option> options) {
 }

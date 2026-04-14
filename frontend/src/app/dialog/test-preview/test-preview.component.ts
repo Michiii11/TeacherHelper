@@ -7,7 +7,6 @@ import { MAT_DIALOG_DATA, MatDialogContent, MatDialogRef } from '@angular/materi
 import {MatButton, MatIconButton} from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { MatPseudoCheckbox } from '@angular/material/core';
 
 import { Example, ExampleTypes } from '../../model/Example';
 import { CreateTestDTO, GradingLevel, TestExampleDTO } from '../../model/Test';

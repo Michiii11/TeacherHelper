@@ -143,6 +143,7 @@ public class Example {
                     g.getId(),
                     g.getLabel(),
                     g.getSolution(),
+                    g.getWidth(),
                     new LinkedList<>(g.getOptions())
             ));
         }

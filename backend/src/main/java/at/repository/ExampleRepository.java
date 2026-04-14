@@ -131,7 +131,7 @@ public class ExampleRepository {
             case GAP_FILL -> {
                 List<Gap> gaps = new LinkedList<>();
                 for (GapDTO g : dto.gaps()) {
-                    gaps.add(new Gap(g.label(), g.solution(), g.options(), example));
+                    gaps.add(new Gap(g.label(), g.solution(), g.width(), g.options(), example));
                 }
                 example.setGaps(gaps);
                 example.setGapFillType(dto.gapFillType());
@@ -199,7 +199,7 @@ public class ExampleRepository {
             case GAP_FILL -> {
                 List<Gap> gaps = new LinkedList<>();
                 for (GapDTO g : dto.gaps()) {
-                    gaps.add(new Gap(g.label(), g.solution(), g.options(), example));
+                    gaps.add(new Gap(g.label(), g.solution(), g.width(), g.options(), example));
                 }
                 example.getGaps().clear();
                 example.getGaps().addAll(gaps);
