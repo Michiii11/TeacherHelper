@@ -139,7 +139,12 @@ public class Example {
     public List<GapDTO> getGapDTO() {
         List<GapDTO> dtos = new LinkedList<>();
         for (Gap g : getGaps()) {
-            dtos.add(new GapDTO(g.getId(), g.getLabel(), g.getSolution(), g.getOptions()));
+            dtos.add(new GapDTO(
+                    g.getId(),
+                    g.getLabel(),
+                    g.getSolution(),
+                    new LinkedList<>(g.getOptions())
+            ));
         }
         return dtos;
     }

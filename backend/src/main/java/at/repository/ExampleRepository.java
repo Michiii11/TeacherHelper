@@ -34,6 +34,9 @@ public class ExampleRepository {
     @Inject
     MediaStorageService mediaStorageService;
 
+    @Inject
+    SchoolRepository schoolRepository;
+
     public List<ExampleOverviewDTO> getAllExamples(Long schoolId) {
         List<Example> examples = em.createQuery(
                 "SELECT e FROM Example e WHERE e.school.id = :schoolId ORDER BY e.id",
@@ -56,30 +59,39 @@ public class ExampleRepository {
         ).collect(Collectors.toList());
     }
 
+    @Transactional
     public List<ExampleDTO> getFullExamples(Long schoolId) {
-        return getAllExamples(schoolId).stream().map(e -> {
-            Example example = em.find(Example.class, e.id());
-            return new ExampleDTO(
-                    example.getId(),
-                    example.getAdmin().toUserDTO(),
-                    example.getType(),
-                    example.getInstruction(),
-                    example.getQuestion(),
-                    example.getSolution(),
-                    example.getSolutionUrl(),
-                    example.getImageUrl(),
-                    example.getImageWidth(),
-                    example.getSolutionImageWidth(),
-                    example.getFocusList(),
-                    new SchoolRepository().toSchoolDTO(example.getSchool()),
-                    example.getAnswers(),
-                    example.getOptions(),
-                    example.getGapFillType(),
-                    example.getGaps(),
-                    example.getAssigns(),
-                    example.getAssignRightItems()
-            );
-        }).collect(Collectors.toList());
+        List<Example> examples = em.createQuery(
+                        "SELECT DISTINCT e FROM Example e " +
+                                "LEFT JOIN FETCH e.gaps " +
+                                "WHERE e.school.id = :schoolId " +
+                                "ORDER BY e.id",
+                        Example.class
+                ).setParameter("schoolId", schoolId)
+                .getResultList();
+
+        return examples.stream().map(example ->
+                new ExampleDTO(
+                        example.getId(),
+                        example.getAdmin().toUserDTO(),
+                        example.getType(),
+                        example.getInstruction(),
+                        example.getQuestion(),
+                        example.getSolution(),
+                        example.getSolutionUrl(),
+                        example.getImageUrl(),
+                        example.getImageWidth(),
+                        example.getSolutionImageWidth(),
+                        new LinkedList<>(example.getFocusList()),
+                        schoolRepository.toSchoolDTO(example.getSchool()),
+                        new LinkedList<>(example.getAnswers()),
+                        new LinkedList<>(example.getOptions()),
+                        example.getGapFillType(),
+                        new LinkedList<>(example.getGapDTO()),
+                        new LinkedList<>(example.getAssigns()),
+                        new LinkedList<>(example.getAssignRightItems())
+                )
+        ).collect(Collectors.toList());
     }
 
     @Transactional

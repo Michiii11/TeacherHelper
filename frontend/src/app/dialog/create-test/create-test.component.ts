@@ -1,4 +1,5 @@
 import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
@@ -19,7 +20,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Example, ExampleDTO, ExampleTypeLabels, ExampleTypes } from '../../model/Example';
 import { CreateTestDTO, GradingLevel, TestExample, TestExampleDTO } from '../../model/Test';
 import { HttpService } from '../../service/http.service';
-import { TestPrintService } from '../../service/test-print.service';
+import { TestBranding, TestPrintLabels, TestPrintService } from '../../service/test-print.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { ExamplePickerDialogComponent, ExamplePickerDialogResult } from '../example-picker-dialog/example-picker-dialog.component';
 import { MatPseudoCheckbox } from '@angular/material/core';
@@ -64,7 +65,6 @@ type PersistedTestSettings = {
     MatIconModule,
     MatDividerModule,
     MatIconButton,
-    MatPseudoCheckbox,
     MatButtonToggle,
     MatButtonToggleGroup,
     MatProgressBarModule,
@@ -79,6 +79,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private translate = inject(TranslateService);
+  private sanitizer = inject(DomSanitizer);
   private service = inject(HttpService);
   private testPrintService = inject(TestPrintService);
   private readonly destroy$ = new Subject<void>();
@@ -90,6 +91,9 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   isExportingPdf = false;
   isExportingWord = false;
   isSaving = false;
+
+  previewHtml: SafeHtml = '';
+  labels: TestPrintLabels = this.buildPrintLabels();
 
   allExamples: ExampleDTO[] = [];
   exampleFolders: ExplorerFolder[] = [];
@@ -207,6 +211,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
             this.test.exampleList = hydratedEntries;
             this.hydratePersistedSettings(response);
             this.initializeTaskSpacing();
+            this.refreshPreviewHtml();
             this.hasUnsavedChanges = false;
           },
         });
@@ -216,6 +221,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((examples) => {
         this.allExamples = this.hydrateConstructionImagesForExamples(examples as ExampleDTO[]);
+        this.refreshPreviewHtml();
       });
 
     this.service.getExampleFolders(String(this.data.schoolId))
@@ -230,6 +236,49 @@ export class CreateTestComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.exampleFolders = [];
+        }
+      });
+
+    this.translate.onLangChange
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.labels = this.buildPrintLabels();
+        this.refreshPreviewHtml();
+      });
+
+    this.loadSchoolBranding();
+    this.refreshPreviewHtml();
+  }
+
+
+  private loadSchoolBranding(): void {
+    const serviceAny = this.service as any;
+    const request = serviceAny?.getSchool?.(this.data.schoolId) ?? serviceAny?.getSchoolById?.(this.data.schoolId);
+
+    if (!request?.subscribe) {
+      this.refreshPreviewHtml();
+      return;
+    }
+
+    request
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (school: any) => {
+          if (!school) {
+            this.refreshPreviewHtml();
+            return;
+          }
+
+          (this.test as any).schoolName = (this.test as any).schoolName || school?.name || '';
+          (this.test as any).schoolLogoUrl = (this.test as any).schoolLogoUrl || (this.service as any)?.getSchoolLogo?.(school, this.data.schoolId) || school?.logoUrl || school?.logo || '';
+          (this.test as any).school = {
+            ...(this.test as any).school,
+            ...school,
+          };
+          this.refreshPreviewHtml();
+        },
+        error: () => {
+          this.refreshPreviewHtml();
         }
       });
   }
@@ -434,6 +483,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       getTaskSpacing: (exampleId) => this.getTaskSpacing(exampleId),
       getQuestionWithGapLabels: (example) => this.getQuestionWithGapLabels(example),
       getLetter: (index) => this.getLetter(index),
+      labels: this.labels,
+      branding: this.resolveBranding(),
     });
 
     this.isExportingPdf = false;
@@ -461,6 +512,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       getTaskSpacing: (exampleId) => this.getTaskSpacing(exampleId),
       getQuestionWithGapLabels: (example) => this.getQuestionWithGapLabels(example),
       getLetter: (index) => this.getLetter(index),
+      labels: this.labels,
+      branding: this.resolveBranding(),
     });
 
     this.isExportingWord = false;
@@ -501,6 +554,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   markDirty(): void {
     this.hasUnsavedChanges = true;
     this.attachPersistedSettingsToPayload();
+    this.refreshPreviewHtml();
   }
 
   onPointsChanged(): void {
@@ -803,7 +857,73 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       getTaskSpacing: (exampleId) => this.getTaskSpacing(exampleId),
       getQuestionWithGapLabels: (example) => this.getQuestionWithGapLabels(example),
       getLetter: (index) => this.getLetter(index),
+      labels: this.labels,
+      branding: this.resolveBranding(),
     });
+  }
+
+
+  private translateOrFallback(key: string, fallback: string): string {
+    const value = this.translate.instant(key);
+    return value && value !== key ? value : fallback;
+  }
+
+  private buildPrintLabels(): TestPrintLabels {
+    return {
+      name: this.translateOrFallback('createTest.preview.name', 'Name'),
+      class: this.translateOrFallback('createTest.preview.class', 'Class'),
+      date: this.translateOrFallback('createTest.preview.date', 'Date'),
+      achievedPoints: this.translateOrFallback('createTest.preview.achievedPoints', 'Achieved points'),
+      gradeHeader: this.gradeHeaderLabel || this.translateOrFallback('createTest.preview.gradeHeader', 'Grade'),
+      gradingKey: this.translateOrFallback('createTest.preview.gradingKey', 'Grading key'),
+      points: this.translateOrFallback('createTest.grading.points', 'Points'),
+      exampleShort: this.translateOrFallback('createTest.preview.exampleShort', 'Ex.'),
+      goodLuck: this.translateOrFallback('createTest.preview.goodLuck', 'Good luck!'),
+      untitled: this.translateOrFallback('createTest.untitled', 'Untitled test'),
+      solutionSuffix: this.translateOrFallback('createTest.print.solutionSuffix', '– Solution'),
+      solutionNote: this.translateOrFallback('createTest.print.solutionNote', 'These pages contain the sample solutions.'),
+      noSolution: this.translateOrFallback('createTest.print.noSolution', 'No solution stored.'),
+      gap: this.translateOrFallback('exampleDialog.gap', 'Gap'),
+      imagePreviewAlt: this.translateOrFallback('createTest.preview.imagePreviewAlt', 'Preview image'),
+      previewTitle: this.translateOrFallback('createTest.preview.title', 'Test preview'),
+      previewSubtitle: this.translateOrFallback('createTest.preview.subtitle', 'Preview and print layout'),
+      question: this.translateOrFallback('school.question', 'Question'),
+    };
+  }
+
+  private resolveBranding(): TestBranding {
+    const school = (this.test as any)?.school ?? null;
+    const dialogData = this.data as any;
+    const schoolId = Number((this.test as any)?.schoolId || dialogData?.schoolId || this.data.schoolId);
+    const logoFromService = (this.service as any)?.getSchoolLogo?.(school, schoolId);
+
+    return {
+      schoolName: (this.test as any)?.schoolName || school?.name || dialogData?.schoolName || '',
+      schoolLogoUrl: logoFromService || (this.test as any)?.schoolLogoUrl || school?.logoUrl || school?.logo || dialogData?.schoolLogoUrl || dialogData?.schoolLogo || '',
+      showNameWhenLogoExists: true,
+    };
+  }
+
+  private isDarkModeActive(): boolean {
+    return document.documentElement.classList.contains('dark-mode') || document.body.classList.contains('dark-mode');
+  }
+
+  private refreshPreviewHtml(): void {
+    this.attachPersistedSettingsToPayload();
+    this.labels = this.buildPrintLabels();
+
+    const html = this.testPrintService.buildPreviewHtml(this.test, this.selectedExamples, {
+      printCopies: 1,
+      includeSolutionSheet: this.includeSolutionSheet,
+      getGradeRangeLabel: (gradeOrIndex: number) => this.getGradeRangeLabelByIndex(gradeOrIndex - 1),
+      getTaskSpacing: (exampleId) => this.getTaskSpacing(exampleId),
+      getQuestionWithGapLabels: (example) => this.getQuestionWithGapLabels(example),
+      getLetter: (index) => this.getLetter(index),
+      labels: this.labels,
+      branding: this.resolveBranding(),
+    });
+
+    this.previewHtml = this.sanitizer.bypassSecurityTrustHtml(html);
   }
 
   private hydrateConstructionImagesForExamples(examples: ExampleDTO[]): ExampleDTO[] {
