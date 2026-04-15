@@ -8,6 +8,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { ExampleDTO, ExampleTypeLabels, ExampleTypes } from '../../model/Example';
+import {MatFormField, MatLabel} from '@angular/material/input'
+import {MatOption, MatSelect} from '@angular/material/select'
 
 type ExplorerFolder = {
   id: string;
@@ -29,6 +31,8 @@ export type ExamplePickerDialogResult = {
   selectedIds: number[];
 };
 
+type ExampleSortKey = 'folder_title' | 'title_asc' | 'title_desc' | 'type_title' | 'newest' | 'oldest';
+
 @Component({
   selector: 'app-example-picker-dialog',
   standalone: true,
@@ -40,6 +44,10 @@ export type ExamplePickerDialogResult = {
     MatIconModule,
     MatCheckboxModule,
     TranslateModule,
+    MatFormField,
+    MatLabel,
+    MatSelect,
+    MatOption,
   ],
   templateUrl: './example-picker-dialog.component.html',
   styleUrl: './example-picker-dialog.component.scss',
@@ -52,6 +60,16 @@ export class ExamplePickerDialogComponent implements OnInit {
   selectedFolderId: string | null = null;
   selectedTypes: string[] = [];
   selectedFocuses: string[] = [];
+  sortBy: 'folder_title' | 'title_asc' | 'title_desc' | 'type_title' | 'newest' | 'oldest' = 'folder_title';
+
+  readonly sortOptions = [
+    { value: 'folder_title', label: 'Ordner / Titel (A–Z)' },
+    { value: 'title_asc', label: 'Titel (A–Z)' },
+    { value: 'title_desc', label: 'Titel (Z–A)' },
+    { value: 'type_title', label: 'Typ / Titel' },
+    { value: 'newest', label: 'Neueste zuerst' },
+    { value: 'oldest', label: 'Älteste zuerst' },
+  ];
 
   constructor(
     @Inject(MAT_DIALOG_DATA) readonly data: ExamplePickerDialogData,
@@ -120,11 +138,7 @@ export class ExamplePickerDialogComponent implements OnInit {
         if (!query) return true;
         return this.matchesQuery(example, query);
       })
-      .sort((a, b) => {
-        const pathCompare = this.getFolderPathLabel(a.folderId ?? null).localeCompare(this.getFolderPathLabel(b.folderId ?? null), 'de', { sensitivity: 'base' });
-        if (pathCompare !== 0) return pathCompare;
-        return this.getExampleTitle(a).localeCompare(this.getExampleTitle(b), 'de', { sensitivity: 'base' });
-      });
+      .sort((a, b) => this.compareExamples(a, b));
   }
 
   get availableCount(): number {
@@ -217,6 +231,61 @@ export class ExamplePickerDialogComponent implements OnInit {
     this.dialogRef.close();
   }
 
+  private compareExamples(a: ExampleDTO, b: ExampleDTO): number {
+    const titleA = this.getExampleTitle(a);
+    const titleB = this.getExampleTitle(b);
+    const folderA = this.getFolderPathLabel(a.folderId ?? null);
+    const folderB = this.getFolderPathLabel(b.folderId ?? null);
+    const typeA = this.getTypeLabel(a.type);
+    const typeB = this.getTypeLabel(b.type);
+
+    switch (this.sortBy) {
+      case 'title_asc':
+        return this.compareText(titleA, titleB) || this.compareText(folderA, folderB);
+
+      case 'title_desc':
+        return this.compareText(titleB, titleA) || this.compareText(folderA, folderB);
+
+      case 'type_title':
+        return this.compareText(typeA, typeB)
+          || this.compareText(titleA, titleB)
+          || this.compareText(folderA, folderB);
+
+      case 'newest':
+        return this.compareDatesDesc(a, b)
+          || this.compareText(titleA, titleB)
+          || this.compareText(folderA, folderB);
+
+      case 'oldest':
+        return this.compareDatesAsc(a, b)
+          || this.compareText(titleA, titleB)
+          || this.compareText(folderA, folderB);
+
+      case 'folder_title':
+      default:
+        return this.compareText(folderA, folderB)
+          || this.compareText(titleA, titleB);
+    }
+  }
+
+  private compareText(a: string, b: string): number {
+    return a.localeCompare(b, 'de', { sensitivity: 'base' });
+  }
+
+  private compareDatesDesc(a: ExampleDTO, b: ExampleDTO): number {
+    return this.getSortTimestamp(b) - this.getSortTimestamp(a);
+  }
+
+  private compareDatesAsc(a: ExampleDTO, b: ExampleDTO): number {
+    return this.getSortTimestamp(a) - this.getSortTimestamp(b);
+  }
+
+  private getSortTimestamp(example: ExampleDTO): number {
+    const value = (example as any).updatedAt ?? (example as any).createdAt ?? '';
+    const timestamp = Date.parse(value);
+    return Number.isFinite(timestamp) ? timestamp : 0;
+  }
+
   private matchesQuery(example: ExampleDTO, query: string): boolean {
     const focusLabels = (example.focusList ?? []).map(focus => focus.label ?? '').join(' ');
     const haystack = this.normalize([
@@ -237,7 +306,7 @@ export class ExamplePickerDialogComponent implements OnInit {
     return value
       .replace(/_/g, ' ')
       .toLowerCase()
-      .replace(/\b\w/g, char => char.toUpperCase());
+      .replace(/\w/g, char => char.toUpperCase());
   }
 
   private normalize(value: string): string {

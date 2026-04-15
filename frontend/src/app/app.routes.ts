@@ -7,6 +7,7 @@ import {NotFoundComponent} from './components/not-found/not-found.component'
 import {ProfileComponent} from './components/profile/profile.component'
 import {LegalPageComponent} from './components/legal-page/legal-page.component'
 import {LandingPageComponent} from './components/landing-page/landing-page.component'
+import {HelpComponent} from './components/help/help.component'
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
@@ -14,6 +15,11 @@ export const routes: Routes = [
   { path: 'collection/:id', component: SchoolComponent, canActivate: [AuthGuard] },
   { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
   { path: 'login', component: LoginComponent },
+
+  {
+    path: 'help',
+    component: HelpComponent,
+  },
 
   {
     path: 'privacy',
@@ -40,6 +46,5 @@ export const routes: Routes = [
     component: LegalPageComponent,
     data: { pageKey: 'support' }
   },
-
   { path: '**', component: NotFoundComponent }
 ];

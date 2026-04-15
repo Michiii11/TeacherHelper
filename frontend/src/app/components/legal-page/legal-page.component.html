@@ -9,7 +9,7 @@
     <div class="hero-actions">
       <a routerLink="/home" mat-stroked-button>
         <mat-icon>arrow_back</mat-icon>
-        Zurück
+        {{ 'legalPages.back' | translate }}
       </a>
 
       <a
@@ -42,6 +42,6 @@
   </section>
 
   <section class="bottom-note">
-    <p>Last updated {{ currentYear }}</p>
+    <p>{{ 'legalPages.lastUpdated' | translate }} {{ currentYear }}</p>
   </section>
 </main>

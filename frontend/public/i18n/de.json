@@ -586,5 +586,274 @@
       "emptyText": "Probier andere Filter, eine andere Suche oder einen anderen Ordner.",
       "done": "Fertig"
     }
+  },
+  "legalPages": {
+    "back": "Zurück",
+    "lastUpdated": "Zuletzt aktualisiert",
+    "pages": {
+      "privacy": {
+        "title": "Datenschutzerklärung",
+        "subtitle": "Wie TeacherHelper Daten erhebt, verwendet und speichert.",
+        "sections": [
+          {
+            "heading": "Überblick",
+            "paragraphs": [
+              "TeacherHelper verarbeitet personenbezogene und nutzungsbezogene Daten nur, um die Plattform und ihre Kernfunktionen bereitzustellen.",
+              "Wir versuchen, so wenig Daten wie möglich zu erheben und verkaufen keine personenbezogenen Daten."
+            ]
+          },
+          {
+            "heading": "Welche Daten erhoben werden können",
+            "bullets": [
+              "Kontodaten wie Benutzername und E-Mail-Adresse",
+              "Sammlungs-, Test- und Beispieldaten, die innerhalb der App erstellt werden",
+              "Authentifizierungsbezogene technische Daten wie Login- oder Sitzungsinformationen",
+              "Hochgeladene Bilder oder andere Dateien, die du ausdrücklich bereitstellst"
+            ]
+          },
+          {
+            "heading": "Warum Daten verwendet werden",
+            "bullets": [
+              "Für Login und Kontoverwaltung",
+              "Zum Speichern und Anzeigen von Sammlungen, Tests und Beispielen",
+              "Um die Anwendung sicher und stabil zu betreiben",
+              "Zur Bearbeitung von Support- oder Löschanfragen"
+            ]
+          },
+          {
+            "heading": "Speicherung und Drittanbieter",
+            "paragraphs": [
+              "Daten können in Datenbanken, Hosting-Systemen und Cloud-Speichern gespeichert werden, die für den Betrieb der Anwendung notwendig sind.",
+              "Drittanbieter-Infrastruktur wird nur zum Betrieb des Dienstes verwendet und nicht für Werbezwecke."
+            ]
+          },
+          {
+            "heading": "Deine Rechte",
+            "bullets": [
+              "Auskunft über gespeicherte Daten",
+              "Berichtigung falscher Daten",
+              "Löschung deines Accounts oder gespeicherter Inhalte, sofern anwendbar",
+              "Fragen zur Verarbeitung deiner Daten"
+            ]
+          }
+        ]
+      },
+      "terms": {
+        "title": "Nutzungsbedingungen",
+        "subtitle": "Regeln und Bedingungen für die Nutzung von TeacherHelper.",
+        "sections": [
+          {
+            "heading": "Nutzung der Plattform",
+            "paragraphs": [
+              "TeacherHelper unterstützt beim Organisieren von Bildungsinhalten wie Beispielen und Tests.",
+              "Mit der Nutzung der Plattform erklärst du dich bereit, sie rechtmäßig und verantwortungsvoll zu verwenden."
+            ]
+          },
+          {
+            "heading": "Erlaubte Nutzung",
+            "bullets": [
+              "Verwende die Anwendung nur für legitime schulische oder organisatorische Zwecke",
+              "Halte deine Zugangsdaten sicher",
+              "Respektiere die Rechte und die Privatsphäre anderer Nutzer:innen"
+            ]
+          },
+          {
+            "heading": "Nicht erlaubt",
+            "bullets": [
+              "Hochladen rechtswidriger, schädlicher oder missbräuchlicher Inhalte",
+              "Versuche, den Dienst zu stören, zu analysieren oder missbräuchlich zu verwenden",
+              "Nutzung der Plattform in einer Weise, die Datenintegrität oder Verfügbarkeit gefährdet"
+            ]
+          },
+          {
+            "heading": "Verfügbarkeit und Gewährleistung",
+            "paragraphs": [
+              "Die Anwendung wird ohne Gewähr für eine unterbrechungsfreie Verfügbarkeit bereitgestellt.",
+              "Funktionen können jederzeit geändert, verbessert oder entfernt werden."
+            ]
+          },
+          {
+            "heading": "Haftungsbeschränkung",
+            "paragraphs": [
+              "Der Betreiber haftet nicht für indirekte Schäden, Datenverlust oder Ausfälle, soweit dies nicht gesetzlich vorgeschrieben ist."
+            ]
+          }
+        ]
+      },
+      "legal": {
+        "title": "Impressum",
+        "subtitle": "Betreiber- und Kontaktinformationen.",
+        "sections": [
+          {
+            "heading": "Projekt",
+            "paragraphs": [
+              "TeacherHelper"
+            ]
+          },
+          {
+            "heading": "Betreiber",
+            "paragraphs": [
+              "Michael Leisch"
+            ]
+          },
+          {
+            "heading": "Kontakt",
+            "paragraphs": [
+              "michael.leisch@gmx.at"
+            ]
+          },
+          {
+            "heading": "Verantwortung für Inhalte",
+            "paragraphs": [
+              "Der Betreiber ist nach den geltenden gesetzlichen Bestimmungen für die Inhalte dieser Anwendung verantwortlich."
+            ]
+          }
+        ]
+      },
+      "cookies": {
+        "title": "Cookie-Richtlinie",
+        "subtitle": "Informationen über Cookies und ähnliche Technologien.",
+        "sections": [
+          {
+            "heading": "Essenzielle Cookies",
+            "paragraphs": [
+              "TeacherHelper kann essenzielle Cookies oder vergleichbare lokale Speichermechanismen verwenden, die für Login, Authentifizierung, Sicherheit und Benutzereinstellungen erforderlich sind."
+            ]
+          },
+          {
+            "heading": "Keine Marketing-Cookies",
+            "paragraphs": [
+              "TeacherHelper verwendet bewusst keine Werbe- oder Marketing-Cookies."
+            ]
+          },
+          {
+            "heading": "Cookies verwalten",
+            "paragraphs": [
+              "Du kannst Cookies oder lokale Speicher-Einträge normalerweise über deine Browser-Einstellungen löschen. Beachte, dass du dadurch abgemeldet wirst oder gespeicherte Einstellungen verloren gehen können."
+            ]
+          }
+        ]
+      },
+      "support": {
+        "title": "Support",
+        "subtitle": "Brauchst du Hilfe, hast du einen Bug gefunden oder eine Idee?",
+        "primaryActionLabel": "GitHub Issue öffnen",
+        "sections": [
+          {
+            "heading": "GitHub Issues (empfohlen)",
+            "paragraphs": [
+              "Der bevorzugte Support-Kanal für dieses Projekt sind GitHub Issues.",
+              "Nutze sie für Bug-Reports, Feature-Wünsche oder reproduzierbare technische Probleme."
+            ]
+          },
+          {
+            "heading": "Persönlicher Support",
+            "paragraphs": [
+              "Wenn dein Anliegen privat, accountbezogen oder nicht für GitHub geeignet ist, kannst du uns direkt kontaktieren.",
+              "E-Mail: michael.leisch@gmx.at"
+            ]
+          },
+          {
+            "heading": "Vor dem Erstellen eines Issues",
+            "bullets": [
+              "Prüfe, ob das Problem bereits existiert",
+              "Beschreibe, was passiert ist und was du erwartet hast",
+              "Füge Screenshots hinzu, wenn sie hilfreich sind",
+              "Gib Schritte zur Reproduktion an"
+            ]
+          },
+          {
+            "heading": "Antwortzeit",
+            "paragraphs": [
+              "Support-Anfragen werden so schnell wie möglich bearbeitet, die Antwortzeit kann aber je nach Verfügbarkeit variieren."
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "help": {
+    "badge": "Hilfe & Updates",
+    "title": "Help Center",
+    "subtitle": "Kurzer Überblick, klare Orientierung und ein Changelog, das dir zeigt, was wirklich besser geworden ist.",
+    "tabs": {
+      "docs": "Überblick",
+      "changelog": "Was ist neu?"
+    },
+    "startTutorial": "Starte Tutorial",
+    "docs": {
+      "kicker": "Schnell erklärt",
+      "headline": "Die wichtigsten Bereiche auf einen Blick",
+      "subline": "Kein langes Handbuch – nur das, was du im Alltag wirklich brauchst.",
+      "collections": {
+        "title": "Sammlungssystem",
+        "text": "Sammlungen geben dir einen klaren Ort für Aufgaben, Tests und gemeinsame Inhalte. So bleibt alles sauber organisiert statt irgendwo verteilt zu liegen."
+      },
+      "examplesTests": {
+        "title": "Beispiele & Tests",
+        "text": "Gute Beispiele einmal anlegen, später wiederverwenden und daraus schnell neue Tests bauen – genau dafür ist TeacherHelper da."
+      },
+      "searchFilter": {
+        "title": "Suche & Filter",
+        "text": "Wenn Inhalte mehr werden, wird gutes Finden entscheidend. Mit Suche und Filtern kommst du schneller wieder zu genau dem, was du gerade brauchst."
+      },
+      "invites": {
+        "title": "Einladungssystem",
+        "text": "Mitglieder einladen, Antworten verfolgen und Zusammenarbeit direkt in der App organisieren – ohne unnötiges Hin und Her."
+      }
+    },
+    "changelog": {
+      "kicker": "Release Notes",
+      "headline": "Was sich verbessert hat",
+      "subline": "Kurz, klar und ohne Marketing-Blabla.",
+      "label": "Release",
+      "latest": "Neu",
+      "v100": {
+        "title": "Die Basis steht",
+        "description": "Mit 1.0.0 war das Fundament da: Inhalte organisieren, Nutzer verwalten und erste Tests sauber aufbauen.",
+        "c1": "Grundlage für das Sammlungssystem geschaffen",
+        "c2": "Usersystem mit Konten und Verwaltung integriert",
+        "c3": "Beispiele und Tests als zentrale Kernfunktionen gestartet"
+      },
+      "v110": {
+        "title": "Mehr Struktur im Alltag",
+        "description": "1.1.0 macht TeacherHelper vor allem dort besser, wo im Alltag Übersicht und Tempo zählen.",
+        "c1": "Ordner-System hinzugefügt, damit Inhalte sauberer strukturiert werden können",
+        "c2": "Filter- und Suchsystem ergänzt, um Beispiele und Tests schneller wiederzufinden",
+        "c3": "Neues Fenster zum Test-Erstellen für einen klareren Workflow"
+      }
+    },
+    "actions": {
+      "openOverview": "Überblick öffnen",
+      "openChangelog": "Changelog öffnen",
+      "startTutorial": "Tutorial durchführen",
+      "comingSoon": "Bald"
+    },
+    "highlights": {
+      "h1": {
+        "title": "Schnell drin statt lange suchen",
+        "text": "Die Help-Page zeigt dir die wichtigsten Bereiche direkt auf einen Blick, ohne dass du dich durch endlose Texte kämpfen musst."
+      },
+      "h2": {
+        "title": "Updates sofort sichtbar",
+        "text": "Im Changelog siehst du schnell, was neu dazugekommen ist und was im Alltag jetzt besser oder schneller läuft."
+      },
+      "h3": {
+        "title": "Tutorial-Bereich ist vorbereitet",
+        "text": "Der geführte Rundgang kommt als Nächstes. Der Platz dafür ist schon da, damit du ihn später jederzeit neu starten kannst."
+      }
+    },
+    "sidecard": {
+      "kicker": "Was dich hier erwartet",
+      "title": "Ein Startpunkt für Hilfe, Updates und später auch Guides",
+      "text": "Diese Seite soll nicht wie trockene Doku wirken, sondern wie ein schneller Hub für alles, was dir Orientierung in TeacherHelper gibt.",
+      "p1": "Kurze Erklärungen statt überladener Handbücher",
+      "p2": "Klare Release Notes ohne unnötiges Blabla",
+      "p3": "Platz für interaktive Touren und Guided Tutorials"
+    },
+    "tutorialCard": {
+      "title": "Geführtes Tutorial kommt als Nächstes",
+      "text": "Hier sitzt schon der Einstieg für die spätere Tour durch die App. Damit kannst du dir dann pro Seite zeigen lassen, was du dort machen kannst."
+    }
   }
 }

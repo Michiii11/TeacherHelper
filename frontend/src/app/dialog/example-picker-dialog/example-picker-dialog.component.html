@@ -9,56 +9,71 @@
     </div>
   </div>
 
-  <div class="picker-toolbar">
-    <label class="picker-search">
-      <mat-icon>search</mat-icon>
-      <input
-        [(ngModel)]="search"
-        type="text"
-        [placeholder]="'createTest.examplePicker.searchPlaceholder' | translate" />
-    </label>
+  <label class="picker-search">
+    <mat-icon>search</mat-icon>
+    <input
+      [(ngModel)]="search"
+      type="text"
+      [placeholder]="'createTest.examplePicker.searchPlaceholder' | translate" />
+  </label>
 
-    <div class="picker-filter-group">
-      <button
-        type="button"
-        class="picker-filter-chip"
-        [class.active]="selectedTypes.length === 0"
-        (click)="clearTypes()">
-        {{ 'createTest.examplePicker.allTypes' | translate }}
-      </button>
-
-      @for (type of availableTypes; track type.value) {
-        <button
-          type="button"
-          class="picker-filter-chip"
-          [class.active]="isTypeSelected(type.value)"
-          (click)="toggleType(type.value)">
-          {{ type.label }}
-        </button>
-      }
-    </div>
-
-    @if (availableFocuses.length) {
+  <div class="flexBox">
+    <div class="picker-toolbar">
       <div class="picker-filter-group">
         <button
           type="button"
           class="picker-filter-chip"
-          [class.active]="selectedFocuses.length === 0"
-          (click)="clearFocuses()">
-          {{ 'createTest.examplePicker.allFocuses' | translate }}
+          [class.active]="selectedTypes.length === 0"
+          (click)="clearTypes()">
+          {{ 'createTest.examplePicker.allTypes' | translate }}
         </button>
 
-        @for (focus of availableFocuses; track focus) {
+        @for (type of availableTypes; track type.value) {
           <button
             type="button"
             class="picker-filter-chip"
-            [class.active]="isFocusSelected(focus)"
-            (click)="toggleFocus(focus)">
-            {{ focus }}
+            [class.active]="isTypeSelected(type.value)"
+            (click)="toggleType(type.value)">
+            {{ type.label }}
           </button>
         }
       </div>
-    }
+
+      @if (availableFocuses.length) {
+        <div class="picker-filter-group">
+          <button
+            type="button"
+            class="picker-filter-chip"
+            [class.active]="selectedFocuses.length === 0"
+            (click)="clearFocuses()">
+            {{ 'createTest.examplePicker.allFocuses' | translate }}
+          </button>
+
+          @for (focus of availableFocuses; track focus) {
+            <button
+              type="button"
+              class="picker-filter-chip"
+              [class.active]="isFocusSelected(focus)"
+              (click)="toggleFocus(focus)">
+              {{ focus }}
+            </button>
+          }
+        </div>
+      }
+  </div>
+
+    <div>
+      <mat-form-field appearance="outline" class="sort-field">
+        <mat-label>Sortierung</mat-label>
+        <mat-select [(value)]="sortBy">
+          @for (option of sortOptions; track option.value) {
+            <mat-option [value]="option.value">
+              {{ option.label }}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
   </div>
 
   <div class="picker-layout">

@@ -98,6 +98,10 @@
   font: inherit;
 }
 
+.picker-filter-chip{
+  cursor: pointer;
+}
+
 .picker-filter-chip.active,
 .folder-chip.active {
   background: color-mix(in srgb, var(--primary) 16%, var(--surface));
@@ -310,4 +314,96 @@
   .picker-sidebar {
     max-height: 180px;
   }
+}
+
+
+.picker-toolbar-meta {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.picker-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  align-self: flex-end;
+  padding: 0.65rem 0.9rem;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.picker-sort span {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.picker-sort select {
+  min-width: 220px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .picker-toolbar-meta {
+    justify-content: stretch;
+  }
+
+  .picker-sort {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .picker-sort select {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+.sort-field {
+  width: 220px;
+
+  ::ng-deep .mdc-notched-outline__leading,
+  ::ng-deep .mdc-notched-outline__notch,
+  ::ng-deep .mdc-notched-outline__trailing {
+    border-color: var(--border) !important;
+  }
+
+  ::ng-deep .mdc-text-field--outlined {
+    background: var(--bg-soft);
+    border-radius: 16px;
+  }
+
+  ::ng-deep .mat-mdc-select-value,
+  ::ng-deep .mat-mdc-floating-label,
+  ::ng-deep .mat-mdc-select-arrow {
+    color: var(--text) !important;
+  }
+}
+
+::ng-deep .mat-mdc-select-panel {
+  background: var(-bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 14px !important;
+}
+
+::ng-deep .mat-mdc-option {
+  color: var(--text) !important;
+}
+
+::ng-deep .mat-mdc-option:hover,
+::ng-deep .mat-mdc-option.mdc-list-item--selected {
+  background: var(--bg) !important;
+}
+
+.flexBox {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
 }

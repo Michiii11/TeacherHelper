@@ -23,7 +23,6 @@ import { HttpService } from '../../service/http.service';
 import { TestBranding, TestPrintLabels, TestPrintService } from '../../service/test-print.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { ExamplePickerDialogComponent, ExamplePickerDialogResult } from '../example-picker-dialog/example-picker-dialog.component';
-import { MatPseudoCheckbox } from '@angular/material/core';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 
