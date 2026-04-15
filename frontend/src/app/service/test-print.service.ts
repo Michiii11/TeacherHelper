@@ -249,9 +249,9 @@ export class TestPrintService {
   private buildSharedStyles(): string {
     return `
       <style>
-        @page { size: A4; margin: 12mm; }
+        @page { size: A4; margin: 10mm; }
         * { box-sizing: border-box; }
-        html, body { margin: 0; padding: 0; background: #fff; }
+        html, body { margin: 0; padding: 0; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         body { font-family: Arial, Helvetica, sans-serif; color: #111; font-size: 12px; }
         .page-break-before { page-break-before: always; break-before: page; }
         .test-print-root { width: 100%; }
@@ -307,12 +307,25 @@ export class TestPrintService {
         .meta-line .line { border-bottom: 1px solid #222; height: 14px; width: 100%; }
         .header-tables.stacked { display: flex; flex-direction: column; gap: 10px; margin: 10px 0 12px; }
         .result-table { width: 100%; }
-        table { border-collapse: collapse; width: 100%; }
+        table { border-collapse: separate; border-spacing: 0; width: 100%; }
         .compact-table th, .compact-table td, .answer-table-wrap td, .answer-table-wrap th,
         .assign-preview td, .assign-preview th, .gap-grid td, .gap-grid th {
-          border: 1px solid #222;
-          padding: 6px 8px;
+          border-right: 1px solid #222;
+          border-bottom: 1px solid #222;
+          padding: 7px 9px;
           vertical-align: top;
+        }
+        .compact-table tr:first-child th, .compact-table tr:first-child td,
+        .answer-table-wrap tr:first-child th, .answer-table-wrap tr:first-child td,
+        .assign-preview table tr:first-child th, .assign-preview table tr:first-child td,
+        .gap-grid table tr:first-child th, .gap-grid table tr:first-child td {
+          border-top: 1px solid #222;
+        }
+        .compact-table th:first-child, .compact-table td:first-child,
+        .answer-table-wrap th:first-child, .answer-table-wrap td:first-child,
+        .assign-preview th:first-child, .assign-preview td:first-child,
+        .gap-grid th:first-child, .gap-grid td:first-child {
+          border-left: 1px solid #222;
         }
         .grading-title { margin: 0 0 6px; font-weight: 700; }
         .teacher-note { margin: 14px 0 10px; white-space: pre-line; text-align: center; line-height: 1.5; }
@@ -332,15 +345,15 @@ export class TestPrintService {
           margin: 0 0.2rem;
         }
         .gap-inline-select {
-          min-width: 2.4rem;
+          min-width: 3.1rem;
         }
         .gap-inline-pill {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          min-width: 2.1rem;
-          min-height: 2rem;
-          padding: 0.2rem 0.65rem;
+          min-width: 2.8rem;
+          min-height: 2.2rem;
+          padding: 0.28rem 0.85rem;
           border-radius: 999px;
           border: 1px solid #94a3b8;
           background: #e2e8f0;
@@ -373,17 +386,25 @@ export class TestPrintService {
           width: 100%;
           height: 1px;
         }
+        .gap-inline-solution {
+          display: inline-block;
+          width: 100%;
+          padding-right: 0.3rem;
+          font-weight: 600;
+          line-height: 1.2;
+        }
         .student-list > div, .solution-list > div { margin-bottom: 8px; }
         .solution-box { border: 1px solid #222; padding: 10px; min-height: 48px; white-space: pre-line; }
         .muted { color: #777; }
         .construction-preview { margin-top: 8px; }
-        .image-preview { max-width: 100%; max-height: 220px; display: block; margin-bottom: 10px; object-fit: contain; }
+        .image-preview { max-width: 100%; max-height: none; display: block; margin-bottom: 10px; object-fit: contain; }
+        .construction-preview { overflow: visible; }
         .construction-space { min-height: 180px; border: 1px dashed #b6bcc7; }
         .answer-table-wrap, .assign-preview, .gap-grid { margin-top: 8px; }
         .checkbox-cell, .small, .letter-cell { width: 42px; text-align: center; }
         .gap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
         .assign-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .fill { width: 48px; }
+        .fill { width: 56px; }
         .solution-header { margin-bottom: 16px; }
         .solution-note { margin: 0 0 10px; color: #555; }
         .free-space { width: 100%; }
@@ -508,7 +529,7 @@ export class TestPrintService {
       : '';
 
     const question = entry.example.type === ExampleTypes.GAP_FILL
-      ? `<div class="task-question rich-gap-question">${this.buildGapQuestionHtml(entry.example)}</div>`
+      ? `<div class="task-question rich-gap-question">${isSolution && entry.example.gapFillType === 'INPUT' ? this.buildGapQuestionSolutionHtml(entry.example) : this.buildGapQuestionHtml(entry.example)}</div>`
       : `<p class="task-question">${this.formatMultiline(options.getQuestionWithGapLabels(entry.example))}</p>`;
 
     return `
@@ -541,6 +562,38 @@ export class TestPrintService {
             <span class="gap-inline gap-inline-input" style="width:${width}px;">
               <span class="gap-inline-label gap-inline-label-number">${gapNumber}</span>
               <span class="gap-inline-line"></span>
+            </span>
+          `;
+        }
+
+        return `
+          <span class="gap-inline gap-inline-select">
+            <span class="gap-inline-pill">
+              <span class="gap-inline-pill-number">${gapNumber}</span>
+            </span>
+          </span>
+        `;
+      });
+  }
+
+  private buildGapQuestionSolutionHtml(example: Example): string {
+    const escapedQuestion = this.escapeHtml(example.question || '');
+    let gapIndex = 0;
+
+    return escapedQuestion
+      .replace(/\n/g, '<br>')
+      .replace(/\{\d+\}/g, () => {
+        const gap = (example.gaps ?? [])[gapIndex];
+        const gapNumber = this.escapeHtml(String(gapIndex + 1));
+        gapIndex += 1;
+
+        if (example.gapFillType === 'INPUT') {
+          const solution = this.escapeHtml(String((gap as any)?.solution ?? ''));
+          const width = this.normalizeGapInlineWidth((gap as any)?.width, (gap as any)?.solution);
+          return `
+            <span class="gap-inline gap-inline-input" style="width:${width}px;">
+              <span class="gap-inline-label gap-inline-label-number">${gapNumber}</span>
+              <span class="gap-inline-solution">${solution || '&nbsp;'}</span>
             </span>
           `;
         }
@@ -596,7 +649,7 @@ export class TestPrintService {
 
         return `
           <div class="construction-preview">
-            ${image ? `<img src="${this.escapeHtml(image)}" alt="${this.escapeHtml(labels.imagePreviewAlt)}" class="image-preview" style="width:${width}px;height:auto;" />` : ''}
+            ${image ? `<img src="${this.escapeHtml(image)}" alt="${this.escapeHtml(labels.imagePreviewAlt)}" class="image-preview" style="width:${width}px;max-width:${width}px;height:auto;" />` : ''}
           </div>
         `;
       }
@@ -635,7 +688,7 @@ export class TestPrintService {
         }
 
         return isSolution
-          ? `<div class="solution-list">${(example.gaps ?? []).map(gap => `<div><strong>${this.escapeHtml(gap.label || labels.gap)}</strong>: ${this.escapeHtml((gap as any).solution || '')}</div>`).join('')}</div>`
+          ? ''
           : `<div class="free-space medium"></div>`;
 
       case ExampleTypes.ASSIGN:
