@@ -471,7 +471,24 @@
     "solutionImageHelp": "Optional kannst du auch ein Lösungsbild hinterlegen.",
     "replaceImage": "Bild ersetzen",
     "selectImage": "Bild auswählen",
-    "gapWidth": "Breite der Lücke (px)"
+    "gapWidth": "Breite der Lücke (px)",
+    "variables": {
+      "title": "Text-Variablen",
+      "description": "Erkannt aus Platzhaltern wie {zahl1} oder {name}. Diese Standardwerte kannst du später im Test überschreiben.",
+      "insert": "Variable einfügen",
+      "insertAtCursor": "Text-Variable einfügen",
+      "remove": "Variable löschen",
+      "defaultValue": "Standardwert",
+      "defaultValuePlaceholder": "z. B. 4 oder Anna"
+    },
+    "assignLeftColumn": "Links",
+    "assignRightColumn": "Rechts",
+    "assignConnection": "Zuordnung",
+    "assignNoConnection": "— Keine —",
+    "assignLeftPlaceholder": "Linkes Statement",
+    "assignRightPlaceholder": "Rechtes Statement",
+    "assignRemoveLeft": "Linkes entfernen",
+    "assignRemoveRight": "Rechtes entfernen"
   },
   "createTest": {
     "titleLabel": "Titel",
@@ -585,6 +602,12 @@
       "emptyTitle": "Keine Beispiele gefunden",
       "emptyText": "Probier andere Filter, eine andere Suche oder einen anderen Ordner.",
       "done": "Fertig"
+    },
+    "variables": {
+      "title": "Text-Variablen",
+      "description": "Standardwerte aus dem Beispiel können hier pro Test angepasst werden.",
+      "valuePlaceholder": "Wert eingeben",
+      "preview": "Vorschau:"
     }
   },
   "legalPages": {

@@ -479,7 +479,24 @@
     "solutionImageHelp": "Optionally, you can also store a solution image.",
     "replaceImage": "Replace image",
     "selectImage": "Choose image",
-    "gapWidth": "Gap width in px"
+    "gapWidth": "Gap width in px",
+    "variables": {
+      "title": "Text variables",
+      "description": "Detected from placeholders like {number1} or {name}. You can override these default values later in the test.",
+      "insert": "Insert variable",
+      "insertAtCursor": "Insert text variable",
+      "remove": "Remove variable",
+      "defaultValue": "Default value",
+      "defaultValuePlaceholder": "e.g. 4 or Anna"
+    },
+    "assignLeftColumn": "Left",
+    "assignRightColumn": "Right",
+    "assignConnection": "Match",
+    "assignNoConnection": "— None —",
+    "assignLeftPlaceholder": "Left statement",
+    "assignRightPlaceholder": "Right statement",
+    "assignRemoveLeft": "Remove left item",
+    "assignRemoveRight": "Remove right item"
   },
   "createTest": {
     "titleLabel": "Title",
@@ -593,6 +610,12 @@
       "emptyTitle": "No examples found",
       "emptyText": "Try other filters, another search or a different folder.",
       "done": "Done"
+    },
+    "variables": {
+      "title": "Text variables",
+      "description": "Default values from the example can be adjusted here for this specific test.",
+      "valuePlaceholder": "Enter value",
+      "preview": "Preview:"
     }
   },
   "legalPages": {

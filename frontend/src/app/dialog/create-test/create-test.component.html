@@ -53,7 +53,7 @@
             <div class="task-index-badge">{{ i + 1 }}</div>
 
             <div class="task-copy">
-              <strong>{{ getExampleHeading(entry.example) }}</strong>
+              <strong>{{ getResolvedExampleHeading(entry.example, entry.variableValues) }}</strong>
               <div class="task-subline">{{ getExampleMeta(entry) }}</div>
             </div>
 
@@ -92,6 +92,30 @@
                 (ngModelChange)="markDirty()"
                 [placeholder]="'createTest.taskTitlePlaceholder' | translate" />
             </mat-form-field>
+
+            <div class="task-variable-block" *ngIf="hasVariables(entry)">
+              <div class="task-variable-head">
+                <strong>{{ 'createTest.variables.title' | translate }}</strong>
+                <span>{{ 'createTest.variables.description' | translate }}</span>
+              </div>
+
+              <div class="task-variable-grid">
+                <mat-form-field appearance="outline" *ngFor="let variable of getExampleVariables(entry); trackBy: trackByVariableValue">
+                  <mat-label>{{ '{' }}{{ variable.key }}{{ '}' }}</mat-label>
+                  <input
+                    matInput
+                    [ngModel]="getVariableValue(entry, variable.key)"
+                    (ngModelChange)="onVariableValueChange(entry, variable.key, $event)"
+                    name="variable-{{ entry.example.id }}-{{ variable.key }}"
+                    [placeholder]="variable.defaultValue || ('createTest.variables.valuePlaceholder' | translate)" />
+                </mat-form-field>
+              </div>
+
+              <div class="task-variable-preview">
+                <span>{{ 'createTest.variables.preview' | translate }}</span>
+                <strong>{{ getResolvedEntryTitle(entry) }}</strong>
+              </div>
+            </div>
 
             <mat-form-field appearance="outline">
               <mat-label>{{ 'createTest.points' | translate }}</mat-label>

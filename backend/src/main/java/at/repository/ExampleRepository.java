@@ -3,9 +3,11 @@ package at.repository;
 import at.dtos.Example.CreateExampleDTO;
 import at.dtos.Example.ExampleDTO;
 import at.dtos.Example.ExampleOverviewDTO;
+import at.dtos.Example.ExampleVariableDTO;
 import at.dtos.Example.GapDTO;
 import at.dtos.Example.MoveExampleToFolderDTO;
 import at.model.*;
+import at.model.helper.ExampleVariable;
 import at.model.helper.Gap;
 import at.security.TokenService;
 import at.service.MediaStorageService;
@@ -62,10 +64,7 @@ public class ExampleRepository {
     @Transactional
     public List<ExampleDTO> getFullExamples(Long schoolId) {
         List<Example> examples = em.createQuery(
-                        "SELECT DISTINCT e FROM Example e " +
-                                "LEFT JOIN FETCH e.gaps " +
-                                "WHERE e.school.id = :schoolId " +
-                                "ORDER BY e.id",
+                        "SELECT DISTINCT e FROM Example e LEFT JOIN FETCH e.gaps WHERE e.school.id = :schoolId ORDER BY e.id",
                         Example.class
                 ).setParameter("schoolId", schoolId)
                 .getResultList();
@@ -83,6 +82,7 @@ public class ExampleRepository {
                         example.getImageWidth(),
                         example.getSolutionImageWidth(),
                         new LinkedList<>(example.getFocusList()),
+                        mapVariables(example.getVariables()),
                         schoolRepository.toSchoolDTO(example.getSchool()),
                         new LinkedList<>(example.getAnswers()),
                         new LinkedList<>(example.getOptions()),
@@ -120,6 +120,7 @@ public class ExampleRepository {
         example.setFolder(folder);
         example.getFocusList().clear();
         example.getFocusList().addAll(dto.focusList());
+        example.setVariables(mapVariableEntities(dto.variables()));
         example.setCreatedAt(Timestamp.from(java.time.Instant.now()));
         example.setUpdatedAt(Timestamp.from(java.time.Instant.now()));
 
@@ -189,6 +190,7 @@ public class ExampleRepository {
         example.setFolder(folder);
         example.getFocusList().clear();
         example.getFocusList().addAll(dto.focusList());
+        example.setVariables(mapVariableEntities(dto.variables()));
         example.setUpdatedAt(Timestamp.from(java.time.Instant.now()));
 
         clearTypeSpecificFields(example);
@@ -277,16 +279,16 @@ public class ExampleRepository {
                 Test.class
         ).setParameter("exampleId", exampleId).getResultList();
 
-        if(!tests.isEmpty()) {
+        if (!tests.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Example is part of a Test and cannot be deleted.")
                     .build();
         }
 
-        if(example.getImageUrl() != null) {
+        if (example.getImageUrl() != null) {
             mediaStorageService.delete(example.getImageUrl());
         }
-        if(example.getSolutionUrl() != null) {
+        if (example.getSolutionUrl() != null) {
             mediaStorageService.delete(example.getSolutionUrl());
         }
         em.remove(example);
@@ -314,6 +316,7 @@ public class ExampleRepository {
                 e.getSolution(),
                 e.getSolutionUrl(),
                 e.getFocusList(),
+                mapVariables(e.getVariables()),
                 e.getImageWidth(),
                 e.getSolutionImageWidth(),
                 e.getFolder() != null ? e.getFolder().getId() : null
@@ -347,6 +350,40 @@ public class ExampleRepository {
 
     public Example findById(Long exampleId) {
         return em.find(Example.class, exampleId);
+    }
+
+    private List<ExampleVariableDTO> mapVariables(List<ExampleVariable> variables) {
+        List<ExampleVariableDTO> mapped = new LinkedList<>();
+        if (variables == null) {
+            return mapped;
+        }
+
+        for (ExampleVariable variable : variables) {
+            mapped.add(new ExampleVariableDTO(
+                    variable.getId(),
+                    variable.getKey(),
+                    variable.getDefaultValue()
+            ));
+        }
+
+        return mapped;
+    }
+
+    private List<ExampleVariable> mapVariableEntities(List<ExampleVariableDTO> variables) {
+        List<ExampleVariable> mapped = new LinkedList<>();
+        if (variables == null) {
+            return mapped;
+        }
+
+        for (ExampleVariableDTO variable : variables) {
+            mapped.add(new ExampleVariable(
+                    variable.id(),
+                    variable.key(),
+                    variable.defaultValue()
+            ));
+        }
+
+        return mapped;
     }
 
     private void clearTypeSpecificFields(Example example) {

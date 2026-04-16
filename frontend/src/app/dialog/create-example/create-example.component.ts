@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-import { MAT_DIALOG_DATA, MatDialog, MatDialogActions, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogActions, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -29,12 +29,23 @@ import {
   ExampleTypes,
   Focus,
   Gap,
-  Option
+  Option,
+  ExampleVariable
 } from '../../model/Example';
 import { HttpService } from '../../service/http.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
-import { TranslateModule } from '@ngx-translate/core';
-import {MatProgressBar} from '@angular/material/progress-bar'
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { MatProgressBar } from '@angular/material/progress-bar';
+
+type VariableTarget =
+  | { type: 'instruction' | 'question' | 'solution' }
+  | { type: 'halfOpenAnswer'; index: number; answerIndex: 0 | 1 }
+  | { type: 'option'; index: number }
+  | { type: 'gapSolution'; index: number }
+  | { type: 'gapOption'; gapIndex: number; optionIndex: number }
+  | { type: 'assignLeft'; index: number }
+  | { type: 'assignRight'; index: number }
+  | null;
 
 @Component({
   selector: 'app-create-example',
@@ -70,6 +81,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
   private readonly http = inject(HttpService);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly translate = inject(TranslateService);
 
   hasUnsavedChanges = false;
   isEditMode = false;
@@ -88,6 +100,8 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   isDraggingConstructionPreview = false;
   isDraggingConstructionSolution = false;
 
+  activeVariableTarget: VariableTarget = null;
+
   example: CreateExampleDTO = {
     authToken: '',
     schoolId: this.data.schoolId,
@@ -104,6 +118,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     solution: '',
     solutionUrl: '',
     focusList: [],
+    variables: [],
     imageWidth: this.defaultImageWidth,
     solutionImageWidth: this.defaultImageWidth
   };
@@ -112,18 +127,20 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   exampleTypes = Object.values(ExampleTypes) as ExampleTypes[];
   ExampleTypeLabels = ExampleTypeLabels;
 
+  private readonly variablePattern = /\{([a-zA-Z_][a-zA-Z0-9_-]*)\}/g;
+
   constructor(
     private dialogRef: MatDialogRef<CreateExampleComponent>,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {
-    dialogRef.disableClose = true;
+    this.dialogRef.disableClose = true;
 
-    dialogRef.backdropClick()
+    this.dialogRef.backdropClick()
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => this.closeDialog());
 
-    dialogRef.keydownEvents()
+    this.dialogRef.keydownEvents()
       .pipe(takeUntil(this.destroy$))
       .subscribe(event => {
         if (event.key === 'Escape') this.closeDialog();
@@ -169,7 +186,8 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
             this.example = {
               ...response,
               imageWidth: response.imageWidth ?? this.defaultImageWidth,
-              solutionImageWidth: response.solutionImageWidth ?? this.defaultImageWidth
+              solutionImageWidth: response.solutionImageWidth ?? this.defaultImageWidth,
+              variables: response.variables ?? []
             };
             this.isEditMode = true;
 
@@ -186,11 +204,13 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
             }
 
             this.normalizeLoadedGapState();
+            this.syncVariablesFromContent();
             this.emitSelectedFocus();
           }
         });
     } else {
       this.normalizeLoadedGapState();
+      this.syncVariablesFromContent();
       this.emitSelectedFocus();
     }
   }
@@ -198,6 +218,10 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  generateUniqueId(): string {
+    return Math.random().toString(36).slice(2, 11);
   }
 
   private normalizeLabel(label: string): string {
@@ -213,12 +237,226 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     if (this.inputEl) this.inputEl.nativeElement.value = '';
   }
 
-  generateUniqueId(): string {
-    return Math.random().toString(36).substr(2, 9);
-  }
-
   markDirty(): void {
     this.hasUnsavedChanges = true;
+  }
+
+  setVariableTarget(target: VariableTarget): void {
+    this.activeVariableTarget = target;
+  }
+
+  private normalizeVariableKey(key: string | null | undefined): string {
+    return (key ?? '').trim();
+  }
+
+  private getVariableSourceTexts(): string[] {
+    const parts: string[] = [
+      this.example.instruction ?? '',
+      this.example.question ?? '',
+      this.example.solution ?? '',
+      ...(this.example.answers ?? []).flatMap(answer => [answer?.[0] ?? '', answer?.[1] ?? '']),
+      ...(this.example.options ?? []).map(option => option?.text ?? ''),
+      ...(this.example.gaps ?? []).flatMap(gap => [
+        gap?.label ?? '',
+        gap?.solution ?? '',
+        ...((gap?.options ?? []).map(option => option?.text ?? '')),
+      ]),
+      ...(this.example.assigns ?? []).flatMap(assign => [assign?.left ?? '', assign?.right ?? '']),
+      ...(this.example.assignRightItems ?? []),
+    ];
+
+    return parts.filter(Boolean);
+  }
+
+  syncVariablesFromContent(): void {
+    const previousMap = new Map(
+      (this.example.variables ?? []).map(variable => [this.normalizeVariableKey(variable.key), variable])
+    );
+
+    const keysInOrder: string[] = [];
+
+    for (const sourceText of this.getVariableSourceTexts()) {
+      for (const match of sourceText.matchAll(this.variablePattern)) {
+        const normalizedKey = this.normalizeVariableKey(match[1]);
+        if (!normalizedKey || keysInOrder.includes(normalizedKey)) {
+          continue;
+        }
+        keysInOrder.push(normalizedKey);
+      }
+    }
+
+    this.example.variables = keysInOrder.map(key => {
+      const existing = previousMap.get(key);
+      return {
+        id: existing?.id || this.generateUniqueId(),
+        key,
+        defaultValue: existing?.defaultValue ?? ''
+      } as ExampleVariable;
+    });
+  }
+
+  trackByVariableKey(index: number, variable: ExampleVariable): string {
+    return variable.key || String(index);
+  }
+
+  private getNextVariablePlaceholder(): string {
+    const usedKeys = new Set((this.example.variables ?? []).map(variable => variable.key));
+    let nextIndex = Math.max(1, (this.example.variables?.length ?? 0) + 1);
+    let nextKey = `wert${nextIndex}`;
+
+    while (usedKeys.has(nextKey)) {
+      nextIndex += 1;
+      nextKey = `wert${nextIndex}`;
+    }
+
+    return `{${nextKey}}`;
+  }
+
+  private appendInsertText(value: string | null | undefined, insertText: string): string {
+    return `${value ?? ''}${insertText}`;
+  }
+
+  insertVariableAtCursor(): void {
+    const variableText = this.getNextVariablePlaceholder();
+    const activeElement = document.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
+    const canUseCursor = !!activeElement && (activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'INPUT');
+
+    if (canUseCursor) {
+      const start = activeElement.selectionStart ?? 0;
+      const end = activeElement.selectionEnd ?? start;
+      const value = activeElement.value ?? '';
+
+      activeElement.value = value.slice(0, start) + variableText + value.slice(end);
+      activeElement.dispatchEvent(new Event('input', { bubbles: true }));
+
+      const nextCursor = start + variableText.length;
+      requestAnimationFrame(() => {
+        activeElement.focus();
+        activeElement.setSelectionRange(nextCursor, nextCursor);
+      });
+
+      this.syncVariablesFromContent();
+      this.markDirty();
+      return;
+    }
+
+    switch (this.activeVariableTarget?.type) {
+      case 'instruction':
+        this.example.instruction = this.appendInsertText(this.example.instruction, variableText);
+        break;
+      case 'question':
+        this.example.question = this.appendInsertText(this.example.question, variableText);
+        break;
+      case 'solution':
+        this.example.solution = this.appendInsertText(this.example.solution, variableText);
+        break;
+      case 'halfOpenAnswer': {
+        const row = this.example.answers?.[this.activeVariableTarget.index];
+        if (row) {
+          row[this.activeVariableTarget.answerIndex] = this.appendInsertText(
+            row[this.activeVariableTarget.answerIndex],
+            variableText
+          );
+        }
+        break;
+      }
+      case 'option': {
+        const option = this.example.options?.[this.activeVariableTarget.index];
+        if (option) {
+          option.text = this.appendInsertText(option.text, variableText);
+        }
+        break;
+      }
+      case 'gapSolution': {
+        const gap = this.example.gaps?.[this.activeVariableTarget.index];
+        if (gap) {
+          gap.solution = this.appendInsertText(gap.solution, variableText);
+        }
+        break;
+      }
+      case 'gapOption': {
+        const option = this.example.gaps?.[this.activeVariableTarget.gapIndex]?.options?.[this.activeVariableTarget.optionIndex];
+        if (option) {
+          option.text = this.appendInsertText(option.text, variableText);
+        }
+        break;
+      }
+      case 'assignLeft': {
+        const assign = this.example.assigns?.[this.activeVariableTarget.index];
+        if (assign) {
+          assign.left = this.appendInsertText(assign.left, variableText);
+        }
+        break;
+      }
+      case 'assignRight': {
+        const right = this.example.assignRightItems?.[this.activeVariableTarget.index];
+        if (right != null) {
+          this.example.assignRightItems[this.activeVariableTarget.index] = this.appendInsertText(right, variableText);
+        }
+        break;
+      }
+      default:
+        this.example.question = this.appendInsertText(this.example.question, variableText);
+        break;
+    }
+
+    this.syncVariablesFromContent();
+    this.markDirty();
+  }
+
+  removeVariable(variable: ExampleVariable): void {
+    const key = this.normalizeVariableKey(variable?.key);
+    if (!key) return;
+
+    const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(`\\{${escapedKey}\\}`, 'g');
+
+    const replaceValue = (value: string | null | undefined): string =>
+      (value ?? '').replace(pattern, '');
+
+    this.example.instruction = replaceValue(this.example.instruction);
+    this.example.question = replaceValue(this.example.question);
+    this.example.solution = replaceValue(this.example.solution);
+
+    this.example.answers = (this.example.answers ?? []).map(answer => [
+      replaceValue(answer?.[0]),
+      replaceValue(answer?.[1]),
+    ]);
+
+    this.example.options = (this.example.options ?? []).map(option => ({
+      ...option,
+      text: replaceValue(option?.text),
+    }));
+
+    this.example.gaps = (this.example.gaps ?? []).map(gap => ({
+      ...gap,
+      label: replaceValue(gap?.label),
+      solution: replaceValue(gap?.solution),
+      options: (gap?.options ?? []).map(option => ({
+        ...option,
+        text: replaceValue(option?.text),
+      })),
+    }));
+
+    this.example.assigns = (this.example.assigns ?? []).map(assign => ({
+      ...assign,
+      left: replaceValue(assign?.left),
+      right: replaceValue(assign?.right),
+    }));
+
+    this.example.assignRightItems = (this.example.assignRightItems ?? []).map(item => replaceValue(item));
+    this.example.variables = (this.example.variables ?? []).filter(entry => this.normalizeVariableKey(entry.key) !== key);
+    this.activeVariableTarget = null;
+
+    this.syncVariablesFromContent();
+    this.markDirty();
+  }
+
+  getResolvedTextWithDefaults(value: string | null | undefined): string {
+    return (value ?? '').replace(this.variablePattern, (_match, key: string) => {
+      const variable = (this.example.variables ?? []).find(entry => entry.key === key.trim());
+      return variable?.defaultValue ?? '';
+    });
   }
 
   addOption(): void {
@@ -229,6 +467,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   removeOption(i: number): void {
     if (this.example.options.length <= 0) return;
     this.example.options.splice(i, 1);
+    this.syncVariablesFromContent();
     this.markDirty();
   }
 
@@ -240,6 +479,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   removeHalfOpenAnswer(i: number): void {
     if (this.example.answers.length <= 0) return;
     this.example.answers.splice(i, 1);
+    this.syncVariablesFromContent();
     this.markDirty();
   }
 
@@ -250,6 +490,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
   removeAssignLeftItem(i: number): void {
     this.example.assigns.splice(i, 1);
+    this.syncVariablesFromContent();
     this.markDirty();
   }
 
@@ -260,11 +501,13 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
   removeAssignRightItem(i: number): void {
     this.example.assignRightItems.splice(i, 1);
+    this.syncVariablesFromContent();
     this.markDirty();
   }
 
   setAssignConnection(assign: Assign, rightValue: string | null): void {
     assign.right = rightValue || '';
+    this.syncVariablesFromContent();
     this.markDirty();
   }
 
@@ -290,7 +533,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
         } as Gap);
       } else {
         newGaps.push({
-          id: '',
+          id: this.generateUniqueId(),
           label: '',
           solution: '',
           width: this.getDefaultGapWidth(''),
@@ -308,9 +551,9 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     const textarea = document.querySelector('textarea[name="question"]') as HTMLTextAreaElement | null;
     if (!textarea) return;
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const value = textarea.value;
+    const start = textarea.selectionStart ?? 0;
+    const end = textarea.selectionEnd ?? start;
+    const value = textarea.value ?? '';
 
     const nextIdx = (value.match(/\{(\d+)\}/g)?.length ?? 0) + 1;
     const gapText = `{${nextIdx}}`;
@@ -324,6 +567,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
   onGapFillTypeChange(type: 'SELECT' | 'INPUT'): void {
     this.example.gapFillType = type;
+    this.syncVariablesFromContent();
     this.updateGapsFromText();
 
     if (type === 'INPUT') {
@@ -344,7 +588,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   }
 
   getQuestionPreviewHtml(): SafeHtml {
-    const escapedQuestion = this.escapeHtml(this.example.question || '');
+    const escapedQuestion = this.escapeHtml(this.getResolvedTextWithDefaults(this.example.question || ''));
     let idx = 0;
 
     const html = escapedQuestion.replace(/\{\d+\}/g, () => {
@@ -433,6 +677,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       this.setGapWidthValue(gap, this.normalizeGapWidth(currentWidth, gap.solution));
     }
 
+    this.syncVariablesFromContent();
     this.markDirty();
   }
 
@@ -473,12 +718,13 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
   addGapOption(gi: number): void {
     this.example.gaps[gi].options = this.example.gaps[gi].options || [];
-    this.example.gaps[gi].options.push({ text: '', correct: false } as Option);
+    this.example.gaps[gi].options.push({ id: this.generateUniqueId(), text: '', correct: false });
     this.markDirty();
   }
 
   removeGapOption(gi: number, oi: number): void {
     this.example.gaps[gi].options.splice(oi, 1);
+    this.syncVariablesFromContent();
     this.markDirty();
   }
 
@@ -581,6 +827,11 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       schoolId: Number(this.example.schoolId || this.data.schoolId),
       image: this.isEditMode ? (this.example.image || '') : '',
       solutionUrl: this.isEditMode ? (this.example.solutionUrl || '') : '',
+      variables: (this.example.variables ?? []).map(variable => ({
+        id: variable.id || this.generateUniqueId(),
+        key: this.normalizeVariableKey(variable.key),
+        defaultValue: variable.defaultValue ?? ''
+      })).filter(variable => !!variable.key),
       imageWidth: this.normalizeImageWidth(this.example.imageWidth),
       solutionImageWidth: this.normalizeImageWidth(this.example.solutionImageWidth)
     };
@@ -617,6 +868,8 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   }
 
   async saveExample(): Promise<void> {
+    this.syncVariablesFromContent();
+
     if (!this.example.instruction.trim() || !this.example.question.trim()) {
       this.snackBar.open('Bitte füllen Sie sowohl die Angabe als auch die Aufgabenstellung aus.', 'OK', {
         duration: 3000
@@ -712,32 +965,46 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
   getQuestionWithGapLabels(): string {
     let idx = 0;
-    return this.example.question.replace(/\{\d+\}/g, () => {
+    return this.getResolvedTextWithDefaults(this.example.question).replace(/\{\d+\}/g, () => {
       idx++;
       return `[${idx}]`;
     });
+  }
+
+  getResolvedHalfOpenPrompt(answerRow: string[] | null | undefined): string {
+    return this.getResolvedTextWithDefaults(answerRow?.[0] ?? '');
+  }
+
+  getResolvedMultipleChoiceOption(option: Option): string {
+    return this.getResolvedTextWithDefaults(option?.text ?? '');
+  }
+
+  getResolvedGapOption(option: Option): string {
+    return this.getResolvedTextWithDefaults(option?.text ?? '');
+  }
+
+  getResolvedAssignLeft(assign: Assign): string {
+    return this.getResolvedTextWithDefaults(assign?.left ?? '');
+  }
+
+  getResolvedAssignRight(value: string | null | undefined): string {
+    return this.getResolvedTextWithDefaults(value ?? '');
   }
 
   getTooltip(t: ExampleTypes): string {
     switch (t) {
       case ExampleTypes.OPEN:
         return 'Antwort ohne Vorgaben.';
-
       case ExampleTypes.HALF_OPEN:
         return 'Antwort in vorgegebene Struktur eintragen.';
-
       case ExampleTypes.CONSTRUCTION:
         return 'Aufgabe mit Bild oder Grafik.';
-
       case ExampleTypes.MULTIPLE_CHOICE:
         return 'Eine oder mehrere Optionen auswählen.';
-
       case ExampleTypes.GAP_FILL:
         return 'Lücken durch Auswahl oder Eingabe füllen.';
-
       case ExampleTypes.ASSIGN:
         return 'Elemente einander zuordnen.';
-
       default:
         return '';
     }
@@ -864,8 +1131,9 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       });
   }
 
-  onTypeChange(type: ExampleTypes) {
+  onTypeChange(type: ExampleTypes): void {
     this.example.type = type;
+    this.syncVariablesFromContent();
 
     if (type === ExampleTypes.GAP_FILL) {
       this.updateGapsFromText();

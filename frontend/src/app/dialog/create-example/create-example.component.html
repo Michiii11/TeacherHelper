@@ -92,6 +92,54 @@
           </mat-form-field>
         </div>
 
+        <div class="variable-toolbar">
+          <button mat-stroked-button type="button" (click)="insertVariableAtCursor()">
+            <mat-icon>code</mat-icon>
+            Text-Variable in Frage einfügen
+          </button>
+        </div>
+
+        <section class="panel-box variable-panel" *ngIf="example.variables?.length">
+          <div class="variable-panel-head">
+            <div>
+              <div class="panel-title">{{ 'exampleDialog.variables.title' | translate }}</div>
+              <p>{{ 'exampleDialog.variables.description' | translate }}</p>
+            </div>
+
+            <button mat-stroked-button type="button" (click)="insertVariableAtCursor()">
+              <mat-icon>code</mat-icon>
+              {{ 'exampleDialog.variables.insert' | translate }}
+            </button>
+          </div>
+
+          <div class="variable-grid">
+            <div class="variable-card" *ngFor="let variable of example.variables; trackBy: trackByVariableKey">
+              <div class="variable-key-row">
+                <div class="variable-key">{{ '{' }}{{ variable.key }}{{ '}' }}</div>
+
+                <button
+                  mat-icon-button
+                  color="warn"
+                  type="button"
+                  (click)="removeVariable(variable)"
+                  [attr.aria-label]="'exampleDialog.variables.remove' | translate">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>{{ 'exampleDialog.variables.defaultValue' | translate }}</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="variable.defaultValue"
+                  name="variableDefault-{{ variable.key }}"
+                  (ngModelChange)="markDirty()"
+                  [placeholder]="'exampleDialog.variables.defaultValuePlaceholder' | translate" />
+              </mat-form-field>
+            </div>
+          </div>
+        </section>
+
         <div class="row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>{{ 'school.instruction' | translate }}</mat-label>
@@ -99,7 +147,8 @@
               matInput
               [(ngModel)]="example.instruction"
               name="instruction"
-              (input)="markDirty()"
+              (focus)="setVariableTarget({ type: 'instruction' })"
+              (input)="syncVariablesFromContent(); markDirty()"
               placeholder="{{ 'exampleDialog.instructionPlaceholder' | translate }}"
               cdkTextareaAutosize
               cdkAutosizeMinRows="2"
@@ -116,7 +165,7 @@
                 matInput
                 [(ngModel)]="example.question"
                 name="question"
-                (input)="markDirty()"
+                (input)="syncVariablesFromContent(); markDirty()"
                 placeholder="{{ 'exampleDialog.openQuestionPlaceholder' | translate }}"
                 cdkTextareaAutosize
                 cdkAutosizeMinRows="2"
@@ -132,7 +181,7 @@
                 matInput
                 [(ngModel)]="example.solution"
                 name="solution"
-                (input)="markDirty()"
+                (input)="syncVariablesFromContent(); markDirty()"
                 placeholder="{{ 'exampleDialog.solutionPlaceholder' | translate }}"
                 cdkTextareaAutosize
                 cdkAutosizeMinRows="2"
@@ -144,7 +193,7 @@
           <ng-container *ngIf="example.type === ExampleTypes.HALF_OPEN">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>{{ 'school.question' | translate }}</mat-label>
-              <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="{{ 'exampleDialog.halfOpenQuestionPlaceholder' | translate }}"
+              <textarea matInput [(ngModel)]="example.question" name="question" (input)="syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.halfOpenQuestionPlaceholder' | translate }}"
                         cdkTextareaAutosize
                         cdkAutosizeMinRows="2"
                         cdkAutosizeMaxRows="10"></textarea>
@@ -170,7 +219,7 @@
           <ng-container *ngIf="example.type === ExampleTypes.MULTIPLE_CHOICE">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>{{ 'school.question' | translate }}</mat-label>
-              <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="{{ 'exampleDialog.multipleChoicePlaceholder' | translate }}"
+              <textarea matInput [(ngModel)]="example.question" name="question" (input)="syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.multipleChoicePlaceholder' | translate }}"
                         cdkTextareaAutosize
                         cdkAutosizeMinRows="2"
                         cdkAutosizeMaxRows="10"></textarea>
@@ -188,7 +237,7 @@
                   <input matInput [(ngModel)]="opt.text" name="option{{i}}" (input)="markDirty()" placeholder="{{ ('exampleDialog.option' | translate) + ' ' + (i + 1) }}">
                 </mat-form-field>
 
-                <button mat-icon-button color="warn" (click)="removeOption(i)" type="button" aria-label="Option entfernen">
+                <button mat-icon-button color="warn" (click)="removeOption(i)" type="button" [attr.aria-label]="'exampleDialog.removeOption' | translate">
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>
@@ -202,7 +251,7 @@
           <ng-container *ngIf="example.type === ExampleTypes.GAP_FILL">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>{{ 'school.question' | translate }}</mat-label>
-              <textarea matInput [(ngModel)]="example.question" name="question" (input)="updateGapsFromText(); markDirty()" placeholder="{{ 'exampleDialog.gapFillPlaceholder' | translate }}"
+              <textarea matInput [(ngModel)]="example.question" name="question" (input)="syncVariablesFromContent(); updateGapsFromText(); markDirty()" placeholder="{{ 'exampleDialog.gapFillPlaceholder' | translate }}"
                         cdkTextareaAutosize
                         cdkAutosizeMinRows="2"
                         cdkAutosizeMaxRows="10"></textarea>
@@ -299,7 +348,7 @@
           <ng-container *ngIf="example.type === ExampleTypes.CONSTRUCTION">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>{{ 'school.question' | translate }}</mat-label>
-              <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="{{ 'exampleDialog.constructionPlaceholder' | translate }}"
+              <textarea matInput [(ngModel)]="example.question" name="question" (input)="syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.constructionPlaceholder' | translate }}"
                         cdkTextareaAutosize
                         cdkAutosizeMinRows="2"
                         cdkAutosizeMaxRows="10"></textarea>
@@ -390,7 +439,7 @@
           <ng-container *ngIf="example.type === ExampleTypes.ASSIGN">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>{{ 'school.question' | translate }}</mat-label>
-              <textarea matInput [(ngModel)]="example.question" name="question" (input)="markDirty()" placeholder="{{ 'exampleDialog.assignPlaceholder' | translate }}"
+              <textarea matInput [(ngModel)]="example.question" name="question" (input)="syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.assignPlaceholder' | translate }}"
                         cdkTextareaAutosize
                         cdkAutosizeMinRows="2"
                         cdkAutosizeMaxRows="10"></textarea>
@@ -398,21 +447,21 @@
 
             <div class="assign-board">
               <div class="assign-column">
-                <div class="column-title">Links</div>
+                <div class="column-title">{{ 'exampleDialog.assignLeftColumn' | translate }}</div>
                 <div *ngFor="let assign of example.assigns; let li = index; trackBy: trackByIndex" class="assign-row">
                   <mat-form-field appearance="outline" class="item-input">
-                    <input matInput [(ngModel)]="assign.left" name="assignLeft{{li}}" (input)="markDirty()" placeholder="Linkes Statement">
+                    <input matInput [(ngModel)]="assign.left" name="assignLeft{{li}}" (input)="markDirty()" placeholder="{{ 'exampleDialog.assignLeftPlaceholder' | translate }}">
                   </mat-form-field>
 
                   <mat-form-field appearance="outline" class="assign-select">
-                    <mat-label>Zuordnung</mat-label>
+                    <mat-label>{{ 'exampleDialog.assignConnection' | translate }}</mat-label>
                     <mat-select [value]="assign.right" (selectionChange)="setAssignConnection(assign, $any($event.value))" >
-                      <mat-option [value]="null">— Keine —</mat-option>
+                      <mat-option [value]="null">{{ 'exampleDialog.assignNoConnection' | translate }}</mat-option>
                       <mat-option *ngFor="let right of example.assignRightItems" [value]="right">{{ right }}</mat-option>
                     </mat-select>
                   </mat-form-field>
 
-                  <button mat-icon-button color="warn" type="button" (click)="removeAssignLeftItem(li)" aria-label="Linkes entfernen"><mat-icon>delete</mat-icon></button>
+                  <button mat-icon-button color="warn" type="button" (click)="removeAssignLeftItem(li)" [attr.aria-label]="'exampleDialog.assignRemoveLeft' | translate"><mat-icon>delete</mat-icon></button>
                 </div>
 
                 <div class="panel-actions">
@@ -421,13 +470,13 @@
               </div>
 
               <div class="assign-column">
-                <div class="column-title">Rechts</div>
+                <div class="column-title">{{ 'exampleDialog.assignRightColumn' | translate }}</div>
                 <div *ngFor="let right of example.assignRightItems; let ri = index; trackBy: trackByIndex" class="assign-row">
                   <mat-form-field appearance="outline" class="item-input">
-                    <input matInput [(ngModel)]="example.assignRightItems[ri]" name="assignRight{{ri}}" (input)="markDirty()" placeholder="Rechtes Statement">
+                    <input matInput [(ngModel)]="example.assignRightItems[ri]" name="assignRight{{ri}}" (input)="markDirty()" placeholder="{{ 'exampleDialog.assignRightPlaceholder' | translate }}">
                   </mat-form-field>
 
-                  <button mat-icon-button color="warn" (click)="removeAssignRightItem(ri)" type="button" aria-label="Rechtes entfernen"><mat-icon>delete</mat-icon></button>
+                  <button mat-icon-button color="warn" (click)="removeAssignRightItem(ri)" type="button" [attr.aria-label]="'exampleDialog.assignRemoveRight' | translate"><mat-icon>delete</mat-icon></button>
                 </div>
 
                 <div class="panel-actions">
@@ -445,7 +494,7 @@
     <div class="create-example-layout">
       <div class="preview-panel">
         <div>
-          <p style="white-space: pre-line;">{{ example.instruction }}</p>
+          <p style="white-space: pre-line;">{{ getResolvedTextWithDefaults(example.instruction) }}</p>
         </div>
         <p><strong>{{ 'school.question' | translate }}:</strong></p>
         <div class="question-preview">

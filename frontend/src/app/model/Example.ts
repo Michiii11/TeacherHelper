@@ -28,7 +28,7 @@ export interface Example {
   type: ExampleTypes;
   instruction: string;
   question: string;
-  answers: string[];
+  answers: string[][];
   imageUrl: string | null;
   solutionUrl: string | null;
   imageWidth: number | null;
@@ -38,6 +38,7 @@ export interface Example {
   gaps: Gap[];
   assigns: Assign[];
   assignRightItems: string[];
+  variables?: ExampleVariable[];
 }
 
 export interface ExampleDTO {
@@ -54,6 +55,7 @@ export interface ExampleDTO {
   imageWidth: number | null;
   solutionImageWidth: number | null;
   focusList: Focus[];
+  variables?: ExampleVariable[];
   school: SchoolDTO;
   answers: string[][];
   options: Option[];
@@ -61,6 +63,12 @@ export interface ExampleDTO {
   gaps: Gap[];
   assigns: Assign[];
   assignRightItems: string[];
+}
+
+export interface ExampleVariable {
+  id: string;
+  key: string;
+  defaultValue: string;
 }
 
 export interface CreateExampleDTO {
@@ -79,6 +87,7 @@ export interface CreateExampleDTO {
   solution: string;
   solutionUrl: string;
   focusList: Focus[];
+  variables?: ExampleVariable[];
   imageWidth: number | null;
   solutionImageWidth: number | null;
   imageFile?: File;

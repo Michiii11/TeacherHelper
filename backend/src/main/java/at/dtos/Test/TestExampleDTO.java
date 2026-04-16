@@ -2,5 +2,12 @@ package at.dtos.Test;
 
 import at.dtos.Example.ExampleDTO;
 
-public record TestExampleDTO(ExampleDTO example, int points, String title) {
+import java.util.Map;
+
+public record TestExampleDTO(
+        ExampleDTO example,
+        int points,
+        String title,
+        Map<String, String> variableValues
+) {
 }

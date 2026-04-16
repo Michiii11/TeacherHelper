@@ -1,6 +1,7 @@
 package at.repository;
 
 import at.dtos.Example.ExampleDTO;
+import at.dtos.Example.ExampleVariableDTO;
 import at.dtos.Example.GapDTO;
 import at.dtos.School.SchoolDTO;
 import at.dtos.Test.CreateTestDTO;
@@ -8,8 +9,8 @@ import at.dtos.Test.GradingLevelDTO;
 import at.dtos.Test.MoveTestToFolderDTO;
 import at.dtos.Test.TestExampleDTO;
 import at.dtos.Test.TestOverviewDTO;
-import at.dtos.User.UserDTO;
 import at.model.*;
+import at.model.helper.ExampleVariable;
 import at.security.TokenService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -19,6 +20,7 @@ import jakarta.ws.rs.core.Response;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -202,7 +204,12 @@ public class TestRepository {
 
         List<TestExampleDTO> exampleList = new LinkedList<>();
         t.getExampleList().forEach(example ->
-                exampleList.add(new TestExampleDTO(mapToExampleDTO(example.getExample()), example.getPoints(), example.getTitle())));
+                exampleList.add(new TestExampleDTO(
+                        mapToExampleDTO(example.getExample()),
+                        example.getPoints(),
+                        example.getTitle(),
+                        copyStringMap(example.getVariableValues())
+                )));
 
         return new CreateTestDTO(
                 "",
@@ -235,6 +242,7 @@ public class TestRepository {
                 e.getImageWidth(),
                 e.getSolutionImageWidth(),
                 e.getFocusList(),
+                mapVariables(e.getVariables()),
                 new SchoolDTO(
                         e.getSchool().getId(),
                         e.getSchool().getName(),
@@ -268,6 +276,7 @@ public class TestRepository {
         for (TestExampleDTO exampleDTO : exampleDTOs) {
             Example managedExample = em.find(Example.class, exampleDTO.example().id());
             TestExample testExample = new TestExample(test, managedExample, exampleDTO.points(), exampleDTO.title());
+            testExample.setVariableValues(copyStringMap(exampleDTO.variableValues()));
             em.persist(testExample);
             test.getExampleList().add(testExample);
         }
@@ -285,6 +294,27 @@ public class TestRepository {
 
     private Map<Integer, Integer> copyMap(Map<Integer, Integer> source) {
         return source == null ? Map.of() : Map.copyOf(source);
+    }
+
+    private Map<String, String> copyStringMap(Map<String, String> source) {
+        return source == null ? new HashMap<>() : new HashMap<>(source);
+    }
+
+    private List<ExampleVariableDTO> mapVariables(List<ExampleVariable> variables) {
+        List<ExampleVariableDTO> mapped = new LinkedList<>();
+        if (variables == null) {
+            return mapped;
+        }
+
+        for (ExampleVariable variable : variables) {
+            mapped.add(new ExampleVariableDTO(
+                    variable.getId(),
+                    variable.getKey(),
+                    variable.getDefaultValue()
+            ));
+        }
+
+        return mapped;
     }
 
     private List<GradingLevelDTO> mapDtoSchemaToEntitySchema(List<GradingLevel> source) {

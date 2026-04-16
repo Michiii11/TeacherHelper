@@ -22,6 +22,7 @@ public record ExampleDTO(
         Integer imageWidth,
         Integer solutionImageWidth,
         List<Focus> focusList,
+        List<ExampleVariableDTO> variables,
         SchoolDTO school,
         List<String[]> answers,
         List<Option> options,

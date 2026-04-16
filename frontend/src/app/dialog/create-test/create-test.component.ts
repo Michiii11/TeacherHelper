@@ -18,7 +18,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { Example, ExampleDTO, ExampleTypeLabels, ExampleTypes } from '../../model/Example';
-import { CreateTestDTO, GradingLevel, TestExample, TestExampleDTO } from '../../model/Test';
+import { CreateTestDTO, GradingLevel, TestExample, TestExampleDTO, TestExampleVariableValues } from '../../model/Test';
 import { HttpService } from '../../service/http.service';
 import { TestBranding, TestPrintLabels, TestPrintService } from '../../service/test-print.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
@@ -205,7 +205,13 @@ export class CreateTestComponent implements OnInit, OnDestroy {
               ...response,
             };
             this.isEditMode = true;
-            const hydratedEntries = this.hydrateConstructionImagesForEntries(this.test.exampleList ?? []);
+            const hydratedEntries = this.hydrateConstructionImagesForEntries(this.test.exampleList ?? []).map(entry => ({
+              ...entry,
+              variableValues: {
+                ...this.buildDefaultVariableValues(entry.example),
+                ...(entry.variableValues ?? {})
+              }
+            }));
             this.selectedExamplesInternal = hydratedEntries;
             this.test.exampleList = hydratedEntries;
             this.hydratePersistedSettings(response);
@@ -311,6 +317,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       example: hydratedExample,
       points: 0,
       title: '',
+      variableValues: this.buildDefaultVariableValues(hydratedExample),
       test: undefined as any,
     };
 
@@ -406,6 +413,60 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     return parts.join(' · ');
   }
 
+  getExampleVariables(entry: TestExampleDTO) {
+    return entry.example.variables ?? [];
+  }
+
+  hasVariables(entry: TestExampleDTO): boolean {
+    return this.getExampleVariables(entry).length > 0;
+  }
+
+  trackByVariableValue(index: number, variable: { key: string }): string {
+    return variable.key || String(index);
+  }
+
+  getVariableValue(entry: TestExampleDTO, key: string): string {
+    return entry.variableValues?.[key] ?? this.getDefaultVariableValue(entry, key);
+  }
+
+  onVariableValueChange(entry: TestExampleDTO, key: string, value: string | null): void {
+    entry.variableValues = {
+      ...(entry.variableValues ?? {}),
+      [key]: value ?? '',
+    };
+    this.markDirty();
+  }
+
+  private buildDefaultVariableValues(example: Example | ExampleDTO): TestExampleVariableValues {
+    return Object.fromEntries(
+      (example.variables ?? []).map(variable => [variable.key, variable.defaultValue ?? ''])
+    );
+  }
+
+  private getDefaultVariableValue(entry: TestExampleDTO, key: string): string {
+    return entry.example.variables?.find(variable => variable.key === key)?.defaultValue ?? '';
+  }
+
+  private resolveVariables(value: string | null | undefined, variableValues?: TestExampleVariableValues, example?: Example | ExampleDTO): string {
+    return (value ?? '').replace(/\{([a-zA-Z_][a-zA-Z0-9_-]*)\}/g, (_match, key: string) => {
+      if (variableValues && key in variableValues) {
+        return variableValues[key] ?? '';
+      }
+      return example?.variables?.find(variable => variable.key === key)?.defaultValue ?? '';
+    });
+  }
+
+  getResolvedEntryTitle(entry: TestExampleDTO): string {
+    const fallback = this.getExampleHeading(entry.example);
+    return this.resolveVariables(entry.title?.trim() || fallback, entry.variableValues, entry.example);
+  }
+
+  getResolvedExampleHeading(example: Example | ExampleDTO, variableValues?: TestExampleVariableValues): string {
+    const fallback = example.instruction?.trim() || example.question?.trim() || `Beispiel #${example.id}`;
+    return this.resolveVariables(fallback, variableValues, example);
+  }
+
+
   getExampleTypeLabel(type: ExampleTypes | string): string {
     if (type == null) return '—';
 
@@ -475,7 +536,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.attachPersistedSettingsToPayload();
     this.isExportingPdf = true;
 
-    const success = await this.testPrintService.exportPdf(this.test, this.selectedExamples, {
+    const success = await this.testPrintService.exportPdf(this.test, this.buildResolvedExamplesForPreview(), {
       printCopies: this.printCopies,
       includeSolutionSheet: this.includeSolutionSheet,
       getGradeRangeLabel: (gradeOrIndex: number) => this.getGradeRangeLabelByIndex(gradeOrIndex - 1),
@@ -504,7 +565,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.attachPersistedSettingsToPayload();
     this.isExportingWord = true;
 
-    const success = await this.testPrintService.exportWord(this.test, this.selectedExamples, {
+    const success = await this.testPrintService.exportWord(this.test, this.buildResolvedExamplesForPreview(), {
       printCopies: this.printCopies,
       includeSolutionSheet: this.includeSolutionSheet,
       getGradeRangeLabel: (gradeOrIndex: number) => this.getGradeRangeLabelByIndex(gradeOrIndex - 1),
@@ -836,7 +897,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   getQuestionWithGapLabels(example: Example | ExampleDTO): string {
     let idx = 0;
-    return example.question.replace(/\{Lücke \d+\}/g, () => {
+    return this.resolveVariables(example.question, undefined, example).replace(/\{Lücke \d+\}/g, () => {
       const label = example.gaps[idx]?.label?.trim();
       idx++;
       return label ? `_____(${label})_____` : `______________`;
@@ -849,7 +910,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   printPreview(): void {
     this.attachPersistedSettingsToPayload();
-    this.testPrintService.printTest(this.test, this.selectedExamples, {
+    this.testPrintService.printTest(this.test, this.buildResolvedExamplesForPreview(), {
       printCopies: this.printCopies,
       includeSolutionSheet: this.includeSolutionSheet,
       getGradeRangeLabel: (gradeOrIndex: number) => this.getGradeRangeLabelByIndex(gradeOrIndex - 1),
@@ -907,11 +968,56 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     return document.documentElement.classList.contains('dark-mode') || document.body.classList.contains('dark-mode');
   }
 
+  private resolveOptionList(options: any[] | null | undefined, variableValues?: TestExampleVariableValues, example?: Example | ExampleDTO): any[] {
+    return (options ?? []).map(option => ({
+      ...option,
+      text: this.resolveVariables(option?.text, variableValues, example),
+    }));
+  }
+
+  private resolveGapList(gaps: any[] | null | undefined, variableValues?: TestExampleVariableValues, example?: Example | ExampleDTO): any[] {
+    return (gaps ?? []).map(gap => ({
+      ...gap,
+      label: this.resolveVariables(gap?.label, variableValues, example),
+      solution: this.resolveVariables(gap?.solution, variableValues, example),
+      options: this.resolveOptionList(gap?.options, variableValues, example),
+    }));
+  }
+
+  private resolveAssignList(assigns: any[] | null | undefined, variableValues?: TestExampleVariableValues, example?: Example | ExampleDTO): any[] {
+    return (assigns ?? []).map(assign => ({
+      ...assign,
+      left: this.resolveVariables(assign?.left, variableValues, example),
+      right: this.resolveVariables(assign?.right, variableValues, example),
+    }));
+  }
+
+  private buildResolvedExamplesForPreview(): TestExampleDTO[] {
+    return this.selectedExamples.map(entry => ({
+      ...entry,
+      title: this.getResolvedEntryTitle(entry),
+      example: {
+        ...entry.example,
+        instruction: this.resolveVariables(entry.example.instruction, entry.variableValues, entry.example),
+        question: this.resolveVariables(entry.example.question, entry.variableValues, entry.example),
+        solution: this.resolveVariables((entry.example as any).solution, entry.variableValues, entry.example),
+        answers: (entry.example.answers ?? []).map(answer => [
+          this.resolveVariables(answer?.[0], entry.variableValues, entry.example),
+          this.resolveVariables(answer?.[1], entry.variableValues, entry.example),
+        ]),
+        options: this.resolveOptionList(entry.example.options, entry.variableValues, entry.example),
+        gaps: this.resolveGapList(entry.example.gaps, entry.variableValues, entry.example),
+        assigns: this.resolveAssignList(entry.example.assigns, entry.variableValues, entry.example),
+        assignRightItems: (entry.example.assignRightItems ?? []).map(item => this.resolveVariables(item, entry.variableValues, entry.example)),
+      } as Example
+    }));
+  }
+
   private refreshPreviewHtml(): void {
     this.attachPersistedSettingsToPayload();
     this.labels = this.buildPrintLabels();
 
-    const html = this.testPrintService.buildPreviewHtml(this.test, this.selectedExamples, {
+    const html = this.testPrintService.buildPreviewHtml(this.test, this.buildResolvedExamplesForPreview(), {
       printCopies: 1,
       includeSolutionSheet: this.includeSolutionSheet,
       getGradeRangeLabel: (gradeOrIndex: number) => this.getGradeRangeLabelByIndex(gradeOrIndex - 1),

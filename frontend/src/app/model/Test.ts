@@ -31,18 +31,24 @@ export interface Test {
   folderId?: string | null;
 }
 
+export interface TestExampleVariableValues {
+  [key: string]: string;
+}
+
 export interface TestExample{
   id: number;
   example: Example;
   test: Test;
   points: number;
   title: string;
+  variableValues?: TestExampleVariableValues;
 }
 
 export interface TestExampleDTO{
   example: Example;
   points: number;
   title: string;
+  variableValues?: TestExampleVariableValues;
 }
 
 export interface TestOverviewDTO {
