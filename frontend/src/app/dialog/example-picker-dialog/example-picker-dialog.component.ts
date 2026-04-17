@@ -5,11 +5,11 @@ import { MAT_DIALOG_DATA, MatDialogActions, MatDialogRef } from '@angular/materi
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { ExampleDTO, ExampleTypeLabels, ExampleTypes } from '../../model/Example';
-import {MatFormField, MatLabel} from '@angular/material/input'
-import {MatOption, MatSelect} from '@angular/material/select'
+import { MatFormField, MatLabel } from '@angular/material/input';
+import { MatOption, MatSelect } from '@angular/material/select';
 
 type ExplorerFolder = {
   id: string;
@@ -31,7 +31,13 @@ export type ExamplePickerDialogResult = {
   selectedIds: number[];
 };
 
-type ExampleSortKey = 'folder_title' | 'title_asc' | 'title_desc' | 'type_title' | 'newest' | 'oldest';
+type ExampleSortKey =
+  | 'folder_title'
+  | 'title_asc'
+  | 'title_desc'
+  | 'type_title'
+  | 'newest'
+  | 'oldest';
 
 @Component({
   selector: 'app-example-picker-dialog',
@@ -60,20 +66,21 @@ export class ExamplePickerDialogComponent implements OnInit {
   selectedFolderId: string | null = null;
   selectedTypes: string[] = [];
   selectedFocuses: string[] = [];
-  sortBy: 'folder_title' | 'title_asc' | 'title_desc' | 'type_title' | 'newest' | 'oldest' = 'folder_title';
+  sortBy: ExampleSortKey = 'folder_title';
 
-  readonly sortOptions = [
-    { value: 'folder_title', label: 'Ordner / Titel (A–Z)' },
-    { value: 'title_asc', label: 'Titel (A–Z)' },
-    { value: 'title_desc', label: 'Titel (Z–A)' },
-    { value: 'type_title', label: 'Typ / Titel' },
-    { value: 'newest', label: 'Neueste zuerst' },
-    { value: 'oldest', label: 'Älteste zuerst' },
+  readonly sortOptions: { value: ExampleSortKey; label: string }[] = [
+    { value: 'folder_title', label: 'createTest.sort.folderTitle' },
+    { value: 'title_asc', label: 'createTest.sort.titleAsc' },
+    { value: 'title_desc', label: 'createTest.sort.titleDesc' },
+    { value: 'type_title', label: 'createTest.sort.typeTitle' },
+    { value: 'newest', label: 'createTest.sort.newest' },
+    { value: 'oldest', label: 'createTest.sort.oldest' },
   ];
 
   constructor(
     @Inject(MAT_DIALOG_DATA) readonly data: ExamplePickerDialogData,
-    private readonly dialogRef: MatDialogRef<ExamplePickerDialogComponent, ExamplePickerDialogResult>
+    private readonly dialogRef: MatDialogRef<ExamplePickerDialogComponent, ExamplePickerDialogResult>,
+    private readonly translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -85,7 +92,13 @@ export class ExamplePickerDialogComponent implements OnInit {
   get orderedFolders(): ExplorerFolder[] {
     return [...(this.data.folders ?? [])]
       .filter(folder => folder.type === 'examples')
-      .sort((a, b) => this.getFolderPathLabel(a.id).localeCompare(this.getFolderPathLabel(b.id), 'de', { sensitivity: 'base' }));
+      .sort((a, b) =>
+        this.getFolderPathLabel(a.id).localeCompare(
+          this.getFolderPathLabel(b.id),
+          undefined,
+          { sensitivity: 'base' }
+        )
+      );
   }
 
   get availableTypes(): { value: string; label: string }[] {
@@ -98,7 +111,11 @@ export class ExamplePickerDialogComponent implements OnInit {
     }
 
     return [...values]
-      .sort((a, b) => this.getTypeLabel(a).localeCompare(this.getTypeLabel(b), 'de', { sensitivity: 'base' }))
+      .sort((a, b) =>
+        this.getTypeLabel(a).localeCompare(this.getTypeLabel(b), undefined, {
+          sensitivity: 'base',
+        })
+      )
       .map(value => ({ value, label: this.getTypeLabel(value) }));
   }
 
@@ -108,11 +125,15 @@ export class ExamplePickerDialogComponent implements OnInit {
     for (const example of this.data.examples ?? []) {
       for (const focus of example.focusList ?? []) {
         const label = (focus.label ?? '').trim();
-        if (label) focuses.add(label);
+        if (label) {
+          focuses.add(label);
+        }
       }
     }
 
-    return [...focuses].sort((a, b) => a.localeCompare(b, 'de', { sensitivity: 'base' }));
+    return [...focuses].sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: 'base' })
+    );
   }
 
   get filteredExamples(): ExampleDTO[] {
@@ -129,20 +150,22 @@ export class ExamplePickerDialogComponent implements OnInit {
         }
 
         if (this.selectedFocuses.length) {
-          const focusLabels = (example.focusList ?? []).map(f => this.normalize(f.label ?? ''));
+          const focusLabels = (example.focusList ?? []).map(f =>
+            this.normalize(f.label ?? '')
+          );
+
           if (!this.selectedFocuses.some(focus => focusLabels.includes(this.normalize(focus)))) {
             return false;
           }
         }
 
-        if (!query) return true;
+        if (!query) {
+          return true;
+        }
+
         return this.matchesQuery(example, query);
       })
       .sort((a, b) => this.compareExamples(a, b));
-  }
-
-  get availableCount(): number {
-    return (this.data.examples ?? []).filter(example => !this.initiallySelected.has(example.id)).length;
   }
 
   get selectedCount(): number {
@@ -157,16 +180,6 @@ export class ExamplePickerDialogComponent implements OnInit {
     return this.workingSelection.has(exampleId);
   }
 
-  toggleExample(exampleId: number, checked: boolean): void {
-    if (this.isAlreadySelected(exampleId)) return;
-
-    if (checked) {
-      this.workingSelection.add(exampleId);
-    } else {
-      this.workingSelection.delete(exampleId);
-    }
-  }
-
   isTypeSelected(type: string): boolean {
     return this.selectedTypes.includes(type);
   }
@@ -175,15 +188,27 @@ export class ExamplePickerDialogComponent implements OnInit {
     return this.selectedFocuses.includes(focus);
   }
 
+  toggleExample(exampleId: number, checked: boolean): void {
+    if (this.isAlreadySelected(exampleId)) {
+      return;
+    }
+
+    if (checked) {
+      this.workingSelection.add(exampleId);
+    } else {
+      this.workingSelection.delete(exampleId);
+    }
+  }
+
   toggleType(type: string): void {
     this.selectedTypes = this.selectedTypes.includes(type)
-      ? this.selectedTypes.filter(item => item !== type)
+      ? this.selectedTypes.filter(t => t !== type)
       : [...this.selectedTypes, type];
   }
 
   toggleFocus(focus: string): void {
     this.selectedFocuses = this.selectedFocuses.includes(focus)
-      ? this.selectedFocuses.filter(item => item !== focus)
+      ? this.selectedFocuses.filter(f => f !== focus)
       : [...this.selectedFocuses, focus];
   }
 
@@ -198,18 +223,25 @@ export class ExamplePickerDialogComponent implements OnInit {
   getExampleTitle(example: ExampleDTO): string {
     const instruction = (example.instruction ?? '').trim();
     const question = (example.question ?? '').trim();
-    return instruction || question || `Beispiel #${example.id}`;
+    return instruction || question || `Example #${example.id}`;
   }
 
   getTypeLabel(type: ExampleTypes | string): string {
     if (type == null) return '—';
 
-    const normalized = String(type) as ExampleTypes;
-    return ExampleTypeLabels[normalized] ?? this.prettyEnumLabel(String(type));
+    const key = ExampleTypeLabels[String(type) as ExampleTypes];
+
+    return key
+      ? this.translate.instant(key)
+      : this.prettyEnumLabel(String(type));
   }
 
   getFolderPathLabel(folderId: string | null): string {
-    if (folderId === null) return 'Root';
+    const rootLabel = this.translate.instant('school.root');
+
+    if (folderId === null) {
+      return rootLabel;
+    }
 
     const crumbs: string[] = [];
     const folders = this.data.folders ?? [];
@@ -220,7 +252,7 @@ export class ExamplePickerDialogComponent implements OnInit {
       current = folders.find(folder => folder.id === current?.parentId) ?? null;
     }
 
-    return crumbs.length ? ['Root', ...crumbs].join(' / ') : 'Root';
+    return crumbs.length ? [rootLabel, ...crumbs].join(' / ') : rootLabel;
   }
 
   confirm(): void {
@@ -247,29 +279,34 @@ export class ExamplePickerDialogComponent implements OnInit {
         return this.compareText(titleB, titleA) || this.compareText(folderA, folderB);
 
       case 'type_title':
-        return this.compareText(typeA, typeB)
-          || this.compareText(titleA, titleB)
-          || this.compareText(folderA, folderB);
+        return (
+          this.compareText(typeA, typeB) ||
+          this.compareText(titleA, titleB) ||
+          this.compareText(folderA, folderB)
+        );
 
       case 'newest':
-        return this.compareDatesDesc(a, b)
-          || this.compareText(titleA, titleB)
-          || this.compareText(folderA, folderB);
+        return (
+          this.compareDatesDesc(a, b) ||
+          this.compareText(titleA, titleB) ||
+          this.compareText(folderA, folderB)
+        );
 
       case 'oldest':
-        return this.compareDatesAsc(a, b)
-          || this.compareText(titleA, titleB)
-          || this.compareText(folderA, folderB);
+        return (
+          this.compareDatesAsc(a, b) ||
+          this.compareText(titleA, titleB) ||
+          this.compareText(folderA, folderB)
+        );
 
       case 'folder_title':
       default:
-        return this.compareText(folderA, folderB)
-          || this.compareText(titleA, titleB);
+        return this.compareText(folderA, folderB) || this.compareText(titleA, titleB);
     }
   }
 
   private compareText(a: string, b: string): number {
-    return a.localeCompare(b, 'de', { sensitivity: 'base' });
+    return a.localeCompare(b, undefined, { sensitivity: 'base' });
   }
 
   private compareDatesDesc(a: ExampleDTO, b: ExampleDTO): number {
@@ -288,16 +325,19 @@ export class ExamplePickerDialogComponent implements OnInit {
 
   private matchesQuery(example: ExampleDTO, query: string): boolean {
     const focusLabels = (example.focusList ?? []).map(focus => focus.label ?? '').join(' ');
-    const haystack = this.normalize([
-      example.question,
-      example.instruction,
-      example.admin?.username ?? '',
-      (example as any).adminUsername ?? '',
-      String(example.id),
-      this.getTypeLabel(example.type),
-      focusLabels,
-      this.getFolderPathLabel(example.folderId ?? null)
-    ].join(' '));
+
+    const haystack = this.normalize(
+      [
+        example.question,
+        example.instruction,
+        example.admin?.username ?? '',
+        (example as any).adminUsername ?? '',
+        String(example.id),
+        this.getTypeLabel(example.type),
+        focusLabels,
+        this.getFolderPathLabel(example.folderId ?? null),
+      ].join(' ')
+    );
 
     return haystack.includes(query);
   }
@@ -306,7 +346,7 @@ export class ExamplePickerDialogComponent implements OnInit {
     return value
       .replace(/_/g, ' ')
       .toLowerCase()
-      .replace(/\w/g, char => char.toUpperCase());
+      .replace(/\b\w/g, char => char.toUpperCase());
   }
 
   private normalize(value: string): string {

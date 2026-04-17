@@ -19,7 +19,7 @@
           </mat-icon>
 
           <h3 class="type-title">
-            {{ ExampleTypeLabels[t] }}
+            {{ ExampleTypeLabels[t] | translate }}
           </h3>
         </div>
 
@@ -85,7 +85,9 @@
 
               <mat-option *ngIf="showCreateOption(inputCtrl.value)" [value]="inputCtrl.value" class="focus-create-option">
                 <div class="focus-option-row">
-                  <span class="focus-option-label">"{{ inputCtrl.value }}" hinzufügen</span>
+                  <span class="focus-option-label">
+                    "{{ inputCtrl.value }}" {{ 'exampleDialog.addTag' | translate }}
+                  </span>
                 </div>
               </mat-option>
             </mat-autocomplete>
@@ -95,7 +97,7 @@
         <div class="variable-toolbar">
           <button mat-stroked-button type="button" (click)="insertVariableAtCursor()">
             <mat-icon>code</mat-icon>
-            Text-Variable in Frage einfügen
+            {{ 'exampleDialog.variables.insert' | translate }}
           </button>
         </div>
 
@@ -105,26 +107,12 @@
               <div class="panel-title">{{ 'exampleDialog.variables.title' | translate }}</div>
               <p>{{ 'exampleDialog.variables.description' | translate }}</p>
             </div>
-
-            <button mat-stroked-button type="button" (click)="insertVariableAtCursor()">
-              <mat-icon>code</mat-icon>
-              {{ 'exampleDialog.variables.insert' | translate }}
-            </button>
           </div>
 
           <div class="variable-grid">
             <div class="variable-card" *ngFor="let variable of example.variables; trackBy: trackByVariableKey">
               <div class="variable-key-row">
                 <div class="variable-key">{{ '{' }}{{ variable.key }}{{ '}' }}</div>
-
-                <button
-                  mat-icon-button
-                  color="warn"
-                  type="button"
-                  (click)="removeVariable(variable)"
-                  [attr.aria-label]="'exampleDialog.variables.remove' | translate">
-                  <mat-icon>delete</mat-icon>
-                </button>
               </div>
 
               <mat-form-field appearance="outline" class="full-width">
@@ -229,7 +217,7 @@
               <div class="panel-title">{{ 'exampleDialog.options' | translate }}</div>
               <div *ngFor="let opt of example.options; let i = index; trackBy: trackByOptionId" class="item-row">
                 <mat-checkbox [(ngModel)]="opt.correct" name="correctOption{{i}}"
-                              (change)="markDirty()" [matTooltip]="'Als richtige Antwort markieren'"
+                              (change)="markDirty()" [matTooltip]="'exampleDialog.markAsCorrect' | translate"
                               [matTooltipShowDelay]="500">
                 </mat-checkbox>
 
@@ -373,7 +361,7 @@
               </div>
 
               <div class="construction-stage-preview">
-                <img *ngIf="constructionImagePreviewUrl" [src]="constructionImagePreviewUrl" alt="Task image preview" class="image-preview construction-preview-image" [style.width.px]="example.imageWidth || 320" />
+                <img *ngIf="constructionImagePreviewUrl" [src]="constructionImagePreviewUrl" [alt]="'exampleDialog.taskImagePreviewAlt' | translate" class="image-preview construction-preview-image" [style.width.px]="example.imageWidth || 320" />
                 <div *ngIf="!constructionImagePreviewUrl" class="construction-empty-state">
                   <mat-icon>image</mat-icon>
                   <span>{{ 'exampleDialog.noTaskImage' | translate }}</span>
@@ -415,7 +403,7 @@
               </div>
 
               <div class="construction-stage-preview">
-                <img *ngIf="constructionSolutionPreviewUrl" [src]="constructionSolutionPreviewUrl" alt="Solution image preview" class="image-preview construction-preview-image" [style.width.px]="example.solutionImageWidth || 320" />
+                <img *ngIf="constructionSolutionPreviewUrl" [src]="constructionSolutionPreviewUrl" [alt]="'exampleDialog.solutionImagePreviewAlt' | translate" class="image-preview construction-preview-image" [style.width.px]="example.solutionImageWidth || 320" />
                 <div *ngIf="!constructionSolutionPreviewUrl" class="construction-empty-state">
                   <mat-icon>imagesmode</mat-icon>
                   <span>{{ 'exampleDialog.noSolutionImage' | translate }}</span>
@@ -514,7 +502,7 @@
           <div class="construction-preview">
             <div>
               <p><strong>{{ 'exampleDialog.taskImage' | translate }}</strong></p>
-              <img *ngIf="constructionImagePreviewUrl" [src]="constructionImagePreviewUrl" alt="Aufgabenbild Vorschau" class="image-preview" [style.width.px]="example.imageWidth || 320" />
+              <img *ngIf="constructionImagePreviewUrl" [src]="constructionImagePreviewUrl" [alt]="'exampleDialog.taskImagePreviewAlt' | translate" class="image-preview" [style.width.px]="example.imageWidth || 320" />
             </div>
           </div>
         }

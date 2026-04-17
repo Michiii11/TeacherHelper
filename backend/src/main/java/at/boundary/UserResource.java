@@ -241,8 +241,6 @@ public class UserResource {
 
     @PUT
     @Path("settings")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
     public Response updateSettings(UpdateUserSettingsDTO dto) {
         Long userId = tokenFromDto(dto == null ? null : dto.authToken());
         if (userId == null) {
@@ -263,8 +261,6 @@ public class UserResource {
 
     @POST
     @Path("settings/allow-invitations")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
     public Response updateAllowInvitations(Map<String, Object> body) {
         String authToken = body == null ? null : (String) body.get("authToken");
         Long userId = tokenFromDto(authToken);

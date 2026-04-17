@@ -481,7 +481,7 @@
     "selectImage": "Choose image",
     "gapWidth": "Gap width in px",
     "variables": {
-      "title": "Text variables",
+      "title": "Variables",
       "description": "Detected from placeholders like {number1} or {name}. You can override these default values later in the test.",
       "insert": "Insert variable",
       "insertAtCursor": "Insert text variable",
@@ -496,7 +496,35 @@
     "assignLeftPlaceholder": "Left statement",
     "assignRightPlaceholder": "Right statement",
     "assignRemoveLeft": "Remove left item",
-    "assignRemoveRight": "Remove right item"
+    "assignRemoveRight": "Remove right item",
+
+    "addTag": "add",
+    "taskImagePreviewAlt": "Task image preview",
+    "solutionImagePreviewAlt": "Solution image preview",
+    "closeDialog": {
+      "title": "Close dialog?",
+      "message": "Unsaved changes will be lost. Do you really want to close the dialog?",
+      "cancel": "Continue editing",
+      "confirm": "Close"
+    },
+    "deleteFocusDialog": {
+      "title": "Delete focus?",
+      "message": "Do you really want to delete this focus? It may also be used in other examples.",
+      "confirmationText": "I understand that this action cannot be undone."
+    },
+    "snackbar": {
+      "invalidImageType": "Please upload only JPG, PNG or WEBP.",
+      "solutionImageDeleted": "Solution image deleted.",
+      "solutionImageDeleteError": "Solution image could not be deleted.",
+      "taskImageDeleted": "Task image deleted.",
+      "taskImageDeleteError": "Task image could not be deleted.",
+      "fillInstructionAndQuestion": "Please fill in both the instruction and the question.",
+      "selectTaskImageFirst": "Please select a task image first.",
+      "saved": "Example saved successfully.",
+      "created": "Example created successfully.",
+      "saveError": "Example could not be saved.",
+      "focusDeleted": "The focus \"{{label}}\" was deleted."
+    }
   },
   "createTest": {
     "titleLabel": "Title",
@@ -522,6 +550,14 @@
       "title": "Warning",
       "message": "Do you really want to close? Unsaved changes will be lost.",
       "confirm": "Close"
+    },
+    "sort": {
+      "folderTitle": "Folder / Title (A–Z)",
+      "titleAsc": "Title (A–Z)",
+      "titleDesc": "Title (Z–A)",
+      "typeTitle": "Type / Title",
+      "newest": "Newest first",
+      "oldest": "Oldest first"
     },
     "preview": {
       "name": "Name",
@@ -830,7 +866,7 @@
       },
       "invites": {
         "title": "Invitation system",
-        "text": "Invite members, track responses, and organize collaboration directly inside the app — without the usual back and forth."
+        "text": "Invite members, track responses, and organize collaboration directly inside the app."
       }
     },
     "changelog": {
@@ -850,8 +886,9 @@
         "title": "More structure in daily use",
         "description": "1.1.0 improves TeacherHelper especially where clarity and speed matter most in everyday work.",
         "c1": "Added a folder system so content can be structured more cleanly",
-        "c2": "Added filters and search to find examples and tests much faster",
-        "c3": "Introduced a new create-test window for a cleaner workflow"
+        "c2": "Use variables to make examples more flexible and reusable",
+        "c3": "Added filters and search to find examples and tests much faster",
+        "c4": "Introduced a new create-test window for a cleaner workflow"
       }
     },
     "actions": {
@@ -886,5 +923,21 @@
       "title": "Guided tutorial is coming next",
       "text": "This is already the entry point for the future app walkthrough. Later, it can guide users page by page and explain what they can do there."
     }
+  },
+  "exampleTypes": {
+    "open": "Open",
+    "halfOpen": "Semi-open",
+    "construction": "Image",
+    "multipleChoice": "Multiple Choice",
+    "gapFill": "Gap fill",
+    "assign": "Match"
+  },
+  "exampleTypeDescriptions": {
+    "open": "Answer without fixed options.",
+    "halfOpen": "Enter the answer into a predefined structure.",
+    "construction": "Task with an image or graphic.",
+    "multipleChoice": "Choose one or more options.",
+    "gapFill": "Fill the gaps by selecting or typing.",
+    "assign": "Match elements to each other."
   }
 }

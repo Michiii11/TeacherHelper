@@ -220,6 +220,14 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  private t(key: string, params?: Record<string, unknown>): string {
+    return this.translate.instant(key, params);
+  }
+
+  private openTranslatedSnack(messageKey: string, actionKey = 'common.ok', duration = 3000, params?: Record<string, unknown>): void {
+    this.snackBar.open(this.t(messageKey, params), this.t(actionKey), { duration });
+  }
+
   generateUniqueId(): string {
     return Math.random().toString(36).slice(2, 11);
   }
@@ -735,7 +743,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     if (!file) return;
 
     if (!this.allowedImageTypes.includes(file.type)) {
-      this.snackBar.open('Bitte nur JPG, PNG oder WEBP hochladen.', 'OK', { duration: 3000 });
+      this.openTranslatedSnack('exampleDialog.snackbar.invalidImageType');
       input.value = '';
       return;
     }
@@ -775,10 +783,10 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
           this.example.solutionUrl = '';
           this.example.solutionImageWidth = this.defaultImageWidth;
           this.markDirty();
-          this.snackBar.open('Lösungsbild gelöscht.', 'OK', { duration: 2500 });
+          this.openTranslatedSnack('exampleDialog.snackbar.solutionImageDeleted', 'common.ok', 2500);
           return;
         } catch {
-          this.snackBar.open('Lösungsbild konnte nicht gelöscht werden.', 'OK', { duration: 3000 });
+          this.openTranslatedSnack('exampleDialog.snackbar.solutionImageDeleteError');
           return;
         }
       }
@@ -806,10 +814,10 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
         this.example.image = '';
         this.example.imageWidth = this.defaultImageWidth;
         this.markDirty();
-        this.snackBar.open('Aufgabenbild gelöscht.', 'OK', { duration: 2500 });
+        this.openTranslatedSnack('exampleDialog.snackbar.taskImageDeleted', 'common.ok', 2500);
         return;
       } catch {
-        this.snackBar.open('Aufgabenbild konnte nicht gelöscht werden.', 'OK', { duration: 3000 });
+        this.openTranslatedSnack('exampleDialog.snackbar.taskImageDeleteError');
         return;
       }
     }
@@ -871,9 +879,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     this.syncVariablesFromContent();
 
     if (!this.example.instruction.trim() || !this.example.question.trim()) {
-      this.snackBar.open('Bitte füllen Sie sowohl die Angabe als auch die Aufgabenstellung aus.', 'OK', {
-        duration: 3000
-      });
+      this.openTranslatedSnack('exampleDialog.snackbar.fillInstructionAndQuestion');
       return;
     }
 
@@ -882,7 +888,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     }
 
     if (this.example.type === ExampleTypes.CONSTRUCTION && !this.isEditMode && !this.selectedConstructionImageFile) {
-      this.snackBar.open('Bitte zuerst ein Aufgabenbild auswählen.', 'OK', { duration: 3000 });
+      this.openTranslatedSnack('exampleDialog.snackbar.selectTaskImageFirst');
       return;
     }
 
@@ -899,7 +905,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
           await this.uploadConstructionAssets(updatedId);
         }
 
-        this.snackBar.open('Beispiel erfolgreich gespeichert', 'OK', { duration: 3000 });
+        this.openTranslatedSnack('exampleDialog.snackbar.saved');
       } else {
         const createdIdRaw = await firstValueFrom(this.http.createExample(payload));
         const createdId = Number(createdIdRaw);
@@ -912,14 +918,14 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
           await this.uploadConstructionAssets(createdId);
         }
 
-        this.snackBar.open('Beispiel erfolgreich erstellt', 'OK', { duration: 3000 });
+        this.openTranslatedSnack('exampleDialog.snackbar.created');
       }
 
       this.hasUnsavedChanges = false;
       this.dialogRef.close(true);
     } catch (error) {
       console.error(error);
-      this.snackBar.open('Beispiel konnte nicht gespeichert werden.', 'OK', { duration: 3500 });
+      this.openTranslatedSnack('exampleDialog.snackbar.saveError', 'common.ok', 3500);
     } finally {
       this.isSaving = false;
     }
@@ -929,10 +935,10 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     if (this.hasUnsavedChanges) {
       const confirmRef = this.dialog.open(ConfirmDialogComponent, {
         data: {
-          title: 'Dialog schließen?',
-          message: 'Nicht gespeicherte Änderungen gehen verloren. Möchten Sie den Dialog wirklich schließen?',
-          cancelText: 'Weiter bearbeiten',
-          confirmText: 'Schließen'
+          title: this.t('exampleDialog.closeDialog.title'),
+          message: this.t('exampleDialog.closeDialog.message'),
+          cancelText: this.t('exampleDialog.closeDialog.cancel'),
+          confirmText: this.t('exampleDialog.closeDialog.confirm')
         }
       });
 
@@ -971,40 +977,20 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     });
   }
 
-  getResolvedHalfOpenPrompt(answerRow: string[] | null | undefined): string {
-    return this.getResolvedTextWithDefaults(answerRow?.[0] ?? '');
-  }
-
-  getResolvedMultipleChoiceOption(option: Option): string {
-    return this.getResolvedTextWithDefaults(option?.text ?? '');
-  }
-
-  getResolvedGapOption(option: Option): string {
-    return this.getResolvedTextWithDefaults(option?.text ?? '');
-  }
-
-  getResolvedAssignLeft(assign: Assign): string {
-    return this.getResolvedTextWithDefaults(assign?.left ?? '');
-  }
-
-  getResolvedAssignRight(value: string | null | undefined): string {
-    return this.getResolvedTextWithDefaults(value ?? '');
-  }
-
   getTooltip(t: ExampleTypes): string {
     switch (t) {
       case ExampleTypes.OPEN:
-        return 'Antwort ohne Vorgaben.';
+        return this.t('exampleTypeDescriptions.open');
       case ExampleTypes.HALF_OPEN:
-        return 'Antwort in vorgegebene Struktur eintragen.';
+        return this.t('exampleTypeDescriptions.halfOpen');
       case ExampleTypes.CONSTRUCTION:
-        return 'Aufgabe mit Bild oder Grafik.';
+        return this.t('exampleTypeDescriptions.construction');
       case ExampleTypes.MULTIPLE_CHOICE:
-        return 'Eine oder mehrere Optionen auswählen.';
+        return this.t('exampleTypeDescriptions.multipleChoice');
       case ExampleTypes.GAP_FILL:
-        return 'Lücken durch Auswahl oder Eingabe füllen.';
+        return this.t('exampleTypeDescriptions.gapFill');
       case ExampleTypes.ASSIGN:
-        return 'Elemente einander zuordnen.';
+        return this.t('exampleTypeDescriptions.assign');
       default:
         return '';
     }
@@ -1103,12 +1089,12 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
     this.dialog.open(ConfirmDialogComponent, {
       data: {
-        title: 'Schwerpunkt löschen?',
-        message: 'Möchten Sie diesen Schwerpunkt wirklich löschen? Er kann auch in anderen Beispielen verwendet werden.',
-        cancelText: 'Abbrechen',
-        confirmText: 'Löschen',
+        title: this.t('exampleDialog.deleteFocusDialog.title'),
+        message: this.t('exampleDialog.deleteFocusDialog.message'),
+        cancelText: this.t('common.cancel'),
+        confirmText: this.t('common.delete'),
         requireConfirmation: true,
-        confirmationText: 'Ich verstehe, dass diese Aktion nicht rückgängig gemacht werden kann.'
+        confirmationText: this.t('exampleDialog.deleteFocusDialog.confirmationText')
       },
     }).afterClosed()
       .pipe(takeUntil(this.destroy$))
@@ -1118,7 +1104,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
         this.http.deleteFocus(this.data.schoolId, focus.id)
           .pipe(takeUntil(this.destroy$))
           .subscribe(() => {
-            this.snackBar.open(`Der Schwerpunkt "${focus.label}" wurde gelöscht.`, 'OK', { duration: 3000 });
+            this.openTranslatedSnack('exampleDialog.snackbar.focusDeleted', 'common.ok', 3000, { label: focus.label });
           });
 
         this.focusSubject.next(this.focusSubject.value.filter(f => f.id !== focus.id));

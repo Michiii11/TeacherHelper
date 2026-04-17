@@ -11,12 +11,12 @@ export enum ExampleTypes {
 }
 
 export const ExampleTypeLabels: Record<ExampleTypes, string> = {
-  [ExampleTypes.OPEN]: 'Offen',
-  [ExampleTypes.HALF_OPEN]: 'Halb Offen',
-  [ExampleTypes.CONSTRUCTION]: 'Bild',
-  [ExampleTypes.MULTIPLE_CHOICE]: 'Multiple-Choice',
-  [ExampleTypes.GAP_FILL]: 'Lückentext',
-  [ExampleTypes.ASSIGN]: 'Zuordnen'
+  [ExampleTypes.OPEN]: 'exampleTypes.open',
+  [ExampleTypes.HALF_OPEN]: 'exampleTypes.halfOpen',
+  [ExampleTypes.CONSTRUCTION]: 'exampleTypes.construction',
+  [ExampleTypes.MULTIPLE_CHOICE]: 'exampleTypes.multipleChoice',
+  [ExampleTypes.GAP_FILL]: 'exampleTypes.gapFill',
+  [ExampleTypes.ASSIGN]: 'exampleTypes.assign'
 };
 
 export interface Example {

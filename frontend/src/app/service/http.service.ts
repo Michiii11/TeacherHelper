@@ -197,6 +197,7 @@ export class HttpService {
   }
 
   updateUserSettings(settings: UserSettings) {
+    console.log(settings)
     return this.http.put(
       `${Config.API_URL}/user/settings`,
       {

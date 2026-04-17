@@ -46,8 +46,7 @@ export class AppComponent implements OnInit, OnDestroy {
         if (status) {
           this.loadAndApplyUserSettings();
         } else {
-          this.themeService.init();
-          this.languageService.init();
+          this.applyGuestDefaults();
         }
       });
 
@@ -64,14 +63,13 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // zuerst immer System / lokale Defaults
-    this.themeService.init();
-    this.languageService.init();
-
-    // falls beim App-Start schon eingeloggt
     const token = localStorage.getItem('teacher_authToken');
+
     if (token) {
+      this.isLoggedIn = true;
       this.loadAndApplyUserSettings();
+    } else {
+      this.applyGuestDefaults();
     }
 
     this.loadInitialData();
@@ -80,6 +78,11 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private applyGuestDefaults(): void {
+    this.themeService.init();
+    this.languageService.init();
   }
 
   private loadAndApplyUserSettings(): void {
@@ -94,7 +97,7 @@ export class AppComponent implements OnInit, OnDestroy {
           this.languageService.applyUserPreference(resolvedLanguage);
         },
         error: () => {
-          // Fallback bleibt auf System/default
+          this.applyGuestDefaults();
         }
       });
   }

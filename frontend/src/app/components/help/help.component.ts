@@ -86,7 +86,8 @@ export class HelpComponent implements OnInit {
       changes: [
         'help.changelog.v110.c1',
         'help.changelog.v110.c2',
-        'help.changelog.v110.c3'
+        'help.changelog.v110.c3',
+        'help.changelog.v110.c4',
       ]
     },
     {

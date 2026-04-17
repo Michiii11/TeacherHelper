@@ -473,7 +473,7 @@
     "selectImage": "Bild auswählen",
     "gapWidth": "Breite der Lücke (px)",
     "variables": {
-      "title": "Text-Variablen",
+      "title": "Variablen",
       "description": "Erkannt aus Platzhaltern wie {zahl1} oder {name}. Diese Standardwerte kannst du später im Test überschreiben.",
       "insert": "Variable einfügen",
       "insertAtCursor": "Text-Variable einfügen",
@@ -488,7 +488,35 @@
     "assignLeftPlaceholder": "Linkes Statement",
     "assignRightPlaceholder": "Rechtes Statement",
     "assignRemoveLeft": "Linkes entfernen",
-    "assignRemoveRight": "Rechtes entfernen"
+    "assignRemoveRight": "Rechtes entfernen",
+
+    "addTag": "hinzufügen",
+    "taskImagePreviewAlt": "Aufgabenbild Vorschau",
+    "solutionImagePreviewAlt": "Lösungsbild Vorschau",
+    "closeDialog": {
+      "title": "Dialog schließen?",
+      "message": "Nicht gespeicherte Änderungen gehen verloren. Möchtest du den Dialog wirklich schließen?",
+      "cancel": "Weiter bearbeiten",
+      "confirm": "Schließen"
+    },
+    "deleteFocusDialog": {
+      "title": "Schwerpunkt löschen?",
+      "message": "Möchtest du diesen Schwerpunkt wirklich löschen? Er kann auch in anderen Beispielen verwendet werden.",
+      "confirmationText": "Ich verstehe, dass diese Aktion nicht rückgängig gemacht werden kann."
+    },
+    "snackbar": {
+      "invalidImageType": "Bitte nur JPG, PNG oder WEBP hochladen.",
+      "solutionImageDeleted": "Lösungsbild gelöscht.",
+      "solutionImageDeleteError": "Lösungsbild konnte nicht gelöscht werden.",
+      "taskImageDeleted": "Aufgabenbild gelöscht.",
+      "taskImageDeleteError": "Aufgabenbild konnte nicht gelöscht werden.",
+      "fillInstructionAndQuestion": "Bitte fülle sowohl die Angabe als auch die Aufgabenstellung aus.",
+      "selectTaskImageFirst": "Bitte zuerst ein Aufgabenbild auswählen.",
+      "saved": "Beispiel erfolgreich gespeichert.",
+      "created": "Beispiel erfolgreich erstellt.",
+      "saveError": "Beispiel konnte nicht gespeichert werden.",
+      "focusDeleted": "Der Schwerpunkt \"{{label}}\" wurde gelöscht."
+    }
   },
   "createTest": {
     "titleLabel": "Titel",
@@ -510,6 +538,14 @@
     "defaultSpacing": "Standard-Abstand",
     "applyToAll": "Für alle übernehmen",
     "untitled": "Unbenannter Test",
+    "sort": {
+      "folderTitle": "Ordner / Titel (A–Z)",
+      "titleAsc": "Titel (A–Z)",
+      "titleDesc": "Titel (Z–A)",
+      "typeTitle": "Typ / Titel",
+      "newest": "Neueste zuerst",
+      "oldest": "Älteste zuerst"
+    },
     "closeWarning": {
       "title": "Warnung",
       "message": "Möchten Sie wirklich schließen? Nicht gespeicherte Änderungen gehen verloren.",
@@ -822,7 +858,7 @@
       },
       "invites": {
         "title": "Einladungssystem",
-        "text": "Mitglieder einladen, Antworten verfolgen und Zusammenarbeit direkt in der App organisieren – ohne unnötiges Hin und Her."
+        "text": "Mitglieder einladen, Antworten verfolgen und Zusammenarbeit direkt in der App organisieren."
       }
     },
     "changelog": {
@@ -842,8 +878,9 @@
         "title": "Mehr Struktur im Alltag",
         "description": "1.1.0 macht TeacherHelper vor allem dort besser, wo im Alltag Übersicht und Tempo zählen.",
         "c1": "Ordner-System hinzugefügt, damit Inhalte sauberer strukturiert werden können",
-        "c2": "Filter- und Suchsystem ergänzt, um Beispiele und Tests schneller wiederzufinden",
-        "c3": "Neues Fenster zum Test-Erstellen für einen klareren Workflow"
+        "c2": "Variablen in Beispielen ergänzt, um flexibler Tests daraus zu bauen",
+        "c3": "Filter- und Suchsystem ergänzt, um Beispiele und Tests schneller wiederzufinden",
+        "c4": "Neues Fenster zum Test-Erstellen für einen klareren Workflow"
       }
     },
     "actions": {
@@ -878,5 +915,21 @@
       "title": "Geführtes Tutorial kommt als Nächstes",
       "text": "Hier sitzt schon der Einstieg für die spätere Tour durch die App. Damit kannst du dir dann pro Seite zeigen lassen, was du dort machen kannst."
     }
+  },
+  "exampleTypes": {
+    "open": "Offen",
+    "halfOpen": "Halb offen",
+    "construction": "Bild",
+    "multipleChoice": "Multiple-Choice",
+    "gapFill": "Lückentext",
+    "assign": "Zuordnen"
+  },
+  "exampleTypeDescriptions": {
+    "open": "Antwort ohne Vorgaben.",
+    "halfOpen": "Antwort in vorgegebene Struktur eintragen.",
+    "construction": "Aufgabe mit Bild oder Grafik.",
+    "multipleChoice": "Eine oder mehrere Optionen auswählen.",
+    "gapFill": "Lücken durch Auswahl oder Eingabe füllen.",
+    "assign": "Elemente einander zuordnen."
   }
 }

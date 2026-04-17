@@ -972,10 +972,16 @@ mat-divider{
 }
 
 .variable-key {
-  margin-bottom: 0.65rem;
   font-weight: 700;
   color: var(--primary);
   word-break: break-word;
+}
+
+.variable-key-row{
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  margin-bottom: .5rem;
 }
 
 @media (max-width: 760px) {
@@ -1967,7 +1973,6 @@ mat-divider{
 }
 
 .variable-key {
-  margin-bottom: 0.65rem;
   font-weight: 700;
   color: var(--primary);
   word-break: break-word;
