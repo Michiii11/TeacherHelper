@@ -49,11 +49,7 @@ type ExampleSortKey =
     MatButtonModule,
     MatIconModule,
     MatCheckboxModule,
-    TranslateModule,
-    MatFormField,
-    MatLabel,
-    MatSelect,
-    MatOption,
+    TranslateModule
   ],
   templateUrl: './example-picker-dialog.component.html',
   styleUrl: './example-picker-dialog.component.scss',

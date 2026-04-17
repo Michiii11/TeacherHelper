@@ -1122,14 +1122,13 @@ export class SchoolComponent implements OnInit {
     return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
   }
 
-  getExampleTypeLabel(type: ExampleTypes | string): string {
-    if (type == null) return '—';
+  getExampleTypeLabel(type: ExampleTypes | string | null | undefined): string {
+    if (!type) {
+      return '—';
+    }
 
-    const enumKey = typeof type === 'string'
-      ? ExampleTypes[type as keyof typeof ExampleTypes]
-      : type;
-
-    return ExampleTypeLabels[enumKey] ?? String(type);
+    const key = ExampleTypeLabels[type as ExampleTypes];
+    return key ? this.translate.instant(key) : String(type);
   }
 
   getFocusList(focus: Focus[]): string {
