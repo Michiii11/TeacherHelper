@@ -27,16 +27,16 @@ public class MailService {
     public void sendRegistrationVerification(String email, String token) {
         String link = frontendUrl + "/login?verifyToken=" + token;
 
-        String subject = "Bitte bestätige deine E-Mail";
-        String preheader = "Bestätige deine E-Mail-Adresse und aktiviere deinen Account.";
-        String title = "E-Mail bestätigen";
-        String intro = "Willkommen bei " + APP_NAME + ". Bitte bestätige deine E-Mail-Adresse, damit dein Account aktiviert wird.";
-        String buttonText = "E-Mail bestätigen";
-        String hint = "Wenn du dich nicht registriert hast, kannst du diese E-Mail einfach ignorieren.";
+        String subject = "Please confirm your email";
+        String preheader = "Confirm your email address and activate your account.";
+        String title = "Confirm Email";
+        String intro = "Welcome to " + APP_NAME + ". Please confirm your email address to activate your account.";
+        String buttonText = "Confirm Email";
+        String hint = "If you did not register, you can safely ignore this email.";
 
         MailMessage message = baseMessage(email, subject);
         message.setText(buildTextVersion(title, intro, buttonText, link, hint));
-        message.setHtml(buildHtmlMail(preheader, title, intro, buttonText, link, hint, "Account-Aktivierung"));
+        message.setHtml(buildHtmlMail(preheader, title, intro, buttonText, link, hint, "Account Activation"));
 
         sendMail(message);
     }
@@ -44,16 +44,16 @@ public class MailService {
     public void sendEmailChangeVerification(String email, String token) {
         String link = frontendUrl + "/login?verifyToken=" + token;
 
-        String subject = "Bitte bestätige deine neue E-Mail";
-        String preheader = "Bestätige deine neue E-Mail-Adresse.";
-        String title = "Neue E-Mail bestätigen";
-        String intro = "Du hast eine Änderung deiner E-Mail-Adresse angefordert. Bitte bestätige diese Änderung über den folgenden Button.";
-        String buttonText = "Neue E-Mail bestätigen";
-        String hint = "Wenn du diese Änderung nicht angefordert hast, ignoriere diese E-Mail bitte. Dann bleibt deine bisherige Adresse unverändert.";
+        String subject = "Please confirm your new email";
+        String preheader = "Confirm your new email address.";
+        String title = "Confirm New Email";
+        String intro = "You requested a change of your email address. Please confirm this change using the button below.";
+        String buttonText = "Confirm New Email";
+        String hint = "If you did not request this change, please ignore this email. Your current address will remain unchanged.";
 
         MailMessage message = baseMessage(email, subject);
         message.setText(buildTextVersion(title, intro, buttonText, link, hint));
-        message.setHtml(buildHtmlMail(preheader, title, intro, buttonText, link, hint, "E-Mail-Änderung"));
+        message.setHtml(buildHtmlMail(preheader, title, intro, buttonText, link, hint, "Email Change"));
 
         sendMail(message);
     }
@@ -61,16 +61,16 @@ public class MailService {
     public void sendPasswordReset(String email, String token) {
         String link = frontendUrl + "/login?resetToken=" + token;
 
-        String subject = "Passwort zurücksetzen";
-        String preheader = "Setze dein Passwort sicher zurück.";
-        String title = "Passwort zurücksetzen";
-        String intro = "Wir haben eine Anfrage zum Zurücksetzen deines Passworts erhalten. Klicke auf den Button, um ein neues Passwort zu vergeben.";
-        String buttonText = "Passwort zurücksetzen";
-        String hint = "Falls du diese Anfrage nicht gestellt hast, kannst du diese E-Mail ignorieren. Dein Passwort bleibt dann unverändert.";
+        String subject = "Reset your password";
+        String preheader = "Securely reset your password.";
+        String title = "Reset Password";
+        String intro = "We received a request to reset your password. Click the button below to set a new password.";
+        String buttonText = "Reset Password";
+        String hint = "If you did not request this, you can ignore this email. Your password will remain unchanged.";
 
         MailMessage message = baseMessage(email, subject);
         message.setText(buildTextVersion(title, intro, buttonText, link, hint));
-        message.setHtml(buildHtmlMail(preheader, title, intro, buttonText, link, hint, "Sicherheitsaktion"));
+        message.setHtml(buildHtmlMail(preheader, title, intro, buttonText, link, hint, "Security Action"));
 
         sendMail(message);
     }
@@ -101,7 +101,7 @@ public class MailService {
                 buttonText,
                 link,
                 hint,
-                "Diese Nachricht wurde automatisch von " + APP_NAME + " versendet."
+                "This message was automatically sent by " + APP_NAME + "."
         );
     }
 
@@ -116,7 +116,7 @@ public class MailService {
     ) {
         return """
                 <!DOCTYPE html>
-                <html lang="de">
+                <html lang="en">
                 <head>
                   <meta charset="UTF-8">
                   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -146,7 +146,7 @@ public class MailService {
                                   %s
                                 </div>
                                 <div style="margin-top:6px; font-size:13px; line-height:1.5; color:#dbeafe;">
-                                  Digital, übersichtlich und modern.
+                                  Digital, clean and modern.
                                 </div>
                               </div>
 
@@ -168,7 +168,7 @@ public class MailService {
 
                                 <div style="background:#f8fafc; border:1px solid %s; border-radius:16px; padding:14px 16px; margin:0 0 20px 0;">
                                   <div style="font-size:12px; font-weight:700; color:%s; margin:0 0 6px 0;">
-                                    Falls der Button nicht funktioniert
+                                    If the button does not work
                                   </div>
                                   <div style="font-size:12px; line-height:1.6; color:%s; word-break:break-all;">
                                     %s
@@ -182,8 +182,8 @@ public class MailService {
                                 <div style="height:1px; background:%s; margin:0 0 16px 0;"></div>
 
                                 <div style="font-size:12px; line-height:1.65; color:%s; text-align:center;">
-                                  Diese Nachricht wurde automatisch von %s versendet.<br>
-                                  Bitte antworte nicht direkt auf diese E-Mail.
+                                  This message was automatically sent by %s.<br>
+                                  Please do not reply directly to this email.
                                 </div>
                               </div>
                             </td>

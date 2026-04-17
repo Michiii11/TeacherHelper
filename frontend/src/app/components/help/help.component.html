@@ -1,0 +1,79 @@
+<main class="dashboard help-dashboard">
+  <header class="page-header">
+    <div>
+      <div class="title-icon">
+        <mat-icon>help</mat-icon>
+      </div>
+      <h1 class="page-title">{{ 'help.title' | translate }}</h1>
+    </div>
+
+    <button mat-flat-button color="primary" [disabled]="true">
+      <mat-icon>add_circle</mat-icon>
+      {{ 'help.startTutorial' | translate }}
+    </button>
+  </header>
+
+  <section class="content-area">
+
+    <mat-button-toggle-group [(ngModel)]="activeTab" [hideSingleSelectionIndicator]="true">
+      <mat-button-toggle value="docs"
+                         (click)="onTabChange(0)">
+        {{ 'help.actions.openOverview' | translate }}
+      </mat-button-toggle>
+      <mat-button-toggle value="changelog"
+                         (click)="onTabChange(1)">
+        {{ 'help.actions.openChangelog' | translate }}
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+
+    <article class="help-panel">
+      @if (activeTab() === 'docs') {
+        <div class="help-content">
+          <section class="docs-grid">
+            @for (section of docsSections; track section.titleKey) {
+              <article class="help-card">
+                <div class="help-card-icon">
+                  <mat-icon>{{ section.icon }}</mat-icon>
+                </div>
+
+                <div class="help-card-body">
+                  <h3>{{ section.titleKey | translate }}</h3>
+                  <p>{{ section.textKey | translate }}</p>
+                </div>
+              </article>
+            }
+          </section>
+        </div>
+      } @else {
+        <div class="help-content">
+          <div class="changelog-list">
+            @for (entry of changelog; track entry.version) {
+              <article class="changelog-card" [class.is-latest]="entry.isLatest">
+                <div class="changelog-head">
+                  <div class="changelog-head-main">
+                    <div class="changelog-topline">
+                      <span class="changelog-version">{{ entry.version }}</span>
+
+                      @if (entry.isLatest) {
+                        <span class="changelog-chip latest">{{ 'help.changelog.latest' | translate }}</span>
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                <ul class="changelog-items">
+                  @for (change of entry.changes; track change) {
+                    <li>
+                      <mat-icon>check_circle</mat-icon>
+                      <span>{{ change | translate }}</span>
+                    </li>
+                  }
+                </ul>
+              </article>
+            }
+          </div>
+        </div>
+      }
+    </article>
+  </section>
+</main>

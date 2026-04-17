@@ -5,7 +5,12 @@
     "delete": "Löschen",
     "logout": "Logout",
     "reset": "Zurücksetzen",
-    "loading": "Wird geladen..."
+    "loading": "Wird geladen...",
+    "saving": "Wird gespeichert...",
+    "deleting": "Wird gelöscht...",
+    "close": "Schließen",
+    "ok": "OK",
+    "create": "Erstellen"
   },
   "profile": {
     "title": "Mein Profil",
@@ -70,13 +75,17 @@
     "deleteAvatarTitle": "Profilbild löschen?",
     "deleteAvatarMessage": "Dein aktuelles Profilbild wird entfernt.",
     "deleteAccountTitle": "Account endgültig löschen?",
-    "deleteAccountMessage": "Diese Aktion kann nicht rückgängig gemacht werden. Dein Konto wird deaktiviert und du wirst sofort ausgeloggt.",
+    "deleteAccountMessage": "Diese Aktion kann nicht rückgängig gemacht werden. Dein Konto wird gelöscht mit all deinen Sammlungen.",
     "deleteAccountConfirm": "Endgültig löschen",
-    "confirmPhrase": "Ich möchte meinen Account endgültig löschen"
+    "confirmPhrase": "Ich möchte meinen Account endgültig löschen",
+    "createSchoolSubtitle": "Lege eine neue Sammlung in deinem System an",
+    "schoolName": "Sammlungsname",
+    "schoolPlaceholder": "z.B. HTL 1 - Deutsch",
+    "confirmAction": "Ich bestätige diese Aktion"
   },
   "navbar": {
     "home": "Startseite",
-    "school": "Schule",
+    "school": "Sammlung",
     "help": "Hilfe"
   },
   "notifications": {
@@ -102,7 +111,7 @@
     "systemInfo": {
       "send": "System-Info senden",
       "title": "System-Info senden",
-      "scopeSchool": "Aktuelle Schule",
+      "scopeSchool": "Aktuelle Sammlung",
       "scopeAll": "Alle User",
       "titlePlaceholder": "Titel",
       "messagePlaceholder": "Nachricht",
@@ -111,39 +120,31 @@
     }
   },
   "home": {
-    "title": "Meine Schulen",
+    "title": "Meine Sammlungen",
     "subtitle": "Hier siehst du auf einen Blick, wo du Admin bist und wo du Mitglied bist.",
-    "createSchool": "Neue Schule",
+    "createSchool": "Neue Sammlung",
     "labels": {
       "admin": "Admin",
       "examples": "Beispiele"
     },
     "actions": {
-      "openSchool": "Schule öffnen",
+      "openSchool": "Sammlung öffnen",
       "sendRequest": "Anfrage senden",
       "join": "Beitreten"
     },
     "adminSection": {
-      "title": "Schulen, die du verwaltest",
+      "title": "Sammlungen, die du verwaltest",
       "subtitle": "Du bist hier als Admin eingetragen.",
-      "empty": "Du bist aktuell bei keiner Schule als Admin eingetragen."
+      "empty": "Du bist aktuell bei keiner Sammlung als Admin eingetragen."
     },
     "memberSection": {
-      "title": "Schulen, bei denen du Mitglied bist",
+      "title": "Sammlungen, bei denen du Mitglied bist",
       "subtitle": "Du hast Zugriff, bist aber nicht Admin.",
-      "empty": "Du bist aktuell in keiner weiteren Schule Mitglied."
-    },
-    "discoverSection": {
-      "title": "Weitere Schulen entdecken",
-      "subtitle": "Suche nach Schulen und sende eine Beitrittsanfrage.",
-      "empty": "Keine weiteren Schulen gefunden."
-    },
-    "search": {
-      "label": "Schule suchen"
+      "empty": "Du bist aktuell in keiner weiteren Sammlung Mitglied."
     }
   },
   "landing": {
-    "eyebrow": "Für Lehrkräfte und Schulen",
+    "eyebrow": "Für Lehrkräfte und Sammlungen",
     "title": "Weniger Chaos. Mehr Unterricht.",
     "description": "TeacherHelper hilft dir, Beispiele sauber zu organisieren, Tests schneller zu bauen und Inhalte gemeinsam im Schulalltag zu verwalten — modern, klar und ohne unnötigen Overkill.",
     "start": "Jetzt starten",
@@ -152,17 +153,17 @@
     "points": {
       "p1": "Tests in wenigen Klicks aus Beispielen zusammenstellen",
       "p2": "Inhalte langfristig wiederverwenden statt doppelt arbeiten",
-      "p3": "Mit Kolleg:innen in Schulen gemeinsam verwalten"
+      "p3": "Mit Kolleg:innen in Sammlungen gemeinsam verwalten"
     },
     "trust": {
       "t1": "Schneller Workflow statt Zettelchaos",
-      "t2": "Gemacht für Teams und Schulen",
+      "t2": "Gemacht für Teams und Sammlungen",
       "t3": "Druck, PDF und Word im Fokus",
       "t4": "Deutsch und Englisch integriert"
     },
     "visual": {
       "live": "Live Preview",
-      "school": "Schule",
+      "school": "Sammlung",
       "team": "Team • Admin",
       "examples": "Beispiele",
       "tests": "Tests",
@@ -219,7 +220,7 @@
         "text": "Arbeite mit Kolleg:innen in einer gemeinsamen Schulumgebung und teile Inhalte dort, wo sie gebraucht werden."
       },
       "f6": {
-        "title": "Für echte Schulen gemacht",
+        "title": "Für echte Sammlungen gemacht",
         "text": "Kein unnötiger Feature-Müll, sondern ein Workflow, der für Lehrkräfte, Fachgruppen und Schulalltag wirklich passt."
       }
     },
@@ -231,7 +232,7 @@
     "plans": {
       "free": {
         "subtitle": "Perfekt zum Kennenlernen und für kleine Setups.",
-        "f1": "1 Schule (keine Mitglieder)",
+        "f1": "1 Sammlung (keine Mitglieder)",
         "f2": "50 Beispiele",
         "f3": "5 Tests",
         "f4": "Gratis",
@@ -241,7 +242,7 @@
         "badge": "Beliebt",
         "chip": "Für Lehrkräfte",
         "subtitle": "Für aktive Lehrkräfte, die regelmäßig Material und Tests vorbereiten.",
-        "f1": "5 Schulen (5 Mitglieder)",
+        "f1": "5 Sammlungen (5 Mitglieder)",
         "f2": "500 Beispiele",
         "f3": "50 Tests",
         "f4": "5€ pro Monat",
@@ -250,7 +251,7 @@
       "school": {
         "chip": "Für Teams",
         "subtitle": "Für Schulen, Fachgruppen und gemeinsame Verwaltung im Kollegium.",
-        "f1": "∞ Schulen (∞ Mitglieder)",
+        "f1": "∞ Sammlungen (∞ Mitglieder)",
         "f2": "∞ Beispiele",
         "f3": "∞ Tests",
         "f4": "20€ pro Monat",
@@ -264,6 +265,8 @@
     }
   },
   "school": {
+    "dashboardAria": "Sammlungsübersicht",
+    "logoAlt": "Schullogo",
     "admin": "Admin",
     "teacher": "Lehrer",
     "teachers": "Lehrer",
@@ -278,6 +281,655 @@
     "focus": "Schwerpunkt",
     "adminLabel": "Admin",
     "createExample": "Neues Beispiel",
-    "createTest": "Test erstellen"
+    "createTest": "Test erstellen",
+    "folderShort": "Ordner",
+    "folders": "Ordner",
+    "folder": "Ordner",
+    "newFolder": "Neuer Ordner",
+    "root": "Root",
+    "rootLevel": "Oberste Ebene",
+    "parentFolder": "Übergeordneter Ordner",
+    "goUp": "Eine Ebene hoch",
+    "subfolders": "Unterordner",
+    "items": "Inhalte",
+    "entries": "Einträge",
+    "example": "Beispiel",
+    "test": "Test",
+    "untitled": "Ohne Titel",
+    "searchExamplesPlaceholder": "Beispiele durchsuchen",
+    "searchTestsPlaceholder": "Tests durchsuchen",
+    "searchResults": "Suchergebnisse",
+    "searchResultsInAllFolders": "Suchtreffer in allen Ordnern",
+    "subfoldersOf": "Unterordner von {{name}}",
+    "foldersOnRoot": "Ordner auf Root-Ebene",
+    "allTypes": "Alle Typen",
+    "allFocuses": "Alle Schwerpunkte",
+    "allAuthors": "Alle Autoren",
+    "selectedOne": "1 ausgewählt",
+    "selectedMany": "{{count}} ausgewählt",
+    "viewAria": "Ansicht wählen",
+    "grid": "Grid",
+    "compact": "Kompakt",
+    "sort": {
+      "nameAsc": "Name A–Z",
+      "nameDesc": "Name Z–A",
+      "updatedDesc": "Zuletzt geändert",
+      "updatedAsc": "Älteste zuerst",
+      "authorAsc": "Autor A–Z"
+    },
+    "moveToOtherFolder": "In anderen Ordner verschieben",
+    "invalidSelection": "Ungültige Auswahl.",
+    "folderNotEmpty": "Der Ordner ist nicht leer. Bitte zuerst Unterordner und Inhalte verschieben oder löschen.",
+    "folderDeleteConfirm": "Ordner \"{{name}}\" wirklich löschen?",
+    "folderMoveInvalid": "Ein Ordner kann nicht in sich selbst oder in einen eigenen Unterordner verschoben werden.",
+    "folderPickerTitle": "Ordner auswählen",
+    "folderPickerSubtitle": "Wähle aus, in welchen Ordner verschoben werden soll.",
+    "folderPickerSearch": "Nach Ordner oder Pfad suchen",
+    "moveConfirm": "Verschieben",
+    "deleteExampleTitle": "Beispiel löschen",
+    "deleteFolderTitle": "Ordner löschen",
+    "confirmDeleteFolder": "Ordner wirklich löschen",
+    "deleteExampleMessage": "Beispiel \"{{name}}\" wirklich löschen?",
+    "deleteTestTitle": "Test löschen",
+    "deleteTestMessage": "Test \"{{name}}\" wirklich löschen?",
+    "emptyExamplesTitle": "Keine Beispiele gefunden",
+    "emptyExamplesText": "Erstelle einen Ordner oder lege direkt ein Beispiel an.",
+    "emptyTestsTitle": "Keine Tests gefunden",
+    "emptyTestsText": "Erstelle einen Ordner oder lege direkt einen Test an.",
+    "prompts": {
+      "createFolder": "Ordnername eingeben",
+      "renameFolder": "Neuen Ordnernamen eingeben",
+      "chooseTargetFolder": "Zielordner wählen:",
+      "enterNumber": "Nummer eingeben:"
+    },
+    "createFolderTitle": "Ordner erstellen",
+    "createFolderSubtitle": "Lege einen neuen Ordner für Beispiele oder Tests an.",
+    "renameFolderTitle": "Ordner umbenennen",
+    "renameFolderSubtitle": "Passe den Namen des Ordners an.",
+    "folderNameLabel": "Ordnername",
+    "folderNamePlaceholder": "z. B. Schularbeiten / Kapitel 1 / Übungen"
+  },
+  "schoolSettings": {
+    "title": "Schul-Einstellungen",
+    "tabs": {
+      "general": "Allgemein",
+      "teachers": "Lehrer",
+      "templates": "Templates",
+      "more": "Weitere Einstellungen"
+    },
+    "schoolName": "Schulname",
+    "logoPreviewAlt": "Logo Vorschau",
+    "noLogo": "Kein Logo vorhanden",
+    "selectLogo": "Logo auswählen",
+    "removeSelection": "Auswahl entfernen",
+    "deleteLogo": "Logo löschen",
+    "deleteLogoTitle": "Logo löschen",
+    "deleteLogoMessage": "Das aktuelle Schullogo wird entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
+    "deleteLogoConfirm": "Logo löschen",
+    "logoHint": "Empfohlen: quadratisches PNG mit transparentem Hintergrund.",
+    "members": "Mitglieder",
+    "memberSingle": "1 Mitglied",
+    "memberMany": "{{count}} Mitglieder",
+    "avatarAlt": "Profilbild",
+    "noEmail": "Keine E-Mail hinterlegt",
+    "kickTeacher": "Lehrer entfernen",
+    "emptyMembersTitle": "Noch keine Mitglieder gefunden",
+    "emptyMembersText": "Sobald Lehrer zugeordnet sind, erscheinen sie hier in der Liste.",
+    "inviteTitle": "Einladung senden",
+    "inviteSubtitle": "Neue Lehrkraft zur Schule einladen",
+    "emailAddress": "E-Mail-Adresse",
+    "sendInvite": "Einladung senden",
+    "comingSoonTitle": "Coming soon",
+    "comingSoonText": "Hier kannst du später Schul-Templates, Standardköpfe, Drucklayouts oder Bewertungs-Voreinstellungen verwalten.",
+    "dangerZone": "Sammlung löschen",
+    "dangerZoneText": "Diese Aktion entfernt die Sammlung dauerhaft. Bitte prüfe sorgfältig, bevor du fortfährst.",
+    "deleteSchoolHint": "Zur Sicherheit musst du zuerst den exakten Sammlungsnamen eingeben. Danach folgt noch eine zweite Bestätigung.",
+    "deleteSchoolInputLabel": "Sammlungsname zur Bestätigung",
+    "deleteSchoolInputHelp": "Gib genau „{{name}}“ ein, um das Löschen freizugeben.",
+    "deleteSchool": "Schule löschen",
+    "deleteSchoolTitle": "Schule endgültig löschen?",
+    "deleteSchoolMessage": "Die Sammlung „{{name}}“ wird dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
+    "deleteSchoolConfirm": "Endgültig löschen",
+    "deleteSchoolConfirmPhrase": "Ich möchte die Sammlung {{name}} endgültig löschen",
+    "teacherKickTitle": "Lehrer entfernen",
+    "teacherKickMessage": "Lehrer \"{{name}}\" wirklich entfernen?",
+    "teacherKickConfirm": "Entfernen",
+    "noAccessTitle": "Kein Zugriff",
+    "noAccessText": "Nur der Admin darf die Schul-Einstellungen öffnen.",
+    "more": {
+      "gradeSystemTitle": "Standard-Notensystem",
+      "gradeSystemText": "z. B. Österreich, Deutschland, Punkte, Buchstaben, ++ / + / -",
+      "exportTitle": "Druck-/Export-Vorgaben",
+      "exportText": "z. B. Kopfzeile, Fußzeile, Schullogo, Standardlayout"
+    },
+    "snackbar": {
+      "schoolUpdated": "Schule wurde aktualisiert",
+      "schoolUpdateError": "Schule konnte nicht aktualisiert werden",
+      "logoUpdated": "Logo wurde aktualisiert",
+      "logoUpdateError": "Logo konnte nicht aktualisiert werden",
+      "logoDeleted": "Logo wurde gelöscht",
+      "logoDeleteError": "Logo konnte nicht gelöscht werden",
+      "inviteSent": "Einladung erfolgreich gesendet",
+      "inviteError": "Fehler beim Senden der Einladung",
+      "teacherKicked": "Lehrer wurde entfernt",
+      "teacherKickError": "Lehrer konnte nicht entfernt werden",
+      "schoolDeleted": "Schule wurde gelöscht",
+      "schoolDeleteError": "Schule konnte nicht gelöscht werden"
+    },
+    "logoUploadHint": "JPG, PNG oder WEBP · max. 2 MB · Wird erst beim Speichern hochgeladen"
+  },
+  "exampleDialog": {
+    "tags": "Tags",
+    "tagsPlaceholder": "Tags auswählen oder erstellen",
+    "removeTag": "Tag entfernen",
+    "deleteTag": "Tag löschen",
+    "instructionPlaceholder": "Gegeben ist ...",
+    "openQuestionPlaceholder": "Ermitteln Sie ...",
+    "solution": "Lösung",
+    "solutionPlaceholder": "Geben Sie die richtige Antwort an ...",
+    "halfOpenQuestionPlaceholder": "Geben Sie die Antworten an ...",
+    "answers": "Antworten",
+    "answer": "Antwort",
+    "correctSolution": "Korrekte Lösung",
+    "removeAnswer": "Antwort entfernen",
+    "addAnswer": "Antwort hinzufügen",
+    "multipleChoicePlaceholder": "Wählen Sie die richtige Lösung aus ...",
+    "options": "Optionen",
+    "option": "Option",
+    "gapFillPlaceholder": "Ergänzen Sie die Textlücken ...",
+    "insertGapTooltip": "Lücke an Cursorposition einfügen",
+    "gap": "Lücke",
+    "selection": "Auswahl",
+    "freeText": "Freitext",
+    "gapLabel": "Beschreibung der Lücke",
+    "answerOption": "Antwortmöglichkeit",
+    "removeOption": "Antwortmöglichkeit entfernen",
+    "addOption": "Antwortmöglichkeit hinzufügen",
+    "correctAnswer": "Korrekte Antwort",
+    "constructionPlaceholder": "Zeichnen Sie ...",
+    "assignPlaceholder": "Ordnen Sie ...",
+    "taskImage": "Aufgabenbild",
+    "solutionImage": "Lösungsbild",
+    "dropImageTitle": "Bild hier hineinziehen oder klicken",
+    "dropSolutionImageTitle": "Lösungsbild hier hineinziehen oder klicken",
+    "dropImageText": "PNG, JPG oder WEBP • Drag & Drop unterstützt",
+    "imageWidth": "Bildbreite im Beispiel/Test",
+    "solutionImageWidth": "Bildbreite der Lösung",
+    "noTaskImage": "Kein Aufgabenbild ausgewählt.",
+    "noSolutionImage": "Kein Lösungsbild ausgewählt.",
+    "discardSelection": "Neue Auswahl verwerfen",
+    "deleteImage": "Bild löschen",
+    "selectionGapHelp": "Bei Auswahl-Lücken steht die Beschreibung direkt über der Lücke – wie in einer klassischen Lückentext-Aufgabe.",
+    "freeTextGapHelp": "Bei Freitext-Lücken steht die Beschreibung klein links über der Linie.",
+    "gapLabelPreview": "Beschreibung",
+    "gapLabelPlaceholder": "z. B. Zahlentyp",
+    "gapLabelPlaceholderSmall": "z. B. gesuchter Begriff",
+    "answerOptionPlaceholder": "Antwortmöglichkeit eingeben",
+    "correctAnswerPlaceholder": "Korrekte Eingabe eingeben",
+    "markAsCorrect": "Als richtige Antwort markieren",
+    "taskImageHelp": "Lade hier das Bild für die Aufgabenstellung hoch. Rechts siehst du direkt die Vorschau.",
+    "solutionImageHelp": "Optional kannst du auch ein Lösungsbild hinterlegen.",
+    "replaceImage": "Bild ersetzen",
+    "selectImage": "Bild auswählen",
+    "gapWidth": "Breite der Lücke (px)",
+    "variables": {
+      "title": "Variablen",
+      "description": "Erkannt aus Platzhaltern wie {zahl1} oder {name}. Diese Standardwerte kannst du später im Test überschreiben.",
+      "insert": "Variable einfügen",
+      "insertAtCursor": "Text-Variable einfügen",
+      "remove": "Variable löschen",
+      "defaultValue": "Standardwert",
+      "defaultValuePlaceholder": "z. B. 4 oder Anna"
+    },
+    "assignLeftColumn": "Links",
+    "assignRightColumn": "Rechts",
+    "assignConnection": "Zuordnung",
+    "assignNoConnection": "— Keine —",
+    "assignLeftPlaceholder": "Linkes Statement",
+    "assignRightPlaceholder": "Rechtes Statement",
+    "assignRemoveLeft": "Linkes entfernen",
+    "assignRemoveRight": "Rechtes entfernen",
+
+    "addTag": "hinzufügen",
+    "taskImagePreviewAlt": "Aufgabenbild Vorschau",
+    "solutionImagePreviewAlt": "Lösungsbild Vorschau",
+    "closeDialog": {
+      "title": "Dialog schließen?",
+      "message": "Nicht gespeicherte Änderungen gehen verloren. Möchtest du den Dialog wirklich schließen?",
+      "cancel": "Weiter bearbeiten",
+      "confirm": "Schließen"
+    },
+    "deleteFocusDialog": {
+      "title": "Schwerpunkt löschen?",
+      "message": "Möchtest du diesen Schwerpunkt wirklich löschen? Er kann auch in anderen Beispielen verwendet werden.",
+      "confirmationText": "Ich verstehe, dass diese Aktion nicht rückgängig gemacht werden kann."
+    },
+    "snackbar": {
+      "invalidImageType": "Bitte nur JPG, PNG oder WEBP hochladen.",
+      "solutionImageDeleted": "Lösungsbild gelöscht.",
+      "solutionImageDeleteError": "Lösungsbild konnte nicht gelöscht werden.",
+      "taskImageDeleted": "Aufgabenbild gelöscht.",
+      "taskImageDeleteError": "Aufgabenbild konnte nicht gelöscht werden.",
+      "fillInstructionAndQuestion": "Bitte fülle sowohl die Angabe als auch die Aufgabenstellung aus.",
+      "selectTaskImageFirst": "Bitte zuerst ein Aufgabenbild auswählen.",
+      "saved": "Beispiel erfolgreich gespeichert.",
+      "created": "Beispiel erfolgreich erstellt.",
+      "saveError": "Beispiel konnte nicht gespeichert werden.",
+      "focusDeleted": "Der Schwerpunkt \"{{label}}\" wurde gelöscht."
+    }
+  },
+  "createTest": {
+    "titleLabel": "Titel",
+    "titlePlaceholder": "1. Schularbeit ...",
+    "descriptionLabel": "Beschreibung",
+    "descriptionPlaceholder": "Arbeite sauber, runde sinnvoll, Rechenweg angeben ...",
+    "exampleSelectionSubtitle": "Wähle Aufgaben gesammelt über ein übersichtliches Popup mit Filtern und Ordnern.",
+    "selectedCount": "ausgewählt",
+    "addExamples": "Beispiele hinzufügen",
+    "selectedTasksTitle": "Ausgewählte Aufgaben",
+    "selectedTasksSubtitle": "Reihenfolge, Punkte und Layout kannst du hier direkt weiter anpassen.",
+    "taskTitle": "Aufgabentitel",
+    "taskTitlePlaceholder": "z. B. Gewinde berechnen",
+    "points": "Erreichbare Punkte",
+    "spacingAfterTask": "Abstand nach Aufgabe (px)",
+    "hideLayoutAndGrading": "Layout & Bewertung ausblenden",
+    "editLayoutAndGrading": "Layout & Bewertung bearbeiten",
+    "layoutAndSpacing": "Abstände & Layout",
+    "defaultSpacing": "Standard-Abstand",
+    "applyToAll": "Für alle übernehmen",
+    "untitled": "Unbenannter Test",
+    "sort": {
+      "folderTitle": "Ordner / Titel (A–Z)",
+      "titleAsc": "Titel (A–Z)",
+      "titleDesc": "Titel (Z–A)",
+      "typeTitle": "Typ / Titel",
+      "newest": "Neueste zuerst",
+      "oldest": "Älteste zuerst"
+    },
+    "closeWarning": {
+      "title": "Warnung",
+      "message": "Möchten Sie wirklich schließen? Nicht gespeicherte Änderungen gehen verloren.",
+      "confirm": "Schließen"
+    },
+    "preview": {
+      "name": "Name",
+      "class": "Klasse",
+      "date": "Datum",
+      "achievedPoints": "Erreichte Punkte",
+      "gradingKey": "Notenschlüssel",
+      "goodLuck": "Viel Erfolg!",
+      "exampleShort": "Bsp.",
+      "imagePreviewAlt": "Vorschau"
+    },
+    "print": {
+      "onlyTest": "Nur Test",
+      "includeSolutions": "Lösung mitdrucken",
+      "print": "Drucken"
+    },
+    "snackbar": {
+      "updated": "Test erfolgreich gespeichert",
+      "created": "Test erfolgreich erstellt",
+      "saveError": "Speichern fehlgeschlagen.",
+      "selectExampleFirst": "Bitte zuerst mindestens eine Aufgabe auswählen.",
+      "pdfDownloaded": "PDF wurde heruntergeladen.",
+      "pdfError": "PDF-Export fehlgeschlagen.",
+      "wordDownloaded": "Word-Datei wurde heruntergeladen.",
+      "wordError": "Word-Export fehlgeschlagen.",
+      "minimumTwoLevels": "Mindestens zwei Bewertungsstufen sollten bestehen bleiben."
+    },
+    "grading": {
+      "percentDisplayMode": "Notenspiegel aus Prozent berechnen",
+      "decimalScale": "Mit Komma",
+      "roundUpScale": "Aufrunden",
+      "title": "Bewertungssystem",
+      "percent": "Prozent",
+      "points": "Punkte",
+      "custom": "Custom",
+      "fromPercent": "ab %",
+      "fromPoints": "ab Punkten",
+      "level": "Stufe",
+      "of": "von",
+      "label": "Bezeichnung",
+      "labelPlaceholder": "1 / A / ++",
+      "addLevel": "Stufe hinzufügen",
+      "customSchema": "Eigenes Schema",
+      "presets": {
+        "atName": "Österreich 1–5",
+        "deName": "Deutschland 1–6",
+        "usName": "USA A–F",
+        "participationName": "Mitarbeit ++ bis --",
+        "customName": "Eigenes Schema"
+      },
+      "labels": {
+        "veryGood": "Sehr gut",
+        "good": "Gut",
+        "satisfactory": "Befriedigend",
+        "passing": "Genügend",
+        "failed": "Nicht genügend",
+        "sufficient": "Ausreichend",
+        "poor": "Mangelhaft",
+        "insufficient": "Ungenügend",
+        "excellent": "Excellent",
+        "goodEn": "Good",
+        "satisfactoryEn": "Satisfactory",
+        "passingEn": "Passing",
+        "fail": "Fail",
+        "veryActive": "Sehr aktiv",
+        "active": "Aktiv",
+        "ok": "In Ordnung",
+        "lowParticipation": "Wenig Mitarbeit",
+        "noParticipation": "Keine Mitarbeit",
+        "top": "Top",
+        "mid": "Mittel",
+        "low": "Niedrig"
+      }
+    },
+    "examplePicker": {
+      "title": "Beispiele auswählen",
+      "subtitle": "Übersichtliche Auswahl mit Ordnern, Filtern und Mehrfachauswahl.",
+      "available": "verfügbar",
+      "selected": "markiert",
+      "searchPlaceholder": "Nach Titel, Frage, Fokus, Typ oder Pfad suchen",
+      "search": "Suche",
+      "allTypes": "Alle Typen",
+      "allFocuses": "Alle Schwerpunkte",
+      "alreadyAdded": "Schon hinzugefügt",
+      "chosen": "Ausgewählt",
+      "emptyTitle": "Keine Beispiele gefunden",
+      "emptyText": "Probier andere Filter, eine andere Suche oder einen anderen Ordner.",
+      "done": "Fertig"
+    },
+    "variables": {
+      "title": "Text-Variablen",
+      "description": "Standardwerte aus dem Beispiel können hier pro Test angepasst werden.",
+      "valuePlaceholder": "Wert eingeben",
+      "preview": "Vorschau:"
+    }
+  },
+  "legalPages": {
+    "back": "Zurück",
+    "lastUpdated": "Zuletzt aktualisiert",
+    "pages": {
+      "privacy": {
+        "title": "Datenschutzerklärung",
+        "subtitle": "Wie TeacherHelper Daten erhebt, verwendet und speichert.",
+        "sections": [
+          {
+            "heading": "Überblick",
+            "paragraphs": [
+              "TeacherHelper verarbeitet personenbezogene und nutzungsbezogene Daten nur, um die Plattform und ihre Kernfunktionen bereitzustellen.",
+              "Wir versuchen, so wenig Daten wie möglich zu erheben und verkaufen keine personenbezogenen Daten."
+            ]
+          },
+          {
+            "heading": "Welche Daten erhoben werden können",
+            "bullets": [
+              "Kontodaten wie Benutzername und E-Mail-Adresse",
+              "Sammlungs-, Test- und Beispieldaten, die innerhalb der App erstellt werden",
+              "Authentifizierungsbezogene technische Daten wie Login- oder Sitzungsinformationen",
+              "Hochgeladene Bilder oder andere Dateien, die du ausdrücklich bereitstellst"
+            ]
+          },
+          {
+            "heading": "Warum Daten verwendet werden",
+            "bullets": [
+              "Für Login und Kontoverwaltung",
+              "Zum Speichern und Anzeigen von Sammlungen, Tests und Beispielen",
+              "Um die Anwendung sicher und stabil zu betreiben",
+              "Zur Bearbeitung von Support- oder Löschanfragen"
+            ]
+          },
+          {
+            "heading": "Speicherung und Drittanbieter",
+            "paragraphs": [
+              "Daten können in Datenbanken, Hosting-Systemen und Cloud-Speichern gespeichert werden, die für den Betrieb der Anwendung notwendig sind.",
+              "Drittanbieter-Infrastruktur wird nur zum Betrieb des Dienstes verwendet und nicht für Werbezwecke."
+            ]
+          },
+          {
+            "heading": "Deine Rechte",
+            "bullets": [
+              "Auskunft über gespeicherte Daten",
+              "Berichtigung falscher Daten",
+              "Löschung deines Accounts oder gespeicherter Inhalte, sofern anwendbar",
+              "Fragen zur Verarbeitung deiner Daten"
+            ]
+          }
+        ]
+      },
+      "terms": {
+        "title": "Nutzungsbedingungen",
+        "subtitle": "Regeln und Bedingungen für die Nutzung von TeacherHelper.",
+        "sections": [
+          {
+            "heading": "Nutzung der Plattform",
+            "paragraphs": [
+              "TeacherHelper unterstützt beim Organisieren von Bildungsinhalten wie Beispielen und Tests.",
+              "Mit der Nutzung der Plattform erklärst du dich bereit, sie rechtmäßig und verantwortungsvoll zu verwenden."
+            ]
+          },
+          {
+            "heading": "Erlaubte Nutzung",
+            "bullets": [
+              "Verwende die Anwendung nur für legitime schulische oder organisatorische Zwecke",
+              "Halte deine Zugangsdaten sicher",
+              "Respektiere die Rechte und die Privatsphäre anderer Nutzer:innen"
+            ]
+          },
+          {
+            "heading": "Nicht erlaubt",
+            "bullets": [
+              "Hochladen rechtswidriger, schädlicher oder missbräuchlicher Inhalte",
+              "Versuche, den Dienst zu stören, zu analysieren oder missbräuchlich zu verwenden",
+              "Nutzung der Plattform in einer Weise, die Datenintegrität oder Verfügbarkeit gefährdet"
+            ]
+          },
+          {
+            "heading": "Verfügbarkeit und Gewährleistung",
+            "paragraphs": [
+              "Die Anwendung wird ohne Gewähr für eine unterbrechungsfreie Verfügbarkeit bereitgestellt.",
+              "Funktionen können jederzeit geändert, verbessert oder entfernt werden."
+            ]
+          },
+          {
+            "heading": "Haftungsbeschränkung",
+            "paragraphs": [
+              "Der Betreiber haftet nicht für indirekte Schäden, Datenverlust oder Ausfälle, soweit dies nicht gesetzlich vorgeschrieben ist."
+            ]
+          }
+        ]
+      },
+      "legal": {
+        "title": "Impressum",
+        "subtitle": "Betreiber- und Kontaktinformationen.",
+        "sections": [
+          {
+            "heading": "Projekt",
+            "paragraphs": [
+              "TeacherHelper"
+            ]
+          },
+          {
+            "heading": "Betreiber",
+            "paragraphs": [
+              "Michael Leisch"
+            ]
+          },
+          {
+            "heading": "Kontakt",
+            "paragraphs": [
+              "michael.leisch@gmx.at"
+            ]
+          },
+          {
+            "heading": "Verantwortung für Inhalte",
+            "paragraphs": [
+              "Der Betreiber ist nach den geltenden gesetzlichen Bestimmungen für die Inhalte dieser Anwendung verantwortlich."
+            ]
+          }
+        ]
+      },
+      "cookies": {
+        "title": "Cookie-Richtlinie",
+        "subtitle": "Informationen über Cookies und ähnliche Technologien.",
+        "sections": [
+          {
+            "heading": "Essenzielle Cookies",
+            "paragraphs": [
+              "TeacherHelper kann essenzielle Cookies oder vergleichbare lokale Speichermechanismen verwenden, die für Login, Authentifizierung, Sicherheit und Benutzereinstellungen erforderlich sind."
+            ]
+          },
+          {
+            "heading": "Keine Marketing-Cookies",
+            "paragraphs": [
+              "TeacherHelper verwendet bewusst keine Werbe- oder Marketing-Cookies."
+            ]
+          },
+          {
+            "heading": "Cookies verwalten",
+            "paragraphs": [
+              "Du kannst Cookies oder lokale Speicher-Einträge normalerweise über deine Browser-Einstellungen löschen. Beachte, dass du dadurch abgemeldet wirst oder gespeicherte Einstellungen verloren gehen können."
+            ]
+          }
+        ]
+      },
+      "support": {
+        "title": "Support",
+        "subtitle": "Brauchst du Hilfe, hast du einen Bug gefunden oder eine Idee?",
+        "primaryActionLabel": "GitHub Issue öffnen",
+        "sections": [
+          {
+            "heading": "GitHub Issues (empfohlen)",
+            "paragraphs": [
+              "Der bevorzugte Support-Kanal für dieses Projekt sind GitHub Issues.",
+              "Nutze sie für Bug-Reports, Feature-Wünsche oder reproduzierbare technische Probleme."
+            ]
+          },
+          {
+            "heading": "Persönlicher Support",
+            "paragraphs": [
+              "Wenn dein Anliegen privat, accountbezogen oder nicht für GitHub geeignet ist, kannst du uns direkt kontaktieren.",
+              "E-Mail: michael.leisch@gmx.at"
+            ]
+          },
+          {
+            "heading": "Vor dem Erstellen eines Issues",
+            "bullets": [
+              "Prüfe, ob das Problem bereits existiert",
+              "Beschreibe, was passiert ist und was du erwartet hast",
+              "Füge Screenshots hinzu, wenn sie hilfreich sind",
+              "Gib Schritte zur Reproduktion an"
+            ]
+          },
+          {
+            "heading": "Antwortzeit",
+            "paragraphs": [
+              "Support-Anfragen werden so schnell wie möglich bearbeitet, die Antwortzeit kann aber je nach Verfügbarkeit variieren."
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "help": {
+    "badge": "Hilfe & Updates",
+    "title": "Help Center",
+    "subtitle": "Kurzer Überblick, klare Orientierung und ein Changelog, das dir zeigt, was wirklich besser geworden ist.",
+    "tabs": {
+      "docs": "Überblick",
+      "changelog": "Was ist neu?"
+    },
+    "startTutorial": "Starte Tutorial",
+    "docs": {
+      "kicker": "Schnell erklärt",
+      "headline": "Die wichtigsten Bereiche auf einen Blick",
+      "subline": "Kein langes Handbuch – nur das, was du im Alltag wirklich brauchst.",
+      "collections": {
+        "title": "Sammlungssystem",
+        "text": "Sammlungen geben dir einen klaren Ort für Aufgaben, Tests und gemeinsame Inhalte. So bleibt alles sauber organisiert statt irgendwo verteilt zu liegen."
+      },
+      "examplesTests": {
+        "title": "Beispiele & Tests",
+        "text": "Gute Beispiele einmal anlegen, später wiederverwenden und daraus schnell neue Tests bauen – genau dafür ist TeacherHelper da."
+      },
+      "searchFilter": {
+        "title": "Suche & Filter",
+        "text": "Wenn Inhalte mehr werden, wird gutes Finden entscheidend. Mit Suche und Filtern kommst du schneller wieder zu genau dem, was du gerade brauchst."
+      },
+      "invites": {
+        "title": "Einladungssystem",
+        "text": "Mitglieder einladen, Antworten verfolgen und Zusammenarbeit direkt in der App organisieren."
+      }
+    },
+    "changelog": {
+      "kicker": "Release Notes",
+      "headline": "Was sich verbessert hat",
+      "subline": "Kurz, klar und ohne Marketing-Blabla.",
+      "label": "Release",
+      "latest": "Neu",
+      "v100": {
+        "title": "Die Basis steht",
+        "description": "Mit 1.0.0 war das Fundament da: Inhalte organisieren, Nutzer verwalten und erste Tests sauber aufbauen.",
+        "c1": "Grundlage für das Sammlungssystem geschaffen",
+        "c2": "Usersystem mit Konten und Verwaltung integriert",
+        "c3": "Beispiele und Tests als zentrale Kernfunktionen gestartet"
+      },
+      "v110": {
+        "title": "Mehr Struktur im Alltag",
+        "description": "1.1.0 macht TeacherHelper vor allem dort besser, wo im Alltag Übersicht und Tempo zählen.",
+        "c1": "Ordner-System hinzugefügt, damit Inhalte sauberer strukturiert werden können",
+        "c2": "Variablen in Beispielen ergänzt, um flexibler Tests daraus zu bauen",
+        "c3": "Filter- und Suchsystem ergänzt, um Beispiele und Tests schneller wiederzufinden",
+        "c4": "Neues Fenster zum Test-Erstellen für einen klareren Workflow"
+      }
+    },
+    "actions": {
+      "openOverview": "Überblick öffnen",
+      "openChangelog": "Changelog öffnen",
+      "startTutorial": "Tutorial durchführen",
+      "comingSoon": "Bald"
+    },
+    "highlights": {
+      "h1": {
+        "title": "Schnell drin statt lange suchen",
+        "text": "Die Help-Page zeigt dir die wichtigsten Bereiche direkt auf einen Blick, ohne dass du dich durch endlose Texte kämpfen musst."
+      },
+      "h2": {
+        "title": "Updates sofort sichtbar",
+        "text": "Im Changelog siehst du schnell, was neu dazugekommen ist und was im Alltag jetzt besser oder schneller läuft."
+      },
+      "h3": {
+        "title": "Tutorial-Bereich ist vorbereitet",
+        "text": "Der geführte Rundgang kommt als Nächstes. Der Platz dafür ist schon da, damit du ihn später jederzeit neu starten kannst."
+      }
+    },
+    "sidecard": {
+      "kicker": "Was dich hier erwartet",
+      "title": "Ein Startpunkt für Hilfe, Updates und später auch Guides",
+      "text": "Diese Seite soll nicht wie trockene Doku wirken, sondern wie ein schneller Hub für alles, was dir Orientierung in TeacherHelper gibt.",
+      "p1": "Kurze Erklärungen statt überladener Handbücher",
+      "p2": "Klare Release Notes ohne unnötiges Blabla",
+      "p3": "Platz für interaktive Touren und Guided Tutorials"
+    },
+    "tutorialCard": {
+      "title": "Geführtes Tutorial kommt als Nächstes",
+      "text": "Hier sitzt schon der Einstieg für die spätere Tour durch die App. Damit kannst du dir dann pro Seite zeigen lassen, was du dort machen kannst."
+    }
+  },
+  "exampleTypes": {
+    "open": "Offen",
+    "halfOpen": "Halb offen",
+    "construction": "Bild",
+    "multipleChoice": "Multiple-Choice",
+    "gapFill": "Lückentext",
+    "assign": "Zuordnen"
+  },
+  "exampleTypeDescriptions": {
+    "open": "Antwort ohne Vorgaben.",
+    "halfOpen": "Antwort in vorgegebene Struktur eintragen.",
+    "construction": "Aufgabe mit Bild oder Grafik.",
+    "multipleChoice": "Eine oder mehrere Optionen auswählen.",
+    "gapFill": "Lücken durch Auswahl oder Eingabe füllen.",
+    "assign": "Elemente einander zuordnen."
   }
 }

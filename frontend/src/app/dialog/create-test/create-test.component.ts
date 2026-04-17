@@ -1,32 +1,42 @@
 import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-import { MAT_DIALOG_DATA, MatDialog, MatDialogActions, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
-import { MatButton, MatIconButton } from '@angular/material/button';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogActions, MatDialogRef } from '@angular/material/dialog';
+import { MatButtonModule, MatIconButton } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CdkTextareaAutosize } from '@angular/cdk/text-field';
 
-import { MatFormField } from '@angular/material/input';
+import {MatFormField} from '@angular/material/input';
 import { MatInput } from '@angular/material/input';
 import { MatLabel } from '@angular/material/input';
-
-import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 
-import { BehaviorSubject, Observable, Subject, combineLatest } from 'rxjs';
-import { map, startWith, takeUntil } from 'rxjs/operators';
+import { Subject, takeUntil } from 'rxjs';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
-import { Example, ExampleDTO, ExampleTypes } from '../../model/Example';
-import { CreateTestDTO, GradingLevel, TestExample, TestExampleDTO } from '../../model/Test';
+import { Example, ExampleDTO, ExampleTypeLabels, ExampleTypes } from '../../model/Example';
+import { CreateTestDTO, GradingLevel, TestExample, TestExampleDTO, TestExampleVariableValues } from '../../model/Test';
 import { HttpService } from '../../service/http.service';
-import { TestPrintService } from '../../service/test-print.service';
+import { TestBranding, TestPrintLabels, TestPrintService } from '../../service/test-print.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
-import { MatPseudoCheckbox } from '@angular/material/core';
+import { ExamplePickerDialogComponent, ExamplePickerDialogResult } from '../example-picker-dialog/example-picker-dialog.component';
+import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 type GradeMode = 'auto' | 'manual';
 type GradePresetKey = 'AT' | 'DE' | 'US' | 'MITARBEIT' | 'CUSTOM';
+type ExplorerFolder = {
+  id: string;
+  schoolId: string;
+  type: 'examples' | 'tests';
+  name: string;
+  parentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
 
 type PersistedTestSettings = {
   defaultTaskSpacing?: number;
@@ -45,27 +55,30 @@ type PersistedTestSettings = {
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    MatButton,
+    MatButtonModule,
     MatDialogActions,
-    MatDialogContent,
     CdkTextareaAutosize,
     MatFormField,
     MatInput,
     MatLabel,
-    MatAutocompleteModule,
     MatIconModule,
     MatDividerModule,
     MatIconButton,
-    MatPseudoCheckbox,
+    MatButtonToggle,
+    MatButtonToggleGroup,
+    MatProgressBarModule,
+    TranslateModule,
   ],
   templateUrl: './create-test.component.html',
   styleUrl: './create-test.component.scss',
 })
 export class CreateTestComponent implements OnInit, OnDestroy {
-  data = inject<{ schoolId: number; testId: number }>(MAT_DIALOG_DATA);
+  data = inject<{ schoolId: number; testId?: number; folderId?: string | null }>(MAT_DIALOG_DATA);
   private dialogRef = inject(MatDialogRef<CreateTestComponent>);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
+  private translate = inject(TranslateService);
+  private sanitizer = inject(DomSanitizer);
   private service = inject(HttpService);
   private testPrintService = inject(TestPrintService);
   private readonly destroy$ = new Subject<void>();
@@ -76,6 +89,14 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   readonly defaultImageWidth = 320;
   isExportingPdf = false;
   isExportingWord = false;
+  isSaving = false;
+
+  previewHtml: SafeHtml = '';
+  labels: TestPrintLabels = this.buildPrintLabels();
+
+  allExamples: ExampleDTO[] = [];
+  exampleFolders: ExplorerFolder[] = [];
+  selectedExamplesInternal: TestExampleDTO[] = [];
 
   test: CreateTestDTO & PersistedTestSettings = {
     authToken: '',
@@ -87,7 +108,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     defaultTaskSpacing: 48,
     taskSpacingMap: {},
     gradingMode: 'auto',
-    gradingSystemName: 'Österreich 1–5',
+    gradingSystemName: this.translate.instant('createTest.grading.presets.atName'),
     gradingSchema: [],
     gradePercentages: {},
     manualGradeMinimums: {}
@@ -96,81 +117,62 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   hasUnsavedChanges = false;
   isEditMode = false;
 
-  private allExamplesSubject = new BehaviorSubject<ExampleDTO[]>([]);
-  private selectedExamplesSubject = new BehaviorSubject<TestExampleDTO[]>([]);
-
-  exampleCtrl = new FormControl<string | Example>('');
-
-  filteredExamples$: Observable<ExampleDTO[]> = combineLatest([
-    this.allExamplesSubject.asObservable(),
-    this.selectedExamplesSubject.asObservable(),
-    this.exampleCtrl.valueChanges.pipe(startWith('')),
-  ]).pipe(
-    map(([all, selected, raw]) => {
-      const selectedIds = new Set(selected.map((s) => s.example.id));
-      const query = this.normalize(typeof raw === 'string' ? raw : this.displayExample(raw));
-      const available = all.filter((e) => !selectedIds.has(e.id));
-      if (!query) return available;
-      return available.filter((e) => this.matchesQuery(e, query));
-    })
-  );
-
   defaultTaskSpacing = 48;
   spacingForAll = 48;
   taskSpacingMap: Record<number, number> = {};
 
   useAutomaticGrading = true;
-  gradingSystemName = 'Österreich 1–5';
+  gradingSystemName = this.translate.instant('createTest.grading.presets.atName');
   gradingSchema: GradingLevel[] = [];
 
   readonly gradingPresets: Record<GradePresetKey, { name: string; levels: Omit<GradingLevel, 'order'>[] }> = {
     AT: {
-      name: 'Österreich 1–5',
+      name: this.translate.instant('createTest.grading.presets.atName'),
       levels: [
-        { key: '1', label: 'Sehr gut', shortLabel: '1', percentageFrom: 90, minimumPoints: 18 },
-        { key: '2', label: 'Gut', shortLabel: '2', percentageFrom: 78, minimumPoints: 16 },
-        { key: '3', label: 'Befriedigend', shortLabel: '3', percentageFrom: 65, minimumPoints: 13 },
-        { key: '4', label: 'Genügend', shortLabel: '4', percentageFrom: 50, minimumPoints: 10 },
-        { key: '5', label: 'Nicht genügend', shortLabel: '5', percentageFrom: 0, minimumPoints: 0 },
+        { key: '1', label: this.translate.instant('createTest.grading.labels.veryGood'), shortLabel: '1', percentageFrom: 90, minimumPoints: 18 },
+        { key: '2', label: this.translate.instant('createTest.grading.labels.good'), shortLabel: '2', percentageFrom: 78, minimumPoints: 16 },
+        { key: '3', label: this.translate.instant('createTest.grading.labels.satisfactory'), shortLabel: '3', percentageFrom: 65, minimumPoints: 13 },
+        { key: '4', label: this.translate.instant('createTest.grading.labels.passing'), shortLabel: '4', percentageFrom: 50, minimumPoints: 10 },
+        { key: '5', label: this.translate.instant('createTest.grading.labels.failed'), shortLabel: '5', percentageFrom: 0, minimumPoints: 0 },
       ]
     },
     DE: {
-      name: 'Deutschland 1–6',
+      name: this.translate.instant('createTest.grading.presets.deName'),
       levels: [
-        { key: '1', label: 'Sehr gut', shortLabel: '1', percentageFrom: 92, minimumPoints: 18 },
-        { key: '2', label: 'Gut', shortLabel: '2', percentageFrom: 81, minimumPoints: 16 },
-        { key: '3', label: 'Befriedigend', shortLabel: '3', percentageFrom: 67, minimumPoints: 13 },
-        { key: '4', label: 'Ausreichend', shortLabel: '4', percentageFrom: 50, minimumPoints: 10 },
-        { key: '5', label: 'Mangelhaft', shortLabel: '5', percentageFrom: 30, minimumPoints: 6 },
-        { key: '6', label: 'Ungenügend', shortLabel: '6', percentageFrom: 0, minimumPoints: 0 },
+        { key: '1', label: this.translate.instant('createTest.grading.labels.veryGood'), shortLabel: '1', percentageFrom: 92, minimumPoints: 18 },
+        { key: '2', label: this.translate.instant('createTest.grading.labels.good'), shortLabel: '2', percentageFrom: 81, minimumPoints: 16 },
+        { key: '3', label: this.translate.instant('createTest.grading.labels.satisfactory'), shortLabel: '3', percentageFrom: 67, minimumPoints: 13 },
+        { key: '4', label: this.translate.instant('createTest.grading.labels.sufficient'), shortLabel: '4', percentageFrom: 50, minimumPoints: 10 },
+        { key: '5', label: this.translate.instant('createTest.grading.labels.poor'), shortLabel: '5', percentageFrom: 30, minimumPoints: 6 },
+        { key: '6', label: this.translate.instant('createTest.grading.labels.insufficient'), shortLabel: '6', percentageFrom: 0, minimumPoints: 0 },
       ]
     },
     US: {
-      name: 'USA A–F',
+      name: this.translate.instant('createTest.grading.presets.usName'),
       levels: [
-        { key: 'A', label: 'Excellent', shortLabel: 'A', percentageFrom: 90, minimumPoints: 18 },
-        { key: 'B', label: 'Good', shortLabel: 'B', percentageFrom: 80, minimumPoints: 16 },
-        { key: 'C', label: 'Satisfactory', shortLabel: 'C', percentageFrom: 70, minimumPoints: 14 },
-        { key: 'D', label: 'Passing', shortLabel: 'D', percentageFrom: 60, minimumPoints: 12 },
-        { key: 'F', label: 'Fail', shortLabel: 'F', percentageFrom: 0, minimumPoints: 0 },
+        { key: 'A', label: this.translate.instant('createTest.grading.labels.excellent'), shortLabel: 'A', percentageFrom: 90, minimumPoints: 18 },
+        { key: 'B', label: this.translate.instant('createTest.grading.labels.goodEn'), shortLabel: 'B', percentageFrom: 80, minimumPoints: 16 },
+        { key: 'C', label: this.translate.instant('createTest.grading.labels.satisfactoryEn'), shortLabel: 'C', percentageFrom: 70, minimumPoints: 14 },
+        { key: 'D', label: this.translate.instant('createTest.grading.labels.passingEn'), shortLabel: 'D', percentageFrom: 60, minimumPoints: 12 },
+        { key: 'F', label: this.translate.instant('createTest.grading.labels.fail'), shortLabel: 'F', percentageFrom: 0, minimumPoints: 0 },
       ]
     },
     MITARBEIT: {
-      name: 'Mitarbeit ++ bis --',
+      name: this.translate.instant('createTest.grading.presets.participationName'),
       levels: [
-        { key: 'plusplus', label: 'Sehr aktiv', shortLabel: '++', percentageFrom: 90, minimumPoints: 18 },
-        { key: 'plus', label: 'Aktiv', shortLabel: '+', percentageFrom: 75, minimumPoints: 15 },
-        { key: 'neutral', label: 'In Ordnung', shortLabel: 'o', percentageFrom: 55, minimumPoints: 11 },
-        { key: 'minus', label: 'Wenig Mitarbeit', shortLabel: '-', percentageFrom: 30, minimumPoints: 6 },
-        { key: 'minusminus', label: 'Keine Mitarbeit', shortLabel: '--', percentageFrom: 0, minimumPoints: 0 },
+        { key: 'plusplus', label: this.translate.instant('createTest.grading.labels.veryActive'), shortLabel: '++', percentageFrom: 90, minimumPoints: 18 },
+        { key: 'plus', label: this.translate.instant('createTest.grading.labels.active'), shortLabel: '+', percentageFrom: 75, minimumPoints: 15 },
+        { key: 'neutral', label: this.translate.instant('createTest.grading.labels.ok'), shortLabel: 'o', percentageFrom: 55, minimumPoints: 11 },
+        { key: 'minus', label: this.translate.instant('createTest.grading.labels.lowParticipation'), shortLabel: '-', percentageFrom: 30, minimumPoints: 6 },
+        { key: 'minusminus', label: this.translate.instant('createTest.grading.labels.noParticipation'), shortLabel: '--', percentageFrom: 0, minimumPoints: 0 },
       ]
     },
     CUSTOM: {
-      name: 'Eigenes Schema',
+      name: this.translate.instant('createTest.grading.presets.customName'),
       levels: [
-        { key: 'top', label: 'Top', shortLabel: 'Top', percentageFrom: 90, minimumPoints: 18 },
-        { key: 'mid', label: 'Mittel', shortLabel: 'Mid', percentageFrom: 60, minimumPoints: 12 },
-        { key: 'low', label: 'Niedrig', shortLabel: 'Low', percentageFrom: 0, minimumPoints: 0 },
+        { key: 'top', label: this.translate.instant('createTest.grading.labels.top'), shortLabel: 'Top', percentageFrom: 90, minimumPoints: 18 },
+        { key: 'mid', label: this.translate.instant('createTest.grading.labels.mid'), shortLabel: 'Mid', percentageFrom: 60, minimumPoints: 12 },
+        { key: 'low', label: this.translate.instant('createTest.grading.labels.low'), shortLabel: 'Low', percentageFrom: 0, minimumPoints: 0 },
       ]
     }
   };
@@ -203,11 +205,18 @@ export class CreateTestComponent implements OnInit, OnDestroy {
               ...response,
             };
             this.isEditMode = true;
-            const hydratedEntries = this.hydrateConstructionImagesForEntries(this.test.exampleList ?? []);
-            this.selectedExamplesSubject.next(hydratedEntries);
+            const hydratedEntries = this.hydrateConstructionImagesForEntries(this.test.exampleList ?? []).map(entry => ({
+              ...entry,
+              variableValues: {
+                ...this.buildDefaultVariableValues(entry.example),
+                ...(entry.variableValues ?? {})
+              }
+            }));
+            this.selectedExamplesInternal = hydratedEntries;
             this.test.exampleList = hydratedEntries;
             this.hydratePersistedSettings(response);
             this.initializeTaskSpacing();
+            this.refreshPreviewHtml();
             this.hasUnsavedChanges = false;
           },
         });
@@ -216,7 +225,66 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.service.getFullExamples(this.data.schoolId)
       .pipe(takeUntil(this.destroy$))
       .subscribe((examples) => {
-        this.allExamplesSubject.next(this.hydrateConstructionImagesForExamples(examples as ExampleDTO[]));
+        this.allExamples = this.hydrateConstructionImagesForExamples(examples as ExampleDTO[]);
+        this.refreshPreviewHtml();
+      });
+
+    this.service.getExampleFolders(String(this.data.schoolId))
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (folders: any) => {
+          this.exampleFolders = (folders ?? []).map((folder: any) => ({
+            ...folder,
+            type: 'examples',
+            parentId: folder.parentId ?? null,
+          }));
+        },
+        error: () => {
+          this.exampleFolders = [];
+        }
+      });
+
+    this.translate.onLangChange
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.labels = this.buildPrintLabels();
+        this.refreshPreviewHtml();
+      });
+
+    this.loadSchoolBranding();
+    this.refreshPreviewHtml();
+  }
+
+
+  private loadSchoolBranding(): void {
+    const serviceAny = this.service as any;
+    const request = serviceAny?.getSchool?.(this.data.schoolId) ?? serviceAny?.getSchoolById?.(this.data.schoolId);
+
+    if (!request?.subscribe) {
+      this.refreshPreviewHtml();
+      return;
+    }
+
+    request
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (school: any) => {
+          if (!school) {
+            this.refreshPreviewHtml();
+            return;
+          }
+
+          (this.test as any).schoolName = (this.test as any).schoolName || school?.name || '';
+          (this.test as any).schoolLogoUrl = (this.test as any).schoolLogoUrl || (this.service as any)?.getSchoolLogo?.(school, this.data.schoolId) || school?.logoUrl || school?.logo || '';
+          (this.test as any).school = {
+            ...(this.test as any).school,
+            ...school,
+          };
+          this.refreshPreviewHtml();
+        },
+        error: () => {
+          this.refreshPreviewHtml();
+        }
       });
   }
 
@@ -224,12 +292,6 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
-
-  displayExample = (value: Example | string | null): string => {
-    if (!value) return '';
-    if (typeof value === 'string') return value;
-    return value.question?.trim() ?? '';
-  };
 
   toggleAdvancedSettings(): void {
     this.showAdvancedSettings = !this.showAdvancedSettings;
@@ -244,14 +306,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.includeSolutionSheet = value;
   }
 
-  onExampleSelected(event: MatAutocompleteSelectedEvent): void {
-    const picked = event.option.value as Example;
-    this.addExampleToSelection(picked);
-    this.exampleCtrl.setValue('');
-  }
-
-  addExampleToSelection(example: Example): void {
-    const current = this.selectedExamplesSubject.value;
+  addExampleToSelection(example: Example | ExampleDTO): void {
+    const current = this.selectedExamplesInternal;
     if (current.some((x) => x.example?.id === example.id)) return;
 
     const hydratedExample = this.hydrateConstructionImage(example);
@@ -261,11 +317,12 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       example: hydratedExample,
       points: 0,
       title: '',
+      variableValues: this.buildDefaultVariableValues(hydratedExample),
       test: undefined as any,
     };
 
     const next: TestExampleDTO[] = [...current, newEntry];
-    this.selectedExamplesSubject.next(next);
+    this.selectedExamplesInternal = next;
     this.syncSelectionToTest(next);
     this.taskSpacingMap[example.id] = this.defaultTaskSpacing;
 
@@ -277,8 +334,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   removeSelectedExample(entry: TestExampleDTO): void {
-    const next = this.selectedExamplesSubject.value.filter((x) => x.example.id !== entry.example.id);
-    this.selectedExamplesSubject.next(next);
+    const next = this.selectedExamplesInternal.filter((x) => x.example.id !== entry.example.id);
+    this.selectedExamplesInternal = next;
     this.syncSelectionToTest(next);
     delete this.taskSpacingMap[entry.example.id];
 
@@ -289,14 +346,41 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.markDirty();
   }
 
+  moveSelectedExample(index: number, direction: -1 | 1): void {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= this.selectedExamplesInternal.length) {
+      return;
+    }
+
+    const next = [...this.selectedExamplesInternal];
+    const current = next[index];
+    next[index] = next[targetIndex];
+    next[targetIndex] = current;
+
+    this.selectedExamplesInternal = next;
+    this.syncSelectionToTest(next);
+    this.markDirty();
+  }
+
+  trackBySelectedExample = (_: number, entry: TestExampleDTO): number => entry.example.id;
+
+  trackByGradingLevel = (_: number, level: GradingLevel): string =>
+    String(level.key ?? level.order ?? _);
+
   get selectedExamples(): TestExampleDTO[] {
-    return this.selectedExamplesSubject.value;
+    return this.selectedExamplesInternal;
   }
 
   get totalPoints(): number {
-    return this.selectedExamples.reduce((sum, entry) => sum + (Number(entry.points) || 0), 0);
+    const total = this.selectedExamples.reduce((sum, entry) => sum + (Number(entry.points) || 0), 0);
+    return this.roundToStep(total, 1);
   }
 
+
+
+  get gradingModeSelection(): GradeMode {
+    return this.useAutomaticGrading ? 'auto' : 'manual';
+  }
   get gradeHeaderLabel(): string {
     const name = this.normalize(this.gradingSystemName);
     if (name.includes('usa') || name.includes('a–f') || name.includes('a-f')) return 'Grade';
@@ -305,13 +389,116 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   get gradeTableHeading(): string {
-    return this.useAutomaticGrading ? 'ab %' : 'ab Punkten';
+    return this.useAutomaticGrading
+      ? this.translate.instant('createTest.grading.fromPercent')
+      : this.translate.instant('createTest.grading.fromPoints');
   }
 
-  protected saveTest(): void {
+  getExampleHeading(example: Example | ExampleDTO): string {
+    return example.instruction?.trim() || example.question?.trim() || `Beispiel #${example.id}`;
+  }
+
+  getExampleMeta(entry: TestExampleDTO): string {
+    const focusLabels = (entry.example.focusList ?? [])
+      .map(focus => focus.label)
+      .filter(Boolean)
+      .join(', ');
+
+    const parts = [
+      this.getExampleTypeLabel(entry.example.type),
+      this.getFolderPathLabel(entry.example.folderId ?? null),
+      focusLabels || ''
+    ].filter(Boolean);
+
+    return parts.join(' · ');
+  }
+
+  getExampleVariables(entry: TestExampleDTO) {
+    return entry.example.variables ?? [];
+  }
+
+  hasVariables(entry: TestExampleDTO): boolean {
+    return this.getExampleVariables(entry).length > 0;
+  }
+
+  trackByVariableValue(index: number, variable: { key: string }): string {
+    return variable.key || String(index);
+  }
+
+  getVariableValue(entry: TestExampleDTO, key: string): string {
+    return entry.variableValues?.[key] ?? this.getDefaultVariableValue(entry, key);
+  }
+
+  onVariableValueChange(entry: TestExampleDTO, key: string, value: string | null): void {
+    entry.variableValues = {
+      ...(entry.variableValues ?? {}),
+      [key]: value ?? '',
+    };
+    this.markDirty();
+  }
+
+  private buildDefaultVariableValues(example: Example | ExampleDTO): TestExampleVariableValues {
+    return Object.fromEntries(
+      (example.variables ?? []).map(variable => [variable.key, variable.defaultValue ?? ''])
+    );
+  }
+
+  private getDefaultVariableValue(entry: TestExampleDTO, key: string): string {
+    return entry.example.variables?.find(variable => variable.key === key)?.defaultValue ?? '';
+  }
+
+  private resolveVariables(value: string | null | undefined, variableValues?: TestExampleVariableValues, example?: Example | ExampleDTO): string {
+    return (value ?? '').replace(/\{([a-zA-Z_][a-zA-Z0-9_-]*)\}/g, (_match, key: string) => {
+      if (variableValues && key in variableValues) {
+        return variableValues[key] ?? '';
+      }
+      return example?.variables?.find(variable => variable.key === key)?.defaultValue ?? '';
+    });
+  }
+
+  getResolvedEntryTitle(entry: TestExampleDTO): string {
+    const fallback = this.getExampleHeading(entry.example);
+    return this.resolveVariables(entry.title?.trim() || fallback, entry.variableValues, entry.example);
+  }
+
+  getResolvedExampleHeading(example: Example | ExampleDTO, variableValues?: TestExampleVariableValues): string {
+    const fallback = example.instruction?.trim() || example.question?.trim() || `Beispiel #${example.id}`;
+    return this.resolveVariables(fallback, variableValues, example);
+  }
+
+
+  getExampleTypeLabel(type: ExampleTypes | string): string {
+    if (type == null) return '—';
+
+    return ExampleTypeLabels[type as ExampleTypes] ?? String(type);
+  }
+
+  getFolderPathLabel(folderId: string | null): string {
+    if (folderId === null) return this.translate.instant('school.root');
+
+    const crumbs: string[] = [];
+    let current = this.exampleFolders.find(folder => folder.id === folderId) ?? null;
+
+    while (current) {
+      crumbs.unshift(current.name);
+      current = this.exampleFolders.find(folder => folder.id === current?.parentId) ?? null;
+    }
+
+    const rootLabel = this.translate.instant('school.root');
+    return crumbs.length ? [rootLabel, ...crumbs].join(' / ') : rootLabel;
+  }
+
+  saveTest(): void {
     this.test.authToken = localStorage.getItem('teacher_authToken') || '';
     this.test.schoolId = Number(this.test.schoolId || this.data.schoolId);
-    this.test.exampleList = this.selectedExamplesSubject.value;
+    this.test.exampleList = this.selectedExamplesInternal;
+    (this.test as any).folderId = this.data.folderId ?? (this.test as any).folderId ?? null;
+
+    if (this.isSaving) {
+      return;
+    }
+
+    this.isSaving = true;
 
     this.attachPersistedSettingsToPayload();
 
@@ -324,38 +511,46 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.snackBar.open(
-            this.isEditMode ? 'Test erfolgreich gespeichert' : 'Test erfolgreich erstellt',
+            this.isEditMode ? this.translate.instant('createTest.snackbar.updated') : this.translate.instant('createTest.snackbar.created'),
             'OK',
             { duration: 3000 }
           );
           this.hasUnsavedChanges = false;
           this.dialogRef.close(this.test);
+
+          this.isSaving = false;
+        },
+        error: () => {
+          this.isSaving = false;
+          this.snackBar.open(this.translate.instant('createTest.snackbar.saveError'), 'OK', { duration: 3000 });
         }
       });
   }
 
   async exportPdf(): Promise<void> {
     if (!this.selectedExamples.length) {
-      this.snackBar.open('Bitte zuerst mindestens eine Aufgabe auswählen.', 'OK', { duration: 2500 });
+      this.snackBar.open(this.translate.instant('createTest.snackbar.selectExampleFirst'), 'OK', { duration: 2500 });
       return;
     }
 
     this.attachPersistedSettingsToPayload();
     this.isExportingPdf = true;
 
-    const success = await this.testPrintService.exportPdf(this.test, this.selectedExamples, {
+    const success = await this.testPrintService.exportPdf(this.test, this.buildResolvedExamplesForPreview(), {
       printCopies: this.printCopies,
       includeSolutionSheet: this.includeSolutionSheet,
       getGradeRangeLabel: (gradeOrIndex: number) => this.getGradeRangeLabelByIndex(gradeOrIndex - 1),
       getTaskSpacing: (exampleId) => this.getTaskSpacing(exampleId),
       getQuestionWithGapLabels: (example) => this.getQuestionWithGapLabels(example),
       getLetter: (index) => this.getLetter(index),
+      labels: this.labels,
+      branding: this.resolveBranding(),
     });
 
     this.isExportingPdf = false;
 
     this.snackBar.open(
-      success ? 'PDF wurde heruntergeladen.' : 'PDF-Export fehlgeschlagen.',
+      success ? this.translate.instant('createTest.snackbar.pdfDownloaded') : this.translate.instant('createTest.snackbar.pdfError'),
       'OK',
       { duration: 3000 }
     );
@@ -363,26 +558,28 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   async exportWord(): Promise<void> {
     if (!this.selectedExamples.length) {
-      this.snackBar.open('Bitte zuerst mindestens eine Aufgabe auswählen.', 'OK', { duration: 2500 });
+      this.snackBar.open(this.translate.instant('createTest.snackbar.selectExampleFirst'), 'OK', { duration: 2500 });
       return;
     }
 
     this.attachPersistedSettingsToPayload();
     this.isExportingWord = true;
 
-    const success = await this.testPrintService.exportWord(this.test, this.selectedExamples, {
+    const success = await this.testPrintService.exportWord(this.test, this.buildResolvedExamplesForPreview(), {
       printCopies: this.printCopies,
       includeSolutionSheet: this.includeSolutionSheet,
       getGradeRangeLabel: (gradeOrIndex: number) => this.getGradeRangeLabelByIndex(gradeOrIndex - 1),
       getTaskSpacing: (exampleId) => this.getTaskSpacing(exampleId),
       getQuestionWithGapLabels: (example) => this.getQuestionWithGapLabels(example),
       getLetter: (index) => this.getLetter(index),
+      labels: this.labels,
+      branding: this.resolveBranding(),
     });
 
     this.isExportingWord = false;
 
     this.snackBar.open(
-      success ? 'Word-Datei wurde heruntergeladen.' : 'Word-Export fehlgeschlagen.',
+      success ? this.translate.instant('createTest.snackbar.wordDownloaded') : this.translate.instant('createTest.snackbar.wordError'),
       'OK',
       { duration: 3000 }
     );
@@ -392,10 +589,10 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     if (this.hasUnsavedChanges) {
       const confirmRef = this.dialog.open(ConfirmDialogComponent, {
         data: {
-          title: 'Warnung',
-          message: 'Möchten Sie wirklich schließen? Nicht gespeicherte Änderungen gehen verloren.',
-          cancelText: 'Abbrechen',
-          confirmText: 'Schließen',
+          title: this.translate.instant('createTest.closeWarning.title'),
+          message: this.translate.instant('createTest.closeWarning.message'),
+          cancelText: this.translate.instant('common.cancel'),
+          confirmText: this.translate.instant('createTest.closeWarning.confirm'),
         },
       });
 
@@ -417,12 +614,41 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   markDirty(): void {
     this.hasUnsavedChanges = true;
     this.attachPersistedSettingsToPayload();
+    this.refreshPreviewHtml();
   }
 
   onPointsChanged(): void {
     if (!this.useAutomaticGrading) {
       this.normalizeManualThresholds();
     }
+    this.markDirty();
+  }
+
+  onPointsInput(entry: TestExampleDTO, value: number | string | null): void {
+    entry.points = this.normalizeDecimalValue(value, 1);
+    this.markDirty();
+  }
+
+  onPointsBlur(entry: TestExampleDTO): void {
+    entry.points = this.normalizeDecimalValue(entry.points, 1);
+    if (!this.useAutomaticGrading) {
+      this.normalizeManualThresholds();
+    }
+    this.markDirty();
+  }
+
+  onAutomaticThresholdInput(level: GradingLevel, value: number | string | null): void {
+    level.percentageFrom = this.normalizeDecimalValue(value, 1);
+    this.markDirty();
+  }
+
+  onManualThresholdInput(level: GradingLevel, value: number | string | null): void {
+    level.minimumPoints = this.normalizeDecimalValue(value, 1);
+    this.markDirty();
+  }
+
+  onLevelBlur(): void {
+    this.normalizeCurrentThresholds();
     this.markDirty();
   }
 
@@ -464,12 +690,19 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   onGradingModeChange(mode: GradeMode): void {
+    const switchingToManual = mode === 'manual' && this.useAutomaticGrading;
+
     this.useAutomaticGrading = mode === 'auto';
+
     if (this.useAutomaticGrading) {
       this.normalizeAutomaticThresholds();
     } else {
+      if (switchingToManual) {
+        this.syncManualThresholdsFromPercentages();
+      }
       this.normalizeManualThresholds();
     }
+
     this.markDirty();
   }
 
@@ -480,6 +713,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       ...level,
       order: index,
     }));
+    this.syncManualThresholdsFromPercentages();
     this.normalizeCurrentThresholds();
     if (shouldMarkDirty) {
       this.markDirty();
@@ -495,12 +729,12 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       ? Math.max(0, (previous?.percentageFrom ?? 0) - 10)
       : Math.max(0, (previous?.minimumPoints ?? 0) - 1);
 
-    this.gradingSystemName = this.gradingSystemName || 'Eigenes Schema';
+    this.gradingSystemName = this.gradingSystemName || this.translate.instant('createTest.grading.customSchema');
     this.gradingSchema = [
       ...this.gradingSchema,
       {
         key: `level-${Date.now()}-${nextIndex}`,
-        label: `Stufe ${nextIndex + 1}`,
+        label: `${this.translate.instant('createTest.grading.level')} ${nextIndex + 1}`,
         shortLabel: `${nextIndex + 1}`,
         order: nextIndex,
         percentageFrom: this.useAutomaticGrading ? threshold : 0,
@@ -513,7 +747,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   removeGradingLevel(index: number): void {
     if (this.gradingSchema.length <= 2) {
-      this.snackBar.open('Mindestens zwei Bewertungsstufen sollten bestehen bleiben.', 'OK', { duration: 2500 });
+      this.snackBar.open(this.translate.instant('createTest.snackbar.minimumTwoLevels'), 'OK', { duration: 2500 });
       return;
     }
 
@@ -540,12 +774,11 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   onGradingSystemNameChanged(value: string): void {
-    this.gradingSystemName = value?.trim() || 'Eigenes Schema';
+    this.gradingSystemName = value?.trim() || this.translate.instant('createTest.grading.customSchema');
     this.markDirty();
   }
 
   onLevelChanged(): void {
-    this.normalizeCurrentThresholds();
     this.markDirty();
   }
 
@@ -560,18 +793,15 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   normalizeAutomaticThresholds(): void {
     let last = 100;
 
-    this.gradingSchema = this.gradingSchema.map((level, index) => {
+    this.gradingSchema.forEach((level, index) => {
       const raw = Number(level.percentageFrom ?? (index === this.gradingSchema.length - 1 ? 0 : last));
       const normalized = index === this.gradingSchema.length - 1
         ? 0
-        : Math.max(0, Math.min(last, Math.round(raw)));
+        : Math.max(0, Math.min(last, this.roundToStep(raw, 1)));
 
       last = normalized;
-      return {
-        ...level,
-        order: index,
-        percentageFrom: normalized,
-      };
+      level.order = index;
+      level.percentageFrom = normalized;
     });
 
     if (this.gradingSchema.length) {
@@ -583,19 +813,15 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     const total = this.totalPoints;
     let last = total;
 
-    this.gradingSchema = this.gradingSchema.map((level, index) => {
+    this.gradingSchema.forEach((level, index) => {
       const raw = Number(level.minimumPoints ?? (index === this.gradingSchema.length - 1 ? 0 : last));
       const normalized = index === this.gradingSchema.length - 1
         ? 0
-        : Math.max(0, Math.min(last, Math.round(raw)));
+        : Math.max(0, Math.min(last, this.roundToStep(raw, 1)));
 
       last = normalized;
-
-      return {
-        ...level,
-        order: index,
-        minimumPoints: normalized,
-      };
+      level.order = index;
+      level.minimumPoints = normalized;
     });
 
     if (this.gradingSchema.length) {
@@ -612,10 +838,21 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
     if (this.useAutomaticGrading) {
       const percentage = Number(this.gradingSchema[index].percentageFrom ?? 0);
-      return Math.max(0, Math.min(this.totalPoints, Math.ceil(this.totalPoints * (percentage / 100))));
+      const value = Math.ceil(this.totalPoints * (percentage / 100));
+      return Math.max(0, Math.min(this.totalPoints, value));
     }
 
-    return Math.max(0, Math.min(this.totalPoints, Math.round(Number(this.gradingSchema[index].minimumPoints ?? 0))));
+    return Math.max(
+      0,
+      Math.min(
+        this.totalPoints,
+        this.roundToStep(Number(this.gradingSchema[index].minimumPoints ?? 0), 1)
+      )
+    );
+  }
+
+  private isWholeNumber(value: number): boolean {
+    return Math.abs(value - Math.round(value)) < 0.0001;
   }
 
   getGradeRangeLabelByIndex(index: number): string {
@@ -624,24 +861,43 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     if (!this.gradingSchema[index]) return '–';
 
     const min = this.getGradeMinimumByIndex(index);
-    const upper = index === 0 ? total : this.getGradeMinimumByIndex(index - 1) - 1;
 
-    if (upper < min) return `${min}`;
-    if (upper === min) return `${min}`;
-    return `${upper}-${min}`;
+    if (this.useAutomaticGrading) {
+      const upper = index === 0
+        ? Math.round(total)
+        : this.getGradeMinimumByIndex(index - 1) - 1;
+
+      if (upper < min) return String(min);
+      if (upper === min) return String(min);
+      return `${upper}-${min}`;
+    }
+
+    const previousMin = index === 0 ? total : this.getGradeMinimumByIndex(index - 1);
+    const shouldUseWholeNumbers = this.isWholeNumber(min) && this.isWholeNumber(previousMin);
+
+    const upper = index === 0
+      ? total
+      : shouldUseWholeNumbers
+        ? previousMin - 1
+        : this.roundToStep(previousMin - 0.1, 1);
+
+    if (upper < min) return this.formatScore(min);
+    if (upper === min) return this.formatScore(min);
+
+    return `${this.formatScore(upper)}-${this.formatScore(min)}`;
   }
 
-  getPreviewImage(example: Example): string | null {
+  getPreviewImage(example: Example | ExampleDTO): string | null {
     return (example as any).imageUrl || (example as any).image || null;
   }
 
-  getImageWidth(example: Example): number {
+  getImageWidth(example: Example | ExampleDTO): number {
     return this.normalizeImageWidth((example as any).imageWidth);
   }
 
-  getQuestionWithGapLabels(example: Example): string {
+  getQuestionWithGapLabels(example: Example | ExampleDTO): string {
     let idx = 0;
-    return example.question.replace(/\{Lücke \d+\}/g, () => {
+    return this.resolveVariables(example.question, undefined, example).replace(/\{Lücke \d+\}/g, () => {
       const label = example.gaps[idx]?.label?.trim();
       idx++;
       return label ? `_____(${label})_____` : `______________`;
@@ -654,18 +910,129 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   printPreview(): void {
     this.attachPersistedSettingsToPayload();
-    this.testPrintService.printTest(this.test, this.selectedExamples, {
+    this.testPrintService.printTest(this.test, this.buildResolvedExamplesForPreview(), {
       printCopies: this.printCopies,
       includeSolutionSheet: this.includeSolutionSheet,
       getGradeRangeLabel: (gradeOrIndex: number) => this.getGradeRangeLabelByIndex(gradeOrIndex - 1),
       getTaskSpacing: (exampleId) => this.getTaskSpacing(exampleId),
       getQuestionWithGapLabels: (example) => this.getQuestionWithGapLabels(example),
       getLetter: (index) => this.getLetter(index),
+      labels: this.labels,
+      branding: this.resolveBranding(),
     });
   }
 
+
+  private translateOrFallback(key: string, fallback: string): string {
+    const value = this.translate.instant(key);
+    return value && value !== key ? value : fallback;
+  }
+
+  private buildPrintLabels(): TestPrintLabels {
+    return {
+      name: this.translateOrFallback('createTest.preview.name', 'Name'),
+      class: this.translateOrFallback('createTest.preview.class', 'Class'),
+      date: this.translateOrFallback('createTest.preview.date', 'Date'),
+      achievedPoints: this.translateOrFallback('createTest.preview.achievedPoints', 'Achieved points'),
+      gradeHeader: this.gradeHeaderLabel || this.translateOrFallback('createTest.preview.gradeHeader', 'Grade'),
+      gradingKey: this.translateOrFallback('createTest.preview.gradingKey', 'Grading key'),
+      points: this.translateOrFallback('createTest.grading.points', 'Points'),
+      exampleShort: this.translateOrFallback('createTest.preview.exampleShort', 'Ex.'),
+      goodLuck: this.translateOrFallback('createTest.preview.goodLuck', 'Good luck!'),
+      untitled: this.translateOrFallback('createTest.untitled', 'Untitled test'),
+      solutionSuffix: this.translateOrFallback('createTest.print.solutionSuffix', '– Solution'),
+      solutionNote: this.translateOrFallback('createTest.print.solutionNote', 'These pages contain the sample solutions.'),
+      noSolution: this.translateOrFallback('createTest.print.noSolution', 'No solution stored.'),
+      gap: this.translateOrFallback('exampleDialog.gap', 'Gap'),
+      imagePreviewAlt: this.translateOrFallback('createTest.preview.imagePreviewAlt', 'Preview image'),
+      previewTitle: this.translateOrFallback('createTest.preview.title', 'Test preview'),
+      previewSubtitle: this.translateOrFallback('createTest.preview.subtitle', 'Preview and print layout'),
+      question: this.translateOrFallback('school.question', 'Question'),
+    };
+  }
+
+  private resolveBranding(): TestBranding {
+    const school = (this.test as any)?.school ?? null;
+    const dialogData = this.data as any;
+    const schoolId = Number((this.test as any)?.schoolId || dialogData?.schoolId || this.data.schoolId);
+    const logoFromService = (this.service as any)?.getSchoolLogo?.(school, schoolId);
+
+    return {
+      schoolName: (this.test as any)?.schoolName || school?.name || dialogData?.schoolName || '',
+      schoolLogoUrl: logoFromService || (this.test as any)?.schoolLogoUrl || school?.logoUrl || school?.logo || dialogData?.schoolLogoUrl || dialogData?.schoolLogo || '',
+      showNameWhenLogoExists: true,
+    };
+  }
+
+  private isDarkModeActive(): boolean {
+    return document.documentElement.classList.contains('dark-mode') || document.body.classList.contains('dark-mode');
+  }
+
+  private resolveOptionList(options: any[] | null | undefined, variableValues?: TestExampleVariableValues, example?: Example | ExampleDTO): any[] {
+    return (options ?? []).map(option => ({
+      ...option,
+      text: this.resolveVariables(option?.text, variableValues, example),
+    }));
+  }
+
+  private resolveGapList(gaps: any[] | null | undefined, variableValues?: TestExampleVariableValues, example?: Example | ExampleDTO): any[] {
+    return (gaps ?? []).map(gap => ({
+      ...gap,
+      label: this.resolveVariables(gap?.label, variableValues, example),
+      solution: this.resolveVariables(gap?.solution, variableValues, example),
+      options: this.resolveOptionList(gap?.options, variableValues, example),
+    }));
+  }
+
+  private resolveAssignList(assigns: any[] | null | undefined, variableValues?: TestExampleVariableValues, example?: Example | ExampleDTO): any[] {
+    return (assigns ?? []).map(assign => ({
+      ...assign,
+      left: this.resolveVariables(assign?.left, variableValues, example),
+      right: this.resolveVariables(assign?.right, variableValues, example),
+    }));
+  }
+
+  private buildResolvedExamplesForPreview(): TestExampleDTO[] {
+    return this.selectedExamples.map(entry => ({
+      ...entry,
+      title: this.getResolvedEntryTitle(entry),
+      example: {
+        ...entry.example,
+        instruction: this.resolveVariables(entry.example.instruction, entry.variableValues, entry.example),
+        question: this.resolveVariables(entry.example.question, entry.variableValues, entry.example),
+        solution: this.resolveVariables((entry.example as any).solution, entry.variableValues, entry.example),
+        answers: (entry.example.answers ?? []).map(answer => [
+          this.resolveVariables(answer?.[0], entry.variableValues, entry.example),
+          this.resolveVariables(answer?.[1], entry.variableValues, entry.example),
+        ]),
+        options: this.resolveOptionList(entry.example.options, entry.variableValues, entry.example),
+        gaps: this.resolveGapList(entry.example.gaps, entry.variableValues, entry.example),
+        assigns: this.resolveAssignList(entry.example.assigns, entry.variableValues, entry.example),
+        assignRightItems: (entry.example.assignRightItems ?? []).map(item => this.resolveVariables(item, entry.variableValues, entry.example)),
+      } as Example
+    }));
+  }
+
+  private refreshPreviewHtml(): void {
+    this.attachPersistedSettingsToPayload();
+    this.labels = this.buildPrintLabels();
+
+    const html = this.testPrintService.buildPreviewHtml(this.test, this.buildResolvedExamplesForPreview(), {
+      printCopies: 1,
+      includeSolutionSheet: this.includeSolutionSheet,
+      getGradeRangeLabel: (gradeOrIndex: number) => this.getGradeRangeLabelByIndex(gradeOrIndex - 1),
+      getTaskSpacing: (exampleId) => this.getTaskSpacing(exampleId),
+      getQuestionWithGapLabels: (example) => this.getQuestionWithGapLabels(example),
+      getLetter: (index) => this.getLetter(index),
+      labels: this.labels,
+      branding: this.resolveBranding(),
+    });
+
+    this.previewHtml = this.sanitizer.bypassSecurityTrustHtml(html);
+  }
+
   private hydrateConstructionImagesForExamples(examples: ExampleDTO[]): ExampleDTO[] {
-    return (examples ?? []).map(example => this.hydrateConstructionImage(example as unknown as Example) as unknown as ExampleDTO);
+    return (examples ?? []).map(example => this.hydrateConstructionImage(example) as unknown as ExampleDTO);
   }
 
   private hydrateConstructionImagesForEntries(entries: TestExampleDTO[]): TestExampleDTO[] {
@@ -675,20 +1042,38 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     }));
   }
 
-  private hydrateConstructionImage(example: Example): Example {
+  private hydrateConstructionImage(example: Example | ExampleDTO): Example {
     if (!example || example.type !== ExampleTypes.CONSTRUCTION || !example.id) {
-      return example;
+      return <Example>example;
     }
 
-    const hasTaskImage = !!((example as any).imageUrl || (example as any).image);
-    const hasSolutionImage = !!((example as any).solutionUrl);
+    const normalizedExample = this.toExample(example);
+    const hasTaskImage = !!((normalizedExample as any).imageUrl || (normalizedExample as any).image);
+    const hasSolutionImage = !!((normalizedExample as any).solutionUrl);
 
     return {
-      ...example,
-      imageUrl: hasTaskImage ? (this.service.getConstructionImageUrl(example.id) ?? '') : '',
-      image: hasTaskImage ? (this.service.getConstructionImageUrl(example.id) ?? '') : '',
-      solutionUrl: hasSolutionImage ? (this.service.getConstructionSolutionImageUrl(example.id) ?? '') : ''
+      ...normalizedExample,
+      imageUrl: hasTaskImage ? (this.service.getConstructionImageUrl(normalizedExample.id) ?? '') : '',
+      image: hasTaskImage ? (this.service.getConstructionImageUrl(normalizedExample.id) ?? '') : '',
+      solutionUrl: hasSolutionImage ? (this.service.getConstructionSolutionImageUrl(normalizedExample.id) ?? '') : ''
     } as Example & { image?: string };
+  }
+
+  private toExample(example: Example | ExampleDTO): Example {
+    return {
+      ...(example as any),
+      admin: (example as any).admin as any,
+      focusList: [...((example as any).focusList ?? [])],
+      answers: (example as any).answers ?? [],
+      options: (example as any).options ?? [],
+      gaps: (example as any).gaps ?? [],
+      assigns: (example as any).assigns ?? [],
+      assignRightItems: (example as any).assignRightItems ?? [],
+      imageUrl: (example as any).imageUrl ?? null,
+      solutionUrl: (example as any).solutionUrl ?? null,
+      imageWidth: (example as any).imageWidth ?? null,
+      solutionImageWidth: (example as any).solutionImageWidth ?? null,
+    } as Example;
   }
 
   private syncSelectionToTest(selected: TestExampleDTO[]): void {
@@ -739,12 +1124,12 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.useAutomaticGrading = gradingMode !== 'manual';
 
     const schema = Array.isArray(response?.gradingSchema) ? response.gradingSchema : [];
-    this.gradingSystemName = response?.gradingSystemName ?? 'Österreich 1–5';
+    this.gradingSystemName = response?.gradingSystemName ?? this.translate.instant('createTest.grading.presets.atName');
 
     if (schema.length) {
       this.gradingSchema = schema.map((level: any, index: number) => ({
         key: level?.key ?? `level-${index}`,
-        label: level?.label ?? `Stufe ${index + 1}`,
+        label: level?.label ?? `${this.translate.instant('createTest.grading.level')} ${index + 1}`,
         shortLabel: level?.shortLabel ?? String(index + 1),
         order: Number(level?.order ?? index),
         percentageFrom: Number(level?.percentageFrom ?? 0),
@@ -764,11 +1149,11 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       );
 
       this.gradingSchema = [
-        { key: '1', label: 'Sehr gut', shortLabel: '1', order: 0, percentageFrom: percentages[1] ?? 90, minimumPoints: minimums[1] ?? 18 },
-        { key: '2', label: 'Gut', shortLabel: '2', order: 1, percentageFrom: percentages[2] ?? 78, minimumPoints: minimums[2] ?? 16 },
-        { key: '3', label: 'Befriedigend', shortLabel: '3', order: 2, percentageFrom: percentages[3] ?? 65, minimumPoints: minimums[3] ?? 13 },
-        { key: '4', label: 'Genügend', shortLabel: '4', order: 3, percentageFrom: percentages[4] ?? 50, minimumPoints: minimums[4] ?? 10 },
-        { key: '5', label: 'Nicht genügend', shortLabel: '5', order: 4, percentageFrom: 0, minimumPoints: 0 },
+        { key: '1', label: this.translate.instant('createTest.grading.labels.veryGood'), shortLabel: '1', order: 0, percentageFrom: percentages[1] ?? 90, minimumPoints: minimums[1] ?? 18 },
+        { key: '2', label: this.translate.instant('createTest.grading.labels.good'), shortLabel: '2', order: 1, percentageFrom: percentages[2] ?? 78, minimumPoints: minimums[2] ?? 16 },
+        { key: '3', label: this.translate.instant('createTest.grading.labels.satisfactory'), shortLabel: '3', order: 2, percentageFrom: percentages[3] ?? 65, minimumPoints: minimums[3] ?? 13 },
+        { key: '4', label: this.translate.instant('createTest.grading.labels.passing'), shortLabel: '4', order: 3, percentageFrom: percentages[4] ?? 50, minimumPoints: minimums[4] ?? 10 },
+        { key: '5', label: this.translate.instant('createTest.grading.labels.failed'), shortLabel: '5', order: 4, percentageFrom: 0, minimumPoints: 0 },
       ];
     }
 
@@ -819,6 +1204,24 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     return Math.max(0, Math.min(240, numeric));
   }
 
+  private normalizeDecimalValue(value: number | string | null | undefined, decimals = 1): number {
+    const numeric = Number(value ?? 0);
+    if (!Number.isFinite(numeric)) return 0;
+
+    const factor = Math.pow(10, decimals);
+    return Math.round(numeric * factor) / factor;
+  }
+
+  private roundToStep(value: number, decimals = 1): number {
+    const factor = Math.pow(10, decimals);
+    return Math.round((Number(value) || 0) * factor) / factor;
+  }
+
+  private formatScore(value: number): string {
+    const rounded = this.roundToStep(value, 1);
+    return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+  }
+
   private normalizeImageWidth(value: number | null | undefined): number {
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) {
@@ -831,30 +1234,54 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     return (v ?? '').toString().trim().toLowerCase();
   }
 
-  private matchesQuery(e: ExampleDTO, query: string): boolean {
-    const focusLabels = (e.focusList ?? [])
-      .map(focus => focus.label ?? '')
-      .join(' ');
-
-    const haystack = this.normalize(
-      [
-        e.question,
-        e.instruction,
-        e.admin?.username ?? '',
-        String(e.id),
-        String(e.type ?? ''),
-        focusLabels,
-      ].join(' ')
-    );
-
-    return haystack.includes(query);
-  }
-
   increaseCount(): void {
     this.printCopies = Math.min(20, (this.printCopies || 1) + 1);
   }
 
   decreaseCount(): void {
     this.printCopies = Math.max(1, (this.printCopies || 1) - 1);
+  }
+
+  openAddExampleDialog(): void {
+    const ref = this.dialog.open(ExamplePickerDialogComponent, {
+      width: 'min(94vw, 1220px)',
+      maxWidth: '94vw',
+      maxHeight: '92vh',
+      autoFocus: false,
+      panelClass: 'example-picker-dialog-panel',
+      data: {
+        examples: this.allExamples,
+        selectedIds: this.selectedExamples.map(entry => entry.example.id),
+        folders: this.exampleFolders,
+      }
+    });
+
+    ref.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result?: ExamplePickerDialogResult) => {
+        if (!result?.selectedIds?.length) return;
+
+        const examplesToAdd = this.allExamples.filter(example => result.selectedIds.includes(example.id));
+        examplesToAdd.forEach(example => this.addExampleToSelection(example));
+      });
+  }
+
+  private syncManualThresholdsFromPercentages(): void {
+    const total = this.totalPoints;
+
+    this.gradingSchema = this.gradingSchema.map((level, index) => {
+      const percentage = Number(level.percentageFrom ?? 0);
+
+      const derivedMinimum =
+        index === this.gradingSchema.length - 1
+          ? 0
+          : Math.max(0, Math.min(total, Math.ceil(total * (percentage / 100))));
+
+      return {
+        ...level,
+        minimumPoints: derivedMinimum,
+        order: index,
+      };
+    });
   }
 }

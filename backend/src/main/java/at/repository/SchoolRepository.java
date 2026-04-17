@@ -1,7 +1,6 @@
 package at.repository;
 
 import at.dtos.Notification.SchoolInviteDTO;
-import at.dtos.School.LastActivityDTO;
 import at.dtos.School.SchoolDTO;
 import at.dtos.User.UserDTO;
 import at.enums.NotificationActionType;
@@ -11,6 +10,7 @@ import at.enums.SchoolInviteType;
 import at.model.*;
 import at.model.helper.Focus;
 import at.security.TokenService;
+import at.service.MediaStorageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -31,6 +31,9 @@ public class SchoolRepository {
 
     @Inject
     NotificationRepository notificationRepository;
+
+    @Inject
+    MediaStorageService mediaStorageService;
 
     public Response addSchool(String schoolName, Long userId) {
         try {
@@ -219,9 +222,12 @@ public class SchoolRepository {
             return Response.status(Response.Status.FORBIDDEN).entity("Only the school admin can remove teachers").build();
         }
 
-        if (!school.getUsers().removeIf(u -> u.getId().equals(teacherId))) {
+        if(!school.getUsers().contains(teacher)){
             return Response.status(Response.Status.BAD_REQUEST).entity("This teacher is not a member of the school").build();
         }
+
+        school.getUsers().remove(teacher);
+
 
         em.merge(school);
 
@@ -277,16 +283,96 @@ public class SchoolRepository {
         }
 
         school.setLogoUrl(logoUrl);
-
         em.merge(school);
 
         return Response.ok(toSchoolDTO(school)).build();
     }
 
-    public Response inviteTeacher(Long schoolId, Long userId, int teacherId, String message) {
+    public Response deleteSchoolLogo(Long schoolId, Long userId) {
+        School school = em.find(School.class, schoolId);
+
+        if (school == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("School not found").build();
+        }
+
+        if (!school.getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Only the school admin can delete the logo").build();
+        }
+
+        if (school.getLogoUrl() == null || school.getLogoUrl().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("School has no logo").build();
+        }
+
+        if(school.getLogoUrl() != null && !school.getLogoUrl().isBlank()) {
+            mediaStorageService.delete(school.getLogoUrl());
+        }
+
+        school.setLogoUrl(null);
+        em.merge(school);
+
+        return Response.ok(toSchoolDTO(school)).build();
+    }
+
+    public Response deleteSchool(Long schoolId, Long userId) {
+        School school = em.find(School.class, schoolId);
+
+        if (school == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("School not found").build();
+        }
+
+        if (!school.getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Only the school admin can delete the school").build();
+        }
+
+        em.createQuery("DELETE FROM SchoolInvite i WHERE i.school.id = :schoolId")
+                .setParameter("schoolId", schoolId)
+                .executeUpdate();
+
+        school.getUsers().clear();
+
+        if (school.getFocusList() != null) {
+            for (Focus focus : school.getFocusList()) {
+                em.remove(em.contains(focus) ? focus : em.merge(focus));
+            }
+            school.getFocusList().clear();
+        }
+
+        List<Example> examples = em.createQuery("SELECT e FROM Example e WHERE e.school.id = :schoolId", Example.class)
+                .setParameter("schoolId", schoolId)
+                .getResultList();
+
+        for(Example example : examples) {
+            em.remove(example);
+        }
+
+        List<Test> tests = em.createQuery("SELECT t FROM Test t WHERE t.school.id = :schoolId", Test.class)
+                .setParameter("schoolId", schoolId)
+                .getResultList();
+
+        for(Test test : tests) {
+            em.remove(test);
+        }
+
+
+        System.out.println(school.getLogoUrl());
+        if(school.getLogoUrl() != null) {
+            mediaStorageService.delete(school.getLogoUrl());
+        }
+
+        em.merge(school);
+        em.remove(school);
+
+        return Response.ok().build();
+    }
+
+    public Response inviteTeacher(Long schoolId, Long userId, String email) {
         School school = em.find(School.class, schoolId);
         User sender = em.find(User.class, userId);
-        User teacher = em.find(User.class, (long) teacherId);
+        User teacher = em.createQuery("SELECT t FROM User t WHERE t.email = :email", User.class)
+                .setParameter("email", email)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
 
         if (school == null || sender == null || teacher == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("School, sender or teacher not found").build();
@@ -326,7 +412,7 @@ public class SchoolRepository {
                 sender,
                 teacher,
                 SchoolInviteType.TEACHER_INVITATION,
-                message == null ? "" : message
+                ""
         );
         em.persist(invite);
         em.flush();
@@ -339,98 +425,12 @@ public class SchoolRepository {
                 "Einladung zu " + school.getName(),
                 appendOptionalMessage(
                         sender.getUsername() + " hat dich eingeladen, der Schule " + school.getName() + " beizutreten.",
-                        message
+                        ""
                 ),
                 null,
                 invite.getId(),
                 NotificationActionType.ACCEPT_INVITATION,
                 NotificationActionType.DECLINE_INVITATION
-        );
-
-        return Response.ok(toSchoolInviteDTO(invite)).build();
-    }
-
-    public Response sendJoinRequest(Long schoolId, Long userId, String message) {
-        School school = em.find(School.class, schoolId);
-        User sender = em.find(User.class, userId);
-
-        if (school == null || sender == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("School or user not found").build();
-        }
-
-        if (sender.getId().equals(school.getAdmin().getId())
-                || school.getUsers().stream().anyMatch(u -> u.getId().equals(sender.getId()))) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("You are already part of this school").build();
-        }
-
-        Long openRequestCount = em.createQuery("""
-        SELECT COUNT(i)
-        FROM SchoolInvite i
-        WHERE i.school.id = :schoolId
-          AND i.sender.id = :senderId
-          AND i.recipient.id = :recipientId
-          AND i.type = :type
-          AND i.status = :status
-        """, Long.class)
-                .setParameter("schoolId", schoolId)
-                .setParameter("senderId", sender.getId())
-                .setParameter("recipientId", school.getAdmin().getId())
-                .setParameter("type", SchoolInviteType.JOIN_REQUEST)
-                .setParameter("status", SchoolInviteStatus.PENDING)
-                .getSingleResult();
-
-        if (openRequestCount > 0) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("You already have an open request for this school")
-                    .build();
-        }
-
-        Long declinedRequestCount = em.createQuery("""
-        SELECT COUNT(i)
-        FROM SchoolInvite i
-        WHERE i.school.id = :schoolId
-          AND i.sender.id = :senderId
-          AND i.recipient.id = :recipientId
-          AND i.type = :type
-          AND i.status = :status
-        """, Long.class)
-                .setParameter("schoolId", schoolId)
-                .setParameter("senderId", sender.getId())
-                .setParameter("recipientId", school.getAdmin().getId())
-                .setParameter("type", SchoolInviteType.JOIN_REQUEST)
-                .setParameter("status", SchoolInviteStatus.DECLINED)
-                .getSingleResult();
-
-        if (declinedRequestCount > 0) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Your request was declined before. You can only join now if the school invites you.")
-                    .build();
-        }
-
-        SchoolInvite invite = new SchoolInvite(
-                school,
-                sender,
-                school.getAdmin(),
-                SchoolInviteType.JOIN_REQUEST,
-                message == null ? "" : message
-        );
-        em.persist(invite);
-        em.flush();
-
-        notificationRepository.createNotification(
-                school.getAdmin(),
-                sender,
-                school,
-                NotificationType.JOIN_REQUEST,
-                "Beitrittsanfrage für " + school.getName(),
-                appendOptionalMessage(
-                        sender.getUsername() + " möchte der Schule " + school.getName() + " beitreten.",
-                        message
-                ),
-                null,
-                invite.getId(),
-                NotificationActionType.ACCEPT_JOIN_REQUEST,
-                NotificationActionType.DECLINE_JOIN_REQUEST
         );
 
         return Response.ok(toSchoolInviteDTO(invite)).build();
@@ -477,7 +477,7 @@ public class SchoolRepository {
                     NotificationType.INVITATION_ACCEPTED,
                     "Invitation accepted",
                     recipient.getUsername() + " accepted the invitation to " + school.getName() + ".",
-                    "/school/" + school.getId(),
+                    "/collection/" + school.getId(),
                     invite.getId(),
                     null,
                     null
@@ -494,78 +494,7 @@ public class SchoolRepository {
                     NotificationType.INVITATION_DECLINED,
                     "Invitation declined",
                     recipient.getUsername() + " declined the invitation to " + school.getName() + ".",
-                    "/school/" + school.getId(),
-                    invite.getId(),
-                    null,
-                    null
-            );
-        }
-
-        return Response.ok(toSchoolInviteDTO(invite)).build();
-    }
-
-    public Response respondToJoinRequest(Long inviteId, Long userId, boolean accept) {
-        SchoolInvite invite = em.find(SchoolInvite.class, inviteId);
-
-        if (invite == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity("Request not found").build();
-        }
-
-        if (!invite.getRecipient().getId().equals(userId)) {
-            return Response.status(Response.Status.FORBIDDEN).entity("You are not allowed to respond to this request").build();
-        }
-
-        if (invite.getType() != SchoolInviteType.JOIN_REQUEST) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("This is not a join request").build();
-        }
-
-        if (invite.getStatus() != SchoolInviteStatus.PENDING) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Request was already processed").build();
-        }
-
-        School school = invite.getSchool();
-        User applicant = invite.getSender();
-
-        notificationRepository.markRelatedNotificationsAsHandled(invite.getId());
-
-        if (accept) {
-            boolean alreadyMember = school.getAdmin().getId().equals(applicant.getId())
-                    || school.getUsers().stream().anyMatch(u -> u.getId().equals(applicant.getId()));
-
-            if (!alreadyMember) {
-                school.getUsers().add(applicant);
-                em.merge(school);
-            }
-
-            invite.setStatus(SchoolInviteStatus.ACCEPTED);
-            invite.setDecidedAt(LocalDateTime.now());
-            em.merge(invite);
-
-            notificationRepository.createNotification(
-                    applicant,
-                    school.getAdmin(),
-                    school,
-                    NotificationType.JOIN_REQUEST_ACCEPTED,
-                    "Join request accepted",
-                    "Your request for " + school.getName() + " was accepted.",
-                    "/school/" + school.getId(),
-                    invite.getId(),
-                    null,
-                    null
-            );
-        } else {
-            invite.setStatus(SchoolInviteStatus.DECLINED);
-            invite.setDecidedAt(LocalDateTime.now());
-            em.merge(invite);
-
-            notificationRepository.createNotification(
-                    applicant,
-                    school.getAdmin(),
-                    school,
-                    NotificationType.JOIN_REQUEST_DECLINED,
-                    "Join request declined",
-                    "Your request for " + school.getName() + " was declined.",
-                    "/school/" + school.getId(),
+                    "/collection/" + school.getId(),
                     invite.getId(),
                     null,
                     null
@@ -638,16 +567,6 @@ public class SchoolRepository {
         }
 
         return baseMessage + "\n\nNachricht: " + customMessage.trim();
-    }
-
-    public LastActivityDTO getLastActivity(Long id) {
-        return em.createQuery(
-                        "SELECT new at.dtos.School.LastActivityDTO(c.user.username, c.createdAt) FROM ChangeLog c WHERE c.school.id = :schoolId ORDER BY c.createdAt DESC", LastActivityDTO.class)
-                .setParameter("schoolId", id)
-                .setMaxResults(1)
-                .getResultStream()
-                .findFirst()
-                .orElse(null);
     }
 
     public String getSchoolUrl(Long id) {

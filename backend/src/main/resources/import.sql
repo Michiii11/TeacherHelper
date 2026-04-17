@@ -5,7 +5,6 @@ insert into app_user (
     subscription_model,
     email_verified,
     allow_invitations,
-    deleted,
     profile_image_url
 ) values
       (
@@ -15,7 +14,6 @@ insert into app_user (
           'ADMIN',
           true,
           true,
-          false,
        'users/1/avatar/current.jpg'
       ),
       (
@@ -25,7 +23,6 @@ insert into app_user (
           'FREE',
           true,
           true,
-          false,
           'users/2/avatar/current.jpg'
       );
 

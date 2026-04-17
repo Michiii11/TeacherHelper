@@ -10,11 +10,11 @@
           {{ 'navbar.home' | translate }}
         </a>
 
-        <a mat-button routerLink="/school" routerLinkActive="active-link" (click)="goToSchool()">
+        <a mat-button routerLink="/collection" routerLinkActive="active-link" (click)="goToSchool()">
           {{ 'navbar.school' | translate }}
         </a>
 
-        <a mat-button routerLink="/contact" routerLinkActive="active-link">
+        <a mat-button routerLink="/help" routerLinkActive="active-link">
           {{ 'navbar.help' | translate }}
         </a>
 
@@ -62,21 +62,16 @@
         </div>
 
         <div class="notif-tabs">
-          <div>
-            <button
-              mat-stroked-button
-              [class.active-tab]="selectedTab === 'open'"
-              (click)="setTab('open', $event)">
+          <mat-button-toggle-group [(ngModel)]="selectedTab" [hideSingleSelectionIndicator]="true">
+            <mat-button-toggle value="open"
+                               (click)="setTab('open', $event)">
               {{ 'notifications.tabs.open' | translate }}
-            </button>
-
-            <button
-              mat-stroked-button
-              [class.active-tab]="selectedTab === 'history'"
-              (click)="setTab('history', $event)">
+            </mat-button-toggle>
+            <mat-button-toggle value="history"
+                               (click)="setTab('history', $event)">
               {{ 'notifications.tabs.history' | translate }}
-            </button>
-          </div>
+            </mat-button-toggle>
+          </mat-button-toggle-group>
 
           @if (selectedTab === 'history' && historyNotifications.length > 0) {
             <button
@@ -167,8 +162,8 @@
               [class.notif-history-expanded]="isHistoryOpen()"
               [class.notif-clickable]="isNavigationAllowed(n)"
               [class.notif-processing]="isProcessing(n)"
-              [class.notif-result-accepted]="n.type === 'JOIN_REQUEST_ACCEPTED' || n.type === 'INVITATION_ACCEPTED'"
-              [class.notif-result-declined]="n.type === 'JOIN_REQUEST_DECLINED' || n.type === 'INVITATION_DECLINED'"
+              [class.notif-result-accepted]="n.type === 'INVITATION_ACCEPTED'"
+              [class.notif-result-declined]="n.type === 'INVITATION_DECLINED'"
               (click)="onNotificationClick(n)">
 
               <div class="notif-top">

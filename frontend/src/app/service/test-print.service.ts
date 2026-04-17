@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { Example, ExampleTypes, Gap, Option } from '../model/Example';
-import { CreateTestDTO, TestExampleDTO } from '../model/Test';
+import { CreateTestDTO, GradingLevel, TestExampleDTO } from '../model/Test';
 import { Config } from '../config';
 
 export type GradeMode = 'auto' | 'manual';
@@ -10,24 +10,72 @@ export type PersistedTestSettings = {
   defaultTaskSpacing?: number;
   taskSpacingMap?: Record<number, number> | Record<string, number>;
   gradingMode?: GradeMode;
+  gradingSystemName?: string;
+  gradingSchema?: GradingLevel[];
   gradePercentages?: Record<number, number> | Record<string, number>;
   manualGradeMinimums?: Record<number, number> | Record<string, number>;
+  schoolName?: string;
+  schoolLogoUrl?: string;
+  school?: {
+    name?: string;
+    logoUrl?: string;
+  } | null;
 };
 
 export type PrintableTest = CreateTestDTO & PersistedTestSettings;
 
+export type TestBranding = {
+  schoolName?: string;
+  schoolLogoUrl?: string;
+  showNameWhenLogoExists?: boolean;
+};
+
+export type TestPrintLabels = {
+  name: string;
+  class: string;
+  date: string;
+  achievedPoints: string;
+  gradeHeader: string;
+  gradingKey: string;
+  points: string;
+  exampleShort: string;
+  goodLuck: string;
+  untitled: string;
+  solutionSuffix: string;
+  solutionNote: string;
+  noSolution: string;
+  gap: string;
+  imagePreviewAlt: string;
+  previewTitle: string;
+  previewSubtitle: string;
+  question: string;
+};
+
 export type TestPrintOptions = {
   printCopies: number;
   includeSolutionSheet: boolean;
-  getGradeRangeLabel: (grade: number) => string;
+  getGradeRangeLabel: (gradeOrIndex: number) => string;
   getTaskSpacing: (exampleId: number) => number;
   getQuestionWithGapLabels: (example: Example) => string;
   getLetter: (index: number) => string;
+  labels: TestPrintLabels;
+  branding?: TestBranding;
 };
 
 @Injectable({ providedIn: 'root' })
 export class TestPrintService {
   private readonly defaultImageWidth = 320;
+
+  buildPreviewHtml(test: PrintableTest, selectedExamples: TestExampleDTO[], options: TestPrintOptions): string {
+    return `
+      <div class="test-print-root preview-mode">
+        ${this.buildSharedStyles()}
+        <div class="print-doc preview-doc">
+          ${this.buildSingleTestDocument(test, selectedExamples, options)}
+        </div>
+      </div>
+    `;
+  }
 
   printTest(test: PrintableTest, selectedExamples: TestExampleDTO[], options: TestPrintOptions): boolean {
     const printFrame = document.createElement('iframe');
@@ -82,7 +130,7 @@ export class TestPrintService {
 
       document.body.appendChild(wrapper);
 
-      const filename = this.buildFileName(test.name || 'Test', 'pdf', options.includeSolutionSheet);
+      const filename = this.buildFileName(test.name || options.labels.untitled || 'Test', 'pdf', options.includeSolutionSheet);
 
       await html2pdf()
         .set({
@@ -122,7 +170,7 @@ export class TestPrintService {
       const html = this.buildPrintHtml(test, selectedExamples, options);
       const blob = asBlob(html);
 
-      const filename = this.buildFileName(test.name || 'Test', 'docx', options.includeSolutionSheet);
+      const filename = this.buildFileName(test.name || options.labels.untitled || 'Test', 'docx', options.includeSolutionSheet);
       this.downloadBlob(blob, filename);
 
       return true;
@@ -171,58 +219,7 @@ export class TestPrintService {
       ? this.buildSolutionPagesHtml(test, selectedExamples, options)
       : '';
 
-    return `
-      <style>
-        @page { size: A4; margin: 12mm; }
-        * { box-sizing: border-box; }
-        html, body { margin: 0; padding: 0; background: #fff; }
-        body { font-family: Arial, Helvetica, sans-serif; color: #111; font-size: 12px; }
-        .page-break-before { page-break-before: always; break-before: page; }
-        .print-doc { width: 100%; }
-        .test-title { text-align: center; font-size: 22px; font-weight: 700; margin: 0 0 14px; }
-        .meta-lines { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-        .meta-line { display: flex; align-items: center; gap: 8px; }
-        .meta-line span { white-space: nowrap; font-weight: 600; }
-        .meta-line .line { border-bottom: 1px solid #222; height: 14px; width: 100%; }
-        .header-tables.stacked { display: flex; flex-direction: column; gap: 10px; margin: 10px 0 12px; }
-        .result-table { width: 100%; }
-        table { border-collapse: collapse; width: 100%; }
-        .compact-table th, .compact-table td, .answer-table-wrap td, .answer-table-wrap th,
-        .assign-preview td, .assign-preview th, .gap-grid td, .gap-grid th {
-          border: 1px solid #222;
-          padding: 6px 8px;
-          vertical-align: top;
-        }
-        .grading-title { margin: 0 0 6px; font-weight: 700; }
-        .teacher-note { margin: 14px 0 10px; white-space: pre-line; text-align: center; line-height: 1.5; }
-        .good-luck { text-align: center; margin: 0 0 8px; font-size: 15px; }
-        .header-divider { border: none; border-top: 1px solid #222; margin: 10px 0 16px; }
-        .task { page-break-inside: avoid; break-inside: avoid; }
-        .task-head { display: flex; justify-content: space-between; gap: 12px; font-weight: 700; margin-bottom: 8px; font-size: 14px; }
-        .task-points { white-space: nowrap; }
-        .preview-panel { line-height: 1.4; }
-        .task-instruction, .task-question { margin: 0 0 10px; white-space: pre-line; }
-        .student-list > div, .solution-list > div { margin-bottom: 8px; }
-        .solution-box { border: 1px solid #222; padding: 10px; min-height: 48px; white-space: pre-line; }
-        .muted { color: #777; }
-        .construction-preview { margin-top: 8px; }
-        .image-preview { max-width: 100%; max-height: 220px; display: block; margin-bottom: 10px; object-fit: contain; }
-        .construction-space { min-height: 180px; border: 1px dashed #b6bcc7; }
-        .answer-table-wrap, .assign-preview, .gap-grid { margin-top: 8px; }
-        .checkbox-cell, .small, .letter-cell { width: 42px; text-align: center; }
-        .gap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
-        .assign-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .fill { width: 48px; }
-        .solution-header { margin-bottom: 16px; }
-        .solution-note { margin: 0 0 10px; color: #555; }
-        .free-space { width: 100%; }
-        .free-space.medium { min-height: 90px; }
-        .free-space.large { min-height: 150px; }
-      </style>
-
-      ${studentDocs}
-      ${solutionDocs}
-    `;
+    return `${this.buildSharedStyles()}${studentDocs}${solutionDocs}`;
   }
 
   private buildPrintHtml(test: PrintableTest, selectedExamples: TestExampleDTO[], options: TestPrintOptions): string {
@@ -236,55 +233,184 @@ export class TestPrintService {
       <html lang="de">
         <head>
           <meta charset="utf-8" />
-          <title>${this.escapeHtml(test.name || 'Test')}</title>
-          <style>
-            @page { size: A4; margin: 12mm; }
-            * { box-sizing: border-box; }
-            html, body { margin: 0; padding: 0; }
-            body { font-family: Arial, Helvetica, sans-serif; color: #111; font-size: 12px; }
-            .page-break-before { page-break-before: always; break-before: page; }
-            .print-doc { width: 100%; }
-            .test-title { text-align: center; font-size: 22px; font-weight: 700; margin: 0 0 14px; }
-            .meta-lines { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-            .meta-line { display: flex; align-items: center; gap: 8px; }
-            .meta-line span { white-space: nowrap; font-weight: 600; }
-            .meta-line .line { border-bottom: 1px solid #222; height: 14px; width: 100%; }
-            .header-tables.stacked { display: flex; flex-direction: column; gap: 10px; margin: 10px 0 12px; }
-            .result-table { width: 220px; }
-            table { border-collapse: collapse; width: 100%; }
-            .compact-table th, .compact-table td, .answer-table-wrap td, .answer-table-wrap th, .assign-preview td, .assign-preview th, .gap-grid td, .gap-grid th { border: 1px solid #222; padding: 6px 8px; vertical-align: top; }
-            .grading-title { margin: 0 0 6px; font-weight: 700; }
-            .teacher-note { margin: 14px 0 10px; white-space: pre-line; text-align: center; line-height: 1.5; }
-            .good-luck { text-align: center; margin: 0 0 8px; font-size: 15px; }
-            .header-divider { border: none; border-top: 1px solid #222; margin: 10px 0 16px; }
-            .task { page-break-inside: avoid; break-inside: avoid; }
-            .task-head { display: flex; justify-content: space-between; gap: 12px; font-weight: 700; margin-bottom: 8px; font-size: 14px; }
-            .task-points { white-space: nowrap; }
-            .preview-panel { line-height: 1.4; }
-            .task-instruction, .task-question { margin: 0 0 10px; white-space: pre-line; }
-            .student-list > div, .solution-list > div { margin-bottom: 8px; }
-            .solution-box { border: 1px solid #222; padding: 10px; min-height: 48px; white-space: pre-line; }
-            .muted { color: #777; }
-            .construction-preview { margin-top: 8px; }
-            .image-preview { max-width: 100%; max-height: 220px; display: block; margin-bottom: 10px; object-fit: contain; }
-            .construction-space { min-height: 180px; border: 1px dashed #b6bcc7; }
-            .answer-table-wrap, .assign-preview, .gap-grid { margin-top: 8px; }
-            .checkbox-cell, .small, .letter-cell { width: 42px; text-align: center; }
-            .gap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
-            .assign-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-            .fill { width: 48px; }
-            .solution-header { margin-bottom: 16px; }
-            .solution-note { margin: 0 0 10px; color: #555; }
-            .free-space { width: 100%; }
-            .free-space.medium { min-height: 90px; }
-            .free-space.large { min-height: 150px; }
-          </style>
+          <title>${this.escapeHtml(test.name || options.labels.untitled || 'Test')}</title>
+          ${this.buildSharedStyles()}
         </head>
         <body>
-          ${studentDocs}
-          ${solutionDocs}
+          <div class="test-print-root">
+            ${studentDocs}
+            ${solutionDocs}
+          </div>
         </body>
       </html>
+    `;
+  }
+
+  private buildSharedStyles(): string {
+    return `
+      <style>
+        @page { size: A4; margin: 10mm; }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { font-family: Arial, Helvetica, sans-serif; color: #111; font-size: 12px; }
+        .page-break-before { page-break-before: always; break-before: page; }
+        .test-print-root { width: 100%; }
+        .print-doc {
+          width: 100%;
+          max-width: 860px;
+          margin: 0 auto;
+          background: #fff;
+          color: #111;
+        }
+        .preview-mode .print-doc {
+          border-radius: 16px;
+          border: 1px solid #d7deea;
+          box-shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
+          padding: 2rem 2.2rem;
+          background: #ffffff;
+          color: #111111;
+        }
+        .brand-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 18px;
+          margin-bottom: 14px;
+          min-height: 64px;
+        }
+        .brand-left {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          min-width: 0;
+          flex: 1;
+        }
+        .brand-logo {
+          width: 64px;
+          height: 64px;
+          object-fit: contain;
+          border-radius: 10px;
+          border: 1px solid #d8dde6;
+          padding: 6px;
+          background: #fff;
+          flex: 0 0 auto;
+        }
+        .brand-name {
+          font-size: 16px;
+          font-weight: 700;
+          line-height: 1.2;
+        }
+        .test-title { text-align: center; font-size: 22px; font-weight: 700; margin: 0 0 14px; }
+        .meta-lines { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .meta-line { display: flex; align-items: center; gap: 8px; }
+        .meta-line span { white-space: nowrap; font-weight: 600; }
+        .meta-line .line { border-bottom: 1px solid #222; height: 14px; width: 100%; }
+        .header-tables.stacked { display: flex; flex-direction: column; gap: 10px; margin: 10px 0 12px; }
+        .result-table { width: 100%; }
+        table { border-collapse: separate; border-spacing: 0; width: 100%; }
+        .compact-table th, .compact-table td, .answer-table-wrap td, .answer-table-wrap th,
+        .assign-preview td, .assign-preview th, .gap-grid td, .gap-grid th {
+          border-right: 1px solid #222;
+          border-bottom: 1px solid #222;
+          padding: 7px 9px;
+          vertical-align: top;
+        }
+        .compact-table tr:first-child th, .compact-table tr:first-child td,
+        .answer-table-wrap tr:first-child th, .answer-table-wrap tr:first-child td,
+        .assign-preview table tr:first-child th, .assign-preview table tr:first-child td,
+        .gap-grid table tr:first-child th, .gap-grid table tr:first-child td {
+          border-top: 1px solid #222;
+        }
+        .compact-table th:first-child, .compact-table td:first-child,
+        .answer-table-wrap th:first-child, .answer-table-wrap td:first-child,
+        .assign-preview th:first-child, .assign-preview td:first-child,
+        .gap-grid th:first-child, .gap-grid td:first-child {
+          border-left: 1px solid #222;
+        }
+        .grading-title { margin: 0 0 6px; font-weight: 700; }
+        .teacher-note { margin: 14px 0 10px; white-space: pre-line; text-align: center; line-height: 1.5; }
+        .good-luck { text-align: center; margin: 0 0 8px; font-size: 15px; }
+        .header-divider { border: none; border-top: 1px solid #222; margin: 10px 0 16px; }
+        .task { page-break-inside: avoid; break-inside: avoid; }
+        .task-head { display: flex; justify-content: space-between; gap: 12px; font-weight: 700; margin-bottom: 8px; font-size: 14px; }
+        .task-points { white-space: nowrap; }
+        .preview-panel { line-height: 1.4; }
+        .task-instruction, .task-question { margin: 0 0 10px; white-space: pre-line; }
+        .task-question.rich-gap-question { white-space: normal; }
+        .gap-inline {
+          display: inline-flex;
+          vertical-align: middle;
+          align-items: center;
+          justify-content: center;
+          margin: 0 0.2rem;
+        }
+        .gap-inline-select {
+          min-width: 3.1rem;
+        }
+        .gap-inline-pill {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 2.8rem;
+          min-height: 2.2rem;
+          padding: 0.28rem 0.85rem;
+          border-radius: 999px;
+          border: 1px solid #94a3b8;
+          background: #e2e8f0;
+          color: #0f172a;
+          font-weight: 700;
+          line-height: 1;
+        }
+        .gap-inline-pill-number {
+          font-size: 0.95rem;
+        }
+        .gap-inline-input {
+          position: relative;
+          min-height: 2rem;
+          justify-content: flex-start;
+          padding-left: 1.6rem;
+          border-bottom: 2px solid #64748b;
+        }
+        .gap-inline-label {
+          position: absolute;
+          left: 0;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #475569;
+          font-size: 0.78rem;
+          font-weight: 700;
+          line-height: 1;
+        }
+        .gap-inline-line {
+          display: inline-block;
+          width: 100%;
+          height: 1px;
+        }
+        .gap-inline-solution {
+          display: inline-block;
+          width: 100%;
+          padding-right: 0.3rem;
+          font-weight: 600;
+          line-height: 1.2;
+        }
+        .student-list > div, .solution-list > div { margin-bottom: 8px; }
+        .solution-box { border: 1px solid #222; padding: 10px; min-height: 48px; white-space: pre-line; }
+        .muted { color: #777; }
+        .construction-preview { margin-top: 8px; }
+        .image-preview { max-width: 100%; max-height: none; display: block; margin-bottom: 10px; object-fit: contain; }
+        .construction-preview { overflow: visible; }
+        .construction-space { min-height: 180px; border: 1px dashed #b6bcc7; }
+        .answer-table-wrap, .assign-preview, .gap-grid { margin-top: 8px; }
+        .checkbox-cell, .small, .letter-cell { width: 42px; text-align: center; }
+        .gap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+        .assign-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .fill { width: 56px; }
+        .solution-header { margin-bottom: 16px; }
+        .solution-note { margin: 0 0 10px; color: #555; }
+        .free-space { width: 100%; }
+        .free-space.medium { min-height: 90px; }
+        .free-space.large { min-height: 150px; }
+      </style>
     `;
   }
 
@@ -303,40 +429,44 @@ export class TestPrintService {
       .map((entry, i) => this.buildTaskHtml(entry, i, false, options))
       .join('');
 
+    const labels = options.labels;
+    const gradeLevels = this.getGradeLevels(test, options);
+    const branding = this.resolveBranding(test, options.branding);
+
     return `
       <div class="test-header">
-        <h2 class="test-title">${this.escapeHtml(test.name || 'Unbenannter Test')}</h2>
+        ${this.buildBrandingHtml(branding)}
+        <h2 class="test-title">${this.escapeHtml(test.name || labels.untitled)}</h2>
 
         <div class="meta-lines">
-          <div class="meta-line"><span>Name:</span><div class="line"></div></div>
-          <div class="meta-line"><span>Klasse:</span><div class="line"></div></div>
-          <div class="meta-line"><span>Datum:</span><div class="line"></div></div>
+          <div class="meta-line"><span>${this.escapeHtml(labels.name)}:</span><div class="line"></div></div>
+          <div class="meta-line"><span>${this.escapeHtml(labels.class)}:</span><div class="line"></div></div>
+          <div class="meta-line"><span>${this.escapeHtml(labels.date)}:</span><div class="line"></div></div>
         </div>
 
         <div class="header-tables stacked">
           <table class="result-table compact-table">
-            <tr><th>Erreichte Punkte</th><th>Note</th></tr>
+            <tr><th>${this.escapeHtml(labels.achievedPoints)}</th><th>${this.escapeHtml(labels.gradeHeader)}</th></tr>
             <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
           </table>
 
           <div class="grading-box">
-            <p class="grading-title">Notenschlüssel</p>
+            <p class="grading-title">${this.escapeHtml(labels.gradingKey)}</p>
             <table class="grading-table compact-table">
               <tr>
-                <td>Punkte</td>
-                <td>${this.escapeHtml(options.getGradeRangeLabel(1))}</td>
-                <td>${this.escapeHtml(options.getGradeRangeLabel(2))}</td>
-                <td>${this.escapeHtml(options.getGradeRangeLabel(3))}</td>
-                <td>${this.escapeHtml(options.getGradeRangeLabel(4))}</td>
-                <td>${this.escapeHtml(options.getGradeRangeLabel(5))}</td>
+                <td>${this.escapeHtml(labels.points)}</td>
+                ${gradeLevels.map((_, index) => `<td>${this.escapeHtml(options.getGradeRangeLabel(index + 1))}</td>`).join('')}
               </tr>
-              <tr><td>Note</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr>
+              <tr>
+                <td>${this.escapeHtml(labels.gradeHeader)}</td>
+                ${gradeLevels.map(level => `<td>${this.escapeHtml(level.shortLabel || level.label || '')}</td>`).join('')}
+              </tr>
             </table>
           </div>
         </div>
 
         ${test.note ? `<p class="teacher-note">${this.formatMultiline(test.note)}</p>` : ''}
-        <h3 class="good-luck">Viel Erfolg!</h3>
+        <h3 class="good-luck">${this.escapeHtml(labels.goodLuck)}</h3>
         <hr class="header-divider" />
       </div>
 
@@ -344,7 +474,26 @@ export class TestPrintService {
     `;
   }
 
+  private buildBrandingHtml(branding: TestBranding): string {
+    const showLogo = !!branding.schoolLogoUrl;
+    const showName = !!branding.schoolName && (!showLogo || branding.showNameWhenLogoExists !== false);
+
+    if (!showLogo && !showName) {
+      return '';
+    }
+
+    return `
+      <div class="brand-row">
+        <div class="brand-left">
+          ${showLogo ? `<img src="${this.escapeHtml(branding.schoolLogoUrl)}" alt="School logo" class="brand-logo" style="background: transparent !important;"/>` : ''}
+          ${showName ? `<div class="brand-name">${this.escapeHtml(branding.schoolName)}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
   private buildSolutionPagesHtml(test: PrintableTest, selectedExamples: TestExampleDTO[], options: TestPrintOptions): string {
+    const labels = options.labels;
     const tasks = selectedExamples
       .map((entry, i) => this.buildTaskHtml(entry, i, true, options))
       .join('');
@@ -352,8 +501,8 @@ export class TestPrintService {
     return `
       <section class="print-doc solution-doc page-break-before">
         <div class="test-header solution-header">
-          <h2 class="test-title">${this.escapeHtml(test.name || 'Unbenannter Test')} – Lösung</h2>
-          <p class="solution-note">Diese Seiten enthalten die Musterlösungen.</p>
+          <h2 class="test-title">${this.escapeHtml(test.name || labels.untitled)} ${this.escapeHtml(labels.solutionSuffix)}</h2>
+          <p class="solution-note">${this.escapeHtml(labels.solutionNote)}</p>
           <hr class="header-divider" />
         </div>
         ${tasks}
@@ -364,10 +513,13 @@ export class TestPrintService {
   private buildTaskHtml(entry: TestExampleDTO, index: number, isSolution: boolean, options: TestPrintOptions): string {
     const exampleId = entry.example?.id ?? -1;
     const margin = options.getTaskSpacing(exampleId);
+    const exampleLabel = options.labels.exampleShort;
+
+    const schoolQuestion = options.labels.question;
 
     const header = `
       <div class="task-head">
-        <div class="task-title">Bsp. ${index + 1}${entry.title ? ': ' + this.escapeHtml(entry.title) : ''}</div>
+        <div class="task-title">${this.escapeHtml(exampleLabel)} ${index + 1}${entry.title ? ': ' + this.escapeHtml(entry.title) : ''}</div>
         <div class="task-points">(${isSolution ? this.escapeHtml(entry.points || '__') : '__'} / ${this.escapeHtml(entry.points || '__')} P.)</div>
       </div>
     `;
@@ -376,13 +528,16 @@ export class TestPrintService {
       ? `<p class="task-instruction">${this.formatMultiline(entry.example.instruction)}</p>`
       : '';
 
-    const question = `<p class="task-question">${this.formatMultiline(options.getQuestionWithGapLabels(entry.example))}</p>`;
+    const question = entry.example.type === ExampleTypes.GAP_FILL
+      ? `<div class="task-question rich-gap-question">${isSolution && entry.example.gapFillType === 'INPUT' ? this.buildGapQuestionSolutionHtml(entry.example) : this.buildGapQuestionHtml(entry.example)}</div>`
+      : `<p class="task-question">${this.formatMultiline(options.getQuestionWithGapLabels(entry.example))}</p>`;
 
     return `
       <div class="task print-task" style="margin-bottom:${margin}px;">
         ${header}
         <div class="preview-panel">
           ${instruction}
+          <p><strong>${schoolQuestion}:</strong></p>
           ${question}
           ${this.buildTaskBodyHtml(entry.example, isSolution, options)}
         </div>
@@ -390,11 +545,87 @@ export class TestPrintService {
     `;
   }
 
+  private buildGapQuestionHtml(example: Example): string {
+    const escapedQuestion = this.escapeHtml(example.question || '');
+    let gapIndex = 0;
+
+    return escapedQuestion
+      .replace(/\n/g, '<br>')
+      .replace(/\{\d+\}/g, () => {
+        const gap = (example.gaps ?? [])[gapIndex];
+        const gapNumber = this.escapeHtml(String(gapIndex + 1));
+        gapIndex += 1;
+
+        if (example.gapFillType === 'INPUT') {
+          const width = this.normalizeGapInlineWidth((gap as any)?.width, (gap as any)?.solution);
+          return `
+            <span class="gap-inline gap-inline-input" style="width:${width}px;">
+              <span class="gap-inline-label gap-inline-label-number">${gapNumber}</span>
+              <span class="gap-inline-line"></span>
+            </span>
+          `;
+        }
+
+        return `
+          <span class="gap-inline gap-inline-select">
+            <span class="gap-inline-pill">
+              <span class="gap-inline-pill-number">${gapNumber}</span>
+            </span>
+          </span>
+        `;
+      });
+  }
+
+  private buildGapQuestionSolutionHtml(example: Example): string {
+    const escapedQuestion = this.escapeHtml(example.question || '');
+    let gapIndex = 0;
+
+    return escapedQuestion
+      .replace(/\n/g, '<br>')
+      .replace(/\{\d+\}/g, () => {
+        const gap = (example.gaps ?? [])[gapIndex];
+        const gapNumber = this.escapeHtml(String(gapIndex + 1));
+        gapIndex += 1;
+
+        if (example.gapFillType === 'INPUT') {
+          const solution = this.escapeHtml(String((gap as any)?.solution ?? ''));
+          const width = this.normalizeGapInlineWidth((gap as any)?.width, (gap as any)?.solution);
+          return `
+            <span class="gap-inline gap-inline-input" style="width:${width}px;">
+              <span class="gap-inline-label gap-inline-label-number">${gapNumber}</span>
+              <span class="gap-inline-solution">${solution || '&nbsp;'}</span>
+            </span>
+          `;
+        }
+
+        return `
+          <span class="gap-inline gap-inline-select">
+            <span class="gap-inline-pill">
+              <span class="gap-inline-pill-number">${gapNumber}</span>
+            </span>
+          </span>
+        `;
+      });
+  }
+
+  private normalizeGapInlineWidth(value: number | string | null | undefined, solution: string | null | undefined): number {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return Math.max(90, Math.min(420, Math.round(parsed)));
+    }
+
+    const solutionLength = String(solution ?? '').trim().length;
+    const estimated = 90 + solutionLength * 9;
+    return Math.max(90, Math.min(420, estimated));
+  }
+
   private buildTaskBodyHtml(example: Example, isSolution: boolean, options: TestPrintOptions): string {
+    const labels = options.labels;
+
     switch (example.type) {
       case ExampleTypes.OPEN:
         return isSolution
-          ? `<div class="solution-box">${this.formatMultiline((example as any).solution || '') || '<span class="muted">Keine Lösung hinterlegt.</span>'}</div>`
+          ? `<div class="solution-box">${this.formatMultiline((example as any).solution || '') || `<span class="muted">${this.escapeHtml(labels.noSolution)}</span>`}</div>`
           : `<div class="free-space large"></div>`;
 
       case ExampleTypes.HALF_OPEN:
@@ -412,12 +643,13 @@ export class TestPrintService {
           ? this.getConstructionSolutionImage(example)
           : this.getConstructionTaskImage(example);
 
-        const width = this.normalizeImageWidth((example as any).imageWidth);
+        const width = isSolution
+          ? this.normalizeImageWidth((example as any).solutionImageWidth)
+          : this.normalizeImageWidth((example as any).imageWidth);
 
         return `
           <div class="construction-preview">
-            ${image ? `<img src="${this.escapeHtml(image)}" alt="Vorschau" class="image-preview" style="width:${width}px;" />` : ''}
-            ${isSolution ? '' : '<div class="construction-space"></div>'}
+            ${image ? `<img src="${this.escapeHtml(image)}" alt="${this.escapeHtml(labels.imagePreviewAlt)}" class="image-preview" style="width:${width}px;max-width:${width}px;height:auto;" />` : ''}
           </div>
         `;
       }
@@ -442,7 +674,7 @@ export class TestPrintService {
             <div class="gap-grid">
               ${(example.gaps ?? []).map((gap: Gap) => `
                 <table>
-                  <tr><th>${this.escapeHtml(gap.label || 'Lücke')}</th></tr>
+                  <tr><th>${this.escapeHtml(gap.label || labels.gap)}</th></tr>
                   ${(gap.options ?? []).map((opt: Option) => `
                     <tr>
                       <td>${this.escapeHtml(opt.text)}</td>
@@ -456,7 +688,7 @@ export class TestPrintService {
         }
 
         return isSolution
-          ? `<div class="solution-list">${(example.gaps ?? []).map(gap => `<div><strong>${this.escapeHtml(gap.label || 'Lücke')}</strong>: ${this.escapeHtml((gap as any).solution || '')}</div>`).join('')}</div>`
+          ? ''
           : `<div class="free-space medium"></div>`;
 
       case ExampleTypes.ASSIGN:
@@ -490,6 +722,41 @@ export class TestPrintService {
       default:
         return '';
     }
+  }
+
+  private getGradeLevels(test: PrintableTest, options: TestPrintOptions): GradingLevel[] {
+    if (Array.isArray(test.gradingSchema) && test.gradingSchema.length) {
+      return test.gradingSchema;
+    }
+
+    const legacyGradeLabels = ['1', '2', '3', '4', '5'];
+    return legacyGradeLabels.map((label, index) => ({
+      key: label,
+      label,
+      shortLabel: label,
+      order: index,
+      percentageFrom: 0,
+      minimumPoints: 0,
+    }));
+  }
+
+  private resolveBranding(test: PrintableTest, branding?: TestBranding): TestBranding {
+    const schoolLogoUrl = branding?.schoolLogoUrl
+      || test.schoolLogoUrl
+      || test.school?.logoUrl
+      || (test.school as any)?.logo
+      || undefined;
+
+    const schoolName = branding?.schoolName
+      || test.schoolName
+      || test.school?.name
+      || undefined;
+
+    return {
+      schoolLogoUrl,
+      schoolName,
+      showNameWhenLogoExists: branding?.showNameWhenLogoExists ?? true,
+    };
   }
 
   private getConstructionTaskImage(example: Example): string | null {

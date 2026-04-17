@@ -1,5 +1,6 @@
 package at.service;
 
+import at.model.User;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
@@ -47,9 +48,9 @@ public class MediaStorageService {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         Thumbnails.of(file.toFile())
-                .size(1200, 1200)
+                .size(512, 512)
                 .outputFormat("jpg")
-                .outputQuality(0.82)
+                .outputQuality(0.8)
                 .toOutputStream(out);
 
         String objectName = "schools/" + schoolId + "/logo/current.jpg";
@@ -101,9 +102,9 @@ public class MediaStorageService {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         Thumbnails.of(file.toFile())
-                .size(1600, 1600)
+                .size(512, 512)
                 .outputFormat("jpg")
-                .outputQuality(0.82)
+                .outputQuality(0.72)
                 .toOutputStream(out);
 
         String objectName = "examples/" + exampleId + "/construction/" + variant + "/current.jpg";

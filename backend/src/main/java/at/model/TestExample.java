@@ -2,40 +2,71 @@ package at.model;
 
 import jakarta.persistence.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Entity
-@Table(name = "test_examples")
 public class TestExample {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @EmbeddedId
-    private at.model.TestExampleId id = new at.model.TestExampleId();
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("testId")
+    @ManyToOne(optional = false)
     private Test test;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("exampleId")
+    @ManyToOne(optional = false)
     private Example example;
 
-    @Column(nullable = false)
     private int points;
-
     private String title;
 
-    public TestExample() {}
+    @ElementCollection
+    @CollectionTable(name = "test_example_variable_values", joinColumns = @JoinColumn(name = "test_example_id"))
+    @MapKeyColumn(name = "variable_key")
+    @Column(name = "variable_value", columnDefinition = "TEXT")
+    private Map<String, String> variableValues = new HashMap<>();
+
+    public TestExample() {
+    }
 
     public TestExample(Test test, Example example, int points, String title) {
         this.test = test;
         this.example = example;
         this.points = points;
         this.title = title;
-        this.id = new at.model.TestExampleId(test.getId(), example.getId());
     }
 
-    public Test getTest() { return test; }
-    public Example getExample() { return example; }
-    public int getPoints() { return points; }
-    public void setPoints(int points) { this.points = points; }
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Test getTest() {
+        return test;
+    }
+
+    public void setTest(Test test) {
+        this.test = test;
+    }
+
+    public Example getExample() {
+        return example;
+    }
+
+    public void setExample(Example example) {
+        this.example = example;
+    }
+
+    public int getPoints() {
+        return points;
+    }
+
+    public void setPoints(int points) {
+        this.points = points;
+    }
 
     public String getTitle() {
         return title;
@@ -43,5 +74,13 @@ public class TestExample {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public Map<String, String> getVariableValues() {
+        return variableValues;
+    }
+
+    public void setVariableValues(Map<String, String> variableValues) {
+        this.variableValues = variableValues != null ? new HashMap<>(variableValues) : new HashMap<>();
     }
 }

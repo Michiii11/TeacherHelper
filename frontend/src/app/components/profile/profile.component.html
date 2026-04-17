@@ -1,26 +1,16 @@
 <main class="profile-page" [attr.aria-label]="'profile.ariaPage' | translate">
   <header class="page-header">
-    <div class="header-copy">
-      <div class="title-row">
-        <div class="title-icon">
-          <mat-icon>person</mat-icon>
-        </div>
-
-        <div>
-          <h1 class="page-title">{{ 'profile.title' | translate }}</h1>
-          <p class="page-subtitle">
-            {{ 'profile.subtitle' | translate }}
-          </p>
-        </div>
+    <div>
+      <div class="title-icon">
+        <mat-icon>person</mat-icon>
       </div>
+      <h1 class="page-title">{{ 'profile.title' | translate }}</h1>
     </div>
 
-    <div class="header-actions">
-      <button mat-flat-button color="warn" type="button" (click)="logout()">
-        <mat-icon>logout</mat-icon>
-        {{ 'common.logout' | translate }}
-      </button>
-    </div>
+    <button mat-flat-button color="warn" type="button" (click)="logout()">
+      <mat-icon>logout</mat-icon>
+      {{ 'common.logout' | translate }}
+    </button>
   </header>
 
   @if (loading) {

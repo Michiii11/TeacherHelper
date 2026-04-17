@@ -74,7 +74,7 @@ import { RouterLink } from '@angular/router';
     }
 
     .mat-mdc-raised-button {
-      color: var(--theme-on-primary) !important;
+      color: var(--on-primary) !important;
       background-color: var(--primary) !important;
     }
 

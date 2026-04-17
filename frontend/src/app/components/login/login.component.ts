@@ -11,6 +11,8 @@ import { AuthResult } from '../../model/User';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../service/auth.service';
+import {ThemeService} from '../../service/theme.service'
+import {LanguageService} from '../../service/language.service'
 
 @Component({
   selector: 'app-login',
@@ -64,7 +66,9 @@ export class LoginComponent implements OnInit {
     private http: HttpService,
     private router: Router,
     private route: ActivatedRoute,
-    private authService: AuthService
+    private authService: AuthService,
+    private themeService: ThemeService,
+    private languageService: LanguageService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -162,7 +166,21 @@ export class LoginComponent implements OnInit {
 
       if (result.success && result.token && result.userId !== null) {
         this.authService.setLogin(result.token, result.userId.toString());
-        this.router.navigate(['/home']);
+
+        this.http.getUser().subscribe({
+          next: user => {
+            const resolvedDarkMode = this.themeService.resolveDarkMode(user.settings?.darkMode ?? null);
+            const resolvedLanguage = this.languageService.resolveLanguage(user.settings?.language ?? null);
+
+            this.themeService.setDarkMode(resolvedDarkMode);
+            this.languageService.applyUserPreference(resolvedLanguage);
+
+            this.router.navigate(['/home']);
+          },
+          error: () => {
+            this.router.navigate(['/home']);
+          }
+        });
       }
     });
   }
@@ -185,6 +203,27 @@ export class LoginComponent implements OnInit {
         duration: 3500,
         panelClass: result.success ? 'snack-success' : 'snack-error'
       });
+
+      if (result.success && result.token && result.userId !== null) {
+        this.authService.setLogin(result.token, result.userId.toString());
+
+        this.http.getUser().subscribe({
+          next: user => {
+            const resolvedDarkMode = this.themeService.resolveDarkMode(user.settings?.darkMode ?? null);
+            const resolvedLanguage = this.languageService.resolveLanguage(user.settings?.language ?? null);
+
+            this.themeService.setDarkMode(resolvedDarkMode);
+            this.languageService.applyUserPreference(resolvedLanguage);
+
+            this.router.navigate(['/home']);
+          },
+          error: () => {
+            this.router.navigate(['/home']);
+          }
+        });
+
+        return;
+      }
 
       if (result.success) {
         this.hideRegisterPassword = true;

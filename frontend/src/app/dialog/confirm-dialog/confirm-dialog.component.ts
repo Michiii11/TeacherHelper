@@ -8,6 +8,7 @@ import { MatButton } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
+import {TranslatePipe} from '@ngx-translate/core'
 
 @Component({
   selector: 'app-confirm-dialog',
@@ -17,7 +18,8 @@ import { MatIconModule } from '@angular/material/icon';
     FormsModule,
     MatCheckboxModule,
     MatIconModule,
-    NgIf
+    NgIf,
+    TranslatePipe
   ],
   template: `
     <div class="dialog-shell">
@@ -33,9 +35,21 @@ import { MatIconModule } from '@angular/material/icon';
       </div>
 
       <div *ngIf="data.requireConfirmation" class="checkbox-wrapper">
-        <mat-checkbox [(ngModel)]="isChecked">
-          {{ data.confirmationText || 'Ich bestätige diese Aktion' }}
-        </mat-checkbox>
+        <button
+          type="button"
+          class="confirm-check"
+          [class.checked]="isChecked"
+          (click)="isChecked = !isChecked"
+          [attr.aria-pressed]="isChecked"
+        >
+          <span class="confirm-check-box">
+            <mat-icon *ngIf="isChecked">check</mat-icon>
+          </span>
+
+          <span class="confirm-check-label">
+            {{ data.confirmationText || ('dialog.confirmAction' | translate) }}
+          </span>
+        </button>
       </div>
 
       <div class="dialog-actions">
@@ -77,7 +91,7 @@ import { MatIconModule } from '@angular/material/icon';
       border-radius: 14px;
       display: grid;
       place-items: center;
-      background: var(--theme-danger);
+      background: var(--danger);
       color: var(--bg);
     }
 

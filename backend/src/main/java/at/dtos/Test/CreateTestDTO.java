@@ -16,6 +16,7 @@ public record CreateTestDTO(
         String gradingSystemName,
         List<GradingLevelDTO> gradingSchema,
         Map<Integer, Integer> gradePercentages,
-        Map<Integer, Integer> manualGradeMinimums
+        Map<Integer, Integer> manualGradeMinimums,
+        String folderId
 ) {
 }

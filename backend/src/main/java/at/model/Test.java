@@ -2,6 +2,7 @@ package at.model;
 
 import jakarta.persistence.*;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -62,10 +63,20 @@ public class Test {
     @Column(name = "minimum_points")
     private Map<Integer, Integer> manualGradeMinimums = new HashMap<>();
 
+    @ManyToOne
+    @JoinColumn(name = "folder_id")
+    private TestFolder folder;
+
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
+
     public Test() {
+        createdAt = new Timestamp(System.currentTimeMillis());
+        updatedAt = new Timestamp(System.currentTimeMillis());
     }
 
     public Test(String name, String note, User admin, School school, int duration) {
+        super();
         this.name = name;
         this.note = note;
         this.school = school;
@@ -183,5 +194,29 @@ public class Test {
 
     public void setManualGradeMinimums(Map<Integer, Integer> manualGradeMinimums) {
         this.manualGradeMinimums = manualGradeMinimums != null ? new HashMap<>(manualGradeMinimums) : new HashMap<>();
+    }
+
+    public TestFolder getFolder() {
+        return folder;
+    }
+
+    public void setFolder(TestFolder folder) {
+        this.folder = folder;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

@@ -11,22 +11,24 @@ export enum ExampleTypes {
 }
 
 export const ExampleTypeLabels: Record<ExampleTypes, string> = {
-  [ExampleTypes.OPEN]: 'Offenes Antwortformat',
-  [ExampleTypes.HALF_OPEN]: 'Halboffenes Antwortformat',
-  [ExampleTypes.CONSTRUCTION]: 'Konstruktionsformat',
-  [ExampleTypes.MULTIPLE_CHOICE]: 'Multiple-Choice-Antwortformat',
-  [ExampleTypes.GAP_FILL]: 'Lückentext',
-  [ExampleTypes.ASSIGN]: 'Zuordnungsformat'
+  [ExampleTypes.OPEN]: 'exampleTypes.open',
+  [ExampleTypes.HALF_OPEN]: 'exampleTypes.halfOpen',
+  [ExampleTypes.CONSTRUCTION]: 'exampleTypes.construction',
+  [ExampleTypes.MULTIPLE_CHOICE]: 'exampleTypes.multipleChoice',
+  [ExampleTypes.GAP_FILL]: 'exampleTypes.gapFill',
+  [ExampleTypes.ASSIGN]: 'exampleTypes.assign'
 };
 
 export interface Example {
   id: number;
   admin: User;
+  adminUsername?: string;
+  folderId?: string | null;
   focusList: Focus[];
   type: ExampleTypes;
   instruction: string;
   question: string;
-  answers: string[];
+  answers: string[][];
   imageUrl: string | null;
   solutionUrl: string | null;
   imageWidth: number | null;
@@ -36,11 +38,14 @@ export interface Example {
   gaps: Gap[];
   assigns: Assign[];
   assignRightItems: string[];
+  variables?: ExampleVariable[];
 }
 
 export interface ExampleDTO {
   id: number;
   admin: UserDTO;
+  adminUsername?: string;
+  folderId?: string | null;
   type: ExampleTypes;
   instruction: string;
   question: string;
@@ -50,6 +55,7 @@ export interface ExampleDTO {
   imageWidth: number | null;
   solutionImageWidth: number | null;
   focusList: Focus[];
+  variables?: ExampleVariable[];
   school: SchoolDTO;
   answers: string[][];
   options: Option[];
@@ -57,6 +63,12 @@ export interface ExampleDTO {
   gaps: Gap[];
   assigns: Assign[];
   assignRightItems: string[];
+}
+
+export interface ExampleVariable {
+  id: string;
+  key: string;
+  defaultValue: string;
 }
 
 export interface CreateExampleDTO {
@@ -75,6 +87,7 @@ export interface CreateExampleDTO {
   solution: string;
   solutionUrl: string;
   focusList: Focus[];
+  variables?: ExampleVariable[];
   imageWidth: number | null;
   solutionImageWidth: number | null;
   imageFile?: File;
@@ -91,6 +104,7 @@ export interface Gap {
   id: string;
   label: string;
   solution: string;
+  width?: number | null;
   options: Option[];
 }
 
@@ -112,4 +126,31 @@ export interface ExampleOverviewDTO {
   adminUsername: string;
   adminId: number;
   focusList: Focus[];
+  folderId: string | null;
+
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+
+export interface ExampleFolderDTO {
+  id: string;
+  name: string;
+  schoolId: string;
+  parentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateExampleFolderDTO {
+  name: string;
+  parentId: string | null;
+}
+
+export interface UpdateExampleFolderDTO {
+  name: string;
+}
+
+export interface MoveExampleToFolderDTO {
+  folderId: string | null;
 }

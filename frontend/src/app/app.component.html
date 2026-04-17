@@ -3,6 +3,15 @@
     <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
   </div>
 } @else {
+  @if(Config.TYPE === 'LOCALS'){
+    <div class="header">
+      You are currently viewing a local deployment. <!--Please go to Shotly.at instead.-->
+    </div>
+  } @else if(Config.TYPE === 'DEV'){
+    <div class="header">
+      You are currently viewing a development deployment. <!--Please go to Shotly.at instead.-->
+    </div>
+  }
   <div class="app-wrapper" [class.logged-in]="isLoggedIn" [class.guest]="!isLoggedIn">
 
     @if(showNavigation){

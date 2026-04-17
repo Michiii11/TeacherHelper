@@ -27,9 +27,12 @@
   min-height: 100vh;
   display: grid;
   place-items: center;
-  background: #f8fafc;
+  background: var(--bg);
 }
 
-:host-context(.dark-mode) .loading {
-  background: #020617;
+.header{
+  background: var(--primary);
+  color: var(--text);
+  padding-block: .25rem;
+  text-align: center;
 }

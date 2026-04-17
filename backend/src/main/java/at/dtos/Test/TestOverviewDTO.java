@@ -1,4 +1,6 @@
 package at.dtos.Test;
 
-public record TestOverviewDTO(Long id, String name, int amountOfQuestions, int duration, String adminUsername, Long adminId) {
+import java.sql.Timestamp;
+
+public record TestOverviewDTO(Long id, String name, int amountOfQuestions, int duration, String adminUsername, Long adminId, Timestamp createdAt, Timestamp updatedAt, String folderId) {
 }

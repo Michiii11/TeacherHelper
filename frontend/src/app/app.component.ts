@@ -1,13 +1,14 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { NavigationComponent } from './components/navigation/navigation.component';
 import { HttpService } from './service/http.service';
-import { interval, filter, switchMap } from 'rxjs';
+import { interval, filter, switchMap, take, Subject, distinctUntilChanged, takeUntil } from 'rxjs';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { FooterComponent } from './components/footer/footer.component';
 import { AuthService } from './service/auth.service';
 import { ThemeService } from './service/theme.service';
 import { LanguageService } from './service/language.service';
+import { Config } from './config';
 
 @Component({
   selector: 'app-root',
@@ -21,30 +22,87 @@ import { LanguageService } from './service/language.service';
   ],
   styleUrl: './app.component.scss'
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   service = inject(HttpService);
 
   private router = inject(Router);
   private readonly themeService = inject(ThemeService);
   private readonly languageService = inject(LanguageService);
+  private readonly destroy$ = new Subject<void>();
 
   isLoggedIn = false;
   isLoading = true;
   currentUrl = '/';
 
   constructor(private authService: AuthService) {
-    this.authService.loggedIn$.subscribe(status => {
-      this.isLoggedIn = status;
-    });
+    this.authService.loggedIn$
+      .pipe(
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(status => {
+        this.isLoggedIn = status;
+
+        if (status) {
+          this.loadAndApplyUserSettings();
+        } else {
+          this.applyGuestDefaults();
+        }
+      });
 
     this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
+      .pipe(
+        filter(event => event instanceof NavigationEnd),
+        takeUntil(this.destroy$)
+      )
       .subscribe((event: NavigationEnd) => {
         this.currentUrl = event.urlAfterRedirects || event.url || '/';
       });
 
     this.currentUrl = this.router.url || '/';
+  }
 
+  ngOnInit(): void {
+    const token = localStorage.getItem('teacher_authToken');
+
+    if (token) {
+      this.isLoggedIn = true;
+      this.loadAndApplyUserSettings();
+    } else {
+      this.applyGuestDefaults();
+    }
+
+    this.loadInitialData();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private applyGuestDefaults(): void {
+    this.themeService.init();
+    this.languageService.init();
+  }
+
+  private loadAndApplyUserSettings(): void {
+    this.service.getUser()
+      .pipe(take(1))
+      .subscribe({
+        next: user => {
+          const resolvedDarkMode = this.themeService.resolveDarkMode(user.settings?.darkMode ?? null);
+          const resolvedLanguage = this.languageService.resolveLanguage(user.settings?.language ?? null);
+
+          this.themeService.setDarkMode(resolvedDarkMode);
+          this.languageService.applyUserPreference(resolvedLanguage);
+        },
+        error: () => {
+          this.applyGuestDefaults();
+        }
+      });
+  }
+
+  private loadInitialData(): void {
     this.service.getSchools().subscribe({
       next: () => {
         this.isLoading = false;
@@ -56,7 +114,8 @@ export class AppComponent implements OnInit {
 
     if (this.isLoading) {
       interval(2000).pipe(
-        switchMap(() => this.service.getSchools())
+        switchMap(() => this.service.getSchools()),
+        takeUntil(this.destroy$)
       ).subscribe({
         next: () => {
           this.isLoading = false;
@@ -66,29 +125,6 @@ export class AppComponent implements OnInit {
         }
       });
     }
-  }
-
-  ngOnInit(): void {
-    this.themeService.init();
-    this.languageService.init();
-    this.applyUserSettings();
-  }
-
-  private applyUserSettings(): void {
-    const token = localStorage.getItem('teacher_authToken');
-    if (!token) {
-      return;
-    }
-
-    this.service.getUser().subscribe({
-      next: user => {
-        this.themeService.applyUserPreference(user.settings?.darkMode ?? null);
-        this.languageService.applyUserPreference(user.settings?.language ?? null);
-      },
-      error: () => {
-        // System/local fallback bleibt aktiv
-      }
-    });
   }
 
   get isLandingRoute(): boolean {
@@ -102,4 +138,6 @@ export class AppComponent implements OnInit {
   get showFooter(): boolean {
     return this.isLoggedIn || this.isLandingRoute;
   }
+
+  protected readonly Config = Config;
 }

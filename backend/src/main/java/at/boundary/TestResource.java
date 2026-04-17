@@ -1,6 +1,7 @@
 package at.boundary;
 
 import at.dtos.Test.CreateTestDTO;
+import at.dtos.Test.MoveTestToFolderDTO;
 import at.dtos.Test.TestOverviewDTO;
 import at.repository.TestRepository;
 import jakarta.inject.Inject;
@@ -43,5 +44,11 @@ public class TestResource {
     @Path("{testId}")
     public Response deleteTest(JsonObject json, @PathParam("testId") Long testId){
         return repo.deleteTest(json.getString("authToken"), testId);
+    }
+
+    @PUT
+    @Path("{testId}/folder")
+    public Response moveTestToFolder(@PathParam("testId") Long testId, MoveTestToFolderDTO dto) {
+        return repo.moveTestToFolder(testId, dto);
     }
 }

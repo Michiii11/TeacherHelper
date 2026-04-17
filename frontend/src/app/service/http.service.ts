@@ -2,9 +2,16 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Config } from '../config';
-import { ChangeLog, CreateSchoolInviteDTO, LastActivityDTO, SchoolDTO } from '../model/School';
-import { CreateExampleDTO, Focus } from '../model/Example';
-import { CreateTestDTO } from '../model/Test';
+import { SchoolDTO } from '../model/School';
+import {
+  CreateExampleDTO,
+  ExampleFolderDTO,
+  Focus,
+} from '../model/Example';
+import {
+  CreateTestDTO,
+  TestFolderDTO,
+} from '../model/Test';
 import { AuthResult, User, UserDTO, UserSettings } from '../model/User';
 import { NotificationActionType, NotificationDTO } from '../model/Notification';
 
@@ -48,8 +55,18 @@ export class HttpService {
     );
   }
 
-  getAllTeachers(schoolId: number | string) {
-    return this.http.get<UserDTO[]>(`${Config.API_URL}/school/${schoolId}/rest`);
+  deleteSchool(schoolId: string) {
+    return this.http.delete(`${Config.API_URL}/school/${schoolId}`, {
+      body: { authToken: this.authToken() },
+      responseType: 'text' as 'json'
+    });
+  }
+
+  deleteSchoolLogo(schoolId: string) {
+    return this.http.delete(`${Config.API_URL}/school/${schoolId}/logo`, {
+      body: { authToken: this.authToken() },
+      responseType: 'text' as 'json'
+    });
   }
 
   kickTeacherFromSchool(s: string, id: number) {
@@ -167,7 +184,7 @@ export class HttpService {
     });
   }
 
-  saveTest(testId: number, test: CreateTestDTO) {
+  saveTest(testId: number | undefined, test: CreateTestDTO) {
     return this.http.put(`${Config.API_URL}/test/${testId}`, test, { responseType: 'text' as 'json' });
   }
 
@@ -180,6 +197,7 @@ export class HttpService {
   }
 
   updateUserSettings(settings: UserSettings) {
+    console.log(settings)
     return this.http.put(
       `${Config.API_URL}/user/settings`,
       {
@@ -330,23 +348,11 @@ export class HttpService {
     });
   }
 
-  respondToJoinRequest(inviteId: number, accept: boolean) {
-    return this.http.post(`${Config.API_URL}/school/join-request/${inviteId}/respond`, {
+  sendInvite(schoolId: string | null, email: string) {
+    return this.http.post(`${Config.API_URL}/school/${schoolId}/invite`, {
       authToken: this.authToken(),
-      accept
-    });
-  }
-
-  sendJoinRequest(id: number, result: any) {
-    return this.http.post(`${Config.API_URL}/school/${id}/join-request`, {
-      authToken: this.authToken(),
-      message: result.message
-    });
-  }
-
-  inviteTeacher(id: string | number, dto: CreateSchoolInviteDTO) {
-    dto.authToken = this.authToken();
-    return this.http.post(`${Config.API_URL}/school/${id}/invite-teacher`, dto);
+      email
+    })
   }
 
   cancelPendingEmailChange() {
@@ -378,7 +384,7 @@ export class HttpService {
     return `${Config.API_URL}/user/profile-image/${user?.id}`;
   }
 
-  getUserInitials(user: User | null): string {
+  getUserInitials(user: User | null | UserDTO): string {
     const username = user?.username?.trim();
 
     if (username) {
@@ -401,10 +407,6 @@ export class HttpService {
     });
   }
 
-  getLastChange(schoolId: string | null) {
-    return this.http.get<LastActivityDTO>(`${Config.API_URL}/school/${schoolId}/last-activity`);
-  }
-
   updateSchool(schoolId: string, payload: { name?: string }) {
     return this.http.put<SchoolDTO>(`${Config.API_URL}/school/${schoolId}/settings`, payload);
   }
@@ -424,5 +426,97 @@ export class HttpService {
     }
 
     return `${Config.API_URL}/school/${schoolId}/logo`;
+  }
+
+  getExampleFolders(schoolId: string) {
+    return this.http.get<ExampleFolderDTO[]>(
+      `${Config.API_URL}/example-folder/school/${schoolId}`,
+      { params: { authToken: this.authToken() } }
+    );
+  }
+
+  createExampleFolder(schoolId: string, dto: { name: string; parentId: string | null }) {
+    return this.http.post<ExampleFolderDTO>(
+      `${Config.API_URL}/example-folder/school/${schoolId}`,
+      { ...dto, authToken: this.authToken() }
+    );
+  }
+
+  renameExampleFolder(folderId: string, body: { name: string; parentId?: string | null }) {
+    return this.http.put(
+      `${Config.API_URL}/example-folder/${folderId}`,
+      {
+        ...body,
+        authToken: this.authToken()
+      }
+    );
+  }
+
+  deleteExampleFolder(folderId: string) {
+    return this.http.delete(
+      `${Config.API_URL}/example-folder/${folderId}`,
+      {
+        params: { authToken: this.authToken() },
+        responseType: 'text' as 'json'
+      }
+    );
+  }
+
+  moveExampleToFolder(exampleId: number, dto: { folderId: string | null }) {
+    return this.http.put(
+      `${Config.API_URL}/example/${exampleId}/folder`,
+      { ...dto, authToken: this.authToken() },
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  getTestFolders(schoolId: string) {
+    return this.http.get<TestFolderDTO[]>(
+      `${Config.API_URL}/test-folder/school/${schoolId}`,
+      { params: { authToken: this.authToken() } }
+    );
+  }
+
+  createTestFolder(schoolId: string, dto: { name: string; parentId: string | null }) {
+    return this.http.post<TestFolderDTO>(
+      `${Config.API_URL}/test-folder/school/${schoolId}`,
+      { ...dto, authToken: this.authToken() }
+    );
+  }
+
+  renameTestFolder(folderId: string, body: { name: string; parentId?: string | null }) {
+    return this.http.put(
+      `${Config.API_URL}/test-folder/${folderId}`,
+      {
+        ...body,
+        authToken: this.authToken()
+      }
+    );
+  }
+
+  deleteTestFolder(folderId: string) {
+    return this.http.delete(
+      `${Config.API_URL}/test-folder/${folderId}`,
+      {
+        params: { authToken: this.authToken() },
+        responseType: 'text' as 'json'
+      }
+    );
+  }
+
+  moveTestToFolder(testId: number, dto: { folderId: string | null }) {
+    return this.http.put(
+      `${Config.API_URL}/test/${testId}/folder`,
+      { ...dto, authToken: this.authToken() },
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  moveExampleFolder(folderId: string, body: { name: string; parentId: string | null }) {
+    return this.renameExampleFolder(folderId, body);
+  }
+
+  moveTestFolder(folderId: string, body: { name: string; parentId: string | null }) {
+    return this.renameTestFolder(folderId, body);
   }
 }
