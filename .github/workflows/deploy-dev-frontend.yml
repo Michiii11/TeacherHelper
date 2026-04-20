@@ -37,6 +37,10 @@ jobs:
           echo "  buildVersion: 'dev-${{ github.run_number }}-${GITHUB_SHA::7}'," >> frontend/src/environments/version.ts
           echo "};" >> frontend/src/environments/version.ts
 
+      - name: Force dev Angular configuration in Dockerfile
+        run: |
+          sed -i 's/ARG CONFIGURATION=production/ARG CONFIGURATION=cloud-development/' frontend/Dockerfile
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
         with:
