@@ -34,6 +34,16 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build backend
+        working-directory: ./backend
+        run: mvn clean package -DskipTests
+
       - name: Deploy backend to Cloud Run
         run: |
           gcloud run deploy teacher-helper-backend-development \
