@@ -84,8 +84,8 @@
     "confirmAction": "I confirm this action"
   },
   "navbar": {
-    "home": "Home",
-    "school": "School",
+    "home": "Collections",
+    "school": "Collection",
     "help": "Help"
   },
   "notifications": {

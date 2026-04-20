@@ -1,18 +1,16 @@
-import {Component, inject, OnInit} from '@angular/core';
-import {MatButton} from '@angular/material/button'
-import {MatDialog} from '@angular/material/dialog'
-import {AddSchoolDialogComponent} from '../../dialog/add-school-dialog/add-school-dialog.component'
-import {SchoolDTO} from '../../model/School'
-import {HttpService} from '../../service/http.service'
-import {MatCard} from '@angular/material/card'
-import {MatFormField, MatInput, MatLabel} from '@angular/material/input'
-import {FormsModule} from '@angular/forms'
-import {NgForOf, NgIf} from '@angular/common'
-import {Router} from '@angular/router'
-import {MatIcon} from '@angular/material/icon'
-import {MatSnackBar} from '@angular/material/snack-bar'
-import {TranslatePipe} from '@ngx-translate/core'
-import {FolderNameDialogComponent} from '../../dialog/folder-name-dialog/folder-name-dialog.component'
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { MatButton } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
+import { AddSchoolDialogComponent } from '../../dialog/add-school-dialog/add-school-dialog.component';
+import { SchoolDTO } from '../../model/School';
+import { HttpService } from '../../service/http.service';
+import { MatCard } from '@angular/material/card';
+import { FormsModule } from '@angular/forms';
+import {NgClass, NgForOf, NgIf} from '@angular/common';
+import { Router } from '@angular/router';
+import { MatIcon } from '@angular/material/icon';
+import { TranslatePipe } from '@ngx-translate/core';
+import { NavbarActionsService } from '../navigation/navbar-actions.service';
 
 @Component({
   selector: 'app-home',
@@ -23,49 +21,69 @@ import {FolderNameDialogComponent} from '../../dialog/folder-name-dialog/folder-
     NgForOf,
     MatIcon,
     NgIf,
-    TranslatePipe
+    TranslatePipe,
+    NgClass
   ],
   templateUrl: './home.component.html',
   standalone: true,
   styleUrl: './home.component.scss'
 })
-export class HomeComponent implements OnInit{
-  adminSchools: SchoolDTO[] = [];
-  memberSchools: SchoolDTO[] = [];
-  allOtherSchools: SchoolDTO[] = [];
-  otherSchools: SchoolDTO[] = [];
+export class HomeComponent implements OnInit, OnDestroy {
+  schools: SchoolDTO[] = [];
+  userId = 0;
 
-  userId: number = 0;
+  constructor(
+    private dialog: MatDialog,
+    private http: HttpService,
+    private router: Router,
+    private navbarActions: NavbarActionsService
+  ) {}
 
-  constructor(private dialog: MatDialog, private http: HttpService, private router: Router) {}
-
-  ngOnInit() {
+  ngOnInit(): void {
+    this.setNavbarActions();
     this.loadSchools();
   }
 
-  loadSchools() {
+  ngOnDestroy(): void {
+    this.navbarActions.clearActions();
+  }
+
+  private setNavbarActions(): void {
+    this.navbarActions.setActions([
+      {
+        labelKey: 'home.createSchool',
+        icon: 'add_circle',
+        variant: 'flat',
+        action: () => this.openCreateDialog()
+      }
+    ]);
+  }
+
+  loadSchools(): void {
     this.http.getYourSchools().subscribe((schools: SchoolDTO[]) => {
       this.http.getUserId().subscribe((id: number) => {
         this.userId = id;
 
-        this.adminSchools = schools.filter((school) => this.isAdminSchool(school, this.userId));
-        this.memberSchools = schools.filter((school) => !this.isAdminSchool(school, this.userId));
+        this.schools = [...schools].sort((a, b) => {
+          const aIsAdmin = this.isAdminSchool(a, this.userId);
+          const bIsAdmin = this.isAdminSchool(b, this.userId);
 
-        this.http.getSchools().subscribe((allSchools: SchoolDTO[]) => {
-          this.allOtherSchools = allSchools.filter(
-            school => !schools.some(yourSchool => yourSchool.id === school.id)
-          );
-          this.otherSchools = [...this.allOtherSchools];
-        })
-      })
-    })
+          if (aIsAdmin !== bIsAdmin) {
+            return aIsAdmin ? -1 : 1;
+          }
+
+          return a.name.localeCompare(b.name);
+        });
+      });
+    });
   }
 
-  openCreateDialog() {
+  openCreateDialog(): void {
     const dialogRef = this.dialog.open(AddSchoolDialogComponent, {
       width: 'min(92vw, 500px)',
       maxWidth: '92vw',
     });
+
     dialogRef.afterClosed().subscribe(schoolName => {
       if (schoolName) {
         this.http.addSchool(schoolName).subscribe({
@@ -80,7 +98,7 @@ export class HomeComponent implements OnInit{
     });
   }
 
-  openSchool(school: SchoolDTO) {
+  openSchool(school: SchoolDTO): void {
     this.router.navigate(['/collection', school.id]);
   }
 
@@ -95,8 +113,20 @@ export class HomeComponent implements OnInit{
       .join('');
   }
 
-  getSchoolRoleLabel(type: 'admin' | 'member'): string {
-    return type === 'admin' ? 'Admin' : 'Mitglied';
+  getSchoolRoleLabel(school: SchoolDTO): string {
+    return this.isAdminSchool(school, this.userId) ? 'Admin' : 'Mitglied';
+  }
+
+  getRoleBadgeClass(school: SchoolDTO): string {
+    return this.isAdminSchool(school, this.userId) ? 'admin-badge' : 'member-badge';
+  }
+
+  getAvatarClass(school: SchoolDTO): string {
+    return this.isAdminSchool(school, this.userId) ? 'school-avatar' : 'school-avatar member-avatar';
+  }
+
+  getCardClass(school: SchoolDTO): string {
+    return this.isAdminSchool(school, this.userId) ? 'school-card admin-card' : 'school-card member-card';
   }
 
   private isAdminSchool(school: SchoolDTO, userId: number): boolean {
@@ -106,7 +136,7 @@ export class HomeComponent implements OnInit{
     return school.admin.id === userId;
   }
 
-  protected getSchoolLogoUrl(school: SchoolDTO) {
-    return  this.http.getSchoolLogo(school, school.id.toString());
+  protected getSchoolLogoUrl(school: SchoolDTO): string {
+    return <string>this.http.getSchoolLogo(school, school.id.toString());
   }
 }

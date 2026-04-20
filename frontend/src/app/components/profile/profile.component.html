@@ -6,11 +6,6 @@
       </div>
       <h1 class="page-title">{{ 'profile.title' | translate }}</h1>
     </div>
-
-    <button mat-flat-button color="warn" type="button" (click)="logout()">
-      <mat-icon>logout</mat-icon>
-      {{ 'common.logout' | translate }}
-    </button>
   </header>
 
   @if (loading) {

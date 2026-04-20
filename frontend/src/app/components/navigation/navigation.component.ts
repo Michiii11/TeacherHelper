@@ -12,8 +12,11 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { HttpService } from '../../service/http.service';
 import { User } from '../../model/User';
 import { NotificationDTO, NotificationActionType, NotificationType } from '../../model/Notification';
-import {TranslatePipe} from '@ngx-translate/core'
-import {MatButtonToggle, MatButtonToggleGroup} from '@angular/material/button-toggle'
+import { TranslatePipe } from '@ngx-translate/core';
+import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
+import { NavbarActionsService } from './navbar-actions.service';
+import { NavbarAction } from './navbar-action.model';
+import {MatDivider} from '@angular/material/list'
 
 @Component({
   selector: 'app-navigation',
@@ -34,7 +37,8 @@ import {MatButtonToggle, MatButtonToggleGroup} from '@angular/material/button-to
     MatTooltip,
     TranslatePipe,
     MatButtonToggle,
-    MatButtonToggleGroup
+    MatButtonToggleGroup,
+    MatDivider
   ],
   templateUrl: './navigation.component.html',
   styleUrl: './navigation.component.scss'
@@ -42,11 +46,13 @@ import {MatButtonToggle, MatButtonToggleGroup} from '@angular/material/button-to
 export class NavigationComponent implements OnInit, OnDestroy {
   service = inject(HttpService);
   snackBar = inject(MatSnackBar);
+  navbarActionsService = inject(NavbarActionsService);
 
   user: User = {} as User;
   notifications: NotificationDTO[] = [];
   selectedTab: 'open' | 'history' = 'open';
   processingIds = new Set<number>();
+  navbarActions: NavbarAction[] = [];
 
   historyExpanded = false;
 
@@ -61,6 +67,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   private reconnectTimer?: ReturnType<typeof setTimeout>;
   private socketDestroyed = false;
   private routerSub?: Subscription;
+  private navbarActionsSub?: Subscription;
 
   constructor(private router: Router) {}
 
@@ -73,6 +80,10 @@ export class NavigationComponent implements OnInit, OnDestroy {
         this.refreshNavigationState();
       });
 
+    this.navbarActionsSub = this.navbarActionsService.actions$.subscribe(actions => {
+      this.navbarActions = actions.filter(action => action.visible !== false);
+    });
+
     window.addEventListener('focus', this.handleWindowFocus);
     window.addEventListener('storage', this.handleStorageRefresh);
     this.connectNotificationSocket();
@@ -81,6 +92,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.socketDestroyed = true;
     this.routerSub?.unsubscribe();
+    this.navbarActionsSub?.unsubscribe();
 
     window.removeEventListener('focus', this.handleWindowFocus);
     window.removeEventListener('storage', this.handleStorageRefresh);
@@ -113,6 +125,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
     if (this.isAuthPage()) {
       this.user = {} as User;
       this.notifications = [];
+      this.navbarActions = [];
       return;
     }
 

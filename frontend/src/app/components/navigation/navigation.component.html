@@ -3,20 +3,65 @@
     <div class="navbar-container">
       <div class="navbar-left">
         <img [src]="getLogo()" alt="">
-      </div>
 
-      <nav class="navbar-right">
+        <div>
+          /
+        </div>
+
         <a mat-button routerLink="/home" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
           {{ 'navbar.home' | translate }}
         </a>
+      </div>
 
-        <a mat-button routerLink="/collection" routerLinkActive="active-link" (click)="goToSchool()">
-          {{ 'navbar.school' | translate }}
-        </a>
+      <nav class="navbar-right">
+        <div class="navbar-page-actions">
+          @for (action of navbarActions; track action.labelKey || action.label || $index) {
+            @if (action.variant === 'icon') {
+              <button
+                mat-icon-button
+                type="button"
+                class="navbar-action-btn"
+                [disabled]="!!action.disabled"
+                (click)="action.action()"
+              >
+                <mat-icon>{{ action.icon }}</mat-icon>
+              </button>
+            } @else if (action.variant === 'stroked') {
+              <button
+                mat-stroked-button
+                type="button"
+                class="navbar-action-btn"
+                [disabled]="!!action.disabled"
+                (click)="action.action()"
+              >
+                @if (action.icon) {
+                  <mat-icon>{{ action.icon }}</mat-icon>
+                }
+                {{ action.labelKey ? (action.labelKey | translate) : action.label }}
+              </button>
+            } @else {
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                class="navbar-action-btn"
+                [disabled]="!!action.disabled"
+                (click)="action.action()"
+              >
+                @if (action.icon) {
+                  <mat-icon>{{ action.icon }}</mat-icon>
+                }
+                {{ action.labelKey ? (action.labelKey | translate) : action.label }}
+              </button>
+            }
+          }
+        </div>
 
-        <a mat-button routerLink="/help" routerLinkActive="active-link">
-          {{ 'navbar.help' | translate }}
-        </a>
+        <mat-divider class="navbar-divider" [vertical]="true"></mat-divider>
+
+        <button mat-icon-button class="icon-btn" routerLink="/help">
+          <mat-icon>help</mat-icon>
+        </button>
 
         <button mat-icon-button class="icon-btn notif-trigger" [matMenuTriggerFor]="notifMenu">
           <mat-icon>notifications</mat-icon>

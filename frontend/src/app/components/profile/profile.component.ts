@@ -16,6 +16,8 @@ import { User, UserSettings } from '../../model/User';
 import { ConfirmDialogComponent } from '../../dialog/confirm-dialog/confirm-dialog.component';
 import { ThemeService } from '../../service/theme.service';
 import { LanguageService } from '../../service/language.service';
+import {NavbarActionsService} from '../navigation/navbar-actions.service'
+import {AddSchoolDialogComponent} from '../../dialog/add-school-dialog/add-school-dialog.component'
 
 type ProfileSettings = {
   darkMode: boolean;
@@ -47,6 +49,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private readonly themeService = inject(ThemeService);
   private readonly languageService = inject(LanguageService);
   private readonly translate = inject(TranslateService);
+
+  navbarActions = inject(NavbarActionsService)
 
   user: User | null = null;
   loading = true;
@@ -122,11 +126,24 @@ export class ProfileComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.setupSettingsAutoSave();
     this.loadUser();
+    this.setNavbarActions();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.navbarActions.clearActions();
+  }
+
+  private setNavbarActions(): void {
+    this.navbarActions.setActions([
+      {
+        labelKey: 'common.logout',
+        icon: 'logout',
+        variant: 'flat',
+        action: () => this.logout()
+      }
+    ]);
   }
 
   loadUser(): void {
