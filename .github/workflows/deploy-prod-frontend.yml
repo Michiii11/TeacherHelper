@@ -53,5 +53,4 @@ jobs:
             --source ./frontend \
             --region europe-west1 \
             --platform managed \
-            --allow-unauthenticated \
-            --set-build-env-vars CONFIGURATION=production
+            --allow-unauthenticated

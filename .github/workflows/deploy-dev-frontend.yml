@@ -24,46 +24,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Force dev environment
+        run: cp frontend/src/environments/environment.development.ts frontend/src/environments/environment.ts
+
       - name: Generate version
         env:
           GITHUB_SHA: ${{ github.sha }}
         run: |
-          cat > frontend/src/environments/version.ts <<'EOF'
-          import { Config } from '../app/config';
+          echo "import { Config } from '../app/config';" > frontend/src/environments/version.ts
+          echo "export const version = {" >> frontend/src/environments/version.ts
+          echo "  appVersion: Config.APP_VERSION," >> frontend/src/environments/version.ts
+          echo "  buildVersion: 'dev-${{ github.run_number }}-${GITHUB_SHA::7}'," >> frontend/src/environments/version.ts
+          echo "};" >> frontend/src/environments/version.ts
 
-          export const version = {
-            appVersion: Config.APP_VERSION,
-            buildVersion: 'dev-${{ github.run_number }}-${GITHUB_SHA::7}',
-          };
-          EOF
-
-      - name: Overwrite Dockerfile for dev build
+      - name: Force dev Angular configuration in Dockerfile
         run: |
-          cat > frontend/Dockerfile <<'EOF'
-          FROM node:20-alpine AS build
-          WORKDIR /app
-
-          COPY package*.json ./
-          RUN npm ci
-
-          COPY . .
-
-          RUN npm run build -- --configuration=cloud-development
-
-          FROM nginx:alpine
-          COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
-          EXPOSE 80
-          CMD ["nginx", "-g", "daemon off;"]
-          EOF
-
-      - name: Debug Angular configuration
-        run: |
-          echo "=== Dockerfile ==="
-          cat frontend/Dockerfile
-          echo "=== environment.development.ts exists ==="
-          ls -l frontend/src/environments/
-          echo "=== angular.json cloud-development ==="
-          grep -n "cloud-development" frontend/angular.json || true
+          sed -i 's/ARG CONFIGURATION=production/ARG CONFIGURATION=cloud-development/' frontend/Dockerfile
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
@@ -81,5 +57,4 @@ jobs:
             --source ./frontend \
             --region europe-west1 \
             --platform managed \
-            --allow-unauthenticated \
-            --set-build-env-vars CONFIGURATION=cloud-development
+            --allow-unauthenticated
