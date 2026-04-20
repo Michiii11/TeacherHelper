@@ -11,5 +11,5 @@ import { version } from '../../../environments/version';
 })
 export class FooterComponent {
   currentYear = new Date().getFullYear();
-  version = version.value;
+  version = version.appVersion;
 }

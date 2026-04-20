@@ -21,8 +21,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Generate version
+        env:
+          GITHUB_SHA: ${{ github.sha }}
         run: |
-          echo "export const version = { value: 'dev-${{ github.run_number }}-${{ github.sha }}' };" > frontend/src/environments/version.ts
+          echo "import { Config } from '../app/config';" > frontend/src/environments/version.ts
+          echo "export const version = {" >> frontend/src/environments/version.ts
+          echo "  appVersion: Config.APP_VERSION," >> frontend/src/environments/version.ts
+          echo "  buildVersion: 'dev-${{ github.run_number }}-${GITHUB_SHA::7}'," >> frontend/src/environments/version.ts
+          echo "};" >> frontend/src/environments/version.ts
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3

@@ -1,5 +1,6 @@
 import { Config } from '../app/config';
 
 export const version = {
-  value: Config.APP_VERSION,
+  appVersion: Config.APP_VERSION,
+  buildVersion: 'local',
 };
