@@ -38,6 +38,6 @@ jobs:
         run: |
           gcloud run deploy teacher-helper-backend-development \
             --source ./backend \
-            --region europe-west3 \
+            --region europe-west1 \
             --platform managed \
             --allow-unauthenticated
