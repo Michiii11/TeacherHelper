@@ -1,0 +1,7 @@
+# alles ignorieren was git ignoriert
+.git
+.gitignore
+
+# ABER target NICHT ignorieren
+!target/
+!target/**
