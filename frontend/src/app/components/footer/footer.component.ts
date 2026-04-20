@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { version } from '../../../environments/version';
 
 @Component({
   selector: 'app-footer',
@@ -10,5 +11,5 @@ import { RouterLink } from '@angular/router';
 })
 export class FooterComponent {
   currentYear = new Date().getFullYear();
-  version = '1.1.0';
+  version = version.value;
 }
