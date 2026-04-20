@@ -22,7 +22,10 @@ jobs:
 
       - name: Generate version
         run: |
-          echo "export const version = { value: 'dev-${{ github.run_number }}-${{ github.sha }}' };" > frontend/src/environments/version.ts
+          echo "import { appVersion } from './app-version';" > frontend/src/environments/version.ts
+          echo "export const version = { appVersion, buildVersion: 'dev-${{ github.run_number }}-${GITHUB_SHA::7}' };" >> frontend/src/environments/version.ts
+        env:
+          GITHUB_SHA: ${{ github.sha }}
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3

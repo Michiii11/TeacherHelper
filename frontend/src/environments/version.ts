@@ -1,3 +1,6 @@
+import { Config } from '../app/config';
+
 export const version = {
-  value: 'v1.1.2'
+  appVersion: Config.APP_VERSION,
+  buildVersion: 'dev-84-a1b2c3d'
 };
