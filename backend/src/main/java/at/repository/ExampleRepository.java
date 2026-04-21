@@ -5,7 +5,7 @@ import at.dtos.Example.ExampleDTO;
 import at.dtos.Example.ExampleOverviewDTO;
 import at.dtos.Example.ExampleVariableDTO;
 import at.dtos.Example.GapDTO;
-import at.dtos.Example.MoveExampleToFolderDTO;
+import at.dtos.Folder.MoveExampleToFolderDTO;
 import at.model.*;
 import at.model.helper.ExampleVariable;
 import at.model.helper.Gap;
@@ -31,7 +31,7 @@ public class ExampleRepository {
     TokenService tokenService;
 
     @Inject
-    ExampleFolderRepository exampleFolderRepository;
+    FolderRepository folderRepository;
 
     @Inject
     MediaStorageService mediaStorageService;
@@ -108,9 +108,9 @@ public class ExampleRepository {
             return Response.status(Response.Status.NOT_FOUND).entity("Schule nicht gefunden.").build();
         }
 
-        ExampleFolder folder = null;
-        if (dto.folderId() != null && !dto.folderId().isBlank()) {
-            folder = exampleFolderRepository.findById(dto.folderId());
+        Folder folder = null;
+        if (dto.folderId() != null) {
+            folder = folderRepository.findById(dto.folderId());
             if (folder == null || !folder.getSchool().getId().equals(school.getId())) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Ordner.").build();
             }
@@ -175,9 +175,9 @@ public class ExampleRepository {
                     .build();
         }
 
-        ExampleFolder folder = null;
-        if (dto.folderId() != null && !dto.folderId().isBlank()) {
-            folder = exampleFolderRepository.findById(dto.folderId());
+        Folder folder = null;
+        if (dto.folderId() != null) {
+            folder = folderRepository.findById(dto.folderId());
             if (folder == null || !folder.getSchool().getId().equals(example.getSchool().getId())) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Ordner.").build();
             }
@@ -243,9 +243,9 @@ public class ExampleRepository {
                     .build();
         }
 
-        ExampleFolder folder = null;
-        if (dto.folderId() != null && !dto.folderId().isBlank()) {
-            folder = exampleFolderRepository.findById(dto.folderId());
+        Folder folder = null;
+        if (dto.folderId() != null) {
+            folder = folderRepository.findById(dto.folderId());
             if (folder == null || !folder.getSchool().getId().equals(example.getSchool().getId())) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Zielordner.").build();
             }

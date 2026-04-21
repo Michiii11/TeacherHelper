@@ -3,7 +3,7 @@ package at.boundary;
 import at.dtos.Example.CreateExampleDTO;
 import at.dtos.Example.ExampleDTO;
 import at.dtos.Example.ExampleOverviewDTO;
-import at.dtos.Example.MoveExampleToFolderDTO;
+import at.dtos.Folder.MoveExampleToFolderDTO;
 import at.model.Example;
 import at.repository.ExampleRepository;
 import at.security.TokenService;

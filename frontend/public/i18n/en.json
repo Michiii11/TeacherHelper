@@ -10,10 +10,12 @@
     "deleting": "Deleting...",
     "close": "Close",
     "ok": "OK",
-    "create": "Create"
+    "create": "Create",
+    "filter": "Filter",
+    "type": "Type"
   },
   "profile": {
-    "title": "My Profile",
+    "title": "Profile",
     "subtitle": "Manage your account, security, settings, subscription and profile picture here.",
     "loading": "Loading profile...",
     "darkMode": "Dark mode",
@@ -293,7 +295,7 @@
     "folderShort": "Folder",
     "folders": "Folders",
     "folder": "Folder",
-    "newFolder": "New folder",
+    "newFolder": "Folder",
     "root": "Root",
     "rootLevel": "Top level",
     "parentFolder": "Parent folder",
@@ -355,7 +357,10 @@
     "renameFolderTitle": "Rename folder",
     "renameFolderSubtitle": "Adjust the folder name.",
     "folderNameLabel": "Folder name",
-    "folderNamePlaceholder": "e.g. Exams / Chapter 1 / Exercises"
+    "folderNamePlaceholder": "e.g. Exams / Chapter 1 / Exercises",
+    "focuses": "Focuses",
+    "author": "Author",
+    "searchPlaceholder": "Search"
   },
   "schoolSettings": {
     "title": "School settings",
@@ -497,7 +502,6 @@
     "assignRightPlaceholder": "Right statement",
     "assignRemoveLeft": "Remove left item",
     "assignRemoveRight": "Remove right item",
-
     "addTag": "add",
     "taskImagePreviewAlt": "Task image preview",
     "solutionImagePreviewAlt": "Solution image preview",
@@ -865,8 +869,8 @@
         "text": "As your content grows, finding things well becomes essential. Search and filters help you get back to exactly what you need much faster."
       },
       "invites": {
-        "title": "Invitation system",
-        "text": "Invite members, track responses, and organize collaboration directly inside the app."
+        "title": "Cooperation & teamwork",
+        "text": "Invite members and manage your tasks and tests together in one shared collection."
       }
     },
     "changelog": {
@@ -887,8 +891,7 @@
         "description": "1.1.0 improves TeacherHelper especially where clarity and speed matter most in everyday work.",
         "c1": "Added a folder system so content can be structured more cleanly",
         "c2": "Use variables to make examples more flexible and reusable",
-        "c3": "Added filters and search to find examples and tests much faster",
-        "c4": "Introduced a new create-test window for a cleaner workflow"
+        "c3": "Added filters and search to find examples and tests much faster"
       }
     },
     "actions": {

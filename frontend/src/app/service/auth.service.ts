@@ -54,4 +54,16 @@ export class AuthService {
     localStorage.removeItem('teacher_userId');
     this.loggedIn.next(false);
   }
+
+  isAdmin() {
+    const userId = localStorage.getItem('teacher_userId');
+    if (!userId) {
+      return of(false);
+    }
+    return this.http.get<{ isAdmin: boolean }>(
+        Config.API_URL + `/user/isAdmin?${localStorage.getItem('teacher_authToken')}`
+    ).pipe(
+        map(response => response.isAdmin)
+    );
+  }
 }

@@ -194,4 +194,8 @@ public class User {
     public UserDTO toUserDTO() {
         return new UserDTO(id, username, getProfileImageUrl());
     }
+
+    public boolean isAdmin() {
+        return subscriptionModel == SubscriptionModel.ADMIN;
+    }
 }

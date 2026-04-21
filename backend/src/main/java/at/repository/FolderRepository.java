@@ -1,10 +1,9 @@
 package at.repository;
 
-import at.dtos.Example.CreateExampleFolderDTO;
-import at.dtos.Example.ExampleFolderDTO;
-import at.dtos.Example.UpdateExampleFolderDTO;
-import at.model.Example;
-import at.model.ExampleFolder;
+import at.dtos.Folder.CreateFolderDTO;
+import at.dtos.Folder.FolderDTO;
+import at.dtos.Folder.UpdateFolderDTO;
+import at.model.Folder;
 import at.model.School;
 import at.model.User;
 import at.security.TokenService;
@@ -18,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
-public class ExampleFolderRepository {
+public class FolderRepository {
 
     @Inject
     EntityManager em;
@@ -26,7 +25,7 @@ public class ExampleFolderRepository {
     @Inject
     TokenService tokenService;
 
-    public List<ExampleFolderDTO> getFolders(Long schoolId, String authToken) {
+    public List<FolderDTO> getFolders(Long schoolId, String authToken) {
         Long userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
             return List.of();
@@ -38,8 +37,8 @@ public class ExampleFolderRepository {
         }
 
         return em.createQuery(
-                        "SELECT f FROM ExampleFolder f WHERE f.school.id = :schoolId ORDER BY f.name ASC",
-                        ExampleFolder.class
+                        "SELECT f FROM Folder f WHERE f.school.id = :schoolId ORDER BY f.name ASC",
+                        Folder.class
                 )
                 .setParameter("schoolId", schoolId)
                 .getResultList()
@@ -49,7 +48,7 @@ public class ExampleFolderRepository {
     }
 
     @Transactional
-    public Response createFolder(Long schoolId, CreateExampleFolderDTO dto) {
+    public Response createFolder(Long schoolId, CreateFolderDTO dto) {
         Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -69,15 +68,15 @@ public class ExampleFolderRepository {
             return Response.status(Response.Status.BAD_REQUEST).entity("Name darf nicht leer sein.").build();
         }
 
-        ExampleFolder parent = null;
-        if (dto.parentId() != null && !dto.parentId().isBlank()) {
-            parent = em.find(ExampleFolder.class, dto.parentId());
+        Folder parent = null;
+        if (dto.parentId() != null) {
+            parent = em.find(Folder.class, dto.parentId());
             if (parent == null || !parent.getSchool().getId().equals(schoolId)) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Parent-Ordner.").build();
             }
         }
 
-        ExampleFolder folder = new ExampleFolder(name, school, parent);
+        Folder folder = new Folder(name, school, parent);
         em.persist(folder);
         em.flush();
 
@@ -85,13 +84,13 @@ public class ExampleFolderRepository {
     }
 
     @Transactional
-    public Response updateFolder(String folderId, UpdateExampleFolderDTO dto) {
+    public Response updateFolder(Long folderId, UpdateFolderDTO dto) {
         Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
-        ExampleFolder folder = em.find(ExampleFolder.class, folderId);
+        Folder folder = em.find(Folder.class, folderId);
         if (folder == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("Ordner nicht gefunden.").build();
         }
@@ -105,9 +104,9 @@ public class ExampleFolderRepository {
             return Response.status(Response.Status.BAD_REQUEST).entity("Name darf nicht leer sein.").build();
         }
 
-        ExampleFolder newParent = null;
-        if (dto.parentId() != null && !dto.parentId().isBlank()) {
-            newParent = em.find(ExampleFolder.class, dto.parentId());
+        Folder newParent = null;
+        if (dto.parentId() != null) {
+            newParent = em.find(Folder.class, dto.parentId());
 
             if (newParent == null || !newParent.getSchool().getId().equals(folder.getSchool().getId())) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Parent-Ordner.").build();
@@ -136,13 +135,13 @@ public class ExampleFolderRepository {
     }
 
     @Transactional
-    public Response deleteFolder(String folderId, String authToken) {
+    public Response deleteFolder(Long folderId, String authToken) {
         Long userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
-        ExampleFolder folder = em.find(ExampleFolder.class, folderId);
+        Folder folder = em.find(Folder.class, folderId);
         if (folder == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("Ordner nicht gefunden.").build();
         }
@@ -152,20 +151,27 @@ public class ExampleFolderRepository {
         }
 
         Long childCount = em.createQuery(
-                        "SELECT COUNT(f) FROM ExampleFolder f WHERE f.parent.id = :folderId",
+                        "SELECT COUNT(f) FROM Folder f WHERE f.parent.id = :folderId",
                         Long.class
                 )
                 .setParameter("folderId", folderId)
                 .getSingleResult();
 
-        Long itemCount = em.createQuery(
+        Long exampleCount = em.createQuery(
                         "SELECT COUNT(e) FROM Example e WHERE e.folder.id = :folderId",
                         Long.class
                 )
                 .setParameter("folderId", folderId)
                 .getSingleResult();
 
-        if (childCount > 0 || itemCount > 0) {
+        Long testCount = em.createQuery(
+                        "SELECT COUNT(t) FROM Test t WHERE t.folder.id = :folderId",
+                        Long.class
+                )
+                .setParameter("folderId", folderId)
+                .getSingleResult();
+
+        if (childCount > 0 || exampleCount > 0 || testCount > 0) {
             return Response.status(Response.Status.CONFLICT)
                     .entity("Der Ordner ist nicht leer.")
                     .build();
@@ -175,23 +181,23 @@ public class ExampleFolderRepository {
         return Response.ok().build();
     }
 
-    public ExampleFolder findById(String folderId) {
-        return em.find(ExampleFolder.class, folderId);
+    public Folder findById(Long folderId) {
+        return em.find(Folder.class, folderId);
     }
 
-    public ExampleFolderDTO toDto(ExampleFolder folder) {
-        return new ExampleFolderDTO(
+    public FolderDTO toDto(Folder folder) {
+        return new FolderDTO(
                 folder.getId(),
                 folder.getName(),
-                String.valueOf(folder.getSchool().getId()),
+                folder.getSchool().getId(),
                 folder.getParent() != null ? folder.getParent().getId() : null,
                 folder.getCreatedAt().toString(),
                 folder.getUpdatedAt().toString()
         );
     }
 
-    private boolean isDescendant(ExampleFolder candidateParent, String folderId) {
-        ExampleFolder current = candidateParent;
+    private boolean isDescendant(Folder candidateParent, Long folderId) {
+        Folder current = candidateParent;
 
         while (current != null) {
             if (current.getId().equals(folderId)) {

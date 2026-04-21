@@ -229,7 +229,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
         this.refreshPreviewHtml();
       });
 
-    this.service.getExampleFolders(String(this.data.schoolId))
+    this.service.getFolders(String(this.data.schoolId))
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (folders: any) => {

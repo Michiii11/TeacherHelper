@@ -28,7 +28,6 @@
     linear-gradient(180deg, rgba(106, 133, 255, 0.06), rgba(106, 133, 255, 0.02)),
     var(--surface);
   border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
 }
 
 .help-hero {
@@ -51,7 +50,6 @@
   border-radius: 22px;
   background: rgba(106, 133, 255, 0.12);
   border: 1px solid rgba(106, 133, 255, 0.18);
-  box-shadow: var(--shadow-sm);
 
   mat-icon {
     width: 30px;
@@ -125,7 +123,6 @@
   border-radius: 24px;
   background: var(--surface);
   border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
 }
 
 .help-hero-badge-card {
@@ -379,7 +376,6 @@
 
   &.is-latest {
     border-color: rgba(106, 133, 255, 0.24);
-    box-shadow: var(--shadow);
   }
 }
 

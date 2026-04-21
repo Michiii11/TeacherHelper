@@ -3,10 +3,10 @@ package at.repository;
 import at.dtos.Example.ExampleDTO;
 import at.dtos.Example.ExampleVariableDTO;
 import at.dtos.Example.GapDTO;
+import at.dtos.Folder.MoveTestToFolderDTO;
 import at.dtos.School.SchoolDTO;
 import at.dtos.Test.CreateTestDTO;
 import at.dtos.Test.GradingLevelDTO;
-import at.dtos.Test.MoveTestToFolderDTO;
 import at.dtos.Test.TestExampleDTO;
 import at.dtos.Test.TestOverviewDTO;
 import at.model.*;
@@ -34,7 +34,7 @@ public class TestRepository {
     TokenService tokenService;
 
     @Inject
-    TestFolderRepository testFolderRepository;
+    FolderRepository folderRepository;
 
     public List<TestOverviewDTO> getAllTest(Long schoolId) {
         return em.createQuery(
@@ -72,9 +72,9 @@ public class TestRepository {
             return Response.status(Response.Status.NOT_FOUND).entity("Schule nicht gefunden.").build();
         }
 
-        TestFolder folder = null;
-        if (dto.folderId() != null && !dto.folderId().isBlank()) {
-            folder = testFolderRepository.findById(dto.folderId());
+        Folder folder = null;
+        if (dto.folderId() != null) {
+            folder = folderRepository.findById(dto.folderId());
             if (folder == null || !folder.getSchool().getId().equals(school.getId())) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Ordner.").build();
             }
@@ -110,9 +110,9 @@ public class TestRepository {
                     .build();
         }
 
-        TestFolder folder = null;
-        if (dto.folderId() != null && !dto.folderId().isBlank()) {
-            folder = testFolderRepository.findById(dto.folderId());
+        Folder folder = null;
+        if (dto.folderId() != null) {
+            folder = folderRepository.findById(dto.folderId());
             if (folder == null || !folder.getSchool().getId().equals(test.getSchool().getId())) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Ordner.").build();
             }
@@ -156,9 +156,9 @@ public class TestRepository {
                     .build();
         }
 
-        TestFolder folder = null;
-        if (dto.folderId() != null && !dto.folderId().isBlank()) {
-            folder = testFolderRepository.findById(dto.folderId());
+        Folder folder = null;
+        if (dto.folderId() != null) {
+            folder = folderRepository.findById(dto.folderId());
             if (folder == null || !folder.getSchool().getId().equals(test.getSchool().getId())) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Zielordner.").build();
             }

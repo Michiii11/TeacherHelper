@@ -1,28 +1,14 @@
 <main class="dashboard help-dashboard">
-  <header class="page-header">
-    <div>
-      <div class="title-icon">
-        <mat-icon>help</mat-icon>
-      </div>
-      <h1 class="page-title">{{ 'help.title' | translate }}</h1>
-    </div>
-
-    <button mat-flat-button color="primary" [disabled]="true">
-      <mat-icon>add_circle</mat-icon>
-      {{ 'help.startTutorial' | translate }}
-    </button>
-  </header>
-
   <section class="content-area">
 
     <mat-button-toggle-group [(ngModel)]="activeTab" [hideSingleSelectionIndicator]="true">
-      <mat-button-toggle value="docs"
-                         (click)="onTabChange(0)">
-        {{ 'help.actions.openOverview' | translate }}
-      </mat-button-toggle>
       <mat-button-toggle value="changelog"
                          (click)="onTabChange(1)">
         {{ 'help.actions.openChangelog' | translate }}
+      </mat-button-toggle>
+      <mat-button-toggle value="docs"
+                         (click)="onTabChange(0)">
+        {{ 'help.actions.openOverview' | translate }}
       </mat-button-toggle>
     </mat-button-toggle-group>
 

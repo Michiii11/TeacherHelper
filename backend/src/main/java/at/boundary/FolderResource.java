@@ -1,9 +1,9 @@
 package at.boundary;
 
-import at.dtos.Test.CreateTestFolderDTO;
-import at.dtos.Test.TestFolderDTO;
-import at.dtos.Test.UpdateTestFolderDTO;
-import at.repository.TestFolderRepository;
+import at.dtos.Folder.CreateFolderDTO;
+import at.dtos.Folder.FolderDTO;
+import at.dtos.Folder.UpdateFolderDTO;
+import at.repository.FolderRepository;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -11,19 +11,19 @@ import jakarta.ws.rs.core.Response;
 
 import java.util.List;
 
-@Path("/test-folder")
+@Path("/folder")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-public class TestFolderResource {
+public class FolderResource {
 
     @Inject
-    TestFolderRepository repo;
+    FolderRepository repo;
 
     @GET
     @Path("/school/{schoolId}")
-    public List<TestFolderDTO> getFolders(@PathParam("schoolId") Long schoolId,
-                                          @HeaderParam("Authorization") String authHeader,
-                                          @QueryParam("authToken") String authToken) {
+    public List<FolderDTO> getFolders(@PathParam("schoolId") Long schoolId,
+                                      @HeaderParam("Authorization") String authHeader,
+                                      @QueryParam("authToken") String authToken) {
         String token = authToken;
 
         if ((token == null || token.isBlank()) && authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -35,19 +35,19 @@ public class TestFolderResource {
 
     @POST
     @Path("/school/{schoolId}")
-    public Response createFolder(@PathParam("schoolId") Long schoolId, CreateTestFolderDTO dto) {
+    public Response createFolder(@PathParam("schoolId") Long schoolId, CreateFolderDTO dto) {
         return repo.createFolder(schoolId, dto);
     }
 
     @PUT
     @Path("/{folderId}")
-    public Response updateFolder(@PathParam("folderId") String folderId, UpdateTestFolderDTO dto) {
+    public Response updateFolder(@PathParam("folderId") Long folderId, UpdateFolderDTO dto) {
         return repo.updateFolder(folderId, dto);
     }
 
     @DELETE
     @Path("/{folderId}")
-    public Response deleteFolder(@PathParam("folderId") String folderId,
+    public Response deleteFolder(@PathParam("folderId") Long folderId,
                                  @QueryParam("authToken") String authToken) {
         return repo.deleteFolder(folderId, authToken);
     }

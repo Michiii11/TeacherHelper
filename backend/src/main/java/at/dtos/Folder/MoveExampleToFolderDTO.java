@@ -1,7 +1,7 @@
-package at.dtos.Example;
+package at.dtos.Folder;
 
 public record MoveExampleToFolderDTO(
         String authToken,
-        String folderId
+        Long folderId
 ) {
 }

@@ -82,24 +82,7 @@ export interface CreateTestDTO {
 }
 
 
-export interface TestFolderDTO {
-  id: string;
-  name: string;
-  schoolId: string;
-  parentId: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateTestFolderDTO {
-  name: string;
-  parentId: string | null;
-}
-
-export interface UpdateTestFolderDTO {
-  name: string;
-}
-
 export interface MoveTestToFolderDTO {
   folderId: string | null;
+  authToken: string;
 }

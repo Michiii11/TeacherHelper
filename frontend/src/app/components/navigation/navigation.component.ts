@@ -1,5 +1,5 @@
 import { Component, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import {DatePipe, NgIf} from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
@@ -15,8 +15,10 @@ import { NotificationDTO, NotificationActionType, NotificationType } from '../..
 import { TranslatePipe } from '@ngx-translate/core';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { NavbarActionsService } from './navbar-actions.service';
-import { NavbarAction } from './navbar-action.model';
-import {MatDivider} from '@angular/material/list'
+import { NavbarAction, NavbarBreadcrumb } from './navbar-action.model';
+import { MatDivider } from '@angular/material/list';
+import {AuthGuard} from '../../guard/auth.guard'
+import {AuthService} from '../../service/auth.service'
 
 @Component({
   selector: 'app-navigation',
@@ -38,7 +40,8 @@ import {MatDivider} from '@angular/material/list'
     TranslatePipe,
     MatButtonToggle,
     MatButtonToggleGroup,
-    MatDivider
+    MatDivider,
+    NgIf
   ],
   templateUrl: './navigation.component.html',
   styleUrl: './navigation.component.scss'
@@ -53,6 +56,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   selectedTab: 'open' | 'history' = 'open';
   processingIds = new Set<number>();
   navbarActions: NavbarAction[] = [];
+  breadcrumbs: NavbarBreadcrumb[] = [];
 
   historyExpanded = false;
 
@@ -68,6 +72,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   private socketDestroyed = false;
   private routerSub?: Subscription;
   private navbarActionsSub?: Subscription;
+  private breadcrumbsSub?: Subscription;
 
   constructor(private router: Router) {}
 
@@ -84,6 +89,10 @@ export class NavigationComponent implements OnInit, OnDestroy {
       this.navbarActions = actions.filter(action => action.visible !== false);
     });
 
+    this.breadcrumbsSub = this.navbarActionsService.breadcrumbs$.subscribe(breadcrumbs => {
+      this.breadcrumbs = breadcrumbs;
+    });
+
     window.addEventListener('focus', this.handleWindowFocus);
     window.addEventListener('storage', this.handleStorageRefresh);
     this.connectNotificationSocket();
@@ -93,6 +102,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
     this.socketDestroyed = true;
     this.routerSub?.unsubscribe();
     this.navbarActionsSub?.unsubscribe();
+    this.breadcrumbsSub?.unsubscribe();
 
     window.removeEventListener('focus', this.handleWindowFocus);
     window.removeEventListener('storage', this.handleStorageRefresh);
@@ -126,6 +136,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
       this.user = {} as User;
       this.notifications = [];
       this.navbarActions = [];
+      this.breadcrumbs = [];
       return;
     }
 
@@ -588,6 +599,14 @@ export class NavigationComponent implements OnInit, OnDestroy {
     return this.service.getAvatarUrl(this.user);
   }
 
+  isBreadcrumbClickable(crumb: NavbarBreadcrumb, isLast: boolean): boolean {
+    if (crumb.clickable === false) {
+      return false;
+    }
+
+    return !!crumb.route && !isLast;
+  }
+
   private extractError(err: any, fallback: string): string {
     return err?.error?.message || err?.error || fallback;
   }
@@ -595,5 +614,11 @@ export class NavigationComponent implements OnInit, OnDestroy {
   getLogo(): string {
     const isDark = document.body.classList.contains('dark-mode');
     return isDark ? '/darkmode.png' : '/lightmode.png';
+  }
+
+  authService = inject(AuthService)
+
+  isAdmin() {
+    return this.authService.isAdmin();
   }
 }

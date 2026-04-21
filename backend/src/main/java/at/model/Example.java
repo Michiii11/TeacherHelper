@@ -77,7 +77,7 @@ public class Example {
 
     @ManyToOne
     @JoinColumn(name = "folder_id")
-    private ExampleFolder folder;
+    private Folder folder;
 
     private Timestamp createdAt;
     private Timestamp updatedAt;
@@ -141,8 +141,8 @@ public class Example {
     public void setAssignRightItems(List<String> assignRightItems) { this.assignRightItems = assignRightItems; }
     public School getSchool() { return school; }
     public void setSchool(School school) { this.school = school; }
-    public ExampleFolder getFolder() { return folder; }
-    public void setFolder(ExampleFolder folder) { this.folder = folder; }
+    public Folder getFolder() { return folder; }
+    public void setFolder(Folder folder) { this.folder = folder; }
     public Timestamp getCreatedAt() { return createdAt; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
     public Timestamp getUpdatedAt() { return updatedAt; }

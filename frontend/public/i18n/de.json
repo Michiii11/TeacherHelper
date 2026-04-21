@@ -10,10 +10,12 @@
     "deleting": "Wird gelöscht...",
     "close": "Schließen",
     "ok": "OK",
-    "create": "Erstellen"
+    "create": "Erstellen",
+    "filter": "Filter",
+    "type": "Typ"
   },
   "profile": {
-    "title": "Mein Profil",
+    "title": "Profil",
     "subtitle": "Verwalte hier Konto, Sicherheit, Einstellungen, Abo und dein Profilbild.",
     "loading": "Profil wird geladen...",
     "darkMode": "Dark Mode",
@@ -285,7 +287,7 @@
     "folderShort": "Ordner",
     "folders": "Ordner",
     "folder": "Ordner",
-    "newFolder": "Neuer Ordner",
+    "newFolder": "Ordner",
     "root": "Root",
     "rootLevel": "Oberste Ebene",
     "parentFolder": "Übergeordneter Ordner",
@@ -347,7 +349,10 @@
     "renameFolderTitle": "Ordner umbenennen",
     "renameFolderSubtitle": "Passe den Namen des Ordners an.",
     "folderNameLabel": "Ordnername",
-    "folderNamePlaceholder": "z. B. Schularbeiten / Kapitel 1 / Übungen"
+    "folderNamePlaceholder": "z. B. Schularbeiten / Kapitel 1 / Übungen",
+    "focuses": "Schwerpunkte",
+    "author": "Autor",
+    "searchPlaceholder": "Suche"
   },
   "schoolSettings": {
     "title": "Schul-Einstellungen",
@@ -489,7 +494,6 @@
     "assignRightPlaceholder": "Rechtes Statement",
     "assignRemoveLeft": "Linkes entfernen",
     "assignRemoveRight": "Rechtes entfernen",
-
     "addTag": "hinzufügen",
     "taskImagePreviewAlt": "Aufgabenbild Vorschau",
     "solutionImagePreviewAlt": "Lösungsbild Vorschau",
@@ -857,8 +861,8 @@
         "text": "Wenn Inhalte mehr werden, wird gutes Finden entscheidend. Mit Suche und Filtern kommst du schneller wieder zu genau dem, was du gerade brauchst."
       },
       "invites": {
-        "title": "Einladungssystem",
-        "text": "Mitglieder einladen, Antworten verfolgen und Zusammenarbeit direkt in der App organisieren."
+        "title": "Kooperation & Teamarbeit",
+        "text": "Mitglieder einladen und gemeinsam Beispiele und Tests verwalten und sammeln."
       }
     },
     "changelog": {
@@ -879,8 +883,7 @@
         "description": "1.1.0 macht TeacherHelper vor allem dort besser, wo im Alltag Übersicht und Tempo zählen.",
         "c1": "Ordner-System hinzugefügt, damit Inhalte sauberer strukturiert werden können",
         "c2": "Variablen in Beispielen ergänzt, um flexibler Tests daraus zu bauen",
-        "c3": "Filter- und Suchsystem ergänzt, um Beispiele und Tests schneller wiederzufinden",
-        "c4": "Neues Fenster zum Test-Erstellen für einen klareren Workflow"
+        "c3": "Filter- und Suchsystem ergänzt, um Beispiele und Tests schneller wiederzufinden"
       }
     },
     "actions": {

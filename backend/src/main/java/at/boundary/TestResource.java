@@ -1,7 +1,7 @@
 package at.boundary;
 
+import at.dtos.Folder.MoveTestToFolderDTO;
 import at.dtos.Test.CreateTestDTO;
-import at.dtos.Test.MoveTestToFolderDTO;
 import at.dtos.Test.TestOverviewDTO;
 import at.repository.TestRepository;
 import jakarta.inject.Inject;

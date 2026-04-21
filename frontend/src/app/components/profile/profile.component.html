@@ -1,13 +1,4 @@
 <main class="profile-page" [attr.aria-label]="'profile.ariaPage' | translate">
-  <header class="page-header">
-    <div>
-      <div class="title-icon">
-        <mat-icon>person</mat-icon>
-      </div>
-      <h1 class="page-title">{{ 'profile.title' | translate }}</h1>
-    </div>
-  </header>
-
   @if (loading) {
     <section class="loading-card">
       <mat-icon>hourglass_top</mat-icon>
@@ -96,6 +87,17 @@
             </label>
           </div>
 
+          <div class="setting-language-card">
+            <div class="setting-copy">
+              <div class="setting-title">{{ 'profile.language' | translate }}</div>
+            </div>
+
+            <select formControlName="language" class="native-select">
+              <option value="de">{{ 'languages.de' | translate }}</option>
+              <option value="en">{{ 'languages.en' | translate }}</option>
+            </select>
+          </div>
+
           <div class="setting-card">
             <div class="setting-copy">
               <div class="setting-title">{{ 'profile.allowInvitations' | translate }}</div>
@@ -107,17 +109,6 @@
                 <span class="switch-thumb"></span>
               </span>
             </label>
-          </div>
-
-          <div class="setting-language-card">
-            <div class="setting-copy">
-              <div class="setting-title">{{ 'profile.language' | translate }}</div>
-            </div>
-
-            <select formControlName="language" class="native-select">
-              <option value="de">{{ 'languages.de' | translate }}</option>
-              <option value="en">{{ 'languages.en' | translate }}</option>
-            </select>
           </div>
         </div>
       </article>

@@ -65,7 +65,7 @@ public class Test {
 
     @ManyToOne
     @JoinColumn(name = "folder_id")
-    private TestFolder folder;
+    private Folder folder;
 
     private Timestamp createdAt;
     private Timestamp updatedAt;
@@ -196,11 +196,11 @@ public class Test {
         this.manualGradeMinimums = manualGradeMinimums != null ? new HashMap<>(manualGradeMinimums) : new HashMap<>();
     }
 
-    public TestFolder getFolder() {
+    public Folder getFolder() {
         return folder;
     }
 
-    public void setFolder(TestFolder folder) {
+    public void setFolder(Folder folder) {
         this.folder = folder;
     }
 

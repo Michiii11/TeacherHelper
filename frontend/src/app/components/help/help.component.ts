@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import {Component, OnInit, inject, signal, OnDestroy} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import {MatButtonToggle, MatButtonToggleGroup} from '@angular/material/button-toggle'
 import {FormsModule} from '@angular/forms'
+import {NavbarActionsService} from '../navigation/navbar-actions.service'
 
 type HelpTab = 'docs' | 'changelog';
 
@@ -24,9 +25,10 @@ type HelpTab = 'docs' | 'changelog';
   templateUrl: './help.component.html',
   styleUrl: './help.component.scss'
 })
-export class HelpComponent implements OnInit {
+export class HelpComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  navbarActions = inject(NavbarActionsService)
 
   activeTab = signal<HelpTab>('changelog');
 
@@ -87,7 +89,6 @@ export class HelpComponent implements OnInit {
         'help.changelog.v110.c1',
         'help.changelog.v110.c2',
         'help.changelog.v110.c3',
-        'help.changelog.v110.c4',
       ]
     },
     {
@@ -108,6 +109,8 @@ export class HelpComponent implements OnInit {
       const tab = params.get('tab');
       this.activeTab.set(tab === 'docs' ? 'docs' : 'changelog');
     });
+
+    this.setNavbarActions()
   }
 
   onTabChange(index: number): void {
@@ -119,5 +122,27 @@ export class HelpComponent implements OnInit {
       queryParams: { tab },
       queryParamsHandling: 'merge'
     });
+  }
+
+  ngOnDestroy(): void {
+    this.navbarActions.clearAll();
+  }
+
+  private setNavbarActions(): void {
+    this.navbarActions.setBreadcrumbs([
+      {
+        labelKey: 'navbar.help',
+        route: ['/help']
+      }
+    ]);
+
+    this.navbarActions.setActions([
+      {
+        labelKey: 'help.startTutorial',
+        icon: 'add_circle',
+        variant: 'flat',
+        action: () => {}
+      }
+    ]);
   }
 }

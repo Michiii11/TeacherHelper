@@ -15,7 +15,6 @@ import { NavbarActionsService } from '../navigation/navbar-actions.service';
 @Component({
   selector: 'app-home',
   imports: [
-    MatButton,
     MatCard,
     FormsModule,
     NgForOf,
@@ -45,10 +44,17 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.navbarActions.clearActions();
+    this.navbarActions.clearAll();
   }
 
   private setNavbarActions(): void {
+    this.navbarActions.setBreadcrumbs([
+      {
+        labelKey: 'navbar.home',
+        route: ['/home']
+      }
+    ]);
+
     this.navbarActions.setActions([
       {
         labelKey: 'home.createSchool',

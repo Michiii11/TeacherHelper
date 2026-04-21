@@ -132,10 +132,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    this.navbarActions.clearActions();
+    this.navbarActions.clearAll();
   }
 
   private setNavbarActions(): void {
+    this.navbarActions.setBreadcrumbs([
+      {
+        labelKey: 'profile.title',
+        route: '/profile'
+      }
+    ])
+
     this.navbarActions.setActions([
       {
         labelKey: 'common.logout',

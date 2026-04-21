@@ -8,6 +8,7 @@ import {ProfileComponent} from './components/profile/profile.component'
 import {LegalPageComponent} from './components/legal-page/legal-page.component'
 import {LandingPageComponent} from './components/landing-page/landing-page.component'
 import {HelpComponent} from './components/help/help.component'
+import {AdminComponent} from './components/admin/admin.component'
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
@@ -15,6 +16,8 @@ export const routes: Routes = [
   { path: 'collection/:id', component: SchoolComponent, canActivate: [AuthGuard] },
   { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
   { path: 'login', component: LoginComponent },
+
+  { path: 'admin', component: AdminComponent },
 
   {
     path: 'help',

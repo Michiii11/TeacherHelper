@@ -27,6 +27,6 @@ public record CreateExampleDTO(
         List<ExampleVariableDTO> variables,
         Integer imageWidth,
         Integer solutionImageWidth,
-        String folderId
+        Long folderId
 ) {
 }

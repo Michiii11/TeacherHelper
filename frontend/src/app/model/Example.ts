@@ -90,6 +90,7 @@ export interface CreateExampleDTO {
   variables?: ExampleVariable[];
   imageWidth: number | null;
   solutionImageWidth: number | null;
+  folderId?: string | null;
   imageFile?: File;
   solutionFile?: File;
 }
@@ -133,24 +134,7 @@ export interface ExampleOverviewDTO {
 }
 
 
-export interface ExampleFolderDTO {
-  id: string;
-  name: string;
-  schoolId: string;
-  parentId: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateExampleFolderDTO {
-  name: string;
-  parentId: string | null;
-}
-
-export interface UpdateExampleFolderDTO {
-  name: string;
-}
-
 export interface MoveExampleToFolderDTO {
   folderId: string | null;
+  authToken: string;
 }

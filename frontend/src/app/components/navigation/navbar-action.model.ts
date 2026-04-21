@@ -7,3 +7,10 @@ export interface NavbarAction {
   visible?: boolean;
   disabled?: boolean;
 }
+
+export interface NavbarBreadcrumb {
+  label?: string;
+  labelKey?: string;
+  route?: string | any[];
+  clickable?: boolean;
+}

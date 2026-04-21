@@ -39,7 +39,7 @@
   align-items: center;
   min-width: 0;
   width: 20%;
-  gap: .3rem;
+  gap: .25rem;
 
   img {
     width: 100%;
@@ -53,7 +53,7 @@
   font-weight: 600;
   font-size: 1.2rem;
   transition: all .2s ease;
-  padding-inline: .25rem !important;
+  padding-inline: .5rem !important;
 }
 
 .navbar-left a[mat-button]:hover {

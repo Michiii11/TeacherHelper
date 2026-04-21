@@ -2,15 +2,21 @@
   <mat-toolbar class="navbar">
     <div class="navbar-container">
       <div class="navbar-left">
-        <img [src]="getLogo()" alt="">
+        <button mat-icon-button routerLink="/home">
+          <mat-icon>home</mat-icon>
+        </button>
 
-        <div>
-          /
-        </div>
+        @for (crumb of breadcrumbs; track crumb.route || crumb.labelKey || crumb.label || $index; let last = $last) {
+          <div>/</div>
 
-        <a mat-button routerLink="/home" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
-          {{ 'navbar.home' | translate }}
-        </a>
+          <a
+            mat-button
+            [routerLink]="crumb.route"
+            routerLinkActive="active-link"
+            [routerLinkActiveOptions]="{ exact: true }">
+            {{ crumb.labelKey ? (crumb.labelKey | translate) : crumb.label }}
+          </a>
+        }
       </div>
 
       <nav class="navbar-right">
@@ -61,6 +67,10 @@
 
         <button mat-icon-button class="icon-btn" routerLink="/help">
           <mat-icon>help</mat-icon>
+        </button>
+
+        <button mat-icon-button class="icon-btn" routerLink="/admin" *ngIf="isAdmin()">
+          <mat-icon>dashboard</mat-icon>
         </button>
 
         <button mat-icon-button class="icon-btn notif-trigger" [matMenuTriggerFor]="notifMenu">

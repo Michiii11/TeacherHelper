@@ -369,8 +369,6 @@ public class UserResource {
 
     @DELETE
     @Path("profile-image")
-    @Consumes(MediaType.TEXT_PLAIN)
-    @Produces(MediaType.TEXT_PLAIN)
     public Response deleteProfileImage(String authToken) {
         Long userId = tokenFromDto(authToken);
         if (userId == null) {
@@ -386,5 +384,25 @@ public class UserResource {
         repo.updateProfileImageUrl(userId, null);
 
         return Response.ok("Profilbild gelöscht.").build();
+    }
+
+    @GET
+    @Path("isAdmin")
+    public Response isAdmin(@QueryParam("authToken") String authToken) {
+        Long userId = tokenFromDto(authToken);
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity("Ungültiger Token")
+                    .build();
+        }
+
+        User user = repo.findById(userId);
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("Benutzer nicht gefunden.")
+                    .build();
+        }
+
+        return Response.ok(Map.of("isAdmin", user.isAdmin())).build();
     }
 }
