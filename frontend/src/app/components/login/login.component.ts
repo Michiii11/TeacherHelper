@@ -32,8 +32,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
     MatCardContent,
     NgIf,
     MatCardActions,
-    NgClass,
-    TranslatePipe
+    NgClass
   ],
   styleUrl: './login.component.scss'
 })

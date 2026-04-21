@@ -1,0 +1,305 @@
+<main class="admin-dashboard">
+  <section class="hero-grid">
+    <mat-card class="hero-card stat-card primary-tone">
+      <div class="stat-kicker">Aktive User</div>
+      <div class="stat-value">{{ activeUsersCount }}</div>
+      <div class="stat-meta">ohne deaktivierte Accounts</div>
+    </mat-card>
+
+    <mat-card class="hero-card stat-card success-tone">
+      <div class="stat-kicker">Deaktiviert</div>
+      <div class="stat-value">{{ disabledUsersCount }}</div>
+      <div class="stat-meta">momentan gesperrte User</div>
+    </mat-card>
+
+    <mat-card class="hero-card stat-card warning-tone">
+      <div class="stat-kicker">Neu im letzten Monat</div>
+      <div class="stat-value">{{ newUsersThisMonth }}</div>
+      <div class="stat-meta">created recently</div>
+    </mat-card>
+
+    <mat-card class="hero-card stat-card dark-tone pending-card">
+      <div class="stat-kicker">Lokale Änderungen</div>
+      <div class="stat-value">{{ pendingChangeCount }}</div>
+      <div class="stat-meta">erst lokal, noch nicht am Server</div>
+
+      <div class="pending-actions">
+        <button mat-stroked-button type="button" (click)="discardAllChanges()" [disabled]="pendingChangeCount === 0">
+          <mat-icon>restore</mat-icon>
+          Verwerfen
+        </button>
+        <button mat-flat-button color="primary" type="button" (click)="saveAllChanges()" [disabled]="pendingChangeCount === 0 || saving">
+          <mat-icon>save</mat-icon>
+          Speichern
+        </button>
+      </div>
+    </mat-card>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Erstellte Inhalte</h2>
+        <p class="section-subtitle">Überblick für Sammlungen, Examples und Tests</p>
+      </div>
+    </div>
+
+    <div class="metric-panels">
+      <mat-card class="metric-card">
+        <div class="metric-title-row">
+          <div>
+            <div class="metric-kicker">Sammlungen</div>
+            <h3>Collections</h3>
+          </div>
+          <mat-icon>folder</mat-icon>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-chip" *ngFor="let window of activityWindows">
+            <span>{{ window.label }}</span>
+            <strong>{{ dashboardMetrics.collections[window.key] }}</strong>
+          </div>
+        </div>
+      </mat-card>
+
+      <mat-card class="metric-card">
+        <div class="metric-title-row">
+          <div>
+            <div class="metric-kicker">Examples</div>
+            <h3>Aufgaben</h3>
+          </div>
+          <mat-icon>post_add</mat-icon>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-chip" *ngFor="let window of activityWindows">
+            <span>{{ window.label }}</span>
+            <strong>{{ dashboardMetrics.examples[window.key] }}</strong>
+          </div>
+        </div>
+      </mat-card>
+
+      <mat-card class="metric-card">
+        <div class="metric-title-row">
+          <div>
+            <div class="metric-kicker">Tests</div>
+            <h3>Prüfungen</h3>
+          </div>
+          <mat-icon>assignment</mat-icon>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-chip" *ngFor="let window of activityWindows">
+            <span>{{ window.label }}</span>
+            <strong>{{ dashboardMetrics.tests[window.key] }}</strong>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+  </section>
+
+  <section class="section layout-grid">
+    <article class="panel user-list-panel">
+      <div class="panel-header sticky-header">
+        <div>
+          <h2 class="section-title">Nutzerübersicht</h2>
+          <p class="section-subtitle">Suchen, sortieren, IDs kopieren, deaktivieren, Tier anpassen</p>
+        </div>
+
+        <div class="toolbar-grid">
+          <label class="control search-control search-control-wide">
+            <input type="text" [(ngModel)]="search" placeholder="Suche nach Name, Mail, ID oder Tier">
+          </label>
+
+          <label class="control select-control">
+            <span>Sortierung</span>
+            <select [(ngModel)]="sort">
+              <option value="lastActive">Zuletzt aktiv</option>
+              <option value="newest">Neueste zuerst</option>
+              <option value="oldest">Älteste zuerst</option>
+              <option value="nameAsc">Name A–Z</option>
+              <option value="nameDesc">Name Z–A</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="user-list">
+        <button
+          type="button"
+          class="user-card"
+          *ngFor="let user of visibleUsers; trackBy: trackByUserId"
+          [class.selected]="selectedUserId === user.id"
+          [class.has-pending]="hasPendingChanges(user.id)"
+          (click)="selectUser(user)">
+
+          <div class="user-card-top">
+            <div class="avatar-tile">{{ user.username.slice(0, 2).toUpperCase() }}</div>
+
+            <div class="user-main">
+              <div class="user-name-row">
+                <div class="user-name">{{ user.username }}</div>
+                <span class="badge tier-badge">{{ user.tier }}</span>
+                <span class="badge pending-badge" *ngIf="hasPendingChanges(user.id)">lokal geändert</span>
+              </div>
+
+              <div class="user-email">{{ user.email }}</div>
+              <div class="user-meta-row">
+                <span>#{{ user.id }}</span>
+                <span>erstellt: {{ user.createdAt | date:'dd.MM.yyyy' }}</span>
+                <span>aktiv: {{ getLastActiveLabel(user.lastActiveAt) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="user-stats-row">
+            <div class="mini-stat">
+              <span>Sammlungen</span>
+              <strong>{{ user.collectionsCount }}</strong>
+            </div>
+            <div class="mini-stat">
+              <span>Examples</span>
+              <strong>{{ user.examplesCount }}</strong>
+            </div>
+            <div class="mini-stat">
+              <span>Tests</span>
+              <strong>{{ user.testsCount }}</strong>
+            </div>
+          </div>
+
+          <div class="user-actions-row" (click)="$event.stopPropagation()">
+            <button mat-icon-button type="button" (click)="copyUserId(user)" title="ID kopieren">
+              <mat-icon>content_copy</mat-icon>
+            </button>
+            <button mat-icon-button type="button" (click)="moveUser(user, -1)" title="Nach oben">
+              <mat-icon>arrow_upward</mat-icon>
+            </button>
+            <button mat-icon-button type="button" (click)="moveUser(user, 1)" title="Nach unten">
+              <mat-icon>arrow_downward</mat-icon>
+            </button>
+          </div>
+        </button>
+
+        <div class="empty-state" *ngIf="!visibleUsers.length">
+          <mat-icon>person_search</mat-icon>
+          <h3>Keine User gefunden</h3>
+          <p>Probier eine andere Suche oder Sortierung.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel detail-panel" *ngIf="selectedUser as user">
+      <div class="panel-header">
+        <div class="detail-title-row">
+          <div class="avatar-lg">{{ user.username.slice(0, 2).toUpperCase() }}</div>
+          <div>
+            <h2 class="section-title">{{ user.username }}</h2>
+            <p class="section-subtitle">{{ user.email }} · ID {{ user.id }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-grid">
+        <mat-card class="detail-card">
+          <div class="detail-card-header">
+            <h3>Account</h3>
+            <span class="status-pill" [ngClass]="user.isDisabled ? 'status-danger' : 'status-success'">
+              {{ user.isDisabled ? 'Deaktiviert' : 'Aktiv' }}
+            </span>
+          </div>
+
+          <div class="form-grid">
+            <label class="control switch-row">
+              <div>
+                <div class="control-label">Nutzer deaktivieren</div>
+                <div class="control-help">Wird nur lokal vorgemerkt, bis gespeichert wird.</div>
+              </div>
+              <button mat-stroked-button type="button" [ngClass]="user.isDisabled ? 'warn-btn' : ''" (click)="toggleDisabled(user)">
+                <mat-icon>{{ user.isDisabled ? 'lock_open' : 'block' }}</mat-icon>
+                {{ user.isDisabled ? 'Wieder aktivieren' : 'Deaktivieren' }}
+              </button>
+            </label>
+
+            <label class="control">
+              <span class="control-label">Tier</span>
+              <select [ngModel]="user.tier" (ngModelChange)="changeTier(user, $event)">
+                <option *ngFor="let tier of tierOptions" [ngValue]="tier">{{ tier }}</option>
+              </select>
+            </label>
+
+            <label class="control">
+              <span class="control-label">Tier Ablaufdatum</span>
+              <input
+                type="date"
+                [ngModel]="getTierExpiryInputValue(user.tierExpiresAt)"
+                (ngModelChange)="changeTierExpiry(user, $event)">
+            </label>
+          </div>
+
+          <div class="info-list">
+            <div class="info-row"><span>Erstellt</span><strong>{{ user.createdAt | date:'dd.MM.yyyy HH:mm' }}</strong></div>
+            <div class="info-row"><span>Zuletzt aktiv</span><strong>{{ user.lastActiveAt | date:'dd.MM.yyyy HH:mm' }}</strong></div>
+            <div class="info-row"><span>Lokale Änderungen</span><strong>{{ hasPendingChanges(user.id) ? 'Ja' : 'Nein' }}</strong></div>
+          </div>
+        </mat-card>
+
+        <mat-card class="detail-card">
+          <div class="detail-card-header">
+            <h3>Eigene Inhalte</h3>
+            <span class="badge soft-badge">nur von diesem User</span>
+          </div>
+
+          <div class="owned-sections">
+            <div class="owned-block">
+              <div class="owned-head">
+                <span>Sammlungen</span>
+                <strong>{{ user.collections.length }}</strong>
+              </div>
+              <div class="owned-list">
+                <div class="owned-item" *ngFor="let item of user.collections | slice:0:6; trackBy: trackByItemId">
+                  <div>
+                    <div class="owned-title">{{ item.title }}</div>
+                    <div class="owned-meta">#{{ item.id }} · {{ item.updatedAt | date:'dd.MM.yyyy HH:mm' }}</div>
+                  </div>
+                  <mat-icon>folder</mat-icon>
+                </div>
+              </div>
+            </div>
+
+            <div class="owned-block">
+              <div class="owned-head">
+                <span>Examples</span>
+                <strong>{{ user.examples.length }}</strong>
+              </div>
+              <div class="owned-list">
+                <div class="owned-item" *ngFor="let item of user.examples | slice:0:6; trackBy: trackByItemId">
+                  <div>
+                    <div class="owned-title">{{ item.title }}</div>
+                    <div class="owned-meta">#{{ item.id }} · {{ item.updatedAt | date:'dd.MM.yyyy HH:mm' }}</div>
+                  </div>
+                  <mat-icon>post_add</mat-icon>
+                </div>
+              </div>
+            </div>
+
+            <div class="owned-block">
+              <div class="owned-head">
+                <span>Tests</span>
+                <strong>{{ user.tests.length }}</strong>
+              </div>
+              <div class="owned-list">
+                <div class="owned-item" *ngFor="let item of user.tests | slice:0:6; trackBy: trackByItemId">
+                  <div>
+                    <div class="owned-title">{{ item.title }}</div>
+                    <div class="owned-meta">#{{ item.id }} · {{ item.updatedAt | date:'dd.MM.yyyy HH:mm' }}</div>
+                  </div>
+                  <mat-icon>assignment</mat-icon>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-card>
+      </div>
+    </article>
+  </section>
+</main>
