@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { Injectable, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -8,6 +9,7 @@ export type AppLanguage = 'de' | 'en';
 })
 export class LanguageService {
   private readonly translate = inject(TranslateService);
+  private readonly document = inject(DOCUMENT);
 
   private readonly STORAGE_KEY = 'teacher_settings_language';
   private readonly supportedLanguages: AppLanguage[] = ['de', 'en'];
@@ -29,6 +31,10 @@ export class LanguageService {
 
     localStorage.removeItem(this.STORAGE_KEY);
     this.applyLanguage(this.getSystemLanguage(), false);
+  }
+
+  setLanguage(language: AppLanguage): void {
+    this.applyLanguage(language, true);
   }
 
   getStoredLanguage(): AppLanguage | null {
@@ -56,7 +62,7 @@ export class LanguageService {
 
   private applyLanguage(language: AppLanguage, persist: boolean): void {
     this.translate.use(language);
-    document.documentElement.lang = language;
+    this.document.documentElement.lang = language;
 
     if (persist) {
       localStorage.setItem(this.STORAGE_KEY, language);

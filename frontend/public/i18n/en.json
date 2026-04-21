@@ -942,5 +942,58 @@
     "multipleChoice": "Choose one or more options.",
     "gapFill": "Fill the gaps by selecting or typing.",
     "assign": "Match elements to each other."
+  },
+  "auth": {
+    "tabs": {
+      "login": "Login",
+      "register": "Register"
+    },
+    "username": {
+      "label": "Username",
+      "error": "At least 3 characters"
+    },
+    "email": {
+      "label": "Email",
+      "error": "Valid email required"
+    },
+    "password": {
+      "label": "Password",
+      "required": "Password required",
+      "min": "At least 8 characters"
+    },
+    "actions": {
+      "show": "Show",
+      "hide": "Hide"
+    },
+    "forgot": {
+      "open": "Forgot password?",
+      "title": "Reset password",
+      "description": "Enter your email address and we will send you a reset link.",
+      "submit": "Send reset link"
+    },
+    "reset": {
+      "title": "Set new password",
+      "description": "Please enter your new password.",
+      "newPassword": "New password",
+      "confirmPassword": "Repeat new password",
+      "confirmRequired": "Confirmation required",
+      "submit": "Set password"
+    },
+    "verify": {
+      "loading": "Verifying email...",
+      "resend": "Resend verification email"
+    },
+    "preferences": {
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "messages": {
+      "passwordMismatch": "The new passwords do not match.",
+      "forgotError": "Password reset could not be requested.",
+      "resetError": "Password could not be reset.",
+      "enterRegisterEmailFirst": "Please enter an email first in the register tab.",
+      "resendError": "Verification email could not be sent.",
+      "verifyError": "Email could not be verified."
+    }
   }
 }

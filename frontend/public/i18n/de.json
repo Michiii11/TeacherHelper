@@ -934,5 +934,58 @@
     "multipleChoice": "Eine oder mehrere Optionen auswählen.",
     "gapFill": "Lücken durch Auswahl oder Eingabe füllen.",
     "assign": "Elemente einander zuordnen."
+  },
+  "auth": {
+    "tabs": {
+      "login": "Login",
+      "register": "Registrieren"
+    },
+    "username": {
+      "label": "Benutzername",
+      "error": "Mindestens 3 Zeichen"
+    },
+    "email": {
+      "label": "E-Mail",
+      "error": "Gültige E-Mail erforderlich"
+    },
+    "password": {
+      "label": "Passwort",
+      "required": "Passwort erforderlich",
+      "min": "Mindestens 8 Zeichen"
+    },
+    "actions": {
+      "show": "Anzeigen",
+      "hide": "Verbergen"
+    },
+    "forgot": {
+      "open": "Passwort vergessen?",
+      "title": "Passwort zurücksetzen",
+      "description": "Gib deine E-Mail-Adresse ein und wir senden dir einen Reset-Link.",
+      "submit": "Reset-Link senden"
+    },
+    "reset": {
+      "title": "Neues Passwort setzen",
+      "description": "Bitte gib dein neues Passwort ein.",
+      "newPassword": "Neues Passwort",
+      "confirmPassword": "Neues Passwort wiederholen",
+      "confirmRequired": "Bestätigung erforderlich",
+      "submit": "Passwort setzen"
+    },
+    "verify": {
+      "loading": "E-Mail wird bestätigt...",
+      "resend": "Bestätigungs-Mail erneut senden"
+    },
+    "preferences": {
+      "light": "Hell",
+      "dark": "Dunkel"
+    },
+    "messages": {
+      "passwordMismatch": "Die neuen Passwörter stimmen nicht überein.",
+      "forgotError": "Passwort-Reset konnte nicht angefordert werden.",
+      "resetError": "Passwort konnte nicht zurückgesetzt werden.",
+      "enterRegisterEmailFirst": "Bitte zuerst im Registrieren-Tab eine E-Mail eingeben.",
+      "resendError": "Bestätigungs-Mail konnte nicht gesendet werden.",
+      "verifyError": "E-Mail konnte nicht bestätigt werden."
+    }
   }
 }

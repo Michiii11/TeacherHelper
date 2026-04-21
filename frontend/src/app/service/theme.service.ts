@@ -1,32 +1,21 @@
-import {inject, Injectable} from '@angular/core';
-import {DOCUMENT} from '@angular/common'
+import { DOCUMENT } from '@angular/common';
+import { Injectable, inject } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ThemeService {
   private readonly STORAGE_KEY = 'teacher_settings_dark_mode';
-  private readonly DARK_CLASS = 'dark-theme';
-
+  private readonly DARK_CLASS = 'dark-mode';
   private readonly document = inject(DOCUMENT);
 
   init(): void {
-    const enabled = localStorage.getItem(this.STORAGE_KEY) === 'true';
-    this.apply(enabled);
-    const stored = this.getStoredPreference();
-    const resolved = stored ?? this.getSystemPreference();
+    const resolved = this.getStoredPreference() ?? this.getSystemPreference();
     this.applyDarkMode(resolved, false);
   }
 
   setDarkMode(enabled: boolean): void {
-    localStorage.setItem(this.STORAGE_KEY, String(enabled));
-    this.apply(enabled);
-  }
-
-  private apply(enabled: boolean): void {
-    this.document.body.classList.toggle('dark-mode', enabled);
-    this.document.documentElement.classList.toggle('dark-mode', enabled);
-    this.document.documentElement.style.colorScheme = enabled ? 'dark' : 'light';
+    this.applyDarkMode(enabled, true);
   }
 
   applyUserPreference(darkMode: boolean | null | undefined): void {
@@ -61,7 +50,9 @@ export class ThemeService {
   }
 
   private applyDarkMode(darkMode: boolean, persist: boolean): void {
-    document.body.classList.toggle(this.DARK_CLASS, darkMode);
+    this.document.body.classList.toggle(this.DARK_CLASS, darkMode);
+    this.document.documentElement.classList.toggle(this.DARK_CLASS, darkMode);
+    this.document.documentElement.style.colorScheme = darkMode ? 'dark' : 'light';
 
     if (persist) {
       localStorage.setItem(this.STORAGE_KEY, String(darkMode));

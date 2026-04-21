@@ -7,12 +7,13 @@ import { HttpService } from '../../service/http.service';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { NgClass, NgIf } from '@angular/common';
-import { AuthResult } from '../../model/User';
+import { AuthResult, User } from '../../model/User';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../service/auth.service';
-import {ThemeService} from '../../service/theme.service'
-import {LanguageService} from '../../service/language.service'
+import { ThemeService } from '../../service/theme.service';
+import { AppLanguage, LanguageService } from '../../service/language.service';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-login',
@@ -31,7 +32,8 @@ import {LanguageService} from '../../service/language.service'
     MatCardContent,
     NgIf,
     MatCardActions,
-    NgClass
+    NgClass,
+    TranslatePipe
   ],
   styleUrl: './login.component.scss'
 })
@@ -68,7 +70,8 @@ export class LoginComponent implements OnInit {
     private route: ActivatedRoute,
     private authService: AuthService,
     private themeService: ThemeService,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private translate: TranslateService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -92,6 +95,9 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.themeService.init();
+    this.languageService.init();
+
     const token = localStorage.getItem('teacher_authToken');
     const userId = localStorage.getItem('teacher_userId');
 
@@ -123,6 +129,22 @@ export class LoginComponent implements OnInit {
     if (!this.resetToken) {
       this.showForgotPassword = false;
     }
+  }
+
+  setLanguage(language: AppLanguage): void {
+    this.languageService.setLanguage(language);
+  }
+
+  setDarkMode(enabled: boolean): void {
+    this.themeService.setDarkMode(enabled);
+  }
+
+  isLanguageSelected(language: AppLanguage): boolean {
+    return this.languageService.resolveLanguage(undefined) === language;
+  }
+
+  isDarkModeSelected(enabled: boolean): boolean {
+    return this.themeService.resolveDarkMode(undefined) === enabled;
   }
 
   openForgotPassword() {
@@ -169,12 +191,8 @@ export class LoginComponent implements OnInit {
 
         this.http.getUser().subscribe({
           next: user => {
-            const resolvedDarkMode = this.themeService.resolveDarkMode(user.settings?.darkMode ?? null);
-            const resolvedLanguage = this.languageService.resolveLanguage(user.settings?.language ?? null);
-
-            this.themeService.setDarkMode(resolvedDarkMode);
-            this.languageService.applyUserPreference(resolvedLanguage);
-
+            this.applyResolvedPreferences(user);
+            this.syncGuestPreferencesToBackendIfMissing(user);
             this.router.navigate(['/home']);
           },
           error: () => {
@@ -209,12 +227,8 @@ export class LoginComponent implements OnInit {
 
         this.http.getUser().subscribe({
           next: user => {
-            const resolvedDarkMode = this.themeService.resolveDarkMode(user.settings?.darkMode ?? null);
-            const resolvedLanguage = this.languageService.resolveLanguage(user.settings?.language ?? null);
-
-            this.themeService.setDarkMode(resolvedDarkMode);
-            this.languageService.applyUserPreference(resolvedLanguage);
-
+            this.applyResolvedPreferences(user);
+            this.syncGuestPreferencesToBackendIfMissing(user);
             this.router.navigate(['/home']);
           },
           error: () => {
@@ -244,7 +258,7 @@ export class LoginComponent implements OnInit {
         this.snackBar.open(message, '', { duration: 3500, panelClass: 'snack-success' });
       },
       error: (err) => {
-        const message = typeof err?.error === 'string' ? err.error : 'Passwort-Reset konnte nicht angefordert werden.';
+        const message = typeof err?.error === 'string' ? err.error : this.translate.instant('auth.messages.forgotError');
         this.forgotSuccess = false;
         this.forgotMessage = message;
         this.snackBar.open(message, '', { duration: 3500, panelClass: 'snack-error' });
@@ -263,7 +277,7 @@ export class LoginComponent implements OnInit {
 
     if (password !== confirmPassword) {
       this.resetSuccess = false;
-      this.resetMessage = 'Die neuen Passwörter stimmen nicht überein.';
+      this.resetMessage = this.translate.instant('auth.messages.passwordMismatch');
       this.snackBar.open(this.resetMessage, '', { duration: 3500, panelClass: 'snack-error' });
       return;
     }
@@ -294,7 +308,7 @@ export class LoginComponent implements OnInit {
         });
       },
       error: (err) => {
-        const message = typeof err?.error === 'string' ? err.error : 'Passwort konnte nicht zurückgesetzt werden.';
+        const message = typeof err?.error === 'string' ? err.error : this.translate.instant('auth.messages.resetError');
         this.resetSuccess = false;
         this.resetMessage = message;
         this.snackBar.open(message, '', { duration: 3500, panelClass: 'snack-error' });
@@ -306,7 +320,7 @@ export class LoginComponent implements OnInit {
     const email = this.registerForm.value.email;
 
     if (!email) {
-      this.snackBar.open('Bitte zuerst im Registrieren-Tab eine E-Mail eingeben.', '', {
+      this.snackBar.open(this.translate.instant('auth.messages.enterRegisterEmailFirst'), '', {
         duration: 3000,
         panelClass: 'snack-error'
       });
@@ -318,7 +332,7 @@ export class LoginComponent implements OnInit {
         this.snackBar.open(message, '', { duration: 3500, panelClass: 'snack-success' });
       },
       error: (err) => {
-        const message = typeof err?.error === 'string' ? err.error : 'Bestätigungs-Mail konnte nicht gesendet werden.';
+        const message = typeof err?.error === 'string' ? err.error : this.translate.instant('auth.messages.resendError');
         this.snackBar.open(message, '', { duration: 3500, panelClass: 'snack-error' });
       }
     });
@@ -338,13 +352,39 @@ export class LoginComponent implements OnInit {
       },
       error: (err) => {
         this.verifying = false;
-        const message = typeof err?.error === 'string' ? err.error : 'E-Mail konnte nicht bestätigt werden.';
+        const message = typeof err?.error === 'string' ? err.error : this.translate.instant('auth.messages.verifyError');
         this.snackBar.open(message, '', { duration: 3500, panelClass: 'snack-error' });
         this.router.navigate([], {
           queryParams: { verifyToken: null },
           queryParamsHandling: 'merge'
         });
       }
+    });
+  }
+
+  private applyResolvedPreferences(user: User): void {
+    const resolvedDarkMode = this.themeService.resolveDarkMode(user.settings?.darkMode ?? null);
+    const resolvedLanguage = this.languageService.resolveLanguage(user.settings?.language ?? null);
+
+    this.themeService.setDarkMode(resolvedDarkMode);
+    this.languageService.applyUserPreference(resolvedLanguage);
+  }
+
+  private syncGuestPreferencesToBackendIfMissing(user: User): void {
+    const shouldSyncDarkMode = user.settings?.darkMode === null || user.settings?.darkMode === undefined;
+    const shouldSyncLanguage = !user.settings?.language;
+
+    if (!shouldSyncDarkMode && !shouldSyncLanguage) {
+      return;
+    }
+
+    this.http.updateUserSettings({
+      darkMode: this.themeService.resolveDarkMode(user.settings?.darkMode ?? null),
+      language: this.languageService.resolveLanguage(user.settings?.language ?? null),
+      allowInvitations: user.settings?.allowInvitations ?? true
+    }).subscribe({
+      next: () => {},
+      error: () => {}
     });
   }
 
@@ -356,7 +396,7 @@ export class LoginComponent implements OnInit {
   }
 
   getLogo(): string {
-    const isDark = document.body.classList.contains('dark-mode');
+    const isDark = this.themeService.resolveDarkMode(undefined);
     return isDark ? '/darkmode.png' : '/lightmode.png';
   }
 }
