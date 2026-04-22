@@ -19,22 +19,25 @@ export class LanguageService {
     this.translate.addLangs(this.supportedLanguages);
     this.translate.setDefaultLang(this.defaultLanguage);
 
-    const lang = this.getStoredLanguage() ?? this.getSystemLanguage();
+    const lang = this.resolveLanguage(this.getStoredLanguage() ?? this.getSystemLanguage());
     this.applyLanguage(lang, false);
   }
 
   applyUserPreference(language: string | null | undefined): void {
+    const resolved = this.resolveLanguage(language);
+
     if (this.isSupported(language)) {
-      this.applyLanguage(language, true);
+      this.applyLanguage(resolved, true);
       return;
     }
 
     localStorage.removeItem(this.STORAGE_KEY);
-    this.applyLanguage(this.getSystemLanguage(), false);
+    this.applyLanguage(resolved, false);
   }
 
-  setLanguage(language: AppLanguage): void {
-    this.applyLanguage(language, true);
+  setLanguage(language: AppLanguage | string | null | undefined): void {
+    const resolved = this.resolveLanguage(language);
+    this.applyLanguage(resolved, true);
   }
 
   getStoredLanguage(): AppLanguage | null {
@@ -43,9 +46,9 @@ export class LanguageService {
   }
 
   getSystemLanguage(): AppLanguage {
-    const browserLang = this.translate.getBrowserLang() ?? navigator.language ?? 'de';
+    const browserLang = this.translate.getBrowserLang() ?? navigator.language ?? this.defaultLanguage;
 
-    if (browserLang.toLowerCase().startsWith('en')) {
+    if (String(browserLang).toLowerCase().startsWith('en')) {
       return 'en';
     }
 
@@ -57,15 +60,17 @@ export class LanguageService {
       return language;
     }
 
-    return this.getStoredLanguage() ?? this.getSystemLanguage();
+    return this.getStoredLanguage() ?? this.getSystemLanguage() ?? this.defaultLanguage;
   }
 
-  private applyLanguage(language: AppLanguage, persist: boolean): void {
-    this.translate.use(language);
-    this.document.documentElement.lang = language;
+  private applyLanguage(language: AppLanguage | string | null | undefined, persist: boolean): void {
+    const resolved = this.resolveLanguage(language);
+
+    this.translate.use(resolved);
+    this.document.documentElement.lang = resolved;
 
     if (persist) {
-      localStorage.setItem(this.STORAGE_KEY, language);
+      localStorage.setItem(this.STORAGE_KEY, resolved);
     }
   }
 

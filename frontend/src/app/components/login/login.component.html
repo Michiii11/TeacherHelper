@@ -2,32 +2,33 @@
   <div class="auth-header">
     <img [src]="getLogo()" alt="">
   </div>
+
   @if (verifying) {
-    <div class="feedback success">
-      E-Mail wird bestätigt...
+    <div class="feedback success auth-status">
+      {{ 'auth.verify.loading' | translate }}
     </div>
   }
 
   <mat-tab-group [(selectedIndex)]="selectedTab" (selectedIndexChange)="onTabChange($event)">
-    <mat-tab label="Login">
+    <mat-tab [label]="'auth.tabs.login' | translate">
       <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="auth-form">
         <mat-card-content>
           <mat-form-field subscriptSizing="fixed" appearance="outline" class="full-width">
-            <mat-label>E-Mail</mat-label>
+            <mat-label>{{ 'auth.email.label' | translate }}</mat-label>
             <input matInput formControlName="email" autocomplete="email">
             <mat-error *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
-              Gültige E-Mail erforderlich
+              {{ 'auth.email.error' | translate }}
             </mat-error>
           </mat-form-field>
 
           <mat-form-field subscriptSizing="fixed" appearance="outline" class="full-width">
-            <mat-label>Passwort</mat-label>
+            <mat-label>{{ 'auth.password.label' | translate }}</mat-label>
             <input matInput [type]="hideLoginPassword ? 'password' : 'text'" formControlName="password" autocomplete="current-password">
             <button mat-button matSuffix type="button" class="inline-action" (click)="hideLoginPassword = !hideLoginPassword">
-              {{ hideLoginPassword ? 'Anzeigen' : 'Verbergen' }}
+              {{ hideLoginPassword ? ('auth.actions.show' | translate) : ('auth.actions.hide' | translate) }}
             </button>
             <mat-error *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
-              Passwort erforderlich
+              {{ 'auth.password.required' | translate }}
             </mat-error>
           </mat-form-field>
 
@@ -36,45 +37,45 @@
           </div>
 
           <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid">
-            Login
+            {{ 'auth.tabs.login' | translate }}
           </button>
         </mat-card-content>
 
         <mat-card-actions class="action-row action-row-single">
           <button mat-button type="button" (click)="openForgotPassword()">
-            Passwort vergessen?
+            {{ 'auth.forgot.open' | translate }}
           </button>
         </mat-card-actions>
       </form>
     </mat-tab>
 
-    <mat-tab label="Registrieren">
+    <mat-tab [label]="'auth.tabs.register' | translate">
       <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="auth-form">
         <mat-card-content>
           <mat-form-field subscriptSizing="fixed" appearance="outline" class="full-width">
-            <mat-label>Benutzername</mat-label>
+            <mat-label>{{ 'auth.username.label' | translate }}</mat-label>
             <input matInput formControlName="username" autocomplete="username">
             <mat-error *ngIf="registerForm.get('username')?.invalid && registerForm.get('username')?.touched">
-              Mindestens 3 Zeichen
+              {{ 'auth.username.error' | translate }}
             </mat-error>
           </mat-form-field>
 
           <mat-form-field subscriptSizing="fixed" appearance="outline" class="full-width">
-            <mat-label>E-Mail</mat-label>
+            <mat-label>{{ 'auth.email.label' | translate }}</mat-label>
             <input matInput formControlName="email" autocomplete="email">
             <mat-error *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
-              Gültige E-Mail erforderlich
+              {{ 'auth.email.error' | translate }}
             </mat-error>
           </mat-form-field>
 
           <mat-form-field subscriptSizing="fixed" appearance="outline" class="full-width">
-            <mat-label>Passwort</mat-label>
+            <mat-label>{{ 'auth.password.label' | translate }}</mat-label>
             <input matInput [type]="hideRegisterPassword ? 'password' : 'text'" formControlName="password" autocomplete="new-password">
             <button mat-button matSuffix type="button" class="inline-action" (click)="hideRegisterPassword = !hideRegisterPassword">
-              {{ hideRegisterPassword ? 'Anzeigen' : 'Verbergen' }}
+              {{ hideRegisterPassword ? ('auth.actions.show' | translate) : ('auth.actions.hide' | translate) }}
             </button>
             <mat-error *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
-              Mindestens 8 Zeichen
+              {{ 'auth.password.min' | translate }}
             </mat-error>
           </mat-form-field>
 
@@ -83,13 +84,13 @@
           </div>
 
           <button mat-raised-button color="accent" type="submit" [disabled]="registerForm.invalid">
-            Registrieren
+            {{ 'auth.tabs.register' | translate }}
           </button>
         </mat-card-content>
 
         <mat-card-actions class="action-row action-row-single">
           <button mat-button type="button" (click)="resendVerificationFromRegister()">
-            Bestätigungs-Mail erneut senden
+            {{ 'auth.verify.resend' | translate }}
           </button>
         </mat-card-actions>
       </form>
@@ -99,11 +100,9 @@
   @if (showForgotPassword) {
     <div class="forgot-panel">
       <div class="forgot-header">
-        <h3>{{ resetToken ? 'Neues Passwort setzen' : 'Passwort zurücksetzen' }}</h3>
+        <h3>{{ resetToken ? ('auth.reset.title' | translate) : ('auth.forgot.title' | translate) }}</h3>
         <p>
-          {{ resetToken
-          ? 'Bitte gib dein neues Passwort ein.'
-          : 'Gib deine E-Mail-Adresse ein und wir senden dir einen Reset-Link.' }}
+          {{ resetToken ? ('auth.reset.description' | translate) : ('auth.forgot.description' | translate) }}
         </p>
       </div>
 
@@ -111,10 +110,10 @@
         <form [formGroup]="forgotForm" (ngSubmit)="onForgotPassword()" class="auth-form forgot-form">
           <mat-card-content>
             <mat-form-field subscriptSizing="fixed" appearance="outline" class="full-width">
-              <mat-label>E-Mail</mat-label>
+              <mat-label>{{ 'auth.email.label' | translate }}</mat-label>
               <input matInput formControlName="email" autocomplete="email">
               <mat-error *ngIf="forgotForm.get('email')?.invalid && forgotForm.get('email')?.touched">
-                Gültige E-Mail erforderlich
+                {{ 'auth.email.error' | translate }}
               </mat-error>
             </mat-form-field>
 
@@ -124,10 +123,10 @@
 
             <div class="forgot-actions">
               <button mat-raised-button color="primary" type="submit" [disabled]="forgotForm.invalid">
-                Reset-Link senden
+                {{ 'auth.forgot.submit' | translate }}
               </button>
               <button mat-button type="button" (click)="closeForgotPassword()">
-                Abbrechen
+                {{ 'common.cancel' | translate }}
               </button>
             </div>
           </mat-card-content>
@@ -136,24 +135,24 @@
         <form [formGroup]="resetForm" (ngSubmit)="onResetPassword()" class="auth-form forgot-form">
           <mat-card-content>
             <mat-form-field subscriptSizing="fixed" appearance="outline" class="full-width">
-              <mat-label>Neues Passwort</mat-label>
+              <mat-label>{{ 'auth.reset.newPassword' | translate }}</mat-label>
               <input matInput [type]="hideResetPassword ? 'password' : 'text'" formControlName="password" autocomplete="new-password">
               <button mat-button matSuffix type="button" class="inline-action" (click)="hideResetPassword = !hideResetPassword">
-                {{ hideResetPassword ? 'Anzeigen' : 'Verbergen' }}
+                {{ hideResetPassword ? ('auth.actions.show' | translate) : ('auth.actions.hide' | translate) }}
               </button>
               <mat-error *ngIf="resetForm.get('password')?.invalid && resetForm.get('password')?.touched">
-                Mindestens 8 Zeichen
+                {{ 'auth.password.min' | translate }}
               </mat-error>
             </mat-form-field>
 
             <mat-form-field subscriptSizing="fixed" appearance="outline" class="full-width">
-              <mat-label>Neues Passwort wiederholen</mat-label>
+              <mat-label>{{ 'auth.reset.confirmPassword' | translate }}</mat-label>
               <input matInput [type]="hideResetConfirmPassword ? 'password' : 'text'" formControlName="confirmPassword" autocomplete="new-password">
               <button mat-button matSuffix type="button" class="inline-action" (click)="hideResetConfirmPassword = !hideResetConfirmPassword">
-                {{ hideResetConfirmPassword ? 'Anzeigen' : 'Verbergen' }}
+                {{ hideResetConfirmPassword ? ('auth.actions.show' | translate) : ('auth.actions.hide' | translate) }}
               </button>
               <mat-error *ngIf="resetForm.get('confirmPassword')?.invalid && resetForm.get('confirmPassword')?.touched">
-                Bestätigung erforderlich
+                {{ 'auth.reset.confirmRequired' | translate }}
               </mat-error>
             </mat-form-field>
 
@@ -163,10 +162,10 @@
 
             <div class="forgot-actions">
               <button mat-raised-button color="primary" type="submit" [disabled]="resetForm.invalid">
-                Passwort setzen
+                {{ 'auth.reset.submit' | translate }}
               </button>
               <button mat-button type="button" (click)="closeForgotPassword()">
-                Schließen
+                {{ 'common.close' | translate }}
               </button>
             </div>
           </mat-card-content>
@@ -178,35 +177,23 @@
 
 
 <div class="auth-preferences">
-  <div class="pref-group">
-    <span class="pref-label">Language</span>
-    <div class="pref-actions">
-      <button mat-stroked-button type="button"
-              [class.selected]="isLanguageSelected('de')"
-              (click)="setLanguage('de')">
-        Deutsch
-      </button>
-      <button mat-stroked-button type="button"
-              [class.selected]="isLanguageSelected('en')"
-              (click)="setLanguage('en')">
-        English
-      </button>
-    </div>
-  </div>
+  <mat-button-toggle-group
+    [hideSingleSelectionIndicator]="true"
+    [value]="selectedLanguage"
+    (valueChange)="onLanguageChange($event)">
+    <mat-button-toggle value="de">{{ 'languages.de' | translate }}</mat-button-toggle>
+    <mat-button-toggle value="en">{{ 'languages.en' | translate }}</mat-button-toggle>
+  </mat-button-toggle-group>
 
-  <div class="pref-group">
-    <span class="pref-label">Theme</span>
-    <div class="pref-actions">
-      <button mat-stroked-button type="button"
-              [class.selected]="!isDarkModeSelected(true)"
-              (click)="setDarkMode(false)">
-        Light
-      </button>
-      <button mat-stroked-button type="button"
-              [class.selected]="isDarkModeSelected(true)"
-              (click)="setDarkMode(true)">
-        Dark
-      </button>
-    </div>
-  </div>
+  <mat-button-toggle-group
+    [hideSingleSelectionIndicator]="true"
+    [value]="selectedTheme"
+    (valueChange)="onThemeChange($event)">
+    <mat-button-toggle value="light" [aria-label]="'auth.preferences.light' | translate">
+      <mat-icon>light_mode</mat-icon>
+    </mat-button-toggle>
+    <mat-button-toggle value="dark" [aria-label]="'auth.preferences.dark' | translate">
+      <mat-icon>dark_mode</mat-icon>
+    </mat-button-toggle>
+  </mat-button-toggle-group>
 </div>

@@ -14,6 +14,8 @@ import { AuthService } from '../../service/auth.service';
 import { ThemeService } from '../../service/theme.service';
 import { AppLanguage, LanguageService } from '../../service/language.service';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'app-login',
@@ -32,7 +34,11 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
     MatCardContent,
     NgIf,
     MatCardActions,
-    NgClass
+    NgClass,
+    MatButtonToggle,
+    MatButtonToggleGroup,
+    TranslatePipe,
+    MatIcon
   ],
   styleUrl: './login.component.scss'
 })
@@ -69,7 +75,7 @@ export class LoginComponent implements OnInit {
     private route: ActivatedRoute,
     private authService: AuthService,
     private themeService: ThemeService,
-    private languageService: LanguageService,
+    protected languageService: LanguageService,
     private translate: TranslateService
   ) {
     this.loginForm = this.fb.group({
@@ -121,7 +127,15 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  onTabChange(index: number) {
+  get selectedLanguage(): AppLanguage {
+    return this.languageService.resolveLanguage(undefined);
+  }
+
+  get selectedTheme(): 'light' | 'dark' {
+    return this.themeService.resolveDarkMode(undefined) ? 'dark' : 'light';
+  }
+
+  onTabChange(index: number): void {
     this.selectedTab = index;
     this.clearMessages();
 
@@ -130,23 +144,15 @@ export class LoginComponent implements OnInit {
     }
   }
 
-  setLanguage(language: AppLanguage): void {
+  onLanguageChange(language: AppLanguage): void {
     this.languageService.setLanguage(language);
   }
 
-  setDarkMode(enabled: boolean): void {
-    this.themeService.setDarkMode(enabled);
+  onThemeChange(theme: 'light' | 'dark'): void {
+    this.themeService.setDarkMode(theme === 'dark');
   }
 
-  isLanguageSelected(language: AppLanguage): boolean {
-    return this.languageService.resolveLanguage(undefined) === language;
-  }
-
-  isDarkModeSelected(enabled: boolean): boolean {
-    return this.themeService.resolveDarkMode(undefined) === enabled;
-  }
-
-  openForgotPassword() {
+  openForgotPassword(): void {
     this.showForgotPassword = true;
     this.clearMessages();
 
@@ -156,7 +162,7 @@ export class LoginComponent implements OnInit {
     }
   }
 
-  closeForgotPassword() {
+  closeForgotPassword(): void {
     if (this.resetToken) {
       return;
     }
@@ -166,7 +172,7 @@ export class LoginComponent implements OnInit {
     this.resetMessage = '';
   }
 
-  onLogin() {
+  onLogin(): void {
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       return;
@@ -177,8 +183,8 @@ export class LoginComponent implements OnInit {
     const payload = {
       ...value,
       password: hashedPassword,
-      language: this.languageService.resolveLanguage(undefined),
-      darkMode: this.themeService.resolveDarkMode(undefined)
+      language: this.selectedLanguage,
+      darkMode: this.selectedTheme === 'dark'
     };
 
     this.http.login(payload).subscribe((result: AuthResult) => {
@@ -207,7 +213,7 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  onRegister() {
+  onRegister(): void {
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
       return;
@@ -218,8 +224,8 @@ export class LoginComponent implements OnInit {
     const payload = {
       ...value,
       password: hashedPassword,
-      language: this.languageService.resolveLanguage(undefined),
-      darkMode: this.themeService.resolveDarkMode(undefined)
+      language: this.selectedLanguage,
+      darkMode: this.selectedTheme === 'dark'
     };
 
     this.http.register(payload).subscribe((result: AuthResult) => {
@@ -254,7 +260,7 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  onForgotPassword() {
+  onForgotPassword(): void {
     if (this.forgotForm.invalid) {
       this.forgotForm.markAllAsTouched();
       return;
@@ -275,7 +281,7 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  onResetPassword() {
+  onResetPassword(): void {
     if (this.resetForm.invalid || !this.resetToken) {
       this.resetForm.markAllAsTouched();
       return;
@@ -325,7 +331,7 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  resendVerificationFromRegister() {
+  resendVerificationFromRegister(): void {
     const email = this.registerForm.value.email;
 
     if (!email) {
@@ -347,7 +353,7 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  private handleVerifyEmail(token: string) {
+  private handleVerifyEmail(token: string): void {
     this.verifying = true;
 
     this.http.verifyEmail(token).subscribe({
@@ -397,7 +403,7 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  private clearMessages() {
+  private clearMessages(): void {
     this.loginMessage = '';
     this.registerMessage = '';
     this.forgotMessage = '';
@@ -405,7 +411,6 @@ export class LoginComponent implements OnInit {
   }
 
   getLogo(): string {
-    const isDark = this.themeService.resolveDarkMode(undefined);
-    return isDark ? '/darkmode.png' : '/lightmode.png';
+    return this.selectedTheme === 'dark' ? '/darkmode.png' : '/lightmode.png';
   }
 }

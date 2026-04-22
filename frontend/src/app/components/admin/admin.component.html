@@ -1,46 +1,106 @@
 <main class="admin-dashboard">
-  <section class="hero-grid">
-    <mat-card class="hero-card stat-card primary-tone">
-      <div class="stat-kicker">Amount Users</div>
-      <div class="stat-value">{{ activeUsersCount }}</div>
-    </mat-card>
+  <section class="top-summary">
+    <div class="summary-block">
+      <div class="block-header">
+        <div>
+          <h2 class="block-title">User Übersicht</h2>
+          <p class="block-subtitle">Kompakte Kennzahlen zu Nutzung und Wachstum</p>
+        </div>
+      </div>
 
-    <mat-card class="hero-card stat-card success-tone">
-      <div class="stat-kicker">Active Users (Month)</div>
-      <div class="stat-value">{{ disabledUsersCount }}</div>
-    </mat-card>
+      <div class="hero-grid">
+        <mat-card class="hero-card stat-card tone-users">
+          <div class="stat-card-head">
+            <div>
+              <div class="stat-kicker">Amount Users</div>
+              <div class="stat-value">{{ activeUsersCount }}</div>
+            </div>
+            <div class="stat-icon"><mat-icon>groups</mat-icon></div>
+          </div>
+        </mat-card>
 
-    <mat-card class="hero-card stat-card warning-tone pending-card">
-      <div class="stat-kicker">Active Users (Week)</div>
-      <div class="stat-value">{{ pendingChangeCount }}</div>
-    </mat-card>
+        <mat-card class="hero-card stat-card tone-active-month">
+          <div class="stat-card-head">
+            <div>
+              <div class="stat-kicker">Active Users (Month)</div>
+              <div class="stat-value">{{ disabledUsersCount }}</div>
+            </div>
+            <div class="stat-icon"><mat-icon>trending_up</mat-icon></div>
+          </div>
+        </mat-card>
 
-    <mat-card class="hero-card stat-card dark-tone">
-      <div class="stat-kicker">New Users (Month)</div>
-      <div class="stat-value">{{ newUsersThisMonth }}</div>
-    </mat-card>
-  </section>
+        <mat-card class="hero-card stat-card tone-active-week">
+          <div class="stat-card-head">
+            <div>
+              <div class="stat-kicker">Active Users (Week)</div>
+              <div class="stat-value">{{ pendingChangeCount }}</div>
+            </div>
+            <div class="stat-icon"><mat-icon>calendar_view_week</mat-icon></div>
+          </div>
+        </mat-card>
 
-  <section class="hero-grid">
-    <mat-card class="hero-card stat-card primary-tone">
-      <div class="stat-kicker">Free Abos</div>
-      <div class="stat-value">{{ activeUsersCount }}</div>
-    </mat-card>
+        <mat-card class="hero-card stat-card tone-new-users">
+          <div class="stat-card-head">
+            <div>
+              <div class="stat-kicker">New Users (Month)</div>
+              <div class="stat-value">{{ newUsersThisMonth }}</div>
+            </div>
+            <div class="stat-icon"><mat-icon>person_add</mat-icon></div>
+          </div>
+        </mat-card>
+      </div>
+    </div>
 
-    <mat-card class="hero-card stat-card success-tone">
-      <div class="stat-kicker">Pro Abos</div>
-      <div class="stat-value">{{ disabledUsersCount }}</div>
-    </mat-card>
+    <div class="summary-block">
+      <div class="block-header">
+        <div>
+          <h2 class="block-title">Abo Übersicht</h2>
+          <p class="block-subtitle">Alle Abozahlen bleiben sichtbar, nur klarer gruppiert</p>
+        </div>
+      </div>
 
-    <mat-card class="hero-card stat-card warning-tone pending-card">
-      <div class="stat-kicker">School Abos</div>
-      <div class="stat-value">{{ pendingChangeCount }}</div>
-    </mat-card>
+      <div class="hero-grid">
+        <mat-card class="hero-card stat-card tone-free">
+          <div class="stat-card-head">
+            <div>
+              <div class="stat-kicker">Free Abos</div>
+              <div class="stat-value">{{ activeUsersCount }}</div>
+            </div>
+            <div class="stat-icon"><mat-icon>sell</mat-icon></div>
+          </div>
+        </mat-card>
 
-    <mat-card class="hero-card stat-card dark-tone">
-      <div class="stat-kicker">Estimated Money / Month</div>
-      <div class="stat-value">{{ newUsersThisMonth }}</div>
-    </mat-card>
+        <mat-card class="hero-card stat-card tone-pro">
+          <div class="stat-card-head">
+            <div>
+              <div class="stat-kicker">Pro Abos</div>
+              <div class="stat-value">{{ disabledUsersCount }}</div>
+            </div>
+            <div class="stat-icon"><mat-icon>workspace_premium</mat-icon></div>
+          </div>
+        </mat-card>
+
+        <mat-card class="hero-card stat-card tone-school">
+          <div class="stat-card-head">
+            <div>
+              <div class="stat-kicker">School Abos</div>
+              <div class="stat-value">{{ pendingChangeCount }}</div>
+            </div>
+            <div class="stat-icon"><mat-icon>school</mat-icon></div>
+          </div>
+        </mat-card>
+
+        <mat-card class="hero-card stat-card tone-revenue">
+          <div class="stat-card-head">
+            <div>
+              <div class="stat-kicker">Estimated Money / Month</div>
+              <div class="stat-value">{{ newUsersThisMonth }}</div>
+            </div>
+            <div class="stat-icon"><mat-icon>euro</mat-icon></div>
+          </div>
+        </mat-card>
+      </div>
+    </div>
   </section>
 
   <section class="section">
@@ -98,6 +158,13 @@
   <section class="section layout-grid">
     <article class="panel user-list-panel">
       <div class="panel-header sticky-header">
+        <div class="panel-heading">
+          <div>
+            <h2 class="section-title">Nutzer</h2>
+            <p class="section-subtitle">Suchen, sortieren und direkt auswählen</p>
+          </div>
+        </div>
+
         <div class="toolbar-grid">
           <label class="control search-control search-control-wide">
             <input type="text" [(ngModel)]="search" placeholder="Suche nach Name, Mail, ID oder Tier">
@@ -142,7 +209,7 @@
               </div>
             </div>
 
-            <button mat-icon-button type="button" (click)="copyUserId(user)" title="ID kopieren">
+            <button mat-icon-button type="button" (click)="copyUserId(user); $event.stopPropagation()" title="ID kopieren">
               <mat-icon>content_copy</mat-icon>
             </button>
           </div>
@@ -172,7 +239,7 @@
     </article>
 
     <article class="panel detail-panel" *ngIf="selectedUser as user">
-      <div class="panel-header">
+      <div class="panel-header detail-header">
         <div class="detail-title-row">
           <div class="avatar-lg">{{ user.username.slice(0, 2).toUpperCase() }}</div>
           <div>
@@ -203,20 +270,22 @@
               </button>
             </label>
 
-            <label class="control">
-              <span class="control-label">Tier</span>
-              <select [ngModel]="user.tier" (ngModelChange)="changeTier(user, $event)">
-                <option *ngFor="let tier of tierOptions" [ngValue]="tier">{{ tier }}</option>
-              </select>
-            </label>
+            <div class="detail-form-grid">
+              <label class="control">
+                <span class="control-label">Tier</span>
+                <select [ngModel]="user.tier" (ngModelChange)="changeTier(user, $event)">
+                  <option *ngFor="let tier of tierOptions" [ngValue]="tier">{{ tier }}</option>
+                </select>
+              </label>
 
-            <label class="control">
-              <span class="control-label">Tier Ablaufdatum</span>
-              <input
-                type="date"
-                [ngModel]="getTierExpiryInputValue(user.tierExpiresAt)"
-                (ngModelChange)="changeTierExpiry(user, $event)">
-            </label>
+              <label class="control">
+                <span class="control-label">Tier Ablaufdatum</span>
+                <input
+                  type="date"
+                  [ngModel]="getTierExpiryInputValue(user.tierExpiresAt)"
+                  (ngModelChange)="changeTierExpiry(user, $event)">
+              </label>
+            </div>
           </div>
 
           <div class="info-list">
