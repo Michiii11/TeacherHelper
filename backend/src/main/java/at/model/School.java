@@ -4,6 +4,8 @@ import at.dtos.User.UserDTO;
 import at.model.helper.Focus;
 import jakarta.persistence.*;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -35,10 +37,17 @@ public class School {
     @OneToMany
     private List<Focus> focusList;
 
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
+
     public School() {
+        createdAt = new Timestamp(System.currentTimeMillis());
+        updatedAt = new Timestamp(System.currentTimeMillis());
     }
 
     public School(String name, User admin) {
+        createdAt = new Timestamp(System.currentTimeMillis());
+        updatedAt = new Timestamp(System.currentTimeMillis());
         this.name = name;
         this.admin = admin;
     }
@@ -47,6 +56,23 @@ public class School {
         if (user != null && !users.contains(user)) {
             users.add(user);
         }
+    }
+
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public void removeUser(User user) {

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { AddSchoolDialogComponent } from '../../dialog/add-school-dialog/add-school-dialog.component';
@@ -30,6 +30,7 @@ import { NavbarActionsService } from '../navigation/navbar-actions.service';
 export class HomeComponent implements OnInit, OnDestroy {
   schools: SchoolDTO[] = [];
   userId = '';
+  navbarService = inject(NavbarActionsService)
 
   constructor(
     private dialog: MatDialog,
@@ -41,6 +42,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.setNavbarActions();
     this.loadSchools();
+
+    this.navbarService.getReloadSchools().subscribe(() => {
+      this.loadSchools();
+    });
   }
 
   ngOnDestroy(): void {

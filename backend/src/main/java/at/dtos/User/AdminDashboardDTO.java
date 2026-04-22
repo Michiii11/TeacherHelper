@@ -1,6 +1,21 @@
 package at.dtos.User;
 
+import at.dtos.User.AdminCountPeriodDTO;
+import at.dtos.User.AdminUserDashboardDTO;
 import java.util.List;
 
-public record AdminDashboardDTO(int amountUsers, int activeUsersMonth, int activeUsersWeek, int newUsersMonth, int freeAbos, int proAbos, int schoolAbos, double cashflow, List<Integer> collections, List<Integer> examples, List<Integer> tests, List<AdminUserDashboardDTO> users) {
+public record AdminDashboardDTO(
+        long amountUsers,
+        long activeUsersMonth,
+        long activeUsersWeek,
+        long newUsersMonth,
+        long freeAbos,
+        long proAbos,
+        long schoolAbos,
+        long cashflow,
+        AdminCountPeriodDTO collections,
+        AdminCountPeriodDTO examples,
+        AdminCountPeriodDTO tests,
+        List<AdminUserDashboardDTO> users
+) {
 }

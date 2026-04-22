@@ -51,19 +51,26 @@ export interface AdminDashboardDTO {
   proAbos: number;
   schoolAbos: number;
   cashflow: number;
-  collections: number[];
-  examples: number[];
-  tests: number[];
+  collections: AdminCountPeriodDTO;
+  examples: AdminCountPeriodDTO;
+  tests: AdminCountPeriodDTO;
   users: AdminUserDashboardDTO[]
 }
 
 export interface AdminUserDashboardDTO {
   id: string;
   username: string;
-  email: string;
   createdAt: string;
   lastActive: string;
   collections: number;
   examples: number;
   tests: number;
+}
+
+export interface AdminCountPeriodDTO{
+  hour: number;
+  day: number;
+  week: number;
+  month: number;
+  year: number;
 }

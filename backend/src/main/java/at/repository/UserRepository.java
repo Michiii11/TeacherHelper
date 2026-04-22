@@ -529,13 +529,182 @@ public class UserRepository {
     }
 
     public Response getAdminDashboard() {
-        return null;
+        LocalDateTime now = LocalDateTime.now();
 
+        LocalDateTime oneHourAgo = now.minusHours(1);
+        LocalDateTime oneDayAgo = now.minusDays(1);
+        LocalDateTime oneWeekAgo = now.minusWeeks(1);
+        LocalDateTime oneMonthAgo = now.minusMonths(1);
+        LocalDateTime oneYearAgo = now.minusYears(1);
 
-        /*AdminDashboardDTO dashboardData = new AdminDashboardDTO(
+        long amountUsers = countUsers();
+        long activeUsersMonth = countUsersLastActiveSince(oneMonthAgo);
+        long activeUsersWeek = countUsersLastActiveSince(oneWeekAgo);
+        long newUsersMonth = countUsersCreatedSince(oneMonthAgo);
 
+        long freeAbos = countUsersBySubscription("FREE");
+        long proAbos = countUsersBySubscription("PRO");
+        long schoolAbos = countUsersBySubscription("SCHOOL");
+
+        long cashflow = 0;
+
+        AdminCountPeriodDTO collections = new AdminCountPeriodDTO(
+                countCollectionsCreatedSince(oneHourAgo),
+                countCollectionsCreatedSince(oneDayAgo),
+                countCollectionsCreatedSince(oneWeekAgo),
+                countCollectionsCreatedSince(oneMonthAgo),
+                countCollectionsCreatedSince(oneYearAgo)
         );
 
-        return Response.ok(dashboardData).build();*/
+        AdminCountPeriodDTO examples = new AdminCountPeriodDTO(
+                countExamplesCreatedSince(toTimestamp(oneHourAgo)),
+                countExamplesCreatedSince(toTimestamp(oneDayAgo)),
+                countExamplesCreatedSince(toTimestamp(oneWeekAgo)),
+                countExamplesCreatedSince(toTimestamp(oneMonthAgo)),
+                countExamplesCreatedSince(toTimestamp(oneYearAgo))
+        );
+
+        AdminCountPeriodDTO tests = new AdminCountPeriodDTO(
+                countTestsCreatedSince(toTimestamp(oneHourAgo)),
+                countTestsCreatedSince(toTimestamp(oneDayAgo)),
+                countTestsCreatedSince(toTimestamp(oneWeekAgo)),
+                countTestsCreatedSince(toTimestamp(oneMonthAgo)),
+                countTestsCreatedSince(toTimestamp(oneYearAgo))
+        );
+
+        List<User> allUsers = em.createQuery("""
+            SELECT u
+            FROM User u
+            ORDER BY u.createdAt DESC
+            """, User.class)
+                .getResultList();
+
+        List<AdminUserDashboardDTO> users = allUsers.stream()
+                .map(u -> new AdminUserDashboardDTO(
+                        u.getId(),
+                        u.getUsername(),
+                        u.getCreatedAt(),
+                        u.getLastActivityAt(),
+                        countCollectionsByUser(u),
+                        countExamplesByUser(u),
+                        countTestsByUser(u)
+                ))
+                .toList();
+
+        AdminDashboardDTO dashboardData = new AdminDashboardDTO(
+                amountUsers,
+                activeUsersMonth,
+                activeUsersWeek,
+                newUsersMonth,
+                freeAbos,
+                proAbos,
+                schoolAbos,
+                cashflow,
+                collections,
+                examples,
+                tests,
+                users
+        );
+
+        return Response.ok(dashboardData).build();
+    }
+
+    private java.sql.Timestamp toTimestamp(LocalDateTime dateTime) {
+        return java.sql.Timestamp.valueOf(dateTime);
+    }
+
+    private long countUsers() {
+        return em.createQuery("SELECT COUNT(u) FROM User u", Long.class)
+                .getSingleResult();
+    }
+
+    private long countUsersLastActiveSince(LocalDateTime since) {
+        return em.createQuery("""
+            SELECT COUNT(u)
+            FROM User u
+            WHERE u.lastActivityAt >= :since
+            """, Long.class)
+                .setParameter("since", since)
+                .getSingleResult();
+    }
+
+    private long countUsersCreatedSince(LocalDateTime since) {
+        return em.createQuery("""
+            SELECT COUNT(u)
+            FROM User u
+            WHERE u.createdAt >= :since
+            """, Long.class)
+                .setParameter("since", since)
+                .getSingleResult();
+    }
+
+    private long countUsersBySubscription(String subscriptionModel) {
+        return em.createQuery("""
+            SELECT COUNT(u)
+            FROM User u
+            WHERE u.subscriptionModel = :subscriptionModel
+            """, Long.class)
+                .setParameter("subscriptionModel", at.enums.SubscriptionModel.valueOf(subscriptionModel))
+                .getSingleResult();
+    }
+
+    private long countCollectionsCreatedSince(LocalDateTime since) {
+        return em.createQuery("""
+            SELECT COUNT(f)
+            FROM School f
+            WHERE f.createdAt >= :since
+            """, Long.class)
+                .setParameter("since", since)
+                .getSingleResult();
+    }
+
+    private long countExamplesCreatedSince(java.sql.Timestamp since) {
+        return em.createQuery("""
+            SELECT COUNT(e)
+            FROM Example e
+            WHERE e.createdAt >= :since
+            """, Long.class)
+                .setParameter("since", since)
+                .getSingleResult();
+    }
+
+    private long countTestsCreatedSince(java.sql.Timestamp since) {
+        return em.createQuery("""
+            SELECT COUNT(t)
+            FROM Test t
+            WHERE t.createdAt >= :since
+            """, Long.class)
+                .setParameter("since", since)
+                .getSingleResult();
+    }
+
+    private long countCollectionsByUser(User user) {
+        return em.createQuery("""
+            SELECT COUNT(f)
+            FROM School f
+            WHERE f.admin = :user
+            """, Long.class)
+                .setParameter("user", user)
+                .getSingleResult();
+    }
+
+    private long countExamplesByUser(User user) {
+        return em.createQuery("""
+            SELECT COUNT(e)
+            FROM Example e
+            WHERE e.admin = :user
+            """, Long.class)
+                .setParameter("user", user)
+                .getSingleResult();
+    }
+
+    private long countTestsByUser(User user) {
+        return em.createQuery("""
+            SELECT COUNT(t)
+            FROM Test t
+            WHERE t.admin = :user
+            """, Long.class)
+                .setParameter("user", user)
+                .getSingleResult();
     }
 }

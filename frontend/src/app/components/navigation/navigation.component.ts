@@ -320,7 +320,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
     if (!n.relatedEntityId && this.requiresRelatedEntity(action)) {
       this.snackBar.open('Diese Nachricht kann nicht verarbeitet werden.', 'Schließen', {
-        duration: 3200
+        duration: 3000
       });
       return;
     }
@@ -334,11 +334,12 @@ export class NavigationComponent implements OnInit, OnDestroy {
             this.snackBar.open('Einladung angenommen.', 'OK', { duration: 2200 });
             this.loadNotifications();
             this.loadUser();
+            this.navbarActionsService.triggerReloadSchools();
           },
           error: (err) => {
             console.error('Fehler beim Annehmen der Einladung:', err);
             this.snackBar.open(this.extractError(err, 'Einladung konnte nicht angenommen werden.'), 'Schließen', {
-              duration: 3600
+              duration: 3000
             });
           },
           complete: () => this.processingIds.delete(n.id)
@@ -355,7 +356,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
           error: (err) => {
             console.error('Fehler beim Ablehnen der Einladung:', err);
             this.snackBar.open(this.extractError(err, 'Einladung konnte nicht abgelehnt werden.'), 'Schließen', {
-              duration: 3600
+              duration: 3000
             });
           },
           complete: () => this.processingIds.delete(n.id)

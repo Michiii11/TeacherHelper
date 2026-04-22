@@ -496,8 +496,6 @@ export class HttpService {
 
 
   getAdminDashboard(){
-    return this.http.post<AdminDashboardDTO>(`${Config.API_URL}/admin`, {
-      authToken: this.authToken()
-    });
+    return this.http.post<AdminDashboardDTO>(`${Config.API_URL}/user/admin`, this.authToken());
   }
 }
