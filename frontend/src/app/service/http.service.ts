@@ -13,13 +13,6 @@ import {
 import {AdminDashboardDTO, AuthResult, User, UserDTO, UserSettings} from '../model/User';
 import { NotificationActionType, NotificationDTO } from '../model/Notification';
 import {CreateFolderDTO, FolderDTO, UpdateFolderDTO} from '../model/Folder'
-import {
-  AdminBulkUserUpdateRequest,
-  AdminDashboardDto,
-  AdminPagedUsersDto,
-  AdminUserDetailsDto,
-  AdminUsersQueryDto
-} from '../model/Admin'
 
 @Injectable({ providedIn: 'root' })
 export class HttpService {

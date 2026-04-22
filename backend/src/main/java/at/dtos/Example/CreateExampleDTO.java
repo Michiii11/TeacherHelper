@@ -7,6 +7,7 @@ import at.model.helper.Focus;
 import at.model.helper.Option;
 
 import java.util.List;
+import java.util.UUID;
 
 public record CreateExampleDTO(
         String authToken,
@@ -27,6 +28,6 @@ public record CreateExampleDTO(
         List<ExampleVariableDTO> variables,
         Integer imageWidth,
         Integer solutionImageWidth,
-        Long folderId
+        UUID folderId
 ) {
 }

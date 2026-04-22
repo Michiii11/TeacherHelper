@@ -18,6 +18,6 @@ public record CreateTestDTO(
         List<GradingLevelDTO> gradingSchema,
         Map<Integer, Integer> gradePercentages,
         Map<Integer, Integer> manualGradeMinimums,
-        Long folderId
+        UUID folderId
 ) {
 }

@@ -10,10 +10,9 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.util.List;
+import java.util.UUID;
 
 @Path("/folder")
-@Consumes(MediaType.APPLICATION_JSON)
-@Produces(MediaType.APPLICATION_JSON)
 public class FolderResource {
 
     @Inject
@@ -41,13 +40,13 @@ public class FolderResource {
 
     @PUT
     @Path("/{folderId}")
-    public Response updateFolder(@PathParam("folderId") Long folderId, UpdateFolderDTO dto) {
+    public Response updateFolder(@PathParam("folderId") UUID folderId, UpdateFolderDTO dto) {
         return repo.updateFolder(folderId, dto);
     }
 
     @DELETE
     @Path("/{folderId}")
-    public Response deleteFolder(@PathParam("folderId") Long folderId,
+    public Response deleteFolder(@PathParam("folderId") UUID folderId,
                                  @QueryParam("authToken") String authToken) {
         return repo.deleteFolder(folderId, authToken);
     }

@@ -15,7 +15,7 @@ public record ExampleOverviewDTO(
         String adminUsername,
         UUID adminId,
         List<Focus> focusList,
-        Long folderId,
+        UUID folderId,
         Timestamp createdAt,
         Timestamp updatedAt
 ) {

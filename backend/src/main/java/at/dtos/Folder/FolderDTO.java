@@ -1,10 +1,12 @@
 package at.dtos.Folder;
 
+import java.util.UUID;
+
 public record FolderDTO(
-        Long id,
+        UUID id,
         String name,
         Long schoolId,
-        Long parentId,
+        UUID parentId,
         String createdAt,
         String updatedAt
 ) {

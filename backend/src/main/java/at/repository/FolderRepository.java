@@ -85,7 +85,7 @@ public class FolderRepository {
     }
 
     @Transactional
-    public Response updateFolder(Long folderId, UpdateFolderDTO dto) {
+    public Response updateFolder(UUID folderId, UpdateFolderDTO dto) {
         UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -136,7 +136,7 @@ public class FolderRepository {
     }
 
     @Transactional
-    public Response deleteFolder(Long folderId, String authToken) {
+    public Response deleteFolder(UUID folderId, String authToken) {
         UUID userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -182,7 +182,7 @@ public class FolderRepository {
         return Response.ok().build();
     }
 
-    public Folder findById(Long folderId) {
+    public Folder findById(UUID folderId) {
         return em.find(Folder.class, folderId);
     }
 
@@ -197,7 +197,7 @@ public class FolderRepository {
         );
     }
 
-    private boolean isDescendant(Folder candidateParent, Long folderId) {
+    private boolean isDescendant(Folder candidateParent, UUID folderId) {
         Folder current = candidateParent;
 
         while (current != null) {
