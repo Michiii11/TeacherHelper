@@ -20,7 +20,7 @@ public class FolderResource {
 
     @GET
     @Path("/school/{schoolId}")
-    public List<FolderDTO> getFolders(@PathParam("schoolId") Long schoolId,
+    public List<FolderDTO> getFolders(@PathParam("schoolId") UUID schoolId,
                                       @HeaderParam("Authorization") String authHeader,
                                       @QueryParam("authToken") String authToken) {
         String token = authToken;
@@ -34,7 +34,7 @@ public class FolderResource {
 
     @POST
     @Path("/school/{schoolId}")
-    public Response createFolder(@PathParam("schoolId") Long schoolId, CreateFolderDTO dto) {
+    public Response createFolder(@PathParam("schoolId") UUID schoolId, CreateFolderDTO dto) {
         return repo.createFolder(schoolId, dto);
     }
 

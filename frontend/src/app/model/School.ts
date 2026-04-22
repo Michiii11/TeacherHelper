@@ -1,7 +1,7 @@
 import {User, UserDTO} from './User'
 
 export interface School {
-  id: number;
+  id: string;
   name: string;
   admin: User;
   users: User[];
@@ -9,7 +9,7 @@ export interface School {
 }
 
 export interface SchoolDTO {
-  id: number;
+  id: string;
   name: string;
   admin: UserDTO;
   exampleCount: number;
@@ -18,7 +18,7 @@ export interface SchoolDTO {
 }
 
 export interface SchoolInviteDTO {
-  id: number;
+  id: string;
   school: SchoolDTO;
   sender: UserDTO;
   recipient: UserDTO;

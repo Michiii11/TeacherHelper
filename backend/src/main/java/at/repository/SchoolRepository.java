@@ -59,7 +59,7 @@ public class SchoolRepository {
                 .toList();
     }
 
-    public SchoolDTO findById(Long id, UUID userId) {
+    public SchoolDTO findById(UUID id, UUID userId) {
         School school = em.find(School.class, id);
         if (school == null) {
             return null;
@@ -93,13 +93,13 @@ public class SchoolRepository {
                 .toList();
     }
 
-    public List<Focus> getFocusList(Long id) {
+    public List<Focus> getFocusList(UUID id) {
         return em.createQuery("SELECT s.focusList FROM School s WHERE s.id = :id", Focus.class)
                 .setParameter("id", id)
                 .getResultList();
     }
 
-    public Focus addFocus(Long id, Focus focus) {
+    public Focus addFocus(UUID id, Focus focus) {
         School s = em.find(School.class, id);
 
         Focus f = new Focus(focus.getLabel());
@@ -111,7 +111,7 @@ public class SchoolRepository {
         return f;
     }
 
-    public Response deleteFocus(Long id, Long focusId) {
+    public Response deleteFocus(UUID id, Long focusId) {
         School s = em.find(School.class, id);
         Focus f = em.find(Focus.class, focusId);
 
@@ -142,7 +142,7 @@ public class SchoolRepository {
         );
     }
 
-    public List<UserDTO> getAllTeachers(Long id) {
+    public List<UserDTO> getAllTeachers(UUID id) {
         School school = em.find(School.class, id);
 
         if (school == null) {
@@ -189,7 +189,7 @@ public class SchoolRepository {
                 .toList();
     }
 
-    public Response leaveSchool(Long id, UUID userId) {
+    public Response leaveSchool(UUID id, UUID userId) {
         School school = em.find(School.class, id);
         User user = em.find(User.class, userId);
 
@@ -210,7 +210,7 @@ public class SchoolRepository {
         return Response.ok().build();
     }
 
-    public Response removeTeacher(Long id, UUID userId, int teacherId) {
+    public Response removeTeacher(UUID id, UUID userId, int teacherId) {
         School school = em.find(School.class, id);
         User user = em.find(User.class, userId);
         User teacher = em.find(User.class, (long) teacherId);
@@ -235,7 +235,7 @@ public class SchoolRepository {
         return Response.ok().build();
     }
 
-    public Response updateSchoolSettings(Long schoolId, UUID userId, String newName) {
+    public Response updateSchoolSettings(UUID schoolId, UUID userId, String newName) {
         School school = em.find(School.class, schoolId);
 
         if (school == null) {
@@ -272,7 +272,7 @@ public class SchoolRepository {
         return Response.ok(toSchoolDTO(school)).build();
     }
 
-    public Response updateSchoolLogoObject(Long schoolId, UUID userId, String logoUrl) {
+    public Response updateSchoolLogoObject(UUID schoolId, UUID userId, String logoUrl) {
         School school = em.find(School.class, schoolId);
 
         if (school == null) {
@@ -289,7 +289,7 @@ public class SchoolRepository {
         return Response.ok(toSchoolDTO(school)).build();
     }
 
-    public Response deleteSchoolLogo(Long schoolId, UUID userId) {
+    public Response deleteSchoolLogo(UUID schoolId, UUID userId) {
         School school = em.find(School.class, schoolId);
 
         if (school == null) {
@@ -314,7 +314,7 @@ public class SchoolRepository {
         return Response.ok(toSchoolDTO(school)).build();
     }
 
-    public Response deleteSchool(Long schoolId, UUID userId) {
+    public Response deleteSchool(UUID schoolId, UUID userId) {
         School school = em.find(School.class, schoolId);
 
         if (school == null) {
@@ -366,7 +366,7 @@ public class SchoolRepository {
         return Response.ok().build();
     }
 
-    public Response inviteTeacher(Long schoolId, UUID userId, String email) {
+    public Response inviteTeacher(UUID schoolId, UUID userId, String email) {
         School school = em.find(School.class, schoolId);
         User sender = em.find(User.class, userId);
         User teacher = em.createQuery("SELECT t FROM User t WHERE t.email = :email", User.class)
@@ -478,7 +478,7 @@ public class SchoolRepository {
                     NotificationType.INVITATION_ACCEPTED,
                     "Invitation accepted",
                     recipient.getUsername() + " accepted the invitation to " + school.getName() + ".",
-                    "/collection/" + school.getId(),
+                    "/school/" + school.getId(),
                     invite.getId(),
                     null,
                     null
@@ -495,7 +495,7 @@ public class SchoolRepository {
                     NotificationType.INVITATION_DECLINED,
                     "Invitation declined",
                     recipient.getUsername() + " declined the invitation to " + school.getName() + ".",
-                    "/collection/" + school.getId(),
+                    "/school/" + school.getId(),
                     invite.getId(),
                     null,
                     null
@@ -521,7 +521,7 @@ public class SchoolRepository {
                 .toList();
     }
 
-    public List<SchoolInviteDTO> getPendingRequestsForSchool(Long schoolId, UUID userId) {
+    public List<SchoolInviteDTO> getPendingRequestsForSchool(UUID schoolId, UUID userId) {
         School school = em.find(School.class, schoolId);
         if (school == null) {
             return List.of();
@@ -570,7 +570,7 @@ public class SchoolRepository {
         return baseMessage + "\n\nNachricht: " + customMessage.trim();
     }
 
-    public String getSchoolUrl(Long id) {
+    public String getSchoolUrl(UUID id) {
         School school = em.find(School.class, id);
         if (school == null) {
             return null;

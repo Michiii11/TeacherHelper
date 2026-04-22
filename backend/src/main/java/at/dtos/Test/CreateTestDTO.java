@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record CreateTestDTO(
         String authToken,
-        Long schoolId,
+        UUID schoolId,
         String name,
         String note,
         List<TestExampleDTO> exampleList,

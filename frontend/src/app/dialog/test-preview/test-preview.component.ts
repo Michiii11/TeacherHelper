@@ -33,7 +33,7 @@ import {MatIcon} from '@angular/material/icon'
   styleUrl: './test-preview.component.scss',
 })
 export class TestPreviewComponent implements OnInit {
-  data = inject<{ schoolId: number; testId: string }>(MAT_DIALOG_DATA);
+  data = inject<{ schoolId: string; testId: string }>(MAT_DIALOG_DATA);
   private dialogRef = inject(MatDialogRef<TestPreviewComponent>);
   private service = inject(HttpService);
   private snackBar = inject(MatSnackBar);

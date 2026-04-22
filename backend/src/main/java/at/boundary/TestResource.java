@@ -20,7 +20,7 @@ public class TestResource {
 
     @GET
     @Path("/school/{schoolId}")
-    public List<TestOverviewDTO> getTests(@PathParam("schoolId") Long schoolId) {
+    public List<TestOverviewDTO> getTests(@PathParam("schoolId") UUID schoolId) {
         return repo.getAllTest(schoolId);
     }
 

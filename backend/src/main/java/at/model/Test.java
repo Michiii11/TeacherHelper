@@ -1,5 +1,6 @@
 package at.model;
 
+import at.model.helper.GradingLevel;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;

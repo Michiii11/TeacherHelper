@@ -42,7 +42,7 @@ public class MediaStorageService {
         return objectName;
     }
 
-    public String uploadSchoolLogo(Long schoolId, Path file) throws IOException {
+    public String uploadSchoolLogo(UUID schoolId, Path file) throws IOException {
         Storage storage = StorageOptions.getDefaultInstance().getService();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();

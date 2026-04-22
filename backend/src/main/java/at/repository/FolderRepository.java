@@ -3,8 +3,8 @@ package at.repository;
 import at.dtos.Folder.CreateFolderDTO;
 import at.dtos.Folder.FolderDTO;
 import at.dtos.Folder.UpdateFolderDTO;
-import at.model.Folder;
 import at.model.School;
+import at.model.Folder;
 import at.model.User;
 import at.security.TokenService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -26,7 +26,7 @@ public class FolderRepository {
     @Inject
     TokenService tokenService;
 
-    public List<FolderDTO> getFolders(Long schoolId, String authToken) {
+    public List<FolderDTO> getFolders(UUID schoolId, String authToken) {
         UUID userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
             return List.of();
@@ -49,7 +49,7 @@ public class FolderRepository {
     }
 
     @Transactional
-    public Response createFolder(Long schoolId, CreateFolderDTO dto) {
+    public Response createFolder(UUID schoolId, CreateFolderDTO dto) {
         UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();

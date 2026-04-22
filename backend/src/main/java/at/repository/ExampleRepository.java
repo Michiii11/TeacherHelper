@@ -40,7 +40,7 @@ public class ExampleRepository {
     @Inject
     SchoolRepository schoolRepository;
 
-    public List<ExampleOverviewDTO> getAllExamples(Long schoolId) {
+    public List<ExampleOverviewDTO> getAllExamples(UUID schoolId) {
         List<Example> examples = em.createQuery(
                 "SELECT e FROM Example e WHERE e.school.id = :schoolId ORDER BY e.id",
                 Example.class
@@ -63,7 +63,7 @@ public class ExampleRepository {
     }
 
     @Transactional
-    public List<ExampleDTO> getFullExamples(Long schoolId) {
+    public List<ExampleDTO> getFullExamples(UUID schoolId) {
         List<Example> examples = em.createQuery(
                         "SELECT DISTINCT e FROM Example e LEFT JOIN FETCH e.gaps WHERE e.school.id = :schoolId ORDER BY e.id",
                         Example.class

@@ -76,7 +76,7 @@ type VariableTarget =
   styleUrls: ['./create-example.component.scss']
 })
 export class CreateExampleComponent implements OnInit, OnDestroy {
-  data = inject<{ schoolId: number; exampleId: string }>(MAT_DIALOG_DATA);
+  data = inject<{ schoolId: string; exampleId: string }>(MAT_DIALOG_DATA);
   private readonly destroy$ = new Subject<void>();
 
   private readonly http = inject(HttpService);
@@ -832,7 +832,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     return {
       ...this.example,
       authToken: localStorage.getItem('teacher_authToken') || '',
-      schoolId: Number(this.example.schoolId || this.data.schoolId),
+      schoolId: this.example.schoolId || this.data.schoolId,
       image: this.isEditMode ? (this.example.image || '') : '',
       solutionUrl: this.isEditMode ? (this.example.solutionUrl || '') : '',
       variables: (this.example.variables ?? []).map(variable => ({

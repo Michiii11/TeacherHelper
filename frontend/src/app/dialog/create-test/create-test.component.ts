@@ -73,7 +73,7 @@ type PersistedTestSettings = {
   styleUrl: './create-test.component.scss',
 })
 export class CreateTestComponent implements OnInit, OnDestroy {
-  data = inject<{ schoolId: number; testId?: string; folderId?: string | null }>(MAT_DIALOG_DATA);
+  data = inject<{ schoolId: string; testId?: string; folderId?: string | null }>(MAT_DIALOG_DATA);
   private dialogRef = inject(MatDialogRef<CreateTestComponent>);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
@@ -490,7 +490,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   saveTest(): void {
     this.test.authToken = localStorage.getItem('teacher_authToken') || '';
-    this.test.schoolId = Number(this.test.schoolId || this.data.schoolId);
+    this.test.schoolId = this.test.schoolId || this.data.schoolId;
     this.test.exampleList = this.selectedExamplesInternal;
     (this.test as any).folderId = this.data.folderId ?? (this.test as any).folderId ?? null;
 

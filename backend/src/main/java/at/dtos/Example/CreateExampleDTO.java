@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public record CreateExampleDTO(
         String authToken,
-        Long schoolId,
+        UUID schoolId,
         ExampleTypes type,
         String instruction,
         String question,

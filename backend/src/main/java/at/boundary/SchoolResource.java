@@ -61,14 +61,14 @@ public class SchoolResource {
 
     @POST
     @Path("{id}")
-    public SchoolDTO getSchoolById(@PathParam("id") Long id, String auth) {
+    public SchoolDTO getSchoolById(@PathParam("id") UUID id, String auth) {
         UUID userId = tokenService.validateTokenAndGetUserId(auth);
         return schoolRepository.findById(id, userId);
     }
 
     @PUT
     @Path("{id}/settings")
-    public Response updateSchoolSettings(@PathParam("id") Long id, UpdateSchoolDTO dto) {
+    public Response updateSchoolSettings(@PathParam("id") UUID id, UpdateSchoolDTO dto) {
         if (dto == null || dto.authToken() == null || dto.authToken().isBlank()) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Missing or invalid Authorization token").build();
         }
@@ -84,7 +84,7 @@ public class SchoolResource {
     @POST
     @Path("{id}/logo")
     @Blocking
-    public Response uploadSchoolLogo(@PathParam("id") Long id, @BeanParam SchoolLogoUploadForm form) {
+    public Response uploadSchoolLogo(@PathParam("id") UUID id, @BeanParam SchoolLogoUploadForm form) {
         if (form == null || form.authToken == null || form.authToken.isBlank()) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Missing or invalid Authorization token").build();
         }
@@ -113,7 +113,7 @@ public class SchoolResource {
 
     @DELETE
     @Path("{id}/logo")
-    public Response deleteSchoolLogo(@PathParam("id") Long id, JsonObject request) {
+    public Response deleteSchoolLogo(@PathParam("id") UUID id, JsonObject request) {
         if (request == null || !request.containsKey("authToken")) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Missing or invalid Authorization token").build();
         }
@@ -128,7 +128,7 @@ public class SchoolResource {
 
     @GET
     @Path("{id}/logo")
-    public Response getSchoolLogo(@PathParam("id") Long id) {
+    public Response getSchoolLogo(@PathParam("id") UUID id) {
         String objectName = schoolRepository.getSchoolUrl(id);
         if (objectName == null || objectName.isBlank()) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -144,7 +144,7 @@ public class SchoolResource {
 
     @DELETE
     @Path("{id}")
-    public Response deleteSchool(@PathParam("id") Long id, JsonObject request) {
+    public Response deleteSchool(@PathParam("id") UUID id, JsonObject request) {
         if (request == null || !request.containsKey("authToken")) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Missing or invalid Authorization token").build();
         }
@@ -159,13 +159,13 @@ public class SchoolResource {
 
     @GET
     @Path("{id}/focus")
-    public List<Focus> getFocusList(@PathParam("id") Long id) {
+    public List<Focus> getFocusList(@PathParam("id") UUID id) {
         return schoolRepository.getFocusList(id);
     }
 
     @GET
     @Path("{id}/rest")
-    public List<UserDTO> getAllTeachers(@PathParam("id") Long id) {
+    public List<UserDTO> getAllTeachers(@PathParam("id") UUID id) {
         return schoolRepository.getAllTeachers(id);
     }
 
@@ -187,7 +187,7 @@ public class SchoolResource {
 
     @POST
     @Path("{id}/leave")
-    public Response leaveSchool(@PathParam("id") Long id, String auth) {
+    public Response leaveSchool(@PathParam("id") UUID id, String auth) {
         UUID userId = tokenService.validateTokenAndGetUserId(auth);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
@@ -198,7 +198,7 @@ public class SchoolResource {
 
     @DELETE
     @Path("{id}/remove-teacher")
-    public Response removeTeacher(@PathParam("id") Long id, JsonObject request) {
+    public Response removeTeacher(@PathParam("id") UUID id, JsonObject request) {
         UUID userId = tokenService.validateTokenAndGetUserId(request.getString("authToken"));
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
@@ -209,19 +209,19 @@ public class SchoolResource {
 
     @POST
     @Path("{id}/focus")
-    public Focus addFocus(@PathParam("id") Long id, Focus focus) {
+    public Focus addFocus(@PathParam("id") UUID id, Focus focus) {
         return schoolRepository.addFocus(id, focus);
     }
 
     @DELETE
     @Path("{id}/focus/{focusId}")
-    public Response deleteFocus(@PathParam("id") Long id, @PathParam("focusId") Long focusId) {
+    public Response deleteFocus(@PathParam("id") UUID id, @PathParam("focusId") Long focusId) {
         return schoolRepository.deleteFocus(id, focusId);
     }
 
     @POST
     @Path("{id}/invite")
-    public Response inviteTeacher(@PathParam("id") Long id, CreateSchoolInviteDTO dto) {
+    public Response inviteTeacher(@PathParam("id") UUID id, CreateSchoolInviteDTO dto) {
         UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
@@ -254,7 +254,7 @@ public class SchoolResource {
 
     @POST
     @Path("{id}/pending-join-requests")
-    public List<SchoolInviteDTO> getPendingJoinRequests(@PathParam("id") Long id, String auth) {
+    public List<SchoolInviteDTO> getPendingJoinRequests(@PathParam("id") UUID id, String auth) {
         UUID userId = tokenService.validateTokenAndGetUserId(auth);
         if (userId == null) {
             return List.of();

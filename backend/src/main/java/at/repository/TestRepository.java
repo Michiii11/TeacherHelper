@@ -10,7 +10,9 @@ import at.dtos.Test.GradingLevelDTO;
 import at.dtos.Test.TestExampleDTO;
 import at.dtos.Test.TestOverviewDTO;
 import at.model.*;
+import at.model.School;
 import at.model.helper.ExampleVariable;
+import at.model.helper.GradingLevel;
 import at.security.TokenService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -33,7 +35,7 @@ public class TestRepository {
     @Inject
     FolderRepository folderRepository;
 
-    public List<TestOverviewDTO> getAllTest(Long schoolId) {
+    public List<TestOverviewDTO> getAllTest(UUID schoolId) {
         return em.createQuery(
                         "SELECT new at.dtos.Test.TestOverviewDTO(" +
                                 "t.id, " +

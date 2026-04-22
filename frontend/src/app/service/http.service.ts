@@ -74,22 +74,22 @@ export class HttpService {
     });
   }
 
-  getAllFocus(schoolId: number) {
+  getAllFocus(schoolId: string) {
     return this.http.get<Focus[]>(`${Config.API_URL}/school/${schoolId}/focus`);
   }
 
-  createFocus(schoolId: number, focus: Focus) {
+  createFocus(schoolId: string, focus: Focus) {
     return this.http.post<Focus>(`${Config.API_URL}/school/${schoolId}/focus`, focus);
   }
 
-  deleteFocus(schoolId: number, id: number) {
+  deleteFocus(schoolId: string, id: number) {
     return this.http.delete(`${Config.API_URL}/school/${schoolId}/focus/${id}`, {
       body: { authToken: this.authToken() },
       responseType: 'text' as 'json'
     });
   }
 
-  getExamples(schoolId: string | null | number) {
+  getExamples(schoolId: string | null) {
     return this.http.get(`${Config.API_URL}/example/school/${schoolId}`);
   }
 
@@ -108,7 +108,7 @@ export class HttpService {
     });
   }
 
-  getFullExamples(schoolId: number) {
+  getFullExamples(schoolId: string) {
     return this.http.get(`${Config.API_URL}/example/school/${schoolId}/full`);
   }
 

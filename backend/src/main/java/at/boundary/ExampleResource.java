@@ -38,13 +38,13 @@ public class ExampleResource {
 
     @GET
     @Path("/school/{schoolId}")
-    public List<ExampleOverviewDTO> getExamples(@PathParam("schoolId") Long schoolId) {
+    public List<ExampleOverviewDTO> getExamples(@PathParam("schoolId") UUID schoolId) {
         return repo.getAllExamples(schoolId);
     }
 
     @GET
     @Path("/school/{schoolId}/full")
-    public List<ExampleDTO> getFullExamples(@PathParam("schoolId") Long schoolId) {
+    public List<ExampleDTO> getFullExamples(@PathParam("schoolId") UUID schoolId) {
         return repo.getFullExamples(schoolId);
     }
 

@@ -3,9 +3,10 @@ package at.dtos.School;
 import at.dtos.User.UserDTO;
 
 import java.util.List;
+import java.util.UUID;
 
 public record SchoolDTO(
-        Long id,
+        UUID id,
         String name,
         String logoUrl,
         UserDTO admin,
