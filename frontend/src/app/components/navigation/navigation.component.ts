@@ -53,7 +53,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   adminVisible = false;
   notifications: NotificationDTO[] = [];
   selectedTab: 'open' | 'history' = 'open';
-  processingIds = new Set<number>();
+  processingIds = new Set<string>();
   navbarActions: NavbarAction[] = [];
   breadcrumbs: NavbarBreadcrumb[] = [];
 
@@ -570,15 +570,8 @@ export class NavigationComponent implements OnInit, OnDestroy {
     });
   }
 
-  private getLastViewedSchoolId(): number | null {
-    const raw = localStorage.getItem('lastViewedSchoolId');
-
-    if (!raw) {
-      return null;
-    }
-
-    const parsed = Number(raw);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  private getLastViewedSchoolId(): string | null {
+    return localStorage.getItem('lastViewedSchoolId')
   }
 
   private isDeveloperUser(): boolean {

@@ -19,7 +19,7 @@ export enum NotificationActionType {
 }
 
 export interface NotificationDTO {
-  id: number;
+  id: string;
   actor?: UserDTO;
   school?: SchoolDTO;
   type: NotificationType;
@@ -27,7 +27,7 @@ export interface NotificationDTO {
   message: string;
   link?: string;
   read: boolean;
-  relatedEntityId?: number;
+  relatedEntityId?: string;
   primaryAction?: NotificationActionType;
   secondaryAction?: NotificationActionType;
   createdAt: string;

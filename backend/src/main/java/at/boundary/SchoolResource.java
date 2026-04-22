@@ -197,14 +197,14 @@ public class SchoolResource {
     }
 
     @DELETE
-    @Path("{id}/remove-teacher")
-    public Response removeTeacher(@PathParam("id") UUID id, JsonObject request) {
+    @Path("{id}/remove-teacher/{teacher_id}")
+    public Response removeTeacher(@PathParam("id") UUID id, @PathParam("teacher_id") UUID teacherId, JsonObject request) {
         UUID userId = tokenService.validateTokenAndGetUserId(request.getString("authToken"));
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }
 
-        return schoolRepository.removeTeacher(id, userId, request.getInt("teacherId"));
+        return schoolRepository.removeTeacher(id, userId, teacherId);
     }
 
     @POST
@@ -215,7 +215,7 @@ public class SchoolResource {
 
     @DELETE
     @Path("{id}/focus/{focusId}")
-    public Response deleteFocus(@PathParam("id") UUID id, @PathParam("focusId") Long focusId) {
+    public Response deleteFocus(@PathParam("id") UUID id, @PathParam("focusId") UUID focusId) {
         return schoolRepository.deleteFocus(id, focusId);
     }
 
@@ -232,7 +232,7 @@ public class SchoolResource {
 
     @POST
     @Path("invite/{inviteId}/respond")
-    public Response respondToInvite(@PathParam("inviteId") Long inviteId, RespondSchoolInviteDTO dto) {
+    public Response respondToInvite(@PathParam("inviteId") UUID inviteId, RespondSchoolInviteDTO dto) {
         UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();

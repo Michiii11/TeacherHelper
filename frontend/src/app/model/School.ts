@@ -39,29 +39,3 @@ export enum SchoolInviteStatus {
   ACCEPTED = 'ACCEPTED',
   DECLINED = 'DECLINED',
 }
-
-export interface CreateSchoolInviteDTO {
-  authToken: string;
-  teacherId: number;
-  message: string;
-}
-
-export interface RespondSchoolInviteDTO {
-  authToken: string;
-  accept: boolean;
-}
-
-export interface ChangeLog {
-  id: number;
-  entityType: string;
-  entityId: number;
-  action: string;
-  user: User;
-  school: School;
-  createdAt: Date;
-}
-
-export interface LastActivityDTO {
-  username: string;
-  createdAt: Date;
-}

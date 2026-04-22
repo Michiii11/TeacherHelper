@@ -5,12 +5,13 @@ import at.enums.NotificationType;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 public class Notification {
     @Id
     @GeneratedValue
-    private Long id;
+    private UUID id;
 
     @ManyToOne
     private User recipient;
@@ -33,7 +34,7 @@ public class Notification {
 
     private boolean read = false;
 
-    private Long relatedEntityId;
+    private UUID relatedEntityId;
 
     @Enumerated(EnumType.STRING)
     private NotificationActionType primaryAction;
@@ -54,7 +55,7 @@ public class Notification {
                         String message,
                         String link,
                         boolean read,
-                        Long relatedEntityId,
+                        UUID relatedEntityId,
                         NotificationActionType primaryAction,
                         NotificationActionType secondaryAction,
                         LocalDateTime createdAt) {
@@ -91,11 +92,11 @@ public class Notification {
                 '}';
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -163,11 +164,11 @@ public class Notification {
         this.read = read;
     }
 
-    public Long getRelatedEntityId() {
+    public UUID getRelatedEntityId() {
         return relatedEntityId;
     }
 
-    public void setRelatedEntityId(Long relatedEntityId) {
+    public void setRelatedEntityId(UUID relatedEntityId) {
         this.relatedEntityId = relatedEntityId;
     }
 

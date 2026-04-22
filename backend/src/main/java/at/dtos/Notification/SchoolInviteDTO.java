@@ -6,9 +6,10 @@ import at.enums.SchoolInviteStatus;
 import at.enums.SchoolInviteType;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record SchoolInviteDTO(
-        Long id,
+        UUID id,
         SchoolDTO school,
         UserDTO sender,
         UserDTO recipient,

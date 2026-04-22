@@ -4,13 +4,14 @@ import at.model.Example;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "example_gaps")
 public class Gap {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    private UUID id;
 
     private String label;
 
@@ -48,8 +49,8 @@ public class Gap {
                 '}';
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
     public String getLabel() { return label; }
     public void setLabel(String label) { this.label = label; }

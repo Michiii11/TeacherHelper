@@ -37,7 +37,7 @@ public class NotificationResource {
 
     @POST
     @Path("{id}/read")
-    public Response markAsRead(@PathParam("id") Long id, String auth) {
+    public Response markAsRead(@PathParam("id") UUID id, String auth) {
         UUID userId = tokenService.validateTokenAndGetUserId(auth);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
@@ -48,7 +48,7 @@ public class NotificationResource {
 
     @DELETE
     @Path("{id}")
-    public Response delete(@PathParam("id") Long id, String auth) {
+    public Response delete(@PathParam("id") UUID id, String auth) {
         UUID userId = tokenService.validateTokenAndGetUserId(auth);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
@@ -59,7 +59,7 @@ public class NotificationResource {
 
     @POST
     @Path("{id}/action")
-    public Response executeAction(@PathParam("id") Long id, JsonObject request) {
+    public Response executeAction(@PathParam("id") UUID id, JsonObject request) {
         String authToken = request.containsKey("authToken") ? request.getString("authToken", null) : null;
         String actionRaw = request.containsKey("action") ? request.getString("action", null) : null;
 
@@ -88,7 +88,7 @@ public class NotificationResource {
 
     @POST
     @Path("system-info/school/{schoolId}")
-    public Response sendSystemInfoToSchool(@PathParam("schoolId") Long schoolId, JsonObject request) {
+    public Response sendSystemInfoToSchool(@PathParam("schoolId") UUID schoolId, JsonObject request) {
         String authToken = request.containsKey("authToken") ? request.getString("authToken", null) : null;
         String title = request.containsKey("title") ? request.getString("title", null) : null;
         String message = request.containsKey("message") ? request.getString("message", null) : null;

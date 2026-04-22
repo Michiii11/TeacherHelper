@@ -5,12 +5,13 @@ import at.enums.SchoolInviteType;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 public class SchoolInvite {
     @Id
     @GeneratedValue
-    private Long id;
+    private UUID id;
 
     @ManyToOne(optional = false)
     private School school;
@@ -46,7 +47,7 @@ public class SchoolInvite {
         this.createdAt = LocalDateTime.now();
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 

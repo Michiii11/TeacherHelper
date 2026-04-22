@@ -44,7 +44,7 @@ public class NotificationRepository {
                 .toList();
     }
 
-    public Response markAsRead(Long id, UUID userId) {
+    public Response markAsRead(UUID id, UUID userId) {
         Notification notification = em.find(Notification.class, id);
 
         if (notification == null) {
@@ -62,7 +62,7 @@ public class NotificationRepository {
         return Response.ok().build();
     }
 
-    public Response delete(Long id, UUID userId) {
+    public Response delete(UUID id, UUID userId) {
         Notification notification = em.find(Notification.class, id);
 
         if (notification == null) {
@@ -79,7 +79,7 @@ public class NotificationRepository {
         return Response.ok().build();
     }
 
-    public Response executeAction(Long notificationId, UUID userId, NotificationActionType action) {
+    public Response executeAction(UUID notificationId, UUID userId, NotificationActionType action) {
         Notification notification = em.find(Notification.class, notificationId);
 
         if (notification == null) {
@@ -133,7 +133,7 @@ public class NotificationRepository {
         }
     }
 
-    public void markRelatedNotificationsAsHandled(Long relatedEntityId) {
+    public void markRelatedNotificationsAsHandled(UUID relatedEntityId) {
         em.createQuery("""
                 UPDATE Notification n
                 SET n.read = true
@@ -150,7 +150,7 @@ public class NotificationRepository {
                                            String title,
                                            String message,
                                            String link,
-                                           Long relatedEntityId,
+                                           UUID relatedEntityId,
                                            NotificationActionType primaryAction,
                                            NotificationActionType secondaryAction) {
         Notification notification = new Notification(
@@ -179,7 +179,7 @@ public class NotificationRepository {
     }
 
     public Response sendSystemInfoToSchool(UUID senderId,
-                                           Long schoolId,
+                                           UUID schoolId,
                                            String title,
                                            String message,
                                            String link) {

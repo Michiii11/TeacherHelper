@@ -115,7 +115,7 @@ export interface Assign {
 }
 
 export interface Focus {
-  id: number;
+  id: string;
   label: string;
 }
 

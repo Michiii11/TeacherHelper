@@ -69,8 +69,8 @@ export class HttpService {
   }
 
   kickTeacherFromSchool(s: string, id: string) {
-    return this.http.delete(`${Config.API_URL}/school/${s}/remove-teacher`, {
-      body: { teacherId: id, authToken: this.authToken() }
+    return this.http.delete(`${Config.API_URL}/school/${s}/remove-teacher/${id}`, {
+      body: { authToken: this.authToken() }
     });
   }
 
@@ -82,8 +82,8 @@ export class HttpService {
     return this.http.post<Focus>(`${Config.API_URL}/school/${schoolId}/focus`, focus);
   }
 
-  deleteFocus(schoolId: string, id: number) {
-    return this.http.delete(`${Config.API_URL}/school/${schoolId}/focus/${id}`, {
+  deleteFocus(schoolId: string, focusId: string) {
+    return this.http.delete(`${Config.API_URL}/school/${schoolId}/focus/${focusId}`, {
       body: { authToken: this.authToken() },
       responseType: 'text' as 'json'
     });
@@ -335,27 +335,27 @@ export class HttpService {
     });
   }
 
-  markAsRead(id: number) {
+  markAsRead(id: string) {
     return this.http.post(`${Config.API_URL}/notification/${id}/read`, this.authToken(), {
       headers: { 'Content-Type': 'text/plain' }
     });
   }
 
-  deleteNotification(id: number) {
+  deleteNotification(id: string) {
     return this.http.delete(`${Config.API_URL}/notification/${id}`, {
       body: this.authToken(),
       headers: { 'Content-Type': 'text/plain' }
     });
   }
 
-  executeAction(id: number, action: NotificationActionType) {
+  executeAction(id: string, action: NotificationActionType) {
     return this.http.post(`${Config.API_URL}/notification/${id}/action`, {
       authToken: this.authToken(),
       action
     });
   }
 
-  sendSystemInfoToSchool(schoolId: number, payload: { title: string; message: string; link?: string | null }) {
+  sendSystemInfoToSchool(schoolId: string, payload: { title: string; message: string; link?: string | null }) {
     return this.http.post(`${Config.API_URL}/notification/system-info/school/${schoolId}`, {
       authToken: this.authToken(),
       ...payload
@@ -373,7 +373,7 @@ export class HttpService {
     });
   }
 
-  respondToInvite(inviteId: number, accept: boolean) {
+  respondToInvite(inviteId: string, accept: boolean) {
     return this.http.post(`${Config.API_URL}/school/invite/${inviteId}/respond`, {
       authToken: this.authToken(),
       accept

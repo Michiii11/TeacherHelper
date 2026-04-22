@@ -111,7 +111,7 @@ public class SchoolRepository {
         return f;
     }
 
-    public Response deleteFocus(UUID id, Long focusId) {
+    public Response deleteFocus(UUID id, UUID focusId) {
         School s = em.find(School.class, id);
         Focus f = em.find(Focus.class, focusId);
 
@@ -210,10 +210,10 @@ public class SchoolRepository {
         return Response.ok().build();
     }
 
-    public Response removeTeacher(UUID id, UUID userId, int teacherId) {
+    public Response removeTeacher(UUID id, UUID userId, UUID teacherId) {
         School school = em.find(School.class, id);
         User user = em.find(User.class, userId);
-        User teacher = em.find(User.class, (long) teacherId);
+        User teacher = em.find(User.class, teacherId);
 
         if (school == null || user == null || teacher == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("School, User or Teacher not found").build();
@@ -437,7 +437,7 @@ public class SchoolRepository {
         return Response.ok(toSchoolInviteDTO(invite)).build();
     }
 
-    public Response respondToInvite(Long inviteId, UUID userId, boolean accept) {
+    public Response respondToInvite(UUID inviteId, UUID userId, boolean accept) {
         SchoolInvite invite = em.find(SchoolInvite.class, inviteId);
 
         if (invite == null) {

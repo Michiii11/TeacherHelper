@@ -4,12 +4,13 @@ import jakarta.persistence.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Entity
 public class TestExample {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    private UUID id;
 
     @ManyToOne(optional = false)
     private Test test;
@@ -36,11 +37,11 @@ public class TestExample {
         this.title = title;
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

@@ -229,7 +229,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   }
 
   generateUniqueId(): string {
-    return Math.random().toString(36).slice(2, 11);
+    return crypto.randomUUID();
   }
 
   private normalizeLabel(label: string): string {
@@ -1013,7 +1013,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
     const value: Focus =
       typeof opt === 'string'
-        ? { id: 0, label: opt }
+        ? { id: '', label: opt }
         : { id: opt.id, label: opt.label };
 
     this.addFocus(value);
@@ -1027,7 +1027,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     const label = raw.trim();
     if (!label) return;
 
-    this.addFocus({ id: 0, label });
+    this.addFocus({ id: '', label });
     event.chipInput?.clear();
   }
 
@@ -1052,7 +1052,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     }
 
     const existing = this.focusSubject.value.find(f => this.normalizeLabel(f.label) === label);
-    const focusToAdd: Focus = existing ? existing : { id: 0, label: value.label.trim() };
+    const focusToAdd: Focus = existing ? existing : { id: '', label: value.label.trim() };
 
     this.example.focusList.push(focusToAdd);
 
@@ -1060,10 +1060,10 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     this.markDirty();
 
     if (!existing) {
-      const optimistic: Focus = { id: 0, label: focusToAdd.label };
+      const optimistic: Focus = { id: '', label: focusToAdd.label };
       this.focusSubject.next([...this.focusSubject.value, optimistic]);
 
-      this.http.createFocus(this.data.schoolId, { id: -1, label: focusToAdd.label })
+      this.http.createFocus(this.data.schoolId, { id: '', label: focusToAdd.label })
         .pipe(takeUntil(this.destroy$))
         .subscribe(createdFocus => {
           const selIdx = this.example.focusList.findIndex(f => this.normalizeLabel(f.label) === this.normalizeLabel(createdFocus.label));
