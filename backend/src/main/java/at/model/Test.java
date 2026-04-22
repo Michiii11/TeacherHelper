@@ -8,8 +8,8 @@ import java.util.*;
 @Entity
 public class Test {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    private UUID id;
 
     @ManyToOne
     private User admin;
@@ -105,11 +105,11 @@ public class Test {
         this.school = school;
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

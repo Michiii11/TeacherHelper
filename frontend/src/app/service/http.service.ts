@@ -173,7 +173,7 @@ export class HttpService {
     return this.http.get(`${Config.API_URL}/test/school/${schoolId}`);
   }
 
-  getCreateTest(testId: number) {
+  getCreateTest(testId: string) {
     return this.http.post<CreateTestDTO>(`${Config.API_URL}/test/${testId}`, {
       authToken: this.authToken()
     });
@@ -184,14 +184,14 @@ export class HttpService {
     return this.http.post(`${Config.API_URL}/test`, test, { responseType: 'text' as 'json' });
   }
 
-  deleteTest(id: number) {
+  deleteTest(id: string) {
     return this.http.delete(`${Config.API_URL}/test/${id}`, {
       body: { authToken: this.authToken() },
       responseType: 'text' as 'json'
     });
   }
 
-  saveTest(testId: number | undefined, test: CreateTestDTO) {
+  saveTest(testId: string | undefined, test: CreateTestDTO) {
     return this.http.put(`${Config.API_URL}/test/${testId}`, test, { responseType: 'text' as 'json' });
   }
 
@@ -475,7 +475,7 @@ export class HttpService {
     );
   }
 
-  moveTestToFolder(testId: number, dto: { folderId: string | null }) {
+  moveTestToFolder(testId: string, dto: { folderId: string | null }) {
     return this.http.put(
       `${Config.API_URL}/test/${testId}/folder`,
       {...dto, authToken: this.authToken()},

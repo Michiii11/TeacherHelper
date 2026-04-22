@@ -11,6 +11,7 @@ import jakarta.ws.rs.core.Response;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 @Path("/test")
 public class TestResource {
@@ -25,7 +26,7 @@ public class TestResource {
 
     @POST
     @Path("{testId}")
-    public CreateTestDTO getTest(@PathParam("testId") Long testId, JsonObject json){
+    public CreateTestDTO getTest(@PathParam("testId") UUID testId, JsonObject json){
         return repo.getTest(testId, json.getString("authToken"));
     }
 
@@ -36,19 +37,19 @@ public class TestResource {
 
     @PUT
     @Path("{testId}")
-    public Response updateTest(@PathParam("testId") Long testId, CreateTestDTO dto){
+    public Response updateTest(@PathParam("testId") UUID testId, CreateTestDTO dto){
         return repo.updateTest(testId, dto);
     }
 
     @DELETE
     @Path("{testId}")
-    public Response deleteTest(JsonObject json, @PathParam("testId") Long testId){
+    public Response deleteTest(JsonObject json, @PathParam("testId") UUID testId){
         return repo.deleteTest(json.getString("authToken"), testId);
     }
 
     @PUT
     @Path("{testId}/folder")
-    public Response moveTestToFolder(@PathParam("testId") Long testId, MoveTestToFolderDTO dto) {
+    public Response moveTestToFolder(@PathParam("testId") UUID testId, MoveTestToFolderDTO dto) {
         return repo.moveTestToFolder(testId, dto);
     }
 }

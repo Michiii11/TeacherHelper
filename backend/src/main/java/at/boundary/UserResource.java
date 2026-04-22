@@ -184,8 +184,6 @@ public class UserResource {
 
     @POST
     @Path("email/cancel-pending")
-    @Consumes(MediaType.TEXT_PLAIN)
-    @Produces(MediaType.TEXT_PLAIN)
     public Response cancelPendingEmailChange(String authToken) {
         UUID userId = tokenFromDto(authToken);
         if (userId == null) {
@@ -282,8 +280,6 @@ public class UserResource {
 
     @POST
     @Path("delete-account")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
     public Response deleteAccount(Map<String, String> body) {
         String authToken = body == null ? null : body.get("authToken");
         UUID userId = tokenFromDto(authToken);
@@ -305,8 +301,6 @@ public class UserResource {
 
     @POST
     @Path("profile-image")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.TEXT_PLAIN)
     public Response uploadProfileImage(@RestForm("file") FileUpload file,
                                        @RestForm("authToken") String authToken) {
         UUID userId = tokenFromDto(authToken);

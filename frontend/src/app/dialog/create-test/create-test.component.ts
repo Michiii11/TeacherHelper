@@ -73,7 +73,7 @@ type PersistedTestSettings = {
   styleUrl: './create-test.component.scss',
 })
 export class CreateTestComponent implements OnInit, OnDestroy {
-  data = inject<{ schoolId: number; testId?: number; folderId?: string | null }>(MAT_DIALOG_DATA);
+  data = inject<{ schoolId: number; testId?: string; folderId?: string | null }>(MAT_DIALOG_DATA);
   private dialogRef = inject(MatDialogRef<CreateTestComponent>);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);

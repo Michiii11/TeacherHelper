@@ -90,7 +90,7 @@ public class TestRepository {
     }
 
     @Transactional
-    public Response updateTest(Long testId, CreateTestDTO dto) {
+    public Response updateTest(UUID testId, CreateTestDTO dto) {
         Test test = em.find(Test.class, testId);
         if (test == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -136,7 +136,7 @@ public class TestRepository {
     }
 
     @Transactional
-    public Response moveTestToFolder(Long testId, MoveTestToFolderDTO dto) {
+    public Response moveTestToFolder(UUID testId, MoveTestToFolderDTO dto) {
         Test test = em.find(Test.class, testId);
         if (test == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("Test nicht gefunden.").build();
@@ -167,7 +167,7 @@ public class TestRepository {
     }
 
     @Transactional
-    public Response deleteTest(String authToken, Long testId) {
+    public Response deleteTest(String authToken, UUID testId) {
         Test test = em.find(Test.class, testId);
         if (test == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -188,7 +188,7 @@ public class TestRepository {
         return Response.ok().build();
     }
 
-    public CreateTestDTO getTest(Long testId, String authToken) {
+    public CreateTestDTO getTest(UUID testId, String authToken) {
         UUID userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
             return null;

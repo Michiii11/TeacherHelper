@@ -14,7 +14,7 @@ export interface GradingLevel {
 }
 
 export interface Test {
-  id: number;
+  id: string;
   admin: User;
   name: string;
   note: string;
@@ -52,7 +52,7 @@ export interface TestExampleDTO{
 }
 
 export interface TestOverviewDTO {
-  id: number;
+  id: string;
   name: string;
   amountOfQuestions: number;
   duration: number;
