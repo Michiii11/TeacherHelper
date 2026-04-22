@@ -20,7 +20,7 @@ export const ExampleTypeLabels: Record<ExampleTypes, string> = {
 };
 
 export interface Example {
-  id: number;
+  id: string;
   admin: User;
   adminUsername?: string;
   folderId?: string | null;
@@ -42,7 +42,7 @@ export interface Example {
 }
 
 export interface ExampleDTO {
-  id: number;
+  id: string;
   admin: UserDTO;
   adminUsername?: string;
   folderId?: string | null;
@@ -120,7 +120,7 @@ export interface Focus {
 }
 
 export interface ExampleOverviewDTO {
-  id: number;
+  id: string;
   type: ExampleTypes;
   instruction: string;
   question: string;

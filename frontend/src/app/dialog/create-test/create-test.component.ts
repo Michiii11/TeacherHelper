@@ -119,7 +119,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   defaultTaskSpacing = 48;
   spacingForAll = 48;
-  taskSpacingMap: Record<number, number> = {};
+  taskSpacingMap: Record<string, number> = {};
 
   useAutomaticGrading = true;
   gradingSystemName = this.translate.instant('createTest.grading.presets.atName');
@@ -313,7 +313,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     const hydratedExample = this.hydrateConstructionImage(example);
 
     const newEntry: TestExample = {
-      id: -1,
+      id: example.id,
       example: hydratedExample,
       points: 0,
       title: '',
@@ -362,7 +362,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.markDirty();
   }
 
-  trackBySelectedExample = (_: number, entry: TestExampleDTO): number => entry.example.id;
+  trackBySelectedExample = (_: number, entry: TestExampleDTO): string => entry.example.id;
 
   trackByGradingLevel = (_: number, level: GradingLevel): string =>
     String(level.key ?? level.order ?? _);
@@ -652,7 +652,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.markDirty();
   }
 
-  onTaskSpacingChange(exampleId: number, value: number | string | null): void {
+  onTaskSpacingChange(exampleId: string, value: number | string | null): void {
     const numeric = this.normalizeSpacingValue(value);
     this.taskSpacingMap[exampleId] = numeric;
     this.markDirty();
@@ -676,7 +676,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.markDirty();
   }
 
-  getTaskSpacing(exampleId: number): number {
+  getTaskSpacing(exampleId: string): number {
     return this.taskSpacingMap[exampleId] ?? this.defaultTaskSpacing;
   }
 

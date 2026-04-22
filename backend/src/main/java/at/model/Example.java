@@ -14,12 +14,13 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 public class Example {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    private UUID id;
 
     @ManyToOne
     private User admin;
@@ -96,8 +97,8 @@ public class Example {
         this.school = school;
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
     public User getAdmin() { return admin; }
     public void setAdmin(User admin) { this.admin = admin; }
     public ExampleTypes getType() { return type; }

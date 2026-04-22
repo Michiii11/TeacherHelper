@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 public record ExampleOverviewDTO(
-        Long id,
+        UUID id,
         ExampleTypes type,
         String instruction,
         String question,

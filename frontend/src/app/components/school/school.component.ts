@@ -37,7 +37,7 @@ type ViewMode = 'grid' | 'compact';
 interface ExplorerFolder extends FolderDTO {}
 
 interface ExplorerItem {
-  id: number;
+  id: number | string;
   type: ExplorerItemType;
   title: string;
   subtitle: string;
@@ -50,7 +50,7 @@ interface ExplorerItem {
 
 interface DraggedExplorerItem {
   type: ExplorerItemType;
-  itemId: number;
+  itemId: number | string;
 }
 
 interface DraggedExplorerFolder {
@@ -592,7 +592,7 @@ export class SchoolComponent implements OnInit, OnDestroy {
     });
   }
 
-  onItemDragStart(type: ExplorerItemType, itemId: number): void {
+  onItemDragStart(type: ExplorerItemType, itemId: number | string): void {
     this.draggedItem = { type, itemId };
   }
 
@@ -633,7 +633,7 @@ export class SchoolComponent implements OnInit, OnDestroy {
   private handleDrop(folderId: string | null): void {
     if (this.draggedItem) {
       if (this.draggedItem.type === 'examples') {
-        const example = this.examples.find(item => item.id === this.draggedItem?.itemId);
+        const example = this.examples.find(item => item.id === this.draggedItem?.itemId.toString());
         if (example) this.moveExampleToFolder(example, folderId);
       } else {
         const test = this.tests.find(item => item.id === this.draggedItem?.itemId);

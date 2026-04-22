@@ -104,11 +104,11 @@ export class HttpService {
     return this.http.post(`${Config.API_URL}/example`, dto, { responseType: 'text' });
   }
 
-  saveExample(exampleId: number, dto: CreateExampleDTO) {
+  saveExample(exampleId: string, dto: CreateExampleDTO) {
     return this.http.put(`${Config.API_URL}/example/${exampleId}`, dto, { responseType: 'text' });
   }
 
-  deleteExample(id: number) {
+  deleteExample(id: string) {
     return this.http.delete(`${Config.API_URL}/example/${id}`, {
       body: { authToken: this.authToken() },
       responseType: 'text' as 'json'
@@ -119,41 +119,41 @@ export class HttpService {
     return this.http.get(`${Config.API_URL}/example/school/${schoolId}/full`);
   }
 
-  getCreateExample(exampleId: number) {
+  getCreateExample(exampleId: string) {
     return this.http.post<CreateExampleDTO>(`${Config.API_URL}/example/${exampleId}`, {
       authToken: this.authToken()
     });
   }
 
-  uploadConstructionImage(exampleId: number, file: File) {
+  uploadConstructionImage(exampleId: string, file: File) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('authToken', this.authToken());
     return this.http.post(`${Config.API_URL}/example/${exampleId}/construction-image`, formData, { responseType: 'text' });
   }
 
-  uploadConstructionSolutionImage(exampleId: number, file: File) {
+  uploadConstructionSolutionImage(exampleId: string, file: File) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('authToken', this.authToken());
     return this.http.post(`${Config.API_URL}/example/${exampleId}/construction-solution-image`, formData, { responseType: 'text' });
   }
 
-  deleteConstructionImage(exampleId: number) {
+  deleteConstructionImage(exampleId: string) {
     return this.http.delete(`${Config.API_URL}/example/${exampleId}/construction-image`, {
       body: { authToken: this.authToken() },
       responseType: 'text'
     });
   }
 
-  deleteConstructionSolutionImage(exampleId: number) {
+  deleteConstructionSolutionImage(exampleId: string) {
     return this.http.delete(`${Config.API_URL}/example/${exampleId}/construction-solution-image`, {
       body: { authToken: this.authToken() },
       responseType: 'text'
     });
   }
 
-  getConstructionImageUrl(exampleId: number | null | undefined): string | null {
+  getConstructionImageUrl(exampleId: string | null | undefined): string | null {
     if (!exampleId) {
       return null;
     }
@@ -161,7 +161,7 @@ export class HttpService {
     return `${Config.API_URL}/example/${exampleId}/construction-image`;
   }
 
-  getConstructionSolutionImageUrl(exampleId: number | null | undefined): string | null {
+  getConstructionSolutionImageUrl(exampleId: string | null | undefined): string | null {
     if (!exampleId) {
       return null;
     }
@@ -180,6 +180,7 @@ export class HttpService {
   }
 
   createTest(test: CreateTestDTO) {
+    console.log(test)
     return this.http.post(`${Config.API_URL}/test`, test, { responseType: 'text' as 'json' });
   }
 
@@ -466,7 +467,7 @@ export class HttpService {
     return `${Config.API_URL}/school/${schoolId}/logo`;
   }
 
-  moveExampleToFolder(exampleId: number, dto: { folderId: string | null }) {
+  moveExampleToFolder(exampleId: string, dto: { folderId: string | null }) {
     return this.http.put(
       `${Config.API_URL}/example/${exampleId}/folder`,
       { ...dto, authToken: this.authToken() },

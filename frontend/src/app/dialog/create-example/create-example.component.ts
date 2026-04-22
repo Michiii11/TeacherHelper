@@ -76,7 +76,7 @@ type VariableTarget =
   styleUrls: ['./create-example.component.scss']
 })
 export class CreateExampleComponent implements OnInit, OnDestroy {
-  data = inject<{ schoolId: number; exampleId: number }>(MAT_DIALOG_DATA);
+  data = inject<{ schoolId: number; exampleId: string }>(MAT_DIALOG_DATA);
   private readonly destroy$ = new Subject<void>();
 
   private readonly http = inject(HttpService);
@@ -853,7 +853,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     return Math.max(80, Math.min(1200, Math.round(parsed)));
   }
 
-  private async uploadConstructionAssets(exampleId: number): Promise<void> {
+  private async uploadConstructionAssets(exampleId: string): Promise<void> {
     if (this.selectedConstructionImageFile) {
       await firstValueFrom(this.http.uploadConstructionImage(exampleId, this.selectedConstructionImageFile));
     }
@@ -899,7 +899,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
       if (this.isEditMode) {
         const updatedIdRaw = await firstValueFrom(this.http.saveExample(this.data.exampleId, payload));
-        const updatedId = Number(updatedIdRaw) || this.data.exampleId;
+        const updatedId = updatedIdRaw || this.data.exampleId;
 
         if (this.example.type === ExampleTypes.CONSTRUCTION) {
           await this.uploadConstructionAssets(updatedId);
@@ -908,7 +908,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
         this.openTranslatedSnack('exampleDialog.snackbar.saved');
       } else {
         const createdIdRaw = await firstValueFrom(this.http.createExample(payload));
-        const createdId = Number(createdIdRaw);
+        const createdId = createdIdRaw;
 
         if (!createdId) {
           throw new Error('Example-ID fehlt nach dem Erstellen.');

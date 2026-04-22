@@ -36,7 +36,7 @@ export interface TestExampleVariableValues {
 }
 
 export interface TestExample{
-  id: number;
+  id: string;
   example: Example;
   test: Test;
   points: number;
@@ -72,7 +72,7 @@ export interface CreateTestDTO {
   exampleList: TestExampleDTO[];
   duration: number;
   defaultTaskSpacing?: number;
-  taskSpacingMap?: Record<number, number>;
+  taskSpacingMap?: Record<string, number>;
   gradingMode?: TestGradingMode;
   gradingSystemName?: string;
   gradingSchema?: GradingLevel[];

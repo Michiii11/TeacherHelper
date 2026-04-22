@@ -176,6 +176,7 @@ export interface FolderPickerDialogData {
       justify-content: space-between;
       gap: .75rem;
       text-align: left;
+      margin-top: .1rem;
       padding: .85rem 1rem;
       border-radius: 14px;
       border: 1px solid var(--border);

@@ -220,8 +220,8 @@ public class TestRepository {
                 t.getGradingMode(),
                 t.getGradingSystemName(),
                 mapDtoSchemaToEntitySchema(t.getGradingSchema()),
-                copyMap(t.getGradePercentages()),
-                copyMap(t.getManualGradeMinimums()),
+                copyMapInt(t.getGradePercentages()),
+                copyMapInt(t.getManualGradeMinimums()),
                 t.getFolder() != null ? t.getFolder().getId() : null
         );
     }
@@ -285,11 +285,15 @@ public class TestRepository {
         test.setGradingSystemName(dto.gradingSystemName());
         test.setTaskSpacingMap(copyMap(dto.taskSpacingMap()));
         test.setGradingSchema(mapGradingSchema(dto.gradingSchema()));
-        test.setGradePercentages(copyMap(dto.gradePercentages()));
-        test.setManualGradeMinimums(copyMap(dto.manualGradeMinimums()));
+        test.setGradePercentages(copyMapInt(dto.gradePercentages()));
+        test.setManualGradeMinimums(copyMapInt(dto.manualGradeMinimums()));
     }
 
-    private Map<Integer, Integer> copyMap(Map<Integer, Integer> source) {
+    private Map<UUID, Integer> copyMap(Map<UUID, Integer> source) {
+        return source == null ? Map.of() : Map.copyOf(source);
+    }
+
+    private Map<Integer, Integer> copyMapInt(Map<Integer, Integer> source) {
         return source == null ? Map.of() : Map.copyOf(source);
     }
 

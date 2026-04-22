@@ -159,7 +159,7 @@ public class ExampleRepository {
     }
 
     @Transactional
-    public Response updateExample(Long exampleId, CreateExampleDTO dto) {
+    public Response updateExample(UUID exampleId, CreateExampleDTO dto) {
         Example example = em.find(Example.class, exampleId);
         if (example == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -227,7 +227,7 @@ public class ExampleRepository {
     }
 
     @Transactional
-    public Response moveExampleToFolder(Long exampleId, MoveExampleToFolderDTO dto) {
+    public Response moveExampleToFolder(UUID exampleId, MoveExampleToFolderDTO dto) {
         Example example = em.find(Example.class, exampleId);
         if (example == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("Beispiel nicht gefunden.").build();
@@ -258,7 +258,7 @@ public class ExampleRepository {
     }
 
     @Transactional
-    public Response deleteExample(String authToken, Long exampleId) {
+    public Response deleteExample(String authToken, UUID exampleId) {
         Example example = em.find(Example.class, exampleId);
         if (example == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -296,7 +296,7 @@ public class ExampleRepository {
         return Response.ok().build();
     }
 
-    public CreateExampleDTO getExample(Long exampleId, String authToken) {
+    public CreateExampleDTO getExample(UUID exampleId, String authToken) {
         tokenService.validateTokenAndGetUserId(authToken);
 
         Example e = em.find(Example.class, exampleId);
@@ -325,7 +325,7 @@ public class ExampleRepository {
     }
 
     @Transactional
-    public String updateConstructionTaskImage(Long exampleId, String imageKey) {
+    public String updateConstructionTaskImage(UUID exampleId, String imageKey) {
         Example example = em.find(Example.class, exampleId);
         if (example == null) {
             return "EXAMPLE_NOT_FOUND";
@@ -338,7 +338,7 @@ public class ExampleRepository {
     }
 
     @Transactional
-    public String updateConstructionSolutionImage(Long exampleId, String solutionKey) {
+    public String updateConstructionSolutionImage(UUID exampleId, String solutionKey) {
         Example example = em.find(Example.class, exampleId);
         if (example == null) {
             return "EXAMPLE_NOT_FOUND";
@@ -349,7 +349,7 @@ public class ExampleRepository {
         return null;
     }
 
-    public Example findById(Long exampleId) {
+    public Example findById(UUID exampleId) {
         return em.find(Example.class, exampleId);
     }
 

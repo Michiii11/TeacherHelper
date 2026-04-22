@@ -241,7 +241,7 @@ export class TestPreviewComponent implements OnInit {
     return String.fromCharCode(65 + i);
   }
 
-  getTaskSpacing(exampleId: number): number {
+  getTaskSpacing(exampleId: string): number {
     return Number(this.test.taskSpacingMap?.[exampleId] ?? this.test.defaultTaskSpacing ?? 48);
   }
 

@@ -9,7 +9,7 @@ import { CreateExampleDTO, ExampleTypes } from '../../model/Example';
 
 type ExamplePreviewDialogData = {
   example?: CreateExampleDTO;
-  exampleId?: number;
+  exampleId?: string;
   schoolId?: number;
 };
 

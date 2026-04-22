@@ -3,10 +3,7 @@ package at.model;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Entity
 public class Test {
@@ -44,7 +41,7 @@ public class Test {
     @CollectionTable(name = "test_task_spacing", joinColumns = @JoinColumn(name = "test_id"))
     @MapKeyColumn(name = "example_id")
     @Column(name = "spacing_value")
-    private Map<Integer, Integer> taskSpacingMap = new HashMap<>();
+    private Map<UUID, Integer> taskSpacingMap = new HashMap<>();
 
     @ElementCollection
     @CollectionTable(name = "test_grading_levels", joinColumns = @JoinColumn(name = "test_id"))
@@ -164,11 +161,11 @@ public class Test {
         this.gradingSystemName = gradingSystemName;
     }
 
-    public Map<Integer, Integer> getTaskSpacingMap() {
+    public Map<UUID, Integer> getTaskSpacingMap() {
         return taskSpacingMap;
     }
 
-    public void setTaskSpacingMap(Map<Integer, Integer> taskSpacingMap) {
+    public void setTaskSpacingMap(Map<UUID, Integer> taskSpacingMap) {
         this.taskSpacingMap = taskSpacingMap != null ? new HashMap<>(taskSpacingMap) : new HashMap<>();
     }
 

@@ -2,6 +2,7 @@ package at.dtos.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public record CreateTestDTO(
         String authToken,
@@ -11,7 +12,7 @@ public record CreateTestDTO(
         List<TestExampleDTO> exampleList,
         int duration,
         Integer defaultTaskSpacing,
-        Map<Integer, Integer> taskSpacingMap,
+        Map<UUID, Integer> taskSpacingMap,
         String gradingMode,
         String gradingSystemName,
         List<GradingLevelDTO> gradingSchema,

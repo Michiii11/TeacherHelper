@@ -50,7 +50,7 @@ public class ExampleResource {
 
     @POST
     @Path("{exampleId}")
-    public CreateExampleDTO getExample(@PathParam("exampleId") Long exampleId, JsonObject json) {
+    public CreateExampleDTO getExample(@PathParam("exampleId") UUID exampleId, JsonObject json) {
         return repo.getExample(exampleId, json.getString("authToken"));
     }
 
@@ -63,13 +63,13 @@ public class ExampleResource {
     @PUT
     @Path("{exampleId}")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response updateExample(@PathParam("exampleId") Long exampleId, CreateExampleDTO dto) {
+    public Response updateExample(@PathParam("exampleId") UUID exampleId, CreateExampleDTO dto) {
         return repo.updateExample(exampleId, dto);
     }
 
     @DELETE
     @Path("{exampleId}")
-    public Response deleteExample(JsonObject json, @PathParam("exampleId") Long exampleId) {
+    public Response deleteExample(JsonObject json, @PathParam("exampleId") UUID exampleId) {
         return repo.deleteExample(json.getString("authToken"), exampleId);
     }
 
@@ -77,7 +77,7 @@ public class ExampleResource {
     @Path("{exampleId}/construction-image")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.TEXT_PLAIN)
-    public Response uploadConstructionImage(@PathParam("exampleId") Long exampleId,
+    public Response uploadConstructionImage(@PathParam("exampleId") UUID exampleId,
                                             @RestForm("file") FileUpload file,
                                             @RestForm("authToken") String authToken) {
         UUID userId = tokenService.validateTokenAndGetUserId(authToken);
@@ -127,9 +127,7 @@ public class ExampleResource {
 
     @DELETE
     @Path("{exampleId}/construction-image")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
-    public Response deleteConstructionImage(@PathParam("exampleId") Long exampleId, JsonObject json) {
+    public Response deleteConstructionImage(@PathParam("exampleId") UUID exampleId, JsonObject json) {
         String authToken = json.getString("authToken", "");
         UUID userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
@@ -155,9 +153,7 @@ public class ExampleResource {
 
     @POST
     @Path("{exampleId}/construction-solution-image")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.TEXT_PLAIN)
-    public Response uploadConstructionSolutionImage(@PathParam("exampleId") Long exampleId,
+    public Response uploadConstructionSolutionImage(@PathParam("exampleId") UUID exampleId,
                                                     @RestForm("file") FileUpload file,
                                                     @RestForm("authToken") String authToken) {
         UUID userId = tokenService.validateTokenAndGetUserId(authToken);
@@ -207,9 +203,7 @@ public class ExampleResource {
 
     @DELETE
     @Path("{exampleId}/construction-solution-image")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
-    public Response deleteConstructionSolutionImage(@PathParam("exampleId") Long exampleId, JsonObject json) {
+    public Response deleteConstructionSolutionImage(@PathParam("exampleId") UUID exampleId, JsonObject json) {
         String authToken = json.getString("authToken", "");
         UUID userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
@@ -235,7 +229,7 @@ public class ExampleResource {
 
     @GET
     @Path("{exampleId}/construction-image")
-    public Response getConstructionImage(@PathParam("exampleId") Long exampleId) {
+    public Response getConstructionImage(@PathParam("exampleId") UUID exampleId) {
         Example example = repo.findById(exampleId);
         if (example == null || example.getImageUrl() == null || example.getImageUrl().isBlank()) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -251,7 +245,7 @@ public class ExampleResource {
 
     @GET
     @Path("{exampleId}/construction-solution-image")
-    public Response getConstructionSolutionImage(@PathParam("exampleId") Long exampleId) {
+    public Response getConstructionSolutionImage(@PathParam("exampleId") UUID exampleId) {
         Example example = repo.findById(exampleId);
         if (example == null || example.getSolutionUrl() == null || example.getSolutionUrl().isBlank()) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -268,7 +262,7 @@ public class ExampleResource {
     @PUT
     @Path("{exampleId}/folder")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response moveExampleToFolder(@PathParam("exampleId") Long exampleId, MoveExampleToFolderDTO dto) {
+    public Response moveExampleToFolder(@PathParam("exampleId") UUID exampleId, MoveExampleToFolderDTO dto) {
         return repo.moveExampleToFolder(exampleId, dto);
     }
 }

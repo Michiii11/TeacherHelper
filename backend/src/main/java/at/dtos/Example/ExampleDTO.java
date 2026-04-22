@@ -9,9 +9,10 @@ import at.model.helper.Focus;
 import at.model.helper.Option;
 
 import java.util.List;
+import java.util.UUID;
 
 public record ExampleDTO(
-        Long id,
+        UUID id,
         UserDTO admin,
         ExampleTypes type,
         String instruction,

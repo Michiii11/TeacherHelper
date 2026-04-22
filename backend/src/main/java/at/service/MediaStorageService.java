@@ -88,15 +88,15 @@ public class MediaStorageService {
         storage.delete(bucketName, objectName);
     }
 
-    public String uploadConstructionTaskImage(Long exampleId, Path file) throws IOException {
+    public String uploadConstructionTaskImage(UUID exampleId, Path file) throws IOException {
         return uploadExampleImage(exampleId, file, "task");
     }
 
-    public String uploadConstructionSolutionImage(Long exampleId, Path file) throws IOException {
+    public String uploadConstructionSolutionImage(UUID exampleId, Path file) throws IOException {
         return uploadExampleImage(exampleId, file, "solution");
     }
 
-    private String uploadExampleImage(Long exampleId, Path file, String variant) throws IOException {
+    private String uploadExampleImage(UUID exampleId, Path file, String variant) throws IOException {
         Storage storage = StorageOptions.getDefaultInstance().getService();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
