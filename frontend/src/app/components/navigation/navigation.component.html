@@ -69,9 +69,11 @@
           <mat-icon>help</mat-icon>
         </button>
 
-        <button mat-icon-button class="icon-btn" routerLink="/admin" *ngIf="isAdmin()">
-          <mat-icon>dashboard</mat-icon>
-        </button>
+        @if (adminVisible) {
+          <button mat-icon-button class="icon-btn" routerLink="/admin">
+            <mat-icon>dashboard</mat-icon>
+          </button>
+        }
 
         <button mat-icon-button class="icon-btn notif-trigger" [matMenuTriggerFor]="notifMenu">
           <mat-icon>notifications</mat-icon>

@@ -1,4 +1,9 @@
 package at.dtos.User;
 
-public record FullUserDTO(Long id, String username, String email, String password) {
-}
+public record FullUserDTO(
+        String username,
+        String email,
+        String password,
+        String language,
+        Boolean darkMode
+) {}

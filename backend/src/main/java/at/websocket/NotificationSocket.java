@@ -11,20 +11,21 @@ import jakarta.websocket.server.ServerEndpoint;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 @ServerEndpoint("/socket/notification")
 public class NotificationSocket {
 
-    private static final ConcurrentHashMap<Long, Set<Session>> USER_SESSIONS = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<UUID, Set<Session>> USER_SESSIONS = new ConcurrentHashMap<>();
 
     @OnOpen
     public void onOpen(Session session) throws IOException {
         String token = extractToken(session.getQueryString());
 
         TokenService tokenService = Arc.container().instance(TokenService.class).get();
-        Long userId = tokenService.validateTokenAndGetUserId(token);
+        UUID userId = tokenService.validateTokenAndGetUserId(token);
 
         if (userId == null) {
             session.close(new CloseReason(
@@ -51,7 +52,7 @@ public class NotificationSocket {
         removeSession(session);
     }
 
-    public static void notifyUser(Long userId) {
+    public static void notifyUser(UUID userId) {
         if (userId == null) {
             return;
         }
@@ -71,7 +72,7 @@ public class NotificationSocket {
     private void removeSession(Session session) {
         Object rawUserId = session.getUserProperties().get("userId");
 
-        if (!(rawUserId instanceof Long userId)) {
+        if (!(rawUserId instanceof UUID userId)) {
             return;
         }
 

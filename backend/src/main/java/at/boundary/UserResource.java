@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 @Path("user")
 public class UserResource {
@@ -122,13 +123,13 @@ public class UserResource {
 
     @POST
     @Path("id")
-    public Long getUserId(String authToken) {
+    public UUID getUserId(String authToken) {
         return tokenService.validateTokenAndGetUserId(authToken);
     }
 
     @POST
     public UserProfileDTO getUser(String authToken) {
-        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        UUID userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
             throw new WebApplicationException("Invalid token", Response.Status.UNAUTHORIZED);
         }
@@ -144,7 +145,7 @@ public class UserResource {
     @PUT
     @Path("username")
     public Response updateUsername(UpdateUsernameDTO dto) {
-        Long userId = tokenFromDto(dto == null ? null : dto.authToken());
+        UUID userId = tokenFromDto(dto == null ? null : dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Ungültiger Token").build();
         }
@@ -163,7 +164,7 @@ public class UserResource {
     @PUT
     @Path("email")
     public Response requestEmailChange(UpdateEmailDTO dto) {
-        Long userId = tokenFromDto(dto == null ? null : dto.authToken());
+        UUID userId = tokenFromDto(dto == null ? null : dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Ungültiger Token").build();
         }
@@ -186,7 +187,7 @@ public class UserResource {
     @Consumes(MediaType.TEXT_PLAIN)
     @Produces(MediaType.TEXT_PLAIN)
     public Response cancelPendingEmailChange(String authToken) {
-        Long userId = tokenFromDto(authToken);
+        UUID userId = tokenFromDto(authToken);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Ungültiger Token").build();
         }
@@ -203,7 +204,7 @@ public class UserResource {
     @PUT
     @Path("password")
     public Response changePassword(ChangePasswordDTO dto) {
-        Long userId = tokenFromDto(dto == null ? null : dto.authToken());
+        UUID userId = tokenFromDto(dto == null ? null : dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Ungültiger Token").build();
         }
@@ -224,7 +225,7 @@ public class UserResource {
     @PUT
     @Path("subscription")
     public Response updateSubscription(UpdateSubscriptionDTO dto) {
-        Long userId = tokenFromDto(dto == null ? null : dto.authToken());
+        UUID userId = tokenFromDto(dto == null ? null : dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Ungültiger Token").build();
         }
@@ -242,7 +243,7 @@ public class UserResource {
     @PUT
     @Path("settings")
     public Response updateSettings(UpdateUserSettingsDTO dto) {
-        Long userId = tokenFromDto(dto == null ? null : dto.authToken());
+        UUID userId = tokenFromDto(dto == null ? null : dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Ungültiger Token").build();
         }
@@ -263,7 +264,7 @@ public class UserResource {
     @Path("settings/allow-invitations")
     public Response updateAllowInvitations(Map<String, Object> body) {
         String authToken = body == null ? null : (String) body.get("authToken");
-        Long userId = tokenFromDto(authToken);
+        UUID userId = tokenFromDto(authToken);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Ungültiger Token").build();
         }
@@ -285,7 +286,7 @@ public class UserResource {
     @Produces(MediaType.TEXT_PLAIN)
     public Response deleteAccount(Map<String, String> body) {
         String authToken = body == null ? null : body.get("authToken");
-        Long userId = tokenFromDto(authToken);
+        UUID userId = tokenFromDto(authToken);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Ungültiger Token").build();
         }
@@ -308,7 +309,7 @@ public class UserResource {
     @Produces(MediaType.TEXT_PLAIN)
     public Response uploadProfileImage(@RestForm("file") FileUpload file,
                                        @RestForm("authToken") String authToken) {
-        Long userId = tokenFromDto(authToken);
+        UUID userId = tokenFromDto(authToken);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Ungültiger Token").build();
         }
@@ -342,7 +343,7 @@ public class UserResource {
 
     @GET
     @Path("profile-image/{userId}")
-    public Response getProfileImage(@PathParam("userId") Long userId) {
+    public Response getProfileImage(@PathParam("userId") UUID userId) {
         if (userId == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
@@ -360,7 +361,7 @@ public class UserResource {
         return Response.ok(image.data(), image.contentType()).build();
     }
 
-    private Long tokenFromDto(String authToken) {
+    private UUID tokenFromDto(String authToken) {
         if (authToken == null || authToken.isBlank()) {
             return null;
         }
@@ -370,7 +371,7 @@ public class UserResource {
     @DELETE
     @Path("profile-image")
     public Response deleteProfileImage(String authToken) {
-        Long userId = tokenFromDto(authToken);
+        UUID userId = tokenFromDto(authToken);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Ungültiger Token").build();
         }
@@ -389,7 +390,7 @@ public class UserResource {
     @GET
     @Path("isAdmin")
     public Response isAdmin(@QueryParam("authToken") String authToken) {
-        Long userId = tokenFromDto(authToken);
+        UUID userId = tokenFromDto(authToken);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED)
                     .entity("Ungültiger Token")
@@ -404,5 +405,57 @@ public class UserResource {
         }
 
         return Response.ok(Map.of("isAdmin", user.isAdmin())).build();
+    }
+
+    @PUT
+    @Path("admin/{userId}/locked")
+    public Response setUserLocked(@PathParam("userId") UUID targetUserId, Map<String, Object> body) {
+        UUID adminId = tokenFromDto(body == null ? null : (String) body.get("authToken"));
+        if (adminId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Ungültiger Token").build();
+        }
+
+        User admin = repo.findById(adminId);
+        if (admin == null || !admin.isAdmin()) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Zugriff verweigert.").build();
+        }
+
+        Boolean locked = body == null ? null : (Boolean) body.get("locked");
+        if (locked == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("locked fehlt.").build();
+        }
+
+        String result = repo.setUserLocked(targetUserId, locked);
+        return switch (result) {
+            case null -> Response.ok(locked ? "User gesperrt." : "User entsperrt.").build();
+            case "USER_NOT_FOUND" -> Response.status(Response.Status.NOT_FOUND).entity("Benutzer nicht gefunden.").build();
+            default -> Response.status(Response.Status.BAD_REQUEST).entity("Sperre konnte nicht geändert werden.").build();
+        };
+    }
+
+    @POST
+    @Path("admin")
+    public Response getAdminDashboard(String authToken) {
+        UUID userId = tokenFromDto(authToken);
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity("Ungültiger Token")
+                    .build();
+        }
+
+        User user = repo.findById(userId);
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("Benutzer nicht gefunden.")
+                    .build();
+        }
+
+        if(!user.isAdmin()){
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("Zugriff verweigert. Admins only.")
+                    .build();
+        }
+
+        return repo.getAdminDashboard();
     }
 }

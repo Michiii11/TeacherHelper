@@ -1,11 +1,10 @@
 import { Injectable } from '@angular/core';
-import {HttpClient} from '@angular/common/http'
-import {BehaviorSubject, Observable, of} from 'rxjs'
-import {LoginDTO, UserDTO} from '../model/User'
-import {Config} from '../config'
-import {map} from "rxjs/operators"
-import {SchoolDTO} from '../model/School'
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
+import { LoginDTO, UserDTO } from '../model/User';
+import { Config } from '../config';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -17,6 +16,7 @@ export class AuthService {
       this.loggedIn.next(isValid);
     });
   }
+
   login(login: LoginDTO): Observable<any> {
     return this.http.post(Config.API_URL + '/user/login', login);
   }
@@ -27,10 +27,10 @@ export class AuthService {
 
   validateToken(token: string): Observable<boolean> {
     return this.http.post<{ valid: boolean }>(
-        Config.API_URL + '/user/validate',
-        { token }
+      Config.API_URL + '/user/validate',
+      { token }
     ).pipe(
-        map(response => response.valid)
+      map(response => response.valid)
     );
   }
 
@@ -40,7 +40,9 @@ export class AuthService {
       return of(false);
     }
 
-    return this.validateToken(token);
+    return this.validateToken(token).pipe(
+      catchError(() => of(false))
+    );
   }
 
   setLogin(token: string, userId: string) {
@@ -55,15 +57,17 @@ export class AuthService {
     this.loggedIn.next(false);
   }
 
-  isAdmin() {
-    const userId = localStorage.getItem('teacher_userId');
-    if (!userId) {
+  isAdmin(): Observable<boolean> {
+    const authToken = localStorage.getItem('teacher_authToken');
+    if (!authToken) {
       return of(false);
     }
+
     return this.http.get<{ isAdmin: boolean }>(
-        Config.API_URL + `/user/isAdmin?${localStorage.getItem('teacher_authToken')}`
+      Config.API_URL + `/user/isAdmin?authToken=${encodeURIComponent(authToken)}`
     ).pipe(
-        map(response => response.isAdmin)
+      map(response => !!response.isAdmin),
+      catchError(() => of(false))
     );
   }
 }

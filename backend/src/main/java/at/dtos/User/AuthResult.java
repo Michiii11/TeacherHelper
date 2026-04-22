@@ -1,7 +1,9 @@
 package at.dtos.User;
 
-public record AuthResult(boolean success, String code, String message, String token, Long userId) {
-    public static AuthResult success(Long userId, String token) {
+import java.util.UUID;
+
+public record AuthResult(boolean success, String code, String message, String token, UUID userId) {
+    public static AuthResult success(UUID userId, String token) {
         return new AuthResult(true, "OK", "Operation successful", token, userId);
     }
 

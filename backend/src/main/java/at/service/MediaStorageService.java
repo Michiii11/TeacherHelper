@@ -1,6 +1,5 @@
 package at.service;
 
-import at.model.User;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
@@ -12,6 +11,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.UUID;
 
 @ApplicationScoped
 public class MediaStorageService {
@@ -19,7 +19,7 @@ public class MediaStorageService {
     @ConfigProperty(name = "media.bucket")
     String bucketName;
 
-    public String uploadProfileImage(Long userId, Path file, String contentType) throws IOException {
+    public String uploadProfileImage(UUID userId, Path file, String contentType) throws IOException {
         Storage storage = StorageOptions.getDefaultInstance().getService();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();

@@ -14,6 +14,7 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
@@ -26,7 +27,7 @@ public class FolderRepository {
     TokenService tokenService;
 
     public List<FolderDTO> getFolders(Long schoolId, String authToken) {
-        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        UUID userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
             return List.of();
         }
@@ -49,7 +50,7 @@ public class FolderRepository {
 
     @Transactional
     public Response createFolder(Long schoolId, CreateFolderDTO dto) {
-        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
+        UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
@@ -85,7 +86,7 @@ public class FolderRepository {
 
     @Transactional
     public Response updateFolder(Long folderId, UpdateFolderDTO dto) {
-        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
+        UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
@@ -136,7 +137,7 @@ public class FolderRepository {
 
     @Transactional
     public Response deleteFolder(Long folderId, String authToken) {
-        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        UUID userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
@@ -209,7 +210,7 @@ public class FolderRepository {
         return false;
     }
 
-    private boolean isSchoolMember(School school, Long userId) {
+    private boolean isSchoolMember(School school, UUID userId) {
         if (school.getAdmin() != null && school.getAdmin().getId().equals(userId)) {
             return true;
         }

@@ -89,7 +89,7 @@ export class SchoolComponent implements OnInit, OnDestroy {
 
   school: SchoolDTO = {} as SchoolDTO;
   schoolId: string | null = null;
-  currentUserId = -1;
+  currentUserId: string = '';
 
   examples: ExampleOverviewDTO[] = [];
   tests: TestOverviewDTO[] = [];
@@ -127,7 +127,7 @@ export class SchoolComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.service.getUserId().subscribe(id => {
-      this.currentUserId = id as number;
+      this.currentUserId = id;
     });
   }
 

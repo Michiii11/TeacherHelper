@@ -14,6 +14,7 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.core.Response;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.time.LocalDateTime;
@@ -99,7 +100,7 @@ public class UserRepository {
         }
     }
 
-    public User findById(Long userId) {
+    public User findById(UUID userId) {
         if (userId == null) return null;
         User user = em.find(User.class, userId);
         return user == null ? null : user;
@@ -108,7 +109,7 @@ public class UserRepository {
     public boolean validateToken(String token) {
         if (token == null || token.isBlank()) return false;
 
-        Long userId = tokenService.validateTokenAndGetUserId(token);
+        UUID userId = tokenService.validateTokenAndGetUserId(token);
         if (userId == null) return false;
 
         try {
@@ -273,7 +274,7 @@ public class UserRepository {
     }
 
     @Transactional
-    public String updateUsername(Long userId, String username) {
+    public String updateUsername(UUID userId, String username) {
         User user = em.find(User.class, userId);
         if (user == null) return "USER_NOT_FOUND";
         if (username == null || username.isBlank()) return "USERNAME_REQUIRED";
@@ -294,7 +295,7 @@ public class UserRepository {
     }
 
     @Transactional
-    public String requestEmailChange(Long userId, String email) {
+    public String requestEmailChange(UUID userId, String email) {
         User user = em.find(User.class, userId);
         if (user == null) return "USER_NOT_FOUND";
         if (email == null || email.isBlank()) return "EMAIL_REQUIRED";
@@ -328,7 +329,7 @@ public class UserRepository {
     }
 
     @Transactional
-    public String cancelPendingEmailChange(Long userId) {
+    public String cancelPendingEmailChange(UUID userId) {
         User user = em.find(User.class, userId);
         if (user == null) return "USER_NOT_FOUND";
         if (user.getPendingEmail() == null || user.getPendingEmail().isBlank()) return "NO_PENDING_EMAIL";
@@ -342,7 +343,7 @@ public class UserRepository {
     }
 
     @Transactional
-    public String changePassword(Long userId, String currentPassword, String newPassword) {
+    public String changePassword(UUID userId, String currentPassword, String newPassword) {
         User user = em.find(User.class, userId);
         if (user == null) return "USER_NOT_FOUND";
 
@@ -410,7 +411,7 @@ public class UserRepository {
     }
 
     @Transactional
-    public String updateProfileImageUrl(Long userId, String profileImageUrl) {
+    public String updateProfileImageUrl(UUID userId, String profileImageUrl) {
         User user = em.find(User.class, userId);
         if (user == null) return "USER_NOT_FOUND";
 
@@ -420,7 +421,7 @@ public class UserRepository {
     }
 
     @Transactional
-    public String updateSubscription(Long userId, SubscriptionModel subscriptionModel) {
+    public String updateSubscription(UUID userId, SubscriptionModel subscriptionModel) {
         User user = em.find(User.class, userId);
         if (user == null) return "USER_NOT_FOUND";
         if (subscriptionModel == null) return "SUBSCRIPTION_REQUIRED";
@@ -431,7 +432,7 @@ public class UserRepository {
     }
 
     @Transactional
-    public String updateUserSettings(Long userId, UserSettingsDTO settings) {
+    public String updateUserSettings(UUID userId, UserSettingsDTO settings) {
         User user = em.find(User.class, userId);
         if (user == null) return "USER_NOT_FOUND";
         if (settings == null) return "SETTINGS_REQUIRED";
@@ -445,15 +446,22 @@ public class UserRepository {
             }
         }
 
-        user.setDarkMode(settings.darkMode());
-        user.setLanguage(normalizedLanguage);
+        if (settings.darkMode() != null) {
+            user.setDarkMode(settings.darkMode());
+        }
+
+        if (settings.language() != null) {
+            user.setLanguage(normalizedLanguage);
+        }
+
         user.setAllowInvitations(settings.allowInvitations());
+
         em.merge(user);
         return null;
     }
 
     @Transactional
-    public String updateAllowInvitations(Long userId, Boolean allowInvitations) {
+    public String updateAllowInvitations(UUID userId, Boolean allowInvitations) {
         User user = em.find(User.class, userId);
         if (user == null) return "USER_NOT_FOUND";
         if (allowInvitations == null) return "ALLOW_INVITATIONS_REQUIRED";
@@ -464,7 +472,7 @@ public class UserRepository {
     }
 
     @Transactional
-    public String deleteAccount(Long userId, String currentPassword) {
+    public String deleteAccount(UUID userId, String currentPassword) {
         User user = em.find(User.class, userId);
         if (user == null) return "USER_NOT_FOUND";
         if (currentPassword == null || currentPassword.isBlank()) return "PASSWORD_REQUIRED";
@@ -508,5 +516,26 @@ public class UserRepository {
 
     private boolean isValidEmail(String email) {
         return email != null && email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
+    }
+
+    @Transactional
+    public String setUserLocked(UUID targetUserId, boolean locked) {
+        User user = em.find(User.class, targetUserId);
+        if (user == null) return "USER_NOT_FOUND";
+
+        user.setLocked(locked);
+        em.merge(user);
+        return null;
+    }
+
+    public Response getAdminDashboard() {
+        return null;
+
+
+        /*AdminDashboardDTO dashboardData = new AdminDashboardDTO(
+
+        );
+
+        return Response.ok(dashboardData).build();*/
     }
 }

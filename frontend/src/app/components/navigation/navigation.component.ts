@@ -1,5 +1,5 @@
 import { Component, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
-import {DatePipe, NgIf} from '@angular/common';
+import { DatePipe, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
@@ -17,8 +17,7 @@ import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-
 import { NavbarActionsService } from './navbar-actions.service';
 import { NavbarAction, NavbarBreadcrumb } from './navbar-action.model';
 import { MatDivider } from '@angular/material/list';
-import {AuthGuard} from '../../guard/auth.guard'
-import {AuthService} from '../../service/auth.service'
+import { AuthService } from '../../service/auth.service';
 
 @Component({
   selector: 'app-navigation',
@@ -40,8 +39,7 @@ import {AuthService} from '../../service/auth.service'
     TranslatePipe,
     MatButtonToggle,
     MatButtonToggleGroup,
-    MatDivider,
-    NgIf
+    MatDivider
   ],
   templateUrl: './navigation.component.html',
   styleUrl: './navigation.component.scss'
@@ -52,6 +50,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   navbarActionsService = inject(NavbarActionsService);
 
   user: User = {} as User;
+  adminVisible = false;
   notifications: NotificationDTO[] = [];
   selectedTab: 'open' | 'history' = 'open';
   processingIds = new Set<number>();
@@ -137,11 +136,13 @@ export class NavigationComponent implements OnInit, OnDestroy {
       this.notifications = [];
       this.navbarActions = [];
       this.breadcrumbs = [];
+      this.adminVisible = false;
       return;
     }
 
     this.loadUser();
     this.loadNotifications();
+    this.refreshAdminVisibility();
   }
 
   isAuthPage(): boolean {
@@ -616,9 +617,13 @@ export class NavigationComponent implements OnInit, OnDestroy {
     return isDark ? '/darkmode.png' : '/lightmode.png';
   }
 
-  authService = inject(AuthService)
+  private authService = inject(AuthService);
 
-  isAdmin() {
-    return this.authService.isAdmin();
+  private refreshAdminVisibility(): void {
+    this.authService.isAdmin().subscribe({
+      next: (isAdmin) => (this.adminVisible = isAdmin),
+      error: () => (this.adminVisible = false)
+    });
   }
 }
+

@@ -20,10 +20,7 @@ import jakarta.ws.rs.core.Response;
 
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @ApplicationScoped
 public class TestRepository {
@@ -60,7 +57,7 @@ public class TestRepository {
 
     @Transactional
     public Response createTest(CreateTestDTO dto) throws IOException {
-        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
+        UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
@@ -99,7 +96,7 @@ public class TestRepository {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
+        UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
@@ -145,7 +142,7 @@ public class TestRepository {
             return Response.status(Response.Status.NOT_FOUND).entity("Test nicht gefunden.").build();
         }
 
-        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
+        UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
@@ -176,7 +173,7 @@ public class TestRepository {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        UUID userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
@@ -192,7 +189,7 @@ public class TestRepository {
     }
 
     public CreateTestDTO getTest(Long testId, String authToken) {
-        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        UUID userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
             return null;
         }

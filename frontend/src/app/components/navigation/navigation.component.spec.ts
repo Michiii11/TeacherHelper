@@ -5,6 +5,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { NavigationComponent } from './navigation.component';
 import { HttpService } from '../../service/http.service';
+import { AuthService } from '../../service/auth.service';
 
 class HttpServiceMock {
   getUser() {
@@ -48,6 +49,12 @@ class HttpServiceMock {
   }
 }
 
+class AuthServiceMock {
+  isAdmin() {
+    return of(true);
+  }
+}
+
 describe('NavigationComponent', () => {
   let component: NavigationComponent;
   let fixture: ComponentFixture<NavigationComponent>;
@@ -58,6 +65,7 @@ describe('NavigationComponent', () => {
       providers: [
         provideRouter([]),
         { provide: HttpService, useClass: HttpServiceMock },
+        { provide: AuthService, useClass: AuthServiceMock },
         { provide: MatSnackBar, useValue: { open: () => undefined } }
       ]
     }).compileComponents();

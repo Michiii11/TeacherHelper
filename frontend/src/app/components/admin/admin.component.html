@@ -1,55 +1,54 @@
 <main class="admin-dashboard">
   <section class="hero-grid">
     <mat-card class="hero-card stat-card primary-tone">
-      <div class="stat-kicker">Aktive User</div>
+      <div class="stat-kicker">Amount Users</div>
       <div class="stat-value">{{ activeUsersCount }}</div>
-      <div class="stat-meta">ohne deaktivierte Accounts</div>
     </mat-card>
 
     <mat-card class="hero-card stat-card success-tone">
-      <div class="stat-kicker">Deaktiviert</div>
+      <div class="stat-kicker">Active Users (Month)</div>
       <div class="stat-value">{{ disabledUsersCount }}</div>
-      <div class="stat-meta">momentan gesperrte User</div>
     </mat-card>
 
-    <mat-card class="hero-card stat-card warning-tone">
-      <div class="stat-kicker">Neu im letzten Monat</div>
-      <div class="stat-value">{{ newUsersThisMonth }}</div>
-      <div class="stat-meta">created recently</div>
-    </mat-card>
-
-    <mat-card class="hero-card stat-card dark-tone pending-card">
-      <div class="stat-kicker">Lokale Änderungen</div>
+    <mat-card class="hero-card stat-card warning-tone pending-card">
+      <div class="stat-kicker">Active Users (Week)</div>
       <div class="stat-value">{{ pendingChangeCount }}</div>
-      <div class="stat-meta">erst lokal, noch nicht am Server</div>
+    </mat-card>
 
-      <div class="pending-actions">
-        <button mat-stroked-button type="button" (click)="discardAllChanges()" [disabled]="pendingChangeCount === 0">
-          <mat-icon>restore</mat-icon>
-          Verwerfen
-        </button>
-        <button mat-flat-button color="primary" type="button" (click)="saveAllChanges()" [disabled]="pendingChangeCount === 0 || saving">
-          <mat-icon>save</mat-icon>
-          Speichern
-        </button>
-      </div>
+    <mat-card class="hero-card stat-card dark-tone">
+      <div class="stat-kicker">New Users (Month)</div>
+      <div class="stat-value">{{ newUsersThisMonth }}</div>
+    </mat-card>
+  </section>
+
+  <section class="hero-grid">
+    <mat-card class="hero-card stat-card primary-tone">
+      <div class="stat-kicker">Free Abos</div>
+      <div class="stat-value">{{ activeUsersCount }}</div>
+    </mat-card>
+
+    <mat-card class="hero-card stat-card success-tone">
+      <div class="stat-kicker">Pro Abos</div>
+      <div class="stat-value">{{ disabledUsersCount }}</div>
+    </mat-card>
+
+    <mat-card class="hero-card stat-card warning-tone pending-card">
+      <div class="stat-kicker">School Abos</div>
+      <div class="stat-value">{{ pendingChangeCount }}</div>
+    </mat-card>
+
+    <mat-card class="hero-card stat-card dark-tone">
+      <div class="stat-kicker">Estimated Money / Month</div>
+      <div class="stat-value">{{ newUsersThisMonth }}</div>
     </mat-card>
   </section>
 
   <section class="section">
-    <div class="section-header">
-      <div>
-        <h2 class="section-title">Erstellte Inhalte</h2>
-        <p class="section-subtitle">Überblick für Sammlungen, Examples und Tests</p>
-      </div>
-    </div>
-
     <div class="metric-panels">
       <mat-card class="metric-card">
         <div class="metric-title-row">
           <div>
-            <div class="metric-kicker">Sammlungen</div>
-            <h3>Collections</h3>
+            <div class="metric-kicker">Collections</div>
           </div>
           <mat-icon>folder</mat-icon>
         </div>
@@ -66,7 +65,6 @@
         <div class="metric-title-row">
           <div>
             <div class="metric-kicker">Examples</div>
-            <h3>Aufgaben</h3>
           </div>
           <mat-icon>post_add</mat-icon>
         </div>
@@ -83,7 +81,6 @@
         <div class="metric-title-row">
           <div>
             <div class="metric-kicker">Tests</div>
-            <h3>Prüfungen</h3>
           </div>
           <mat-icon>assignment</mat-icon>
         </div>
@@ -101,18 +98,12 @@
   <section class="section layout-grid">
     <article class="panel user-list-panel">
       <div class="panel-header sticky-header">
-        <div>
-          <h2 class="section-title">Nutzerübersicht</h2>
-          <p class="section-subtitle">Suchen, sortieren, IDs kopieren, deaktivieren, Tier anpassen</p>
-        </div>
-
         <div class="toolbar-grid">
           <label class="control search-control search-control-wide">
             <input type="text" [(ngModel)]="search" placeholder="Suche nach Name, Mail, ID oder Tier">
           </label>
 
           <label class="control select-control">
-            <span>Sortierung</span>
             <select [(ngModel)]="sort">
               <option value="lastActive">Zuletzt aktiv</option>
               <option value="newest">Neueste zuerst</option>
@@ -150,6 +141,10 @@
                 <span>aktiv: {{ getLastActiveLabel(user.lastActiveAt) }}</span>
               </div>
             </div>
+
+            <button mat-icon-button type="button" (click)="copyUserId(user)" title="ID kopieren">
+              <mat-icon>content_copy</mat-icon>
+            </button>
           </div>
 
           <div class="user-stats-row">
@@ -165,18 +160,6 @@
               <span>Tests</span>
               <strong>{{ user.testsCount }}</strong>
             </div>
-          </div>
-
-          <div class="user-actions-row" (click)="$event.stopPropagation()">
-            <button mat-icon-button type="button" (click)="copyUserId(user)" title="ID kopieren">
-              <mat-icon>content_copy</mat-icon>
-            </button>
-            <button mat-icon-button type="button" (click)="moveUser(user, -1)" title="Nach oben">
-              <mat-icon>arrow_upward</mat-icon>
-            </button>
-            <button mat-icon-button type="button" (click)="moveUser(user, 1)" title="Nach unten">
-              <mat-icon>arrow_downward</mat-icon>
-            </button>
           </div>
         </button>
 

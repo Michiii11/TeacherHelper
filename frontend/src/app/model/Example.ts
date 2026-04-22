@@ -125,7 +125,7 @@ export interface ExampleOverviewDTO {
   instruction: string;
   question: string;
   adminUsername: string;
-  adminId: number;
+  adminId: string;
   focusList: Focus[];
   folderId: string | null;
 

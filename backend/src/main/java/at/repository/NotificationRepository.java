@@ -17,6 +17,7 @@ import jakarta.ws.rs.core.Response;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @ApplicationScoped
 @Transactional
@@ -29,7 +30,7 @@ public class NotificationRepository {
     @Inject
     EntityManager em;
 
-    public List<NotificationDTO> getMyNotifications(Long userId) {
+    public List<NotificationDTO> getMyNotifications(UUID userId) {
         return em.createQuery("""
             SELECT n
             FROM Notification n
@@ -43,7 +44,7 @@ public class NotificationRepository {
                 .toList();
     }
 
-    public Response markAsRead(Long id, Long userId) {
+    public Response markAsRead(Long id, UUID userId) {
         Notification notification = em.find(Notification.class, id);
 
         if (notification == null) {
@@ -61,7 +62,7 @@ public class NotificationRepository {
         return Response.ok().build();
     }
 
-    public Response delete(Long id, Long userId) {
+    public Response delete(Long id, UUID userId) {
         Notification notification = em.find(Notification.class, id);
 
         if (notification == null) {
@@ -78,7 +79,7 @@ public class NotificationRepository {
         return Response.ok().build();
     }
 
-    public Response executeAction(Long notificationId, Long userId, NotificationActionType action) {
+    public Response executeAction(Long notificationId, UUID userId, NotificationActionType action) {
         Notification notification = em.find(Notification.class, notificationId);
 
         if (notification == null) {
@@ -177,7 +178,7 @@ public class NotificationRepository {
         return notification;
     }
 
-    public Response sendSystemInfoToSchool(Long senderId,
+    public Response sendSystemInfoToSchool(UUID senderId,
                                            Long schoolId,
                                            String title,
                                            String message,
@@ -245,7 +246,7 @@ public class NotificationRepository {
         return Response.ok("System-Info sent to " + sentCount + " user(s)").build();
     }
 
-    public Response sendSystemInfoToAll(Long senderId,
+    public Response sendSystemInfoToAll(UUID senderId,
                                         String title,
                                         String message,
                                         String link) {

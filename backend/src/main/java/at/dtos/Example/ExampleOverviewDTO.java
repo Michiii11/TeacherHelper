@@ -5,6 +5,7 @@ import at.model.helper.Focus;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.UUID;
 
 public record ExampleOverviewDTO(
         Long id,
@@ -12,7 +13,7 @@ public record ExampleOverviewDTO(
         String instruction,
         String question,
         String adminUsername,
-        Long adminId,
+        UUID adminId,
         List<Focus> focusList,
         Long folderId,
         Timestamp createdAt,

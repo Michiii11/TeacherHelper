@@ -2,8 +2,10 @@ package at.dtos.User;
 
 import at.enums.SubscriptionModel;
 
+import java.util.UUID;
+
 public record UserProfileDTO(
-        Long id,
+        UUID id,
         String username,
         String email,
         boolean emailVerified,

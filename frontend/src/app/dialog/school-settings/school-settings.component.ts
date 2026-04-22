@@ -91,7 +91,7 @@ export class SchoolSettingsComponent implements OnInit {
   }
 
   get isAdmin(): boolean {
-    return this.data.currentUserId === this.data.school?.admin?.id;
+    return this.data.currentUserId.toString() === this.data.school?.admin?.id;
   }
 
   getSchoolLogoUrl(): string | null {

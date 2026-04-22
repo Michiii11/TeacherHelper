@@ -134,6 +134,38 @@ button[type="submit"][mat-raised-button] {
   margin-top: 0.75rem;
 }
 
+.auth-preferences {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 0 0 1rem 0;
+}
+
+.pref-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+
+.pref-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.pref-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pref-actions button.selected {
+  border-width: 2px;
+}
+
 ::ng-deep .mat-mdc-tab-group {
   --mdc-secondary-navigation-tab-container-height: 52px;
 }

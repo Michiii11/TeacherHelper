@@ -1,41 +1,39 @@
 insert into app_user (
+    id,
     username,
     email,
     password,
     subscription_model,
     email_verified,
     allow_invitations,
-    profile_image_url
+    profile_image_url,
+    locked,
+    created_at,
+    last_activity_at
 ) values
       (
+          gen_random_uuid(),
           'admin',
           'admin@admin',
           '$2a$10$Rp61DZDWDgUwUObAkBxfYueUfvrDidwM5lILMCJ.WyiTMYonnGQKi',
           'ADMIN',
           true,
           true,
-       'users/1/avatar/current.jpg'
+          'users/1/avatar/current.jpg',
+          false,
+          now(),
+          now()
       ),
       (
+          gen_random_uuid(),
           'user',
           'user@user',
           '$2a$10$Rp61DZDWDgUwUObAkBxfYueUfvrDidwM5lILMCJ.WyiTMYonnGQKi',
           'FREE',
           true,
           true,
-          'users/2/avatar/current.jpg'
+          'users/2/avatar/current.jpg',
+          false,
+          now(),
+          now()
       );
-
-
-insert into School (name, admin_id) values
-('Springfield High', 1),
-('Shelbyville High', 2),
-('Ogdenville High', 2);
-
-
-insert into Example (admin_id, type, instruction, question, solution, school_id) values
-(1, 'OPEN', 'Solve the equation', 'What is 2 + 2?', '4', 1),
-(1, 'OPEN', 'Identify the element', 'What is the chemical symbol for water?', 'H2O', 1),
-(2, 'OPEN', 'Calculate the area', 'What is the area of a circle with radius 3?', '28.27', 1),
-(2, 'OPEN', 'Name the year', 'In what year did World War II end?', '1945', 1),
-(2, 'OPEN', 'Identify the author', 'Who wrote "To Kill a Mockingbird"?', 'Harper Lee', 1);

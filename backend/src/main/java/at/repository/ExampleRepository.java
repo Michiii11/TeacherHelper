@@ -20,6 +20,7 @@ import jakarta.ws.rs.core.Response;
 import java.sql.Timestamp;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
@@ -96,7 +97,7 @@ public class ExampleRepository {
 
     @Transactional
     public Response createExample(CreateExampleDTO dto) {
-        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
+        UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
@@ -164,7 +165,7 @@ public class ExampleRepository {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
+        UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
@@ -232,7 +233,7 @@ public class ExampleRepository {
             return Response.status(Response.Status.NOT_FOUND).entity("Beispiel nicht gefunden.").build();
         }
 
-        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
+        UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
@@ -263,7 +264,7 @@ public class ExampleRepository {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        UUID userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }

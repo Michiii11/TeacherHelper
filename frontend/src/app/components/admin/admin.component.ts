@@ -265,20 +265,19 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   private setNavbar(): void {
     this.navbarActions.setBreadcrumbs([
-      { labelKey: 'navbar.home', route: ['/home'] },
       { label: 'Admin Dashboard', route: ['/admin'] }
     ] as any);
 
     this.navbarActions.setActions([
       {
-        label: 'Alles verwerfen',
+        label: 'Verwerfen',
         icon: 'restore',
         variant: 'stroked',
         action: () => this.discardAllChanges(),
         disabled: this.pendingChangeCount === 0
       },
       {
-        label: 'Änderungen speichern',
+        label: 'Speichern',
         icon: 'save',
         variant: 'flat',
         action: () => this.saveAllChanges(),

@@ -13,6 +13,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.Response;
 
 import java.util.List;
+import java.util.UUID;
 
 @Path("notification")
 public class NotificationResource {
@@ -26,7 +27,7 @@ public class NotificationResource {
     @POST
     @Path("my")
     public List<NotificationDTO> getMyNotifications(String auth) {
-        Long userId = tokenService.validateTokenAndGetUserId(auth);
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
         if (userId == null) {
             return List.of();
         }
@@ -37,7 +38,7 @@ public class NotificationResource {
     @POST
     @Path("{id}/read")
     public Response markAsRead(@PathParam("id") Long id, String auth) {
-        Long userId = tokenService.validateTokenAndGetUserId(auth);
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }
@@ -48,7 +49,7 @@ public class NotificationResource {
     @DELETE
     @Path("{id}")
     public Response delete(@PathParam("id") Long id, String auth) {
-        Long userId = tokenService.validateTokenAndGetUserId(auth);
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }
@@ -66,7 +67,7 @@ public class NotificationResource {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Missing auth token").build();
         }
 
-        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        UUID userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }
@@ -97,7 +98,7 @@ public class NotificationResource {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Missing auth token").build();
         }
 
-        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        UUID userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }
@@ -117,7 +118,7 @@ public class NotificationResource {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Missing auth token").build();
         }
 
-        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        UUID userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }

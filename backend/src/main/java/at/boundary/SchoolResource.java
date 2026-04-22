@@ -27,6 +27,7 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 @Path("school")
 public class SchoolResource {
@@ -61,7 +62,7 @@ public class SchoolResource {
     @POST
     @Path("{id}")
     public SchoolDTO getSchoolById(@PathParam("id") Long id, String auth) {
-        Long userId = tokenService.validateTokenAndGetUserId(auth);
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
         return schoolRepository.findById(id, userId);
     }
 
@@ -72,7 +73,7 @@ public class SchoolResource {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Missing or invalid Authorization token").build();
         }
 
-        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
+        UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }
@@ -88,7 +89,7 @@ public class SchoolResource {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Missing or invalid Authorization token").build();
         }
 
-        Long userId = tokenService.validateTokenAndGetUserId(form.authToken);
+        UUID userId = tokenService.validateTokenAndGetUserId(form.authToken);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }
@@ -117,7 +118,7 @@ public class SchoolResource {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Missing or invalid Authorization token").build();
         }
 
-        Long userId = tokenService.validateTokenAndGetUserId(request.getString("authToken"));
+        UUID userId = tokenService.validateTokenAndGetUserId(request.getString("authToken"));
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }
@@ -148,7 +149,7 @@ public class SchoolResource {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Missing or invalid Authorization token").build();
         }
 
-        Long userId = tokenService.validateTokenAndGetUserId(request.getString("authToken"));
+        UUID userId = tokenService.validateTokenAndGetUserId(request.getString("authToken"));
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }
@@ -176,7 +177,7 @@ public class SchoolResource {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Missing or invalid Authorization token").build();
         }
 
-        Long userId = tokenService.validateTokenAndGetUserId(auth);
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }
@@ -187,7 +188,7 @@ public class SchoolResource {
     @POST
     @Path("{id}/leave")
     public Response leaveSchool(@PathParam("id") Long id, String auth) {
-        Long userId = tokenService.validateTokenAndGetUserId(auth);
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }
@@ -198,7 +199,7 @@ public class SchoolResource {
     @DELETE
     @Path("{id}/remove-teacher")
     public Response removeTeacher(@PathParam("id") Long id, JsonObject request) {
-        Long userId = tokenService.validateTokenAndGetUserId(request.getString("authToken"));
+        UUID userId = tokenService.validateTokenAndGetUserId(request.getString("authToken"));
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }
@@ -221,7 +222,7 @@ public class SchoolResource {
     @POST
     @Path("{id}/invite")
     public Response inviteTeacher(@PathParam("id") Long id, CreateSchoolInviteDTO dto) {
-        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
+        UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }
@@ -232,7 +233,7 @@ public class SchoolResource {
     @POST
     @Path("invite/{inviteId}/respond")
     public Response respondToInvite(@PathParam("inviteId") Long inviteId, RespondSchoolInviteDTO dto) {
-        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
+        UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }
@@ -243,7 +244,7 @@ public class SchoolResource {
     @POST
     @Path("my-pending-invites")
     public List<SchoolInviteDTO> getMyPendingInvites(String auth) {
-        Long userId = tokenService.validateTokenAndGetUserId(auth);
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
         if (userId == null) {
             return List.of();
         }
@@ -254,7 +255,7 @@ public class SchoolResource {
     @POST
     @Path("{id}/pending-join-requests")
     public List<SchoolInviteDTO> getPendingJoinRequests(@PathParam("id") Long id, String auth) {
-        Long userId = tokenService.validateTokenAndGetUserId(auth);
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
         if (userId == null) {
             return List.of();
         }

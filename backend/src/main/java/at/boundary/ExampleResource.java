@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Path("/example")
 public class ExampleResource {
@@ -79,7 +80,7 @@ public class ExampleResource {
     public Response uploadConstructionImage(@PathParam("exampleId") Long exampleId,
                                             @RestForm("file") FileUpload file,
                                             @RestForm("authToken") String authToken) {
-        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        UUID userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Ungültiger Token").build();
         }
@@ -130,7 +131,7 @@ public class ExampleResource {
     @Produces(MediaType.TEXT_PLAIN)
     public Response deleteConstructionImage(@PathParam("exampleId") Long exampleId, JsonObject json) {
         String authToken = json.getString("authToken", "");
-        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        UUID userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Ungültiger Token").build();
         }
@@ -159,7 +160,7 @@ public class ExampleResource {
     public Response uploadConstructionSolutionImage(@PathParam("exampleId") Long exampleId,
                                                     @RestForm("file") FileUpload file,
                                                     @RestForm("authToken") String authToken) {
-        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        UUID userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Ungültiger Token").build();
         }
@@ -210,7 +211,7 @@ public class ExampleResource {
     @Produces(MediaType.TEXT_PLAIN)
     public Response deleteConstructionSolutionImage(@PathParam("exampleId") Long exampleId, JsonObject json) {
         String authToken = json.getString("authToken", "");
-        Long userId = tokenService.validateTokenAndGetUserId(authToken);
+        UUID userId = tokenService.validateTokenAndGetUserId(authToken);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Ungültiger Token").build();
         }

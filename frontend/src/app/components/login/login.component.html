@@ -2,7 +2,6 @@
   <div class="auth-header">
     <img [src]="getLogo()" alt="">
   </div>
-
   @if (verifying) {
     <div class="feedback success">
       E-Mail wird bestätigt...
@@ -176,3 +175,38 @@
     </div>
   }
 </mat-card>
+
+
+<div class="auth-preferences">
+  <div class="pref-group">
+    <span class="pref-label">Language</span>
+    <div class="pref-actions">
+      <button mat-stroked-button type="button"
+              [class.selected]="isLanguageSelected('de')"
+              (click)="setLanguage('de')">
+        Deutsch
+      </button>
+      <button mat-stroked-button type="button"
+              [class.selected]="isLanguageSelected('en')"
+              (click)="setLanguage('en')">
+        English
+      </button>
+    </div>
+  </div>
+
+  <div class="pref-group">
+    <span class="pref-label">Theme</span>
+    <div class="pref-actions">
+      <button mat-stroked-button type="button"
+              [class.selected]="!isDarkModeSelected(true)"
+              (click)="setDarkMode(false)">
+        Light
+      </button>
+      <button mat-stroked-button type="button"
+              [class.selected]="isDarkModeSelected(true)"
+              (click)="setDarkMode(true)">
+        Dark
+      </button>
+    </div>
+  </div>
+</div>

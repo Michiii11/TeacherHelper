@@ -19,6 +19,7 @@ import jakarta.ws.rs.core.Response;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @ApplicationScoped
 @Transactional
@@ -35,7 +36,7 @@ public class SchoolRepository {
     @Inject
     MediaStorageService mediaStorageService;
 
-    public Response addSchool(String schoolName, Long userId) {
+    public Response addSchool(String schoolName, UUID userId) {
         try {
             User user = em.find(User.class, userId);
             if (user == null) {
@@ -58,7 +59,7 @@ public class SchoolRepository {
                 .toList();
     }
 
-    public SchoolDTO findById(Long id, Long userId) {
+    public SchoolDTO findById(Long id, UUID userId) {
         School school = em.find(School.class, id);
         if (school == null) {
             return null;
@@ -73,7 +74,7 @@ public class SchoolRepository {
     }
 
     public List<SchoolDTO> getYourSchools(String auth) {
-        Long userId = tokenService.validateTokenAndGetUserId(auth);
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
 
         if (userId == null) {
             return List.of();
@@ -148,26 +149,26 @@ public class SchoolRepository {
             return List.of();
         }
 
-        List<Long> memberIds = school.getUsers()
+        List<UUID> memberIds = school.getUsers()
                 .stream()
                 .map(User::getId)
                 .toList();
 
-        Long adminId = school.getAdmin().getId();
+        UUID adminId = school.getAdmin().getId();
 
-        List<Long> invitedUserIds = em.createQuery("""
+        List<UUID> invitedUserIds = em.createQuery("""
             SELECT i.recipient.id
             FROM SchoolInvite i
             WHERE i.school.id = :schoolId
               AND i.type = :type
               AND i.status = :status
-            """, Long.class)
+            """, UUID.class)
                 .setParameter("schoolId", id)
                 .setParameter("type", SchoolInviteType.TEACHER_INVITATION)
                 .setParameter("status", SchoolInviteStatus.PENDING)
                 .getResultList();
 
-        List<Long> excludedIds = new java.util.ArrayList<>();
+        List<UUID> excludedIds = new java.util.ArrayList<>();
         excludedIds.add(adminId);
         excludedIds.addAll(memberIds);
         excludedIds.addAll(invitedUserIds);
@@ -188,7 +189,7 @@ public class SchoolRepository {
                 .toList();
     }
 
-    public Response leaveSchool(Long id, Long userId) {
+    public Response leaveSchool(Long id, UUID userId) {
         School school = em.find(School.class, id);
         User user = em.find(User.class, userId);
 
@@ -209,7 +210,7 @@ public class SchoolRepository {
         return Response.ok().build();
     }
 
-    public Response removeTeacher(Long id, Long userId, int teacherId) {
+    public Response removeTeacher(Long id, UUID userId, int teacherId) {
         School school = em.find(School.class, id);
         User user = em.find(User.class, userId);
         User teacher = em.find(User.class, (long) teacherId);
@@ -234,7 +235,7 @@ public class SchoolRepository {
         return Response.ok().build();
     }
 
-    public Response updateSchoolSettings(Long schoolId, Long userId, String newName) {
+    public Response updateSchoolSettings(Long schoolId, UUID userId, String newName) {
         School school = em.find(School.class, schoolId);
 
         if (school == null) {
@@ -271,7 +272,7 @@ public class SchoolRepository {
         return Response.ok(toSchoolDTO(school)).build();
     }
 
-    public Response updateSchoolLogoObject(Long schoolId, Long userId, String logoUrl) {
+    public Response updateSchoolLogoObject(Long schoolId, UUID userId, String logoUrl) {
         School school = em.find(School.class, schoolId);
 
         if (school == null) {
@@ -288,7 +289,7 @@ public class SchoolRepository {
         return Response.ok(toSchoolDTO(school)).build();
     }
 
-    public Response deleteSchoolLogo(Long schoolId, Long userId) {
+    public Response deleteSchoolLogo(Long schoolId, UUID userId) {
         School school = em.find(School.class, schoolId);
 
         if (school == null) {
@@ -313,7 +314,7 @@ public class SchoolRepository {
         return Response.ok(toSchoolDTO(school)).build();
     }
 
-    public Response deleteSchool(Long schoolId, Long userId) {
+    public Response deleteSchool(Long schoolId, UUID userId) {
         School school = em.find(School.class, schoolId);
 
         if (school == null) {
@@ -365,7 +366,7 @@ public class SchoolRepository {
         return Response.ok().build();
     }
 
-    public Response inviteTeacher(Long schoolId, Long userId, String email) {
+    public Response inviteTeacher(Long schoolId, UUID userId, String email) {
         School school = em.find(School.class, schoolId);
         User sender = em.find(User.class, userId);
         User teacher = em.createQuery("SELECT t FROM User t WHERE t.email = :email", User.class)
@@ -436,7 +437,7 @@ public class SchoolRepository {
         return Response.ok(toSchoolInviteDTO(invite)).build();
     }
 
-    public Response respondToInvite(Long inviteId, Long userId, boolean accept) {
+    public Response respondToInvite(Long inviteId, UUID userId, boolean accept) {
         SchoolInvite invite = em.find(SchoolInvite.class, inviteId);
 
         if (invite == null) {
@@ -504,7 +505,7 @@ public class SchoolRepository {
         return Response.ok(toSchoolInviteDTO(invite)).build();
     }
 
-    public List<SchoolInviteDTO> getMyPendingInvites(Long userId) {
+    public List<SchoolInviteDTO> getMyPendingInvites(UUID userId) {
         return em.createQuery("""
                 SELECT i
                 FROM SchoolInvite i
@@ -520,7 +521,7 @@ public class SchoolRepository {
                 .toList();
     }
 
-    public List<SchoolInviteDTO> getPendingRequestsForSchool(Long schoolId, Long userId) {
+    public List<SchoolInviteDTO> getPendingRequestsForSchool(Long schoolId, UUID userId) {
         School school = em.find(School.class, schoolId);
         if (school == null) {
             return List.of();

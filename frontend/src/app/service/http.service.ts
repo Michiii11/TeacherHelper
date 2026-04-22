@@ -10,7 +10,7 @@ import {
 import {
   CreateTestDTO
 } from '../model/Test';
-import { AuthResult, User, UserDTO, UserSettings } from '../model/User';
+import {AdminDashboardDTO, AuthResult, User, UserDTO, UserSettings} from '../model/User';
 import { NotificationActionType, NotificationDTO } from '../model/Notification';
 import {CreateFolderDTO, FolderDTO, UpdateFolderDTO} from '../model/Folder'
 import {
@@ -75,7 +75,7 @@ export class HttpService {
     });
   }
 
-  kickTeacherFromSchool(s: string, id: number) {
+  kickTeacherFromSchool(s: string, id: string) {
     return this.http.delete(`${Config.API_URL}/school/${s}/remove-teacher`, {
       body: { teacherId: id, authToken: this.authToken() }
     });
@@ -195,7 +195,7 @@ export class HttpService {
   }
 
   getUserId() {
-    return this.http.post<number>(`${Config.API_URL}/user/id`, this.authToken());
+    return this.http.post<string>(`${Config.API_URL}/user/id`, this.authToken());
   }
 
   getUser() {
@@ -203,12 +203,52 @@ export class HttpService {
   }
 
   updateUserSettings(settings: UserSettings) {
-    console.log(settings)
     return this.http.put(
       `${Config.API_URL}/user/settings`,
       {
         authToken: this.authToken(),
         settings
+      },
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  login(payload: {
+    email: string;
+    password: string;
+    language?: 'de' | 'en' | null;
+    darkMode?: boolean | null;
+  }) {
+    return this.http.post<AuthResult>(`${Config.API_URL}/user/login`, payload);
+  }
+
+  register(payload: {
+    username: string;
+    email: string;
+    password: string;
+    language?: 'de' | 'en' | null;
+    darkMode?: boolean | null;
+  }) {
+    return this.http.post<AuthResult>(`${Config.API_URL}/user/register`, payload);
+  }
+
+  setUserActive(userId: string, active: boolean) {
+    return this.http.put(
+      `${Config.API_URL}/user/admin/${userId}/active`,
+      {
+        authToken: this.authToken(),
+        active
+      },
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  setUserLocked(userId: string, locked: boolean) {
+    return this.http.put(
+      `${Config.API_URL}/user/admin/${userId}/locked`,
+      {
+        authToken: this.authToken(),
+        locked
       },
       { responseType: 'text' as 'json' }
     );
@@ -293,14 +333,6 @@ export class HttpService {
     }, {
       responseType: 'text'
     });
-  }
-
-  login(payload: { email: string; password: string }) {
-    return this.http.post<AuthResult>(`${Config.API_URL}/user/login`, payload);
-  }
-
-  register(payload: { username: string; email: string; password: string }) {
-    return this.http.post<AuthResult>(`${Config.API_URL}/user/register`, payload);
   }
 
   getMyNotifications(): Observable<NotificationDTO[]> {
@@ -466,5 +498,12 @@ export class HttpService {
 
   deleteFolder(folderId: string) {
     return this.http.delete(`${Config.API_URL}/folder/${folderId}?authToken=${this.authToken()}`);
+  }
+
+
+  getAdminDashboard(){
+    return this.http.post<AdminDashboardDTO>(`${Config.API_URL}/admin`, {
+      authToken: this.authToken()
+    });
   }
 }

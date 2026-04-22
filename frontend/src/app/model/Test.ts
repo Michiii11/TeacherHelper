@@ -57,7 +57,7 @@ export interface TestOverviewDTO {
   amountOfQuestions: number;
   duration: number;
   adminUsername: string;
-  adminId: number;
+  adminId: string;
   folderId: string | null;
 
   createdAt?: string;

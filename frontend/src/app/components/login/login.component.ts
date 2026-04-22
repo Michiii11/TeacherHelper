@@ -174,7 +174,12 @@ export class LoginComponent implements OnInit {
 
     const value = this.loginForm.value;
     const hashedPassword = CryptoJS.SHA256(value.password).toString();
-    const payload = { ...value, password: hashedPassword };
+    const payload = {
+      ...value,
+      password: hashedPassword,
+      language: this.languageService.resolveLanguage(undefined),
+      darkMode: this.themeService.resolveDarkMode(undefined)
+    };
 
     this.http.login(payload).subscribe((result: AuthResult) => {
       this.loginSuccess = result.success;
@@ -186,7 +191,7 @@ export class LoginComponent implements OnInit {
       });
 
       if (result.success && result.token && result.userId !== null) {
-        this.authService.setLogin(result.token, result.userId.toString());
+        this.authService.setLogin(result.token, result.userId);
 
         this.http.getUser().subscribe({
           next: user => {
@@ -210,7 +215,12 @@ export class LoginComponent implements OnInit {
 
     const value = this.registerForm.value;
     const hashedPassword = CryptoJS.SHA256(value.password).toString();
-    const payload = { ...value, password: hashedPassword };
+    const payload = {
+      ...value,
+      password: hashedPassword,
+      language: this.languageService.resolveLanguage(undefined),
+      darkMode: this.themeService.resolveDarkMode(undefined)
+    };
 
     this.http.register(payload).subscribe((result: AuthResult) => {
       this.registerSuccess = result.success;
@@ -222,7 +232,7 @@ export class LoginComponent implements OnInit {
       });
 
       if (result.success && result.token && result.userId !== null) {
-        this.authService.setLogin(result.token, result.userId.toString());
+        this.authService.setLogin(result.token, result.userId);
 
         this.http.getUser().subscribe({
           next: user => {

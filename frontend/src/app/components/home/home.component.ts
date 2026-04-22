@@ -29,7 +29,7 @@ import { NavbarActionsService } from '../navigation/navbar-actions.service';
 })
 export class HomeComponent implements OnInit, OnDestroy {
   schools: SchoolDTO[] = [];
-  userId = 0;
+  userId = '';
 
   constructor(
     private dialog: MatDialog,
@@ -67,7 +67,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   loadSchools(): void {
     this.http.getYourSchools().subscribe((schools: SchoolDTO[]) => {
-      this.http.getUserId().subscribe((id: number) => {
+      this.http.getUserId().subscribe((id: string) => {
         this.userId = id;
 
         this.schools = [...schools].sort((a, b) => {
@@ -135,7 +135,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     return this.isAdminSchool(school, this.userId) ? 'school-card admin-card' : 'school-card member-card';
   }
 
-  private isAdminSchool(school: SchoolDTO, userId: number): boolean {
+  private isAdminSchool(school: SchoolDTO, userId: string): boolean {
     if (!school?.admin) return false;
     if (!userId) return false;
 
