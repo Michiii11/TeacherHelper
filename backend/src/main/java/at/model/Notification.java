@@ -1,5 +1,6 @@
 package at.model;
 
+import at.dtos.Notification.NotificationDTO;
 import at.enums.NotificationActionType;
 import at.enums.NotificationType;
 import jakarta.persistence.*;
@@ -90,6 +91,23 @@ public class Notification {
                 ", secondaryAction=" + secondaryAction +
                 ", createdAt=" + createdAt +
                 '}';
+    }
+
+    public NotificationDTO toDTO (){
+        return new NotificationDTO(
+                this.getId(),
+                this.getActor() != null ? this.getActor().toUserDTO() : null,
+                this.school.toSchoolDTO(),
+                this.getType(),
+                this.getTitle(),
+                this.getMessage(),
+                this.getLink(),
+                this.isRead(),
+                this.getRelatedEntityId(),
+                this.getPrimaryAction(),
+                this.getSecondaryAction(),
+                this.getCreatedAt()
+        );
     }
 
     public UUID getId() {

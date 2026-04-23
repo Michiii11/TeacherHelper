@@ -23,7 +23,7 @@ export class HttpService {
     return localStorage.getItem('teacher_authToken') ?? '';
   }
 
-  // region
+  // region Socket
   /** Socket **/
   getNotificationSocketUrl(): string {
     const token = this.authToken();
@@ -31,7 +31,7 @@ export class HttpService {
   }
   // endregion
 
-  // region
+  // region Collection
   /** Collection **/
   getYourCollections() {
     return this.http.get<SchoolDTO[]>(`${Config.API_URL}/school/your-collections`,
@@ -116,7 +116,7 @@ export class HttpService {
   }
   // endregion
 
-  // region
+  // region User
   /** User **/
   register(payload: {
     username: string;
@@ -250,7 +250,40 @@ export class HttpService {
 
   // endregion
 
-  // region
+  // region Notification
+  /** Notification **/
+  getMyNotifications(): Observable<NotificationDTO[]> {
+    return this.http.get<NotificationDTO[]>(`${Config.API_URL}/notification`, {
+      headers: { Authorization: this.authToken() }});
+  }
+
+  markAsRead(id: string) {
+    return this.http.put(`${Config.API_URL}/notification/${id}/read`, {
+      headers: { Authorization: this.authToken() }});
+  }
+
+  deleteNotification(id: string) {
+    return this.http.delete(`${Config.API_URL}/notification/${id}`, {
+      headers: { Authorization: this.authToken() }});
+  }
+
+  executeAction(id: string, action: NotificationActionType) {
+    return this.http.post(`${Config.API_URL}/notification/${id}/action`, action, {
+      headers: { Authorization: this.authToken() }});
+  }
+
+  sendSystemInfoToSchool(schoolId: string, payload: { title: string; message: string; link?: string | null }) {
+    return this.http.post(`${Config.API_URL}/notification/system-info/school/${schoolId}`, payload, {
+      headers: { Authorization: this.authToken() }});
+  }
+
+  sendSystemInfoToAll(payload: { title: string; message: string; link?: string | null }) {
+    return this.http.post(`${Config.API_URL}/notification/system-info/all`, payload, {
+      headers: { Authorization: this.authToken() }});
+  }
+  // endregion
+
+  // region Folder
   /** Folder **/
   getFolders(schoolId: string) {
     return this.http.get<FolderDTO[]>(`${Config.API_URL}/folder/school/${schoolId}`,
@@ -271,7 +304,6 @@ export class HttpService {
       { headers: { Authorization: this.authToken() }});
   }
   // endregion
-
 
 
   moveExampleToFolder(exampleId: string, dto: { folderId: string | null }) {
@@ -391,49 +423,7 @@ export class HttpService {
 
 
 
-  getMyNotifications(): Observable<NotificationDTO[]> {
-    return this.http.post<NotificationDTO[]>(`${Config.API_URL}/notification/my`, this.authToken(), {
-      headers: { 'Content-Type': 'text/plain' }
-    });
-  }
 
-  markAsRead(id: string) {
-    return this.http.post(`${Config.API_URL}/notification/${id}/read`, this.authToken(), {
-      headers: { 'Content-Type': 'text/plain' }
-    });
-  }
-
-  deleteNotification(id: string) {
-    return this.http.delete(`${Config.API_URL}/notification/${id}`, {
-      body: this.authToken(),
-      headers: { 'Content-Type': 'text/plain' }
-    });
-  }
-
-  executeAction(id: string, action: NotificationActionType) {
-    return this.http.post(`${Config.API_URL}/notification/${id}/action`, {
-      authToken: this.authToken(),
-      action
-    });
-  }
-
-  sendSystemInfoToSchool(schoolId: string, payload: { title: string; message: string; link?: string | null }) {
-    return this.http.post(`${Config.API_URL}/notification/system-info/school/${schoolId}`, {
-      authToken: this.authToken(),
-      ...payload
-    }, {
-      responseType: 'text'
-    });
-  }
-
-  sendSystemInfoToAll(payload: { title: string; message: string; link?: string | null }) {
-    return this.http.post(`${Config.API_URL}/notification/system-info/all`, {
-      authToken: this.authToken(),
-      ...payload
-    }, {
-      responseType: 'text'
-    });
-  }
 
 
 

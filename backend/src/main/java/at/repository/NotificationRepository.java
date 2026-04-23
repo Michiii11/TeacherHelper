@@ -23,25 +23,43 @@ import java.util.UUID;
 @Transactional
 public class NotificationRepository {
 
-    private static final Set<String> DEVELOPER_USERNAMES = Set.of(
-            "admin"
-    );
-
     @Inject
     EntityManager em;
 
-    public List<NotificationDTO> getMyNotifications(UUID userId) {
-        return em.createQuery("""
-            SELECT n
-            FROM Notification n
-            WHERE n.recipient.id = :userId
-            ORDER BY n.createdAt DESC
-            """, Notification.class)
+    public Notification createNotification(User recipient, User actor, School school,
+                                           NotificationType type, String title, String message,
+                                           String link, UUID relatedEntityId, NotificationActionType primaryAction,
+                                           NotificationActionType secondaryAction) {
+
+        Notification notification = new Notification(
+                recipient, actor, school, type, title, message, link, false,
+                relatedEntityId, primaryAction, secondaryAction, LocalDateTime.now());
+
+        em.persist(notification);
+        em.flush();
+
+        if (recipient != null && recipient.getId() != null) {
+            NotificationSocket.notifyUser(recipient.getId());
+        }
+
+        return notification;
+    }
+
+    public Response getMyNotifications(UUID userId) {
+        List<Notification> notifications = em.createQuery("""
+                SELECT n
+                FROM Notification n
+                WHERE n.recipient.id = :userId
+                ORDER BY n.createdAt DESC
+                """, Notification.class)
                 .setParameter("userId", userId)
-                .getResultList()
-                .stream()
-                .map(this::toDTO)
+                .getResultList();
+
+        List<NotificationDTO> notificationDTOs = notifications.stream()
+                .map(Notification::toDTO)
                 .toList();
+
+        return Response.ok(notificationDTOs).build();
     }
 
     public Response markAsRead(UUID id, UUID userId) {
@@ -108,13 +126,7 @@ public class NotificationRepository {
         }
 
         switch (action) {
-            case MARK_AS_READ -> {
-                notification.setRead(true);
-                em.merge(notification);
-                NotificationSocket.notifyUser(userId);
-                return Response.ok().build();
-            }
-            case OPEN_LINK -> {
+            case MARK_AS_READ, OPEN_LINK -> {
                 notification.setRead(true);
                 em.merge(notification);
                 NotificationSocket.notifyUser(userId);
@@ -143,57 +155,10 @@ public class NotificationRepository {
                 .executeUpdate();
     }
 
-    public Notification createNotification(User recipient,
-                                           User actor,
-                                           School school,
-                                           NotificationType type,
-                                           String title,
-                                           String message,
-                                           String link,
-                                           UUID relatedEntityId,
-                                           NotificationActionType primaryAction,
-                                           NotificationActionType secondaryAction) {
-        Notification notification = new Notification(
-                recipient,
-                actor,
-                school,
-                type,
-                title,
-                message,
-                link,
-                false,
-                relatedEntityId,
-                primaryAction,
-                secondaryAction,
-                LocalDateTime.now()
-        );
-
-        em.persist(notification);
-        em.flush();
-
-        if (recipient != null && recipient.getId() != null) {
-            NotificationSocket.notifyUser(recipient.getId());
-        }
-
-        return notification;
-    }
-
-    public Response sendSystemInfoToSchool(UUID senderId,
-                                           UUID schoolId,
-                                           String title,
-                                           String message,
-                                           String link) {
-
+    public Response sendSystemInfo(UUID senderId, UUID schoolId, String title, String message, String link, boolean isForAll) {
         if (title == null || title.isBlank() || message == null || message.isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Title and message are required")
-                    .build();
-        }
-
-        School school = em.find(School.class, schoolId);
-        if (school == null) {
-            return Response.status(Response.Status.NOT_FOUND)
-                    .entity("School not found")
                     .build();
         }
 
@@ -204,76 +169,36 @@ public class NotificationRepository {
                     .build();
         }
 
-        if (!isDeveloper(sender)) {
+        if (!sender.isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN)
                     .entity("Only developer accounts can send system infos")
                     .build();
         }
 
-        List<User> recipients = em.createQuery("""
+        List<User> recipients = null;
+        School school = null;
+        if(!isForAll){
+            school = em.find(School.class, schoolId);
+            if (school == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("School not found")
+                        .build();
+            }
+
+            recipients = em.createQuery("""
                 SELECT u
                 FROM School s
                 JOIN s.users u
                 WHERE s.id = :schoolId
                 """, User.class)
-                .setParameter("schoolId", schoolId)
-                .getResultList();
-
-        int sentCount = 0;
-        String cleanLink = (link == null || link.isBlank()) ? null : link.trim();
-
-        for (User recipient : recipients) {
-            if (recipient.getId().equals(senderId)) {
-                continue;
-            }
-
-            createNotification(
-                    recipient,
-                    sender,
-                    school,
-                    NotificationType.SYSTEM_INFO,
-                    title.trim(),
-                    message.trim(),
-                    cleanLink,
-                    schoolId,
-                    null,
-                    null
-            );
-
-            sentCount++;
-        }
-
-        return Response.ok("System-Info sent to " + sentCount + " user(s)").build();
-    }
-
-    public Response sendSystemInfoToAll(UUID senderId,
-                                        String title,
-                                        String message,
-                                        String link) {
-
-        if (title == null || title.isBlank() || message == null || message.isBlank()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Title and message are required")
-                    .build();
-        }
-
-        User sender = em.find(User.class, senderId);
-        if (sender == null) {
-            return Response.status(Response.Status.UNAUTHORIZED)
-                    .entity("Sender not found")
-                    .build();
-        }
-
-        if (!isDeveloper(sender)) {
-            return Response.status(Response.Status.FORBIDDEN)
-                    .entity("Only developer accounts can send system infos")
-                    .build();
-        }
-
-        List<User> recipients = em.createQuery("""
+                    .setParameter("schoolId", schoolId)
+                    .getResultList();
+        } else {
+            recipients = em.createQuery("""
                 SELECT u
                 FROM User u
                 """, User.class).getResultList();
+        }
 
         int sentCount = 0;
         String cleanLink = (link == null || link.isBlank()) ? null : link.trim();
@@ -284,59 +209,15 @@ public class NotificationRepository {
             }
 
             createNotification(
-                    recipient,
-                    sender,
-                    null,
+                    recipient, sender, school,
                     NotificationType.SYSTEM_INFO,
-                    title.trim(),
-                    message.trim(),
-                    cleanLink,
-                    null,
-                    null,
-                    null
-            );
+                    title.trim(), message.trim(),
+                    cleanLink, schoolId,
+                    null, null);
 
             sentCount++;
         }
 
         return Response.ok("System-Info sent to " + sentCount + " user(s)").build();
-    }
-
-    private boolean isDeveloper(User user) {
-        if (user == null || user.getUsername() == null) {
-            return false;
-        }
-
-        return DEVELOPER_USERNAMES.contains(user.getUsername().trim().toLowerCase());
-    }
-
-    private NotificationDTO toDTO(Notification n) {
-        SchoolDTO schoolDTO = null;
-
-        if (n.getSchool() != null) {
-            schoolDTO = new SchoolDTO(
-                    n.getSchool().getId(),
-                    n.getSchool().getName(),
-                    n.getSchool().getLogoUrl(),
-                    n.getSchool().getAdminDTO(),
-                    n.getSchool().getUsers().size(),
-                    n.getSchool().getUsers().stream().map(User::toUserDTO).toList()
-            );
-        }
-
-        return new NotificationDTO(
-                n.getId(),
-                n.getActor() != null ? n.getActor().toUserDTO() : null,
-                schoolDTO,
-                n.getType(),
-                n.getTitle(),
-                n.getMessage(),
-                n.getLink(),
-                n.isRead(),
-                n.getRelatedEntityId(),
-                n.getPrimaryAction(),
-                n.getSecondaryAction(),
-                n.getCreatedAt()
-        );
     }
 }
