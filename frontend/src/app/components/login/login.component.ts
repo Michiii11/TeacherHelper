@@ -146,6 +146,7 @@ export class LoginComponent implements OnInit {
 
   onLanguageChange(language: AppLanguage): void {
     this.languageService.setLanguage(language);
+
   }
 
   onThemeChange(theme: 'light' | 'dark'): void {
@@ -342,7 +343,7 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    this.http.resendVerification(email).subscribe({
+    this.http.resendVerification(email, this.languageService.getStoredLanguage()).subscribe({
       next: (message: string) => {
         this.snackBar.open(message, '', { duration: 3500, panelClass: 'snack-success' });
       },

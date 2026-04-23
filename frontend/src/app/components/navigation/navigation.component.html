@@ -231,7 +231,7 @@
                 <div class="notif-main">
                   <div class="notif-title-row">
                     <div class="notif-title-wrap">
-                      <div class="notif-title">{{ n.title }}</div>
+                      <div class="notif-title">{{ getNotificationTitle(n) }}</div>
 
                       @if (getMetaLine(n)) {
                         <div class="notif-meta">{{ getMetaLine(n) }}</div>
@@ -239,11 +239,11 @@
                     </div>
 
                     <div class="notif-title-actions">
-                      <div class="notif-type-badge">{{ getNotificationBadge(n) }}</div>
+                      <div class="notif-type-badge">{{ getBadgeLabel(n.type) }}</div>
                     </div>
                   </div>
 
-                  <div class="notif-message">{{ n.message }}</div>
+                  <div class="notif-message">{{getNotificationMessage(n)}}</div>
 
                   <div class="notif-footer-row">
                     <div class="notif-date">{{ n.createdAt | date:'dd.MM.yyyy • HH:mm' }}</div>

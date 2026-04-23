@@ -119,6 +119,35 @@
       "messagePlaceholder": "Nachricht",
       "linkPlaceholder": "Optionaler Link, z. B. /school/12",
       "submit": "Senden"
+    },
+    "schoolInvitation": {
+      "title": "Einladung zu {{school}}",
+      "message": "{{actor}} hat dich eingeladen, der Sammlung {{school}} beizutreten."
+    },
+    "invitationAccepted": {
+      "title": "Einladung angenommen",
+      "message": "{{actor}} ist der Sammlung {{school}} beigetreten."
+    },
+    "invitationDeclined": {
+      "title": "Einladung abgelehnt",
+      "message": "{{actor}} hat die Einladung zur Sammlung {{school}} abgelehnt."
+    },
+    "default": {
+      "title": "Benachrichtigung",
+      "message": "Es gibt eine neue Aktivität."
+    },
+    "notificationBadges": {
+      "SCHOOL_INVITATION": "Einladung",
+      "INVITATION_ACCEPTED": "Beigetreten",
+      "INVITATION_DECLINED": "Abgelehnt",
+      "SYSTEM_INFO": "Info"
+    },
+    "notificationActions": {
+      "ACCEPT_INVITATION": "Annehmen",
+      "DECLINE_INVITATION": "Ablehnen",
+      "MARK_AS_READ": "Als gelesen markieren",
+      "OPEN_LINK": "Öffnen",
+      "DELETE": "Löschen"
     }
   },
   "home": {

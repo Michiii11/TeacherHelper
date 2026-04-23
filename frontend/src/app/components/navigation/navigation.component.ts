@@ -12,7 +12,7 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { HttpService } from '../../service/http.service';
 import { User } from '../../model/User';
 import { NotificationDTO, NotificationActionType, NotificationType } from '../../model/Notification';
-import { TranslatePipe } from '@ngx-translate/core';
+import {TranslatePipe, TranslateService} from '@ngx-translate/core';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { NavbarActionsService } from './navbar-actions.service';
 import { NavbarAction, NavbarBreadcrumb } from './navbar-action.model';
@@ -48,6 +48,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   service = inject(HttpService);
   snackBar = inject(MatSnackBar);
   navbarActionsService = inject(NavbarActionsService);
+  translate = inject(TranslateService)
 
   user: User = {} as User;
   adminVisible = false;
@@ -431,42 +432,6 @@ export class NavigationComponent implements OnInit, OnDestroy {
     return this.processingIds.has(n.id);
   }
 
-  getActionLabel(action?: NotificationActionType): string {
-    switch (action) {
-      case NotificationActionType.ACCEPT_INVITATION:
-        return 'Bestätigen';
-      case NotificationActionType.DECLINE_INVITATION:
-        return 'Ablehnen';
-      case NotificationActionType.OPEN_LINK:
-        return 'Öffnen';
-      case NotificationActionType.MARK_AS_READ:
-        return 'Archivieren';
-      case NotificationActionType.DELETE:
-        return 'Löschen';
-      default:
-        return 'Aktion';
-    }
-  }
-
-  getNotificationBadge(n: NotificationDTO): string {
-    switch (n.type) {
-      case NotificationType.JOIN_REQUEST:
-        return 'Anfrage';
-      case NotificationType.SCHOOL_INVITATION:
-        return 'Einladung';
-      case NotificationType.INVITATION_ACCEPTED:
-        return 'Bestätigt';
-      case NotificationType.INVITATION_DECLINED:
-        return 'Abgelehnt';
-      case NotificationType.SCHOOL_NEWS:
-        return 'News';
-      case NotificationType.SYSTEM_INFO:
-        return 'System';
-      default:
-        return 'Info';
-    }
-  }
-
   getNotificationIcon(n: NotificationDTO): string {
     switch (n.type) {
       case NotificationType.JOIN_REQUEST:
@@ -618,6 +583,57 @@ export class NavigationComponent implements OnInit, OnDestroy {
       next: (isAdmin) => (this.adminVisible = isAdmin),
       error: () => (this.adminVisible = false)
     });
+  }
+
+  getNotificationTitle(n: NotificationDTO): string {
+    switch (n.type) {
+      case 'SCHOOL_INVITATION':
+        return this.translate.instant('notifications.schoolInvitation.title', {
+          school: n.school?.name ?? ''
+        });
+
+      case 'INVITATION_ACCEPTED':
+        return this.translate.instant('notifications.invitationAccepted.title');
+
+      case 'INVITATION_DECLINED':
+        return this.translate.instant('notifications.invitationDeclined.title');
+
+      default:
+        return this.translate.instant('notifications.default.title');
+    }
+  }
+
+  getNotificationMessage(n: NotificationDTO): string {
+    switch (n.type) {
+      case 'SCHOOL_INVITATION':
+        return this.translate.instant('notifications.schoolInvitation.message', {
+          actor: n.actor?.username ?? '',
+          school: n.school?.name ?? ''
+        });
+
+      case 'INVITATION_ACCEPTED':
+        return this.translate.instant('notifications.invitationAccepted.message', {
+          actor: n.actor?.username ?? '',
+          school: n.school?.name ?? ''
+        });
+
+      case 'INVITATION_DECLINED':
+        return this.translate.instant('notifications.invitationDeclined.message', {
+          actor: n.actor?.username ?? '',
+          school: n.school?.name ?? ''
+        });
+
+      default:
+        return this.translate.instant('notifications.default.message');
+    }
+  }
+
+  getBadgeLabel(type: NotificationType): string {
+    return this.translate.instant('notifications.notificationBadges.' + type);
+  }
+
+  getActionLabel(action: NotificationActionType): string {
+    return this.translate.instant('notifications.notificationActions.' + action);
   }
 }
 

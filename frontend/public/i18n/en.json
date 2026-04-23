@@ -119,6 +119,35 @@
       "messagePlaceholder": "Message",
       "linkPlaceholder": "Optional link, e.g. /school/12",
       "submit": "Send"
+    },
+    "schoolInvitation": {
+      "title": "Invitation to {{school}}",
+      "message": "{{actor}} invited you to join {{school}}."
+    },
+    "invitationAccepted": {
+      "title": "Invitation accepted",
+      "message": "{{actor}} joined {{school}}."
+    },
+    "invitationDeclined": {
+      "title": "Invitation declined",
+      "message": "{{actor}} declined the invitation to {{school}}."
+    },
+    "default": {
+      "title": "Notification",
+      "message": "There is a new activity."
+    },
+    "notificationBadges": {
+      "SCHOOL_INVITATION": "Invitation",
+      "INVITATION_ACCEPTED": "Joined",
+      "INVITATION_DECLINED": "Declined",
+      "SYSTEM_INFO": "Info"
+    },
+    "notificationActions": {
+      "ACCEPT_INVITATION": "Accept",
+      "DECLINE_INVITATION": "Decline",
+      "MARK_AS_READ": "Mark as read",
+      "OPEN_LINK": "Open",
+      "DELETE": "Delete"
     }
   },
   "home": {

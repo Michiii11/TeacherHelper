@@ -36,7 +36,7 @@ public class UserResource {
     @POST
     @Path("register")
     public AuthResult register(FullUserDTO dto) {
-        return repo.register(dto);
+        return repo.register(dto, dto.language());
     }
 
     @POST
@@ -59,7 +59,6 @@ public class UserResource {
 
     @GET
     @Path("verify-email")
-    @Produces(MediaType.TEXT_PLAIN)
     public Response verifyEmail(@QueryParam("token") String token) {
         String result = repo.verifyEmail(token);
 
@@ -77,9 +76,8 @@ public class UserResource {
 
     @POST
     @Path("email/resend-verification")
-    @Produces(MediaType.TEXT_PLAIN)
-    public Response resendVerification(EmailActionDTO dto) {
-        String result = repo.resendVerification(dto == null ? null : dto.email());
+    public Response resendVerification(EmailActionDTO dto, @QueryParam("language") String language) {
+        String result = repo.resendVerification(dto == null ? null : dto.email(), language);
 
         if (result == null) {
             return Response.ok("Bestätigungs-Mail wurde erneut gesendet.").build();
@@ -95,7 +93,6 @@ public class UserResource {
 
     @POST
     @Path("password/forgot")
-    @Produces(MediaType.TEXT_PLAIN)
     public Response forgotPassword(EmailActionDTO dto) {
         repo.requestPasswordReset(dto == null ? null : dto.email());
         return Response.ok("Wenn ein Konto mit dieser E-Mail existiert, wurde ein Link zum Zurücksetzen versendet.").build();
@@ -103,7 +100,6 @@ public class UserResource {
 
     @POST
     @Path("password/reset")
-    @Produces(MediaType.TEXT_PLAIN)
     public Response resetPassword(ResetPasswordDTO dto) {
         String result = repo.resetPassword(dto == null ? null : dto.token(), dto == null ? null : dto.newPassword());
 

@@ -140,7 +140,7 @@ public class UserRepository {
     }
 
     @Transactional
-    public AuthResult register(FullUserDTO dto) {
+    public AuthResult register(FullUserDTO dto, String language) {
         if (dto == null || dto.username() == null || dto.username().isBlank()
                 || dto.email() == null || dto.email().isBlank()
                 || dto.password() == null || dto.password().isBlank()) {
@@ -186,7 +186,7 @@ public class UserRepository {
         user.setLanguage(null);
 
         save(user);
-        mailService.sendRegistrationVerification(user.getEmail(), user.getEmailVerificationToken());
+        mailService.sendRegistrationVerification(user.getEmail(), user.getEmailVerificationToken(), language);
 
         return new AuthResult(
                 true,
@@ -251,7 +251,7 @@ public class UserRepository {
     }
 
     @Transactional
-    public String resendVerification(String email) {
+    public String resendVerification(String email, String language) {
         if (email == null || email.isBlank()) {
             return "EMAIL_REQUIRED";
         }
@@ -269,7 +269,7 @@ public class UserRepository {
         user.setEmailVerificationExpiresAt(LocalDateTime.now().plusHours(24));
         em.merge(user);
 
-        mailService.sendRegistrationVerification(user.getEmail(), user.getEmailVerificationToken());
+        mailService.sendRegistrationVerification(user.getEmail(), user.getEmailVerificationToken(), language);
         return null;
     }
 
@@ -324,7 +324,7 @@ public class UserRepository {
         user.setEmailVerificationExpiresAt(LocalDateTime.now().plusHours(24));
         em.merge(user);
 
-        mailService.sendEmailChangeVerification(normalized, user.getEmailVerificationToken());
+        mailService.sendEmailChangeVerification(normalized, user.getEmailVerificationToken(), user.getLanguage());
         return null;
     }
 
@@ -384,7 +384,7 @@ public class UserRepository {
         user.setPasswordResetExpiresAt(LocalDateTime.now().plusHours(2));
         em.merge(user);
 
-        mailService.sendPasswordReset(user.getEmail(), user.getPasswordResetToken());
+        mailService.sendPasswordReset(user.getEmail(), user.getPasswordResetToken(), user.getLanguage());
         return null;
     }
 

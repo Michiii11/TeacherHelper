@@ -13,6 +13,7 @@ import {
 import {AdminDashboardDTO, AuthResult, User, UserDTO, UserSettings} from '../model/User';
 import { NotificationActionType, NotificationDTO } from '../model/Notification';
 import {CreateFolderDTO, FolderDTO, UpdateFolderDTO} from '../model/Folder'
+import {AppLanguage} from './language.service'
 
 @Injectable({ providedIn: 'root' })
 export class HttpService {
@@ -226,17 +227,6 @@ export class HttpService {
     return this.http.post<AuthResult>(`${Config.API_URL}/user/register`, payload);
   }
 
-  setUserActive(userId: string, active: boolean) {
-    return this.http.put(
-      `${Config.API_URL}/user/admin/${userId}/active`,
-      {
-        authToken: this.authToken(),
-        active
-      },
-      { responseType: 'text' as 'json' }
-    );
-  }
-
   setUserLocked(userId: string, locked: boolean) {
     return this.http.put(
       `${Config.API_URL}/user/admin/${userId}/locked`,
@@ -299,8 +289,8 @@ export class HttpService {
     });
   }
 
-  resendVerification(email: string) {
-    return this.http.post(`${Config.API_URL}/user/email/resend-verification`, { email }, {
+  resendVerification(email: string, language: AppLanguage | null) {
+    return this.http.post(`${Config.API_URL}/user/email/resend-verification?language=${language}`, { email }, {
       responseType: 'text'
     });
   }
