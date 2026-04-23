@@ -72,7 +72,7 @@ public class NotificationRepository {
         if (!notification.getRecipient().getId().equals(userId)) {
             return Response.status(Response.Status.FORBIDDEN).entity("You are not allowed to modify this notification").build();
         }
-
+        
         notification.setRead(true);
         em.merge(notification);
         NotificationSocket.notifyUser(userId);

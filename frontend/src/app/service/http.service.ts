@@ -257,29 +257,31 @@ export class HttpService {
       headers: { Authorization: this.authToken() }});
   }
 
-  markAsRead(id: string) {
-    return this.http.put(`${Config.API_URL}/notification/${id}/read`, {
+  markAsRead(notificationId: string) {
+    return this.http.put(`${Config.API_URL}/notification/${notificationId}/read`, {}, {
+      headers: { Authorization: this.authToken() } });
+  }
+
+  deleteNotification(notificationId: string) {
+    return this.http.delete(`${Config.API_URL}/notification/${notificationId}`, {
       headers: { Authorization: this.authToken() }});
   }
 
-  deleteNotification(id: string) {
-    return this.http.delete(`${Config.API_URL}/notification/${id}`, {
-      headers: { Authorization: this.authToken() }});
-  }
-
-  executeAction(id: string, action: NotificationActionType) {
-    return this.http.post(`${Config.API_URL}/notification/${id}/action`, action, {
+  executeAction(notificationId: string, action: NotificationActionType) {
+    return this.http.post(`${Config.API_URL}/notification/${notificationId}/action`, action, {
       headers: { Authorization: this.authToken() }});
   }
 
   sendSystemInfoToSchool(schoolId: string, payload: { title: string; message: string; link?: string | null }) {
     return this.http.post(`${Config.API_URL}/notification/system-info/school/${schoolId}`, payload, {
-      headers: { Authorization: this.authToken() }});
+      headers: { Authorization: this.authToken()},
+      responseType: 'text'});
   }
 
   sendSystemInfoToAll(payload: { title: string; message: string; link?: string | null }) {
     return this.http.post(`${Config.API_URL}/notification/system-info/all`, payload, {
-      headers: { Authorization: this.authToken() }});
+      headers: { Authorization: this.authToken() },
+      responseType: 'text'});
   }
   // endregion
 
