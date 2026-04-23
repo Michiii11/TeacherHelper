@@ -1,5 +1,6 @@
 package at.model;
 
+import at.dtos.School.SchoolDTO;
 import at.dtos.User.UserDTO;
 import at.model.helper.Focus;
 import jakarta.persistence.*;
@@ -37,17 +38,15 @@ public class School {
     @OneToMany
     private List<Focus> focusList;
 
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public School() {
-        createdAt = new Timestamp(System.currentTimeMillis());
-        updatedAt = new Timestamp(System.currentTimeMillis());
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
     public School(String name, User admin) {
-        createdAt = new Timestamp(System.currentTimeMillis());
-        updatedAt = new Timestamp(System.currentTimeMillis());
         this.name = name;
         this.admin = admin;
     }
@@ -59,19 +58,19 @@ public class School {
     }
 
 
-    public Timestamp getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Timestamp createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Timestamp getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Timestamp updatedAt) {
+    public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
@@ -132,5 +131,16 @@ public class School {
 
     public void setFocusList(List<Focus> focusList) {
         this.focusList = focusList;
+    }
+
+    public SchoolDTO toSchoolDTO() {
+        return new SchoolDTO(
+                this.getId(),
+                this.getName(),
+                this.getLogoUrl(),
+                this.getAdminDTO(),
+                this.getUsers().size(),
+                this.getUsers().stream().map(User::toUserDTO).toList()
+        );
     }
 }

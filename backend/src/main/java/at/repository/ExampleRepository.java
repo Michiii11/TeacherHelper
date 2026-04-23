@@ -18,6 +18,7 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -122,8 +123,8 @@ public class ExampleRepository {
         example.getFocusList().clear();
         example.getFocusList().addAll(dto.focusList());
         example.setVariables(mapVariableEntities(dto.variables()));
-        example.setCreatedAt(Timestamp.from(java.time.Instant.now()));
-        example.setUpdatedAt(Timestamp.from(java.time.Instant.now()));
+        example.setCreatedAt(LocalDateTime.now());
+        example.setUpdatedAt(LocalDateTime.now());
 
         clearTypeSpecificFields(example);
 
@@ -192,7 +193,7 @@ public class ExampleRepository {
         example.getFocusList().clear();
         example.getFocusList().addAll(dto.focusList());
         example.setVariables(mapVariableEntities(dto.variables()));
-        example.setUpdatedAt(Timestamp.from(java.time.Instant.now()));
+        example.setUpdatedAt(LocalDateTime.now());
 
         clearTypeSpecificFields(example);
 

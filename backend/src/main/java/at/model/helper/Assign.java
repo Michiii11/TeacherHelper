@@ -19,6 +19,14 @@ public class Assign {
         this.right = right;
     }
 
+    @Override
+    public String toString() {
+        return "Assign{" +
+                "left='" + left + '\'' +
+                ", right='" + right + '\'' +
+                '}';
+    }
+
     public String getLeft() { return left; }
     public void setLeft(String left) { this.left = left; }
 

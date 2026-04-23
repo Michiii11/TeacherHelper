@@ -31,7 +31,7 @@ public class SchoolInvite {
     @Column(length = 1000)
     private String message;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
     private LocalDateTime decidedAt;
 
     public SchoolInvite() {
@@ -43,8 +43,22 @@ public class SchoolInvite {
         this.recipient = recipient;
         this.type = type;
         this.message = message;
-        this.status = SchoolInviteStatus.PENDING;
         this.createdAt = LocalDateTime.now();
+    }
+
+    @Override
+    public String toString() {
+        return "SchoolInvite{" +
+                "id=" + id +
+                ", school=" + school +
+                ", sender=" + sender +
+                ", recipient=" + recipient +
+                ", type=" + type +
+                ", status=" + status +
+                ", message='" + message + '\'' +
+                ", createdAt=" + createdAt +
+                ", decidedAt=" + decidedAt +
+                '}';
     }
 
     public UUID getId() {

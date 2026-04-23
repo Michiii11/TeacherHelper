@@ -25,6 +25,15 @@ public class ExampleVariable {
         this.defaultValue = defaultValue;
     }
 
+    @Override
+    public String toString() {
+        return "ExampleVariable{" +
+                "id=" + id +
+                ", key='" + key + '\'' +
+                ", defaultValue='" + defaultValue + '\'' +
+                '}';
+    }
+
     public UUID getId() {
         return id;
     }

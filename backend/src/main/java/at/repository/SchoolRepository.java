@@ -1,8 +1,6 @@
 package at.repository;
 
 import at.dtos.Notification.SchoolInviteDTO;
-import at.dtos.School.SchoolDTO;
-import at.dtos.User.UserDTO;
 import at.enums.NotificationActionType;
 import at.enums.NotificationType;
 import at.enums.SchoolInviteStatus;
@@ -36,176 +34,166 @@ public class SchoolRepository {
     @Inject
     MediaStorageService mediaStorageService;
 
-    public Response addSchool(String schoolName, UUID userId) {
-        try {
-            User user = em.find(User.class, userId);
-            if (user == null) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("User not found").build();
-            }
-
-            School school = new School(schoolName, user);
-            em.persist(school);
-
-            return Response.ok(toSchoolDTO(school)).build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("User not found or error occurred").build();
-        }
-    }
-
-    public List<SchoolDTO> getAllSchools() {
-        List<School> schools = em.createQuery("SELECT s FROM School s", School.class).getResultList();
-        return schools.stream()
-                .map(this::toSchoolDTO)
-                .toList();
-    }
-
-    public SchoolDTO findById(UUID id, UUID userId) {
-        School school = em.find(School.class, id);
-        if (school == null) {
-            return null;
-        }
-
-        if (userId == null || (!school.getAdmin().getId().equals(userId)
-                && school.getUsers().stream().noneMatch(u -> u.getId().equals(userId)))) {
-            return null;
-        }
-
-        return toSchoolDTO(school);
-    }
-
-    public List<SchoolDTO> getYourSchools(String auth) {
-        UUID userId = tokenService.validateTokenAndGetUserId(auth);
-
-        if (userId == null) {
-            return List.of();
-        }
-
+    public Response getYourSchools(UUID userId) {
         User user = em.find(User.class, userId);
 
-        List<School> schools = em.createQuery(
+        List<School> collections = em.createQuery(
                         "SELECT s FROM School s WHERE s.admin.id = :userId OR :user MEMBER OF s.users", School.class)
                 .setParameter("userId", userId)
                 .setParameter("user", user)
                 .getResultList();
 
-        return schools.stream()
-                .map(this::toSchoolDTO)
-                .toList();
+        return Response.ok(collections.stream()
+                .map(School::toSchoolDTO)
+                .toList()).build();
     }
 
-    public List<Focus> getFocusList(UUID id) {
-        return em.createQuery("SELECT s.focusList FROM School s WHERE s.id = :id", Focus.class)
-                .setParameter("id", id)
-                .getResultList();
-    }
-
-    public Focus addFocus(UUID id, Focus focus) {
-        School s = em.find(School.class, id);
-
-        Focus f = new Focus(focus.getLabel());
-        em.persist(f);
-
-        s.getFocusList().add(f);
-        em.merge(s);
-
-        return f;
-    }
-
-    public Response deleteFocus(UUID id, UUID focusId) {
-        School s = em.find(School.class, id);
-        Focus f = em.find(Focus.class, focusId);
-
-        s.getFocusList().remove(f);
-
-        List<Example> exampleList = em.createQuery(
-                        "select e from Example e where :f MEMBER OF e.focusList", Example.class)
-                .setParameter("f", f)
-                .getResultList();
-
-        for (Example e : exampleList) {
-            e.getFocusList().remove(f);
+    public Response findById(UUID collectionId, UUID userId) {
+        School collection = em.find(School.class, collectionId);
+        if (collection == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        em.remove(f);
+        if ((!collection.getAdmin().getId().equals(userId)
+                && collection.getUsers().stream().noneMatch(u -> u.getId().equals(userId)))) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+
+        return Response.ok(collection.toSchoolDTO()).build();
+    }
+
+    public Response addCollection(String collectionName, UUID userId) {
+        try {
+            User user = em.find(User.class, userId);
+
+            if (user == null) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("User not found").build();
+            }
+
+            School school = new School(collectionName, user);
+            em.persist(school);
+
+            return Response.ok(school.toSchoolDTO()).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("User not found or error occurred").build();
+        }
+    }
+
+    public Response deleteCollection(UUID collectionId, UUID userId) {
+        School collection = em.find(School.class, collectionId);
+
+        if (collection == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Collection not found").build();
+        }
+
+        if (!collection.getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Only the collection admin can delete the collection").build();
+        }
+
+        // clear invites of collection
+        em.createQuery("DELETE FROM SchoolInvite i WHERE i.school.id = :collectionId")
+                .setParameter("collectionId", collectionId)
+                .executeUpdate();
+
+        // clear members of collection
+        collection.getUsers().clear();
+
+        // clear focus list of collection
+        if (collection.getFocusList() != null) {
+            for (Focus focus : collection.getFocusList()) {
+                em.remove(em.contains(focus) ? focus : em.merge(focus));
+            }
+            collection.getFocusList().clear();
+        }
+
+        // clear examples of collection
+        List<Example> examples = em.createQuery("SELECT e FROM Example e WHERE e.school.id = :collectionId", Example.class)
+                .setParameter("collectionId", collectionId)
+                .getResultList();
+
+        for(Example example : examples) {
+            em.remove(example);
+        }
+
+        // clear tests of collection
+        List<Test> tests = em.createQuery("SELECT t FROM Test t WHERE t.school.id = :collectionId", Test.class)
+                .setParameter("collectionId", collectionId)
+                .getResultList();
+
+        for(Test test : tests) {
+            em.remove(test);
+        }
+
+        // clear logo of collection
+        if(collection.getLogoUrl() != null) {
+            mediaStorageService.delete(collection.getLogoUrl());
+        }
+
+        em.merge(collection);
+        em.remove(collection);
 
         return Response.ok().build();
     }
 
-    public SchoolDTO toSchoolDTO(School school) {
-        return new SchoolDTO(
-                school.getId(),
-                school.getName(),
-                school.getLogoUrl(),
-                school.getAdminDTO(),
-                school.getUsers().size(),
-                school.getUsers().stream().map(User::toUserDTO).toList()
-        );
-    }
-
-    public List<UserDTO> getAllTeachers(UUID id) {
-        School school = em.find(School.class, id);
+    public Response updateCollectionLogo(UUID collectionId, UUID userId, String logoUrl) {
+        School school = em.find(School.class, collectionId);
 
         if (school == null) {
-            return List.of();
+            return Response.status(Response.Status.NOT_FOUND).entity("Collection not found").build();
         }
 
-        List<UUID> memberIds = school.getUsers()
-                .stream()
-                .map(User::getId)
-                .toList();
-
-        UUID adminId = school.getAdmin().getId();
-
-        List<UUID> invitedUserIds = em.createQuery("""
-            SELECT i.recipient.id
-            FROM SchoolInvite i
-            WHERE i.school.id = :schoolId
-              AND i.type = :type
-              AND i.status = :status
-            """, UUID.class)
-                .setParameter("schoolId", id)
-                .setParameter("type", SchoolInviteType.TEACHER_INVITATION)
-                .setParameter("status", SchoolInviteStatus.PENDING)
-                .getResultList();
-
-        List<UUID> excludedIds = new java.util.ArrayList<>();
-        excludedIds.add(adminId);
-        excludedIds.addAll(memberIds);
-        excludedIds.addAll(invitedUserIds);
-
-        String jpql = excludedIds.isEmpty()
-                ? "SELECT u FROM User u"
-                : "SELECT u FROM User u WHERE u.id NOT IN :excluded and u.allowInvitations != false";
-
-        var query = em.createQuery(jpql, User.class);
-
-        if (!excludedIds.isEmpty()) {
-            query.setParameter("excluded", excludedIds);
+        if (!school.getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Only the collection admin can update the logo").build();
         }
 
-        return query.getResultList()
-                .stream()
-                .map(User::toUserDTO)
-                .toList();
+        school.setLogoUrl(logoUrl);
+        em.merge(school);
+
+        return Response.ok(school.toSchoolDTO()).build();
     }
 
-    public Response leaveSchool(UUID id, UUID userId) {
-        School school = em.find(School.class, id);
+    public Response deleteCollectionLogo(UUID collectionId, UUID userId) {
+        School school = em.find(School.class, collectionId);
+
+        if (school == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Collection not found").build();
+        }
+
+        if (!school.getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Only the collection admin can delete the logo").build();
+        }
+
+        if (school.getLogoUrl() == null || school.getLogoUrl().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Collection has no logo").build();
+        }
+
+        if(school.getLogoUrl() != null && !school.getLogoUrl().isBlank()) {
+            mediaStorageService.delete(school.getLogoUrl());
+        }
+
+        school.setLogoUrl(null);
+        em.merge(school);
+
+        return Response.ok(school.toSchoolDTO()).build();
+    }
+
+    public Response leaveCollection(UUID collectionId, UUID userId) {
+        School collection = em.find(School.class, collectionId);
         User user = em.find(User.class, userId);
 
-        if (school == null || user == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("School or User not found").build();
+        if (collection == null || user == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Collection or User not found").build();
         }
 
-        if (school.getAdmin().getId().equals(userId)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("The admin cannot leave the school").build();
+        if (collection.getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("The admin cannot leave the collection").build();
         }
 
-        if (!school.getUsers().removeIf(u -> u.getId().equals(userId))) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("You are not a member of this school").build();
+        if (!collection.getUsers().removeIf(u -> u.getId().equals(userId))) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("You are not a member of this collection").build();
         }
 
-        em.merge(school);
+        em.merge(collection);
 
         return Response.ok().build();
     }
@@ -229,139 +217,7 @@ public class SchoolRepository {
 
         school.getUsers().remove(teacher);
 
-
         em.merge(school);
-
-        return Response.ok().build();
-    }
-
-    public Response updateSchoolSettings(UUID schoolId, UUID userId, String newName) {
-        School school = em.find(School.class, schoolId);
-
-        if (school == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity("School not found").build();
-        }
-
-        if (!school.getAdmin().getId().equals(userId)) {
-            return Response.status(Response.Status.FORBIDDEN).entity("Only the school admin can update the school").build();
-        }
-
-        if (newName == null || newName.isBlank()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("School name must not be empty").build();
-        }
-
-        String cleanedName = newName.trim();
-
-        Long existing = em.createQuery("""
-                SELECT COUNT(s)
-                FROM School s
-                WHERE LOWER(s.name) = LOWER(:name)
-                  AND s.id <> :schoolId
-                """, Long.class)
-                .setParameter("name", cleanedName)
-                .setParameter("schoolId", schoolId)
-                .getSingleResult();
-
-        if (existing > 0) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("A school with this name already exists").build();
-        }
-
-        school.setName(cleanedName);
-        em.merge(school);
-
-        return Response.ok(toSchoolDTO(school)).build();
-    }
-
-    public Response updateSchoolLogoObject(UUID schoolId, UUID userId, String logoUrl) {
-        School school = em.find(School.class, schoolId);
-
-        if (school == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity("School not found").build();
-        }
-
-        if (!school.getAdmin().getId().equals(userId)) {
-            return Response.status(Response.Status.FORBIDDEN).entity("Only the school admin can update the logo").build();
-        }
-
-        school.setLogoUrl(logoUrl);
-        em.merge(school);
-
-        return Response.ok(toSchoolDTO(school)).build();
-    }
-
-    public Response deleteSchoolLogo(UUID schoolId, UUID userId) {
-        School school = em.find(School.class, schoolId);
-
-        if (school == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity("School not found").build();
-        }
-
-        if (!school.getAdmin().getId().equals(userId)) {
-            return Response.status(Response.Status.FORBIDDEN).entity("Only the school admin can delete the logo").build();
-        }
-
-        if (school.getLogoUrl() == null || school.getLogoUrl().isBlank()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("School has no logo").build();
-        }
-
-        if(school.getLogoUrl() != null && !school.getLogoUrl().isBlank()) {
-            mediaStorageService.delete(school.getLogoUrl());
-        }
-
-        school.setLogoUrl(null);
-        em.merge(school);
-
-        return Response.ok(toSchoolDTO(school)).build();
-    }
-
-    public Response deleteSchool(UUID schoolId, UUID userId) {
-        School school = em.find(School.class, schoolId);
-
-        if (school == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity("School not found").build();
-        }
-
-        if (!school.getAdmin().getId().equals(userId)) {
-            return Response.status(Response.Status.FORBIDDEN).entity("Only the school admin can delete the school").build();
-        }
-
-        em.createQuery("DELETE FROM SchoolInvite i WHERE i.school.id = :schoolId")
-                .setParameter("schoolId", schoolId)
-                .executeUpdate();
-
-        school.getUsers().clear();
-
-        if (school.getFocusList() != null) {
-            for (Focus focus : school.getFocusList()) {
-                em.remove(em.contains(focus) ? focus : em.merge(focus));
-            }
-            school.getFocusList().clear();
-        }
-
-        List<Example> examples = em.createQuery("SELECT e FROM Example e WHERE e.school.id = :schoolId", Example.class)
-                .setParameter("schoolId", schoolId)
-                .getResultList();
-
-        for(Example example : examples) {
-            em.remove(example);
-        }
-
-        List<Test> tests = em.createQuery("SELECT t FROM Test t WHERE t.school.id = :schoolId", Test.class)
-                .setParameter("schoolId", schoolId)
-                .getResultList();
-
-        for(Test test : tests) {
-            em.remove(test);
-        }
-
-
-        System.out.println(school.getLogoUrl());
-        if(school.getLogoUrl() != null) {
-            mediaStorageService.delete(school.getLogoUrl());
-        }
-
-        em.merge(school);
-        em.remove(school);
 
         return Response.ok().build();
     }
@@ -472,16 +328,12 @@ public class SchoolRepository {
             em.merge(invite);
 
             notificationRepository.createNotification(
-                    sender,
-                    recipient,
-                    school,
+                    sender, recipient, school,
                     NotificationType.INVITATION_ACCEPTED,
-                    "Invitation accepted",
-                    recipient.getUsername() + " accepted the invitation to " + school.getName() + ".",
-                    "/school/" + school.getId(),
+                    null, null,
+                    "/collection/" + school.getId(),
                     invite.getId(),
-                    null,
-                    null
+                    null, null
             );
         } else {
             invite.setStatus(SchoolInviteStatus.DECLINED);
@@ -489,78 +341,114 @@ public class SchoolRepository {
             em.merge(invite);
 
             notificationRepository.createNotification(
-                    sender,
-                    recipient,
-                    school,
+                    sender, recipient, school,
                     NotificationType.INVITATION_DECLINED,
-                    "Invitation declined",
-                    recipient.getUsername() + " declined the invitation to " + school.getName() + ".",
-                    "/school/" + school.getId(),
+                    null, null,
+                    "/collection/" + school.getId(),
                     invite.getId(),
-                    null,
-                    null
+                    null, null
             );
         }
 
         return Response.ok(toSchoolInviteDTO(invite)).build();
     }
 
-    public List<SchoolInviteDTO> getMyPendingInvites(UUID userId) {
-        return em.createQuery("""
-                SELECT i
-                FROM SchoolInvite i
-                WHERE i.recipient.id = :userId
-                  AND i.status = :status
-                ORDER BY i.createdAt DESC
-                """, SchoolInvite.class)
-                .setParameter("userId", userId)
-                .setParameter("status", SchoolInviteStatus.PENDING)
-                .getResultList()
-                .stream()
-                .map(this::toSchoolInviteDTO)
-                .toList();
-    }
-
-    public List<SchoolInviteDTO> getPendingRequestsForSchool(UUID schoolId, UUID userId) {
+    public Response updateSchoolSettings(UUID schoolId, UUID userId, String newName) {
         School school = em.find(School.class, schoolId);
+
         if (school == null) {
-            return List.of();
+            return Response.status(Response.Status.NOT_FOUND).entity("School not found").build();
         }
 
         if (!school.getAdmin().getId().equals(userId)) {
-            return List.of();
+            return Response.status(Response.Status.FORBIDDEN).entity("Only the school admin can update the school").build();
         }
 
-        return em.createQuery("""
-                SELECT i
-                FROM SchoolInvite i
-                WHERE i.school.id = :schoolId
-                  AND i.type = :type
-                  AND i.status = :status
-                ORDER BY i.createdAt DESC
-                """, SchoolInvite.class)
+        if (newName == null || newName.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("School name must not be empty").build();
+        }
+
+        String cleanedName = newName.trim();
+
+        Long existing = em.createQuery("""
+                SELECT COUNT(s)
+                FROM School s
+                WHERE LOWER(s.name) = LOWER(:name)
+                  AND s.id <> :schoolId
+                """, Long.class)
+                .setParameter("name", cleanedName)
                 .setParameter("schoolId", schoolId)
-                .setParameter("type", SchoolInviteType.JOIN_REQUEST)
-                .setParameter("status", SchoolInviteStatus.PENDING)
-                .getResultList()
-                .stream()
-                .map(this::toSchoolInviteDTO)
-                .toList();
+                .getSingleResult();
+
+        if (existing > 0) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("A school with this name already exists").build();
+        }
+
+        school.setName(cleanedName);
+        em.merge(school);
+
+        return Response.ok(school.toSchoolDTO()).build();
     }
 
-    private SchoolInviteDTO toSchoolInviteDTO(SchoolInvite invite) {
-        return new SchoolInviteDTO(
-                invite.getId(),
-                toSchoolDTO(invite.getSchool()),
-                invite.getSender().toUserDTO(),
-                invite.getRecipient().toUserDTO(),
-                invite.getType(),
-                invite.getStatus(),
-                invite.getMessage(),
-                invite.getCreatedAt(),
-                invite.getDecidedAt()
-        );
+    public Response getFocusList(UUID collectionId, UUID userId) {
+        School collection = em.find(School.class, collectionId);
+
+        if(!collection.getAdmin().getId().equals(userId) &&
+        collection.getUsers().stream().noneMatch(u -> u.getId().equals(userId))) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Only members of the collection can access the focus list").build();
+        }
+
+        List<Focus> focusList = em.createQuery("SELECT s.focusList FROM School s WHERE s.id = :id order by s.id", Focus.class)
+                .setParameter("id", collectionId)
+                .getResultList();
+
+        return Response.ok(focusList).build();
     }
+
+    public Response addFocus(UUID collectionId, Focus f, UUID userId) {
+        School collection = em.find(School.class, collectionId);
+
+        if(!collection.getAdmin().getId().equals(userId) &&
+                collection.getUsers().stream().noneMatch(u -> u.getId().equals(userId))) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Only members of the collection can access the focus list").build();
+        }
+
+        Focus focus = new Focus(f.getLabel());
+        em.persist(focus);
+
+        collection.getFocusList().add(focus);
+        em.merge(collection);
+
+        return Response.ok(focus).build();
+    }
+
+    public Response deleteFocus(UUID id, UUID focusId, UUID userId) {
+        School collection = em.find(School.class, id);
+
+        if(!collection.getAdmin().getId().equals(userId) &&
+                collection.getUsers().stream().noneMatch(u -> u.getId().equals(userId))) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Only members of the collection can access the focus list").build();
+        }
+
+        Focus focus = em.find(Focus.class, focusId);
+
+        collection.getFocusList().remove(focus);
+
+        List<Example> exampleList = em.createQuery(
+                        "select e from Example e where :f MEMBER OF e.focusList", Example.class)
+                .setParameter("f", focus)
+                .getResultList();
+
+        for (Example e : exampleList) {
+            e.getFocusList().remove(focus);
+        }
+
+        em.remove(focus);
+
+        return Response.ok().build();
+    }
+
+
 
     private String appendOptionalMessage(String baseMessage, String customMessage) {
         if (customMessage == null || customMessage.isBlank()) {
@@ -577,5 +465,21 @@ public class SchoolRepository {
         }
 
         return school.getLogoUrl();
+    }
+
+
+
+    private SchoolInviteDTO toSchoolInviteDTO(SchoolInvite invite) {
+        return new SchoolInviteDTO(
+                invite.getId(),
+                invite.getSchool().toSchoolDTO(),
+                invite.getSender().toUserDTO(),
+                invite.getRecipient().toUserDTO(),
+                invite.getType(),
+                invite.getStatus(),
+                invite.getMessage(),
+                invite.getCreatedAt(),
+                invite.getDecidedAt()
+        );
     }
 }

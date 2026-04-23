@@ -18,6 +18,14 @@ public class Focus {
     public Focus() {
     }
 
+    @Override
+    public String toString() {
+        return "Focus{" +
+                "id=" + id +
+                ", label='" + label + '\'' +
+                '}';
+    }
+
     public Focus(String label) {
         this.label = label;
     }

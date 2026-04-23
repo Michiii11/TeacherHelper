@@ -47,6 +47,8 @@ public class Notification {
     public Notification() {
     }
 
+
+
     public Notification(User recipient,
                         User actor,
                         School school,

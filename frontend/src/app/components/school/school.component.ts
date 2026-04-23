@@ -361,7 +361,7 @@ export class SchoolComponent implements OnInit, OnDestroy {
 
   private loadSchool(): void {
     if (!this.schoolId) return;
-    this.service.getSchoolById(this.schoolId).subscribe(school => {
+    this.service.getCollectionById(this.schoolId).subscribe(school => {
       this.school = school;
       this.setNavbarActions();
     });
@@ -1073,10 +1073,6 @@ export class SchoolComponent implements OnInit, OnDestroy {
     }).afterClosed().subscribe(result => {
       if (result?.updated) this.loadSchool();
     });
-  }
-
-  getSchoolLogo(): string | null {
-    return this.service.getSchoolLogo(this.school, this.schoolId!);
   }
 
   private openFolderPicker(currentFolderId: string | null, excludeFolderId?: string) {

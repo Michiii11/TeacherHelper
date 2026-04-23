@@ -107,7 +107,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.isLoading = true;
 
     const tryConnect = () => {
-      this.service.getSchools().subscribe({
+      this.service.getYourCollections().subscribe({
         next: () => {
           this.isLoading = false;
         },

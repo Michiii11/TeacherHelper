@@ -23,10 +23,7 @@ public class Folder {
     @JoinColumn(name = "parent_id")
     private Folder parent;
 
-    @Column(nullable = false)
     private LocalDateTime createdAt;
-
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     public Folder() {

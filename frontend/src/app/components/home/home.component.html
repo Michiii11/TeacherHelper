@@ -13,7 +13,10 @@
         <div class="card-top-row">
           @if (school.logoUrl) {
             <div [class]="getAvatarClass(school)">
-              <img [src]="getSchoolLogoUrl(school)" alt="{{ school.name }} Logo" class="avatar-image" />
+              <img *ngIf="logoUrls[school.id]"
+                   [src]="logoUrls[school.id]"
+                   alt="{{ school.name }} Logo"
+                   class="avatar-image" />
             </div>
           } @else {
             <div [class]="getAvatarClass(school)">

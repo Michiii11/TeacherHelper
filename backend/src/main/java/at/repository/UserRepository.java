@@ -486,7 +486,7 @@ public class UserRepository {
                         School.class).setParameter("userId", userId).getResultList();
 
         for (School school : schools) {
-            schoolRepository.deleteSchool(school.getId(), userId);
+            schoolRepository.deleteCollection(school.getId(), userId);
         }
 
         List<Example> examples = em.createQuery(

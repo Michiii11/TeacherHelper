@@ -192,8 +192,8 @@ public class FolderRepository {
                 folder.getName(),
                 folder.getSchool().getId(),
                 folder.getParent() != null ? folder.getParent().getId() : null,
-                folder.getCreatedAt().toString(),
-                folder.getUpdatedAt().toString()
+                folder.getCreatedAt(),
+                folder.getUpdatedAt()
         );
     }
 

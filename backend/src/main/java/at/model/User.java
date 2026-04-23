@@ -86,6 +86,34 @@ public class User {
         this.locked = false;
     }
 
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", subscriptionModel=" + subscriptionModel +
+                ", profileImageUrl='" + profileImageUrl + '\'' +
+                ", emailVerified=" + emailVerified +
+                ", pendingEmail='" + pendingEmail + '\'' +
+                ", emailVerificationToken='" + emailVerificationToken + '\'' +
+                ", emailVerificationExpiresAt=" + emailVerificationExpiresAt +
+                ", passwordResetToken='" + passwordResetToken + '\'' +
+                ", passwordResetExpiresAt=" + passwordResetExpiresAt +
+                ", allowInvitations=" + allowInvitations +
+                ", darkMode=" + darkMode +
+                ", language='" + language + '\'' +
+                ", createdAt=" + createdAt +
+                ", lastActivityAt=" + lastActivityAt +
+                ", locked=" + locked +
+                '}';
+    }
+
+    public void newActivity(){
+        this.setLastActivityAt(LocalDateTime.now());
+    }
+
     public UUID getId() {
         return id;
     }
@@ -236,5 +264,21 @@ public class User {
 
     public Boolean isAdmin() {
         return subscriptionModel == SubscriptionModel.ADMIN;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public Boolean getAllowInvitations() {
+        return allowInvitations;
+    }
+
+    public Boolean getLocked() {
+        return locked;
+    }
+
+    public void setLocked(Boolean locked) {
+        this.locked = locked;
     }
 }

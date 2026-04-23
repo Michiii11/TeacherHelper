@@ -11,6 +11,8 @@ import at.model.helper.Option;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,6 +26,13 @@ public class Example {
 
     @ManyToOne
     private User admin;
+
+    @ManyToOne
+    private School school;
+
+    @ManyToOne
+    @JoinColumn(name = "folder_id")
+    private Folder folder;
 
     @Enumerated(EnumType.STRING)
     private ExampleTypes type;
@@ -50,9 +59,6 @@ public class Example {
     @OrderColumn(name = "variable_order")
     private List<ExampleVariable> variables = new ArrayList<>();
 
-    @ManyToOne
-    private School school;
-
     @ElementCollection
     @CollectionTable(name = "example_answers", joinColumns = @JoinColumn(name = "example_id"))
     private List<String[]> answers = new ArrayList<>();
@@ -76,16 +82,12 @@ public class Example {
     @Column(name = "right_item")
     private List<String> assignRightItems = new ArrayList<>();
 
-    @ManyToOne
-    @JoinColumn(name = "folder_id")
-    private Folder folder;
-
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public Example() {
-        createdAt = new Timestamp(System.currentTimeMillis());
-        updatedAt = new Timestamp(System.currentTimeMillis());
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
     public Example(User admin, ExampleTypes type, String instruction, String question, String solution, School school) {
@@ -95,6 +97,34 @@ public class Example {
         this.question = question;
         this.solution = solution;
         this.school = school;
+    }
+
+    @Override
+    public String toString() {
+        return "Example{" +
+                "id=" + id +
+                ", admin=" + admin +
+                ", school=" + school +
+                ", folder=" + folder +
+                ", type=" + type +
+                ", instruction='" + instruction + '\'' +
+                ", question='" + question + '\'' +
+                ", solution='" + solution + '\'' +
+                ", solutionUrl='" + solutionUrl + '\'' +
+                ", imageUrl='" + imageUrl + '\'' +
+                ", imageWidth=" + imageWidth +
+                ", solutionImageWidth=" + solutionImageWidth +
+                ", focusList=" + focusList +
+                ", variables=" + variables +
+                ", answers=" + answers +
+                ", options=" + options +
+                ", gapFillType=" + gapFillType +
+                ", gaps=" + gaps +
+                ", assigns=" + assigns +
+                ", assignRightItems=" + assignRightItems +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
 
     public UUID getId() { return id; }
@@ -144,8 +174,20 @@ public class Example {
     public void setSchool(School school) { this.school = school; }
     public Folder getFolder() { return folder; }
     public void setFolder(Folder folder) { this.folder = folder; }
-    public Timestamp getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
-    public Timestamp getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

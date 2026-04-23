@@ -599,7 +599,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
         return this.translate.instant('notifications.invitationDeclined.title');
 
       default:
-        return this.translate.instant('notifications.default.title');
+        return n.title;
     }
   }
 
@@ -624,7 +624,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
         });
 
       default:
-        return this.translate.instant('notifications.default.message');
+        return n.message;
     }
   }
 

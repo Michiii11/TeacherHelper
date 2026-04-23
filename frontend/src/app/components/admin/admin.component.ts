@@ -17,7 +17,6 @@ type AdminSortKey = 'newest' | 'oldest' | 'lastActive' | 'nameAsc' | 'nameDesc';
   imports: [
     CommonModule,
     FormsModule,
-    NgClass,
     DatePipe,
     MatButtonModule,
     MatCardModule,

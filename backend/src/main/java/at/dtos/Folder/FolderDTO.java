@@ -1,5 +1,6 @@
 package at.dtos.Folder;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record FolderDTO(
@@ -7,7 +8,7 @@ public record FolderDTO(
         String name,
         UUID schoolId,
         UUID parentId,
-        String createdAt,
-        String updatedAt
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
 ) {
 }

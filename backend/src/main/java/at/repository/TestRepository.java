@@ -22,6 +22,7 @@ import jakarta.ws.rs.core.Response;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @ApplicationScoped
@@ -81,8 +82,8 @@ public class TestRepository {
 
         Test test = new Test(dto.name(), dto.note(), admin, school, dto.duration());
         test.setFolder(folder);
-        test.setCreatedAt(Timestamp.from(java.time.Instant.now()));
-        test.setUpdatedAt(Timestamp.from(java.time.Instant.now()));
+        test.setCreatedAt(LocalDateTime.now());
+        test.setUpdatedAt(LocalDateTime.now());
         applySettings(test, dto);
         em.persist(test);
 
@@ -121,7 +122,7 @@ public class TestRepository {
         test.setNote(dto.note());
         test.setDuration(dto.duration());
         test.setFolder(folder);
-        test.setUpdatedAt(Timestamp.from(java.time.Instant.now()));
+        test.setUpdatedAt(LocalDateTime.now());
         applySettings(test, dto);
 
         List<TestExample> existingEntries = em.createQuery(

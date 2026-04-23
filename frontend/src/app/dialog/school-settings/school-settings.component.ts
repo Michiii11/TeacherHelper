@@ -57,7 +57,6 @@ export class SchoolSettingsComponent implements OnInit {
   deletingSchool = false;
 
   selectedLogoFile: File | null = null;
-  logoPreviewUrl: string | null = null;
 
   inviteSuccessMessage: string | null = null;
   inviteErrorMessage: string | null = null;
@@ -87,19 +86,28 @@ export class SchoolSettingsComponent implements OnInit {
       name: this.data.school?.name ?? ''
     });
 
-    this.logoPreviewUrl = this.getSchoolLogoUrl();
+    this.loadLogo()
   }
 
   get isAdmin(): boolean {
     return this.data.currentUserId.toString() === this.data.school?.admin?.id;
   }
 
-  getSchoolLogoUrl(): string | null {
-    return this.service.getSchoolLogo(this.data.school, this.data.schoolId);
+  logoUrl?: string;
+  logoPreviewUrl: string | undefined = '';
+
+  loadLogo() {
+    if (!this.data?.school?.logoUrl) return;
+
+    this.service.getCollectionLogo(this.data.school.id).subscribe(blob => {
+      this.logoUrl = URL.createObjectURL(blob);
+    });
   }
 
   getDisplayedLogoUrl(): string | null {
-    return this.logoPreviewUrl || this.getSchoolLogoUrl();
+    if (this.logoPreviewUrl) return this.logoPreviewUrl;
+    if (this.logoUrl) return this.logoUrl;
+    return null;
   }
 
   hasExistingLogo(): boolean {
@@ -143,7 +151,8 @@ export class SchoolSettingsComponent implements OnInit {
 
   removeSelectedLogo(input?: HTMLInputElement): void {
     this.selectedLogoFile = null;
-    this.logoPreviewUrl = this.getSchoolLogoUrl();
+    this.logoPreviewUrl = undefined;
+    this.loadLogo();
 
     if (input) {
       input.value = '';
@@ -171,13 +180,13 @@ export class SchoolSettingsComponent implements OnInit {
 
       this.deletingLogo = true;
 
-      this.service.deleteSchoolLogo(this.data.schoolId)
+      this.service.deleteCollectionLogo(this.data.schoolId)
         .pipe(finalize(() => (this.deletingLogo = false)))
         .subscribe({
           next: () => {
             this.selectedLogoFile = null;
-            this.logoPreviewUrl = null;
-            this.data.school.logoUrl = null as any;
+            this.logoPreviewUrl = undefined;
+            this.logoUrl = undefined;
 
             if (input) {
               input.value = '';
@@ -208,12 +217,7 @@ export class SchoolSettingsComponent implements OnInit {
 
     this.savingGeneral = true;
 
-    const payload = {
-      name: this.generalForm.value.name?.trim(),
-      authToken: localStorage.getItem('teacher_authToken') || '',
-    };
-
-    this.service.updateSchool(this.data.schoolId, payload)
+    this.service.updateCollectionSettings(this.data.schoolId, this.generalForm.value.name?.trim())
       .pipe(finalize(() => (this.savingGeneral = false)))
       .subscribe({
         next: updatedSchool => {
@@ -249,21 +253,25 @@ export class SchoolSettingsComponent implements OnInit {
 
     const formData = new FormData();
     formData.append('file', this.selectedLogoFile);
-    formData.append('authToken', localStorage.getItem('teacher_authToken') ?? '');
 
-    this.service.uploadSchoolLogo(this.data.schoolId, formData)
+    this.service.uploadCollectionLogo(this.data.schoolId, this.selectedLogoFile)
       .pipe(finalize(() => (this.uploadingLogo = false)))
       .subscribe({
         next: updatedSchool => {
           this.data.school = updatedSchool;
           this.selectedLogoFile = null;
-          this.logoPreviewUrl = this.getSchoolLogoUrl();
+          this.logoPreviewUrl = undefined;
+          this.logoUrl = undefined;
+          this.loadLogo();
 
           this.snack.open(
             this.translate.instant('schoolSettings.snackbar.logoUpdated'),
             'OK',
             { duration: 4000 }
           );
+
+
+          this.loadLogo();
 
           this.dialogRef.close({
             updated: true,
@@ -272,7 +280,8 @@ export class SchoolSettingsComponent implements OnInit {
         },
         error: () => {
           this.selectedLogoFile = null;
-          this.logoPreviewUrl = this.getSchoolLogoUrl();
+          this.logoPreviewUrl = undefined;
+          this.loadLogo();
 
           this.snack.open(
             this.translate.instant('schoolSettings.snackbar.logoUpdateError'),
@@ -307,7 +316,7 @@ export class SchoolSettingsComponent implements OnInit {
     this.inviteSuccessMessage = null;
     this.inviteErrorMessage = null;
 
-    this.service.sendInvite(this.data.schoolId, email)
+    this.service.inviteTeacher(this.data.schoolId, email)
       .pipe(finalize(() => (this.invitingTeacher = false)))
       .subscribe({
         next: () => {
@@ -341,7 +350,7 @@ export class SchoolSettingsComponent implements OnInit {
     ref.afterClosed().subscribe(confirmed => {
       if (!confirmed) return;
 
-      this.service.kickTeacherFromSchool(this.data.schoolId, t.id).subscribe({
+      this.service.removeTeacher(this.data.schoolId, t.id).subscribe({
         next: () => {
           this.data.school.members = this.data.school.members.filter(member => member.id !== t.id);
           this.snack.open(
@@ -399,7 +408,7 @@ export class SchoolSettingsComponent implements OnInit {
 
     this.deletingSchool = true;
 
-    this.service.deleteSchool(this.data.schoolId)
+    this.service.deleteCollection(this.data.schoolId)
       .pipe(finalize(() => (this.deletingSchool = false)))
       .subscribe({
         next: () => {

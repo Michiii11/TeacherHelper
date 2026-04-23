@@ -4,6 +4,8 @@ import at.model.helper.GradingLevel;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity
@@ -15,6 +17,13 @@ public class Test {
     @ManyToOne
     private User admin;
 
+    @ManyToOne
+    private School school;
+
+    @ManyToOne
+    @JoinColumn(name = "folder_id")
+    private Folder folder;
+
     @Column(nullable = false)
     private String name;
 
@@ -25,9 +34,6 @@ public class Test {
 
     @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TestExample> exampleList = new ArrayList<>();
-
-    @ManyToOne
-    private School school;
 
     @Column(name = "default_task_spacing")
     private Integer defaultTaskSpacing;
@@ -61,16 +67,12 @@ public class Test {
     @Column(name = "minimum_points")
     private Map<Integer, Integer> manualGradeMinimums = new HashMap<>();
 
-    @ManyToOne
-    @JoinColumn(name = "folder_id")
-    private Folder folder;
-
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public Test() {
-        createdAt = new Timestamp(System.currentTimeMillis());
-        updatedAt = new Timestamp(System.currentTimeMillis());
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
     public Test(String name, String note, User admin, School school, int duration) {
@@ -80,6 +82,29 @@ public class Test {
         this.school = school;
         this.admin = admin;
         this.duration = duration;
+    }
+
+    @Override
+    public String toString() {
+        return "Test{" +
+                "id=" + id +
+                ", admin=" + admin +
+                ", school=" + school +
+                ", folder=" + folder +
+                ", name='" + name + '\'' +
+                ", note='" + note + '\'' +
+                ", duration=" + duration +
+                ", exampleList=" + exampleList +
+                ", defaultTaskSpacing=" + defaultTaskSpacing +
+                ", gradingMode='" + gradingMode + '\'' +
+                ", gradingSystemName='" + gradingSystemName + '\'' +
+                ", taskSpacingMap=" + taskSpacingMap +
+                ", gradingSchema=" + gradingSchema +
+                ", gradePercentages=" + gradePercentages +
+                ", manualGradeMinimums=" + manualGradeMinimums +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
 
     public int getDuration() {
@@ -202,19 +227,19 @@ public class Test {
         this.folder = folder;
     }
 
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Timestamp getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Timestamp updatedAt) {
+    public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

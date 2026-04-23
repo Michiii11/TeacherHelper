@@ -37,6 +37,18 @@ public class TestExample {
         this.title = title;
     }
 
+    @Override
+    public String toString() {
+        return "TestExample{" +
+                "id=" + id +
+                ", test=" + test +
+                ", example=" + example +
+                ", points=" + points +
+                ", title='" + title + '\'' +
+                ", variableValues=" + variableValues +
+                '}';
+    }
+
     public UUID getId() {
         return id;
     }

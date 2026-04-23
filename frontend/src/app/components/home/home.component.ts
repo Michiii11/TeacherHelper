@@ -50,6 +50,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.navbarActions.clearAll();
+    Object.values(this.logoUrls).forEach(url => URL.revokeObjectURL(url));
   }
 
   private setNavbarActions(): void {
@@ -71,7 +72,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   loadSchools(): void {
-    this.http.getYourSchools().subscribe((schools: SchoolDTO[]) => {
+    this.http.getYourCollections().subscribe((schools: SchoolDTO[]) => {
       this.http.getUserId().subscribe((id: string) => {
         this.userId = id;
 
@@ -85,6 +86,8 @@ export class HomeComponent implements OnInit, OnDestroy {
 
           return a.name.localeCompare(b.name);
         });
+
+        this.schools.forEach(s => this.loadLogo(s));
       });
     });
   }
@@ -97,7 +100,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(schoolName => {
       if (schoolName) {
-        this.http.addSchool(schoolName).subscribe({
+        this.http.addCollection(schoolName).subscribe({
           next: () => {
             this.loadSchools();
           },
@@ -147,7 +150,18 @@ export class HomeComponent implements OnInit, OnDestroy {
     return school.admin.id === userId;
   }
 
-  protected getSchoolLogoUrl(school: SchoolDTO): string {
-    return <string>this.http.getSchoolLogo(school, school.id.toString());
+  logoUrls: Record<string, string> = {};
+  loadLogo(school: SchoolDTO) {
+    if (!school.logoUrl) return;
+
+    this.http.getCollectionLogo(school.id).subscribe({
+      next: (blob) => {
+        console.log(blob)
+        this.logoUrls[school.id] = URL.createObjectURL(blob);
+      },
+      error: () => {
+        this.logoUrls[school.id] = '';
+      }
+    });
   }
 }
