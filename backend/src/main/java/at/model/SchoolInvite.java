@@ -46,6 +46,14 @@ public class SchoolInvite {
         this.createdAt = LocalDateTime.now();
     }
 
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+    }
+
     @Override
     public String toString() {
         return "SchoolInvite{" +

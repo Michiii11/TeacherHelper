@@ -132,9 +132,3 @@ export interface ExampleOverviewDTO {
   createdAt?: string;
   updatedAt?: string;
 }
-
-
-export interface MoveExampleToFolderDTO {
-  folderId: string | null;
-  authToken: string;
-}

@@ -42,6 +42,21 @@ public class UserRepository {
     @Inject
     MediaStorageService mediaStorageService;
 
+    public Response generateResponseOfAuth(String auth) {
+        if (auth == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Missing token").build();
+        }
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
+        }
+
+        if (findById(userId) != null) {
+            findById(userId).newActivity();
+        }
+        return null;
+    }
+
     @Transactional
     public User save(User user) {
         em.persist(user);

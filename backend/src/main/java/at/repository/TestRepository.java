@@ -3,7 +3,7 @@ package at.repository;
 import at.dtos.Example.ExampleDTO;
 import at.dtos.Example.ExampleVariableDTO;
 import at.dtos.Example.GapDTO;
-import at.dtos.Folder.MoveTestToFolderDTO;
+import at.dtos.Folder.MoveToFolderDTO;
 import at.dtos.School.SchoolDTO;
 import at.dtos.Test.CreateTestDTO;
 import at.dtos.Test.GradingLevelDTO;
@@ -21,7 +21,6 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -139,7 +138,7 @@ public class TestRepository {
     }
 
     @Transactional
-    public Response moveTestToFolder(UUID testId, MoveTestToFolderDTO dto) {
+    public Response moveTestToFolder(UUID testId, MoveToFolderDTO dto) {
         Test test = em.find(Test.class, testId);
         if (test == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("Test nicht gefunden.").build();

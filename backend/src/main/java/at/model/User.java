@@ -79,11 +79,21 @@ public class User {
         this.emailVerified = false;
         this.darkMode = null;
         this.language = null;
-
-        LocalDateTime now = LocalDateTime.now();
-        this.createdAt = now;
-        this.lastActivityAt = now;
         this.locked = false;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        this.lastActivityAt = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.lastActivityAt = LocalDateTime.now();
     }
 
     @Override

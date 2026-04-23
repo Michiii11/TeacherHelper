@@ -1,5 +1,6 @@
 package at.model;
 
+import at.dtos.Folder.FolderDTO;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -47,6 +48,17 @@ public class Folder {
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public FolderDTO toDto() {
+        return new FolderDTO(
+                this.getId(),
+                this.getName(),
+                this.getSchool().getId(),
+                this.getParent() != null ? this.getParent().getId() : null,
+                this.getCreatedAt(),
+                this.getUpdatedAt()
+        );
     }
 
     public UUID getId() {

@@ -12,7 +12,7 @@ import {
 } from '../model/Test';
 import {AdminDashboardDTO, AuthResult, User, UserDTO, UserSettings} from '../model/User';
 import { NotificationActionType, NotificationDTO } from '../model/Notification';
-import {CreateFolderDTO, FolderDTO, UpdateFolderDTO} from '../model/Folder'
+import {CreateFolderDTO, FolderDTO} from '../model/Folder'
 import {AppLanguage} from './language.service'
 
 @Injectable({ providedIn: 'root' })
@@ -30,7 +30,6 @@ export class HttpService {
     return `${Config.SOCKET_URL}/notification?token=${encodeURIComponent(token)}`;
   }
   // endregion
-
 
   // region
   /** Collection **/
@@ -117,13 +116,179 @@ export class HttpService {
   }
   // endregion
 
+  // region
+  /** User **/
+  register(payload: {
+    username: string;
+    email: string;
+    password: string;
+    language?: 'de' | 'en' | null;
+    darkMode?: boolean | null;
+  }) {
+    return this.http.post<AuthResult>(`${Config.API_URL}/user/register`, payload);
+  }
+
+  getUserId() {
+    return this.http.post<string>(`${Config.API_URL}/user/id`, this.authToken());
+  }
+
+  getUser() {
+    return this.http.post<User>(`${Config.API_URL}/user`, this.authToken());
+  }
+
+  updateUserSettings(settings: UserSettings) {
+    return this.http.put(
+      `${Config.API_URL}/user/settings`,
+      {
+        authToken: this.authToken(),
+        settings
+      },
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  login(payload: {
+    email: string;
+    password: string;
+    language?: 'de' | 'en' | null;
+    darkMode?: boolean | null;
+  }) {
+    return this.http.post<AuthResult>(`${Config.API_URL}/user/login`, payload);
+  }
+
+  setUserLocked(userId: string, locked: boolean) {
+    return this.http.put(
+      `${Config.API_URL}/user/admin/${userId}/locked`,
+      {
+        authToken: this.authToken(),
+        locked
+      },
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  updateUsername(username: string) {
+    return this.http.put(
+      `${Config.API_URL}/user/username`,
+      {
+        authToken: this.authToken(),
+        username
+      },
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  updateEmail(email: string) {
+    return this.http.put<string>(
+      `${Config.API_URL}/user/email`,
+      {
+        authToken: this.authToken(),
+        email
+      },
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  changePassword(payload: { currentPassword: string; newPassword: string }) {
+    return this.http.put(
+      `${Config.API_URL}/user/password`,
+      {
+        authToken: this.authToken(),
+        currentPassword: payload.currentPassword,
+        newPassword: payload.newPassword
+      },
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  uploadProfileImage(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('authToken', this.authToken());
+
+    return this.http.post(`${Config.API_URL}/user/profile-image`, formData, {
+      responseType: 'text'
+    });
+  }
+
+  verifyEmail(token: string) {
+    return this.http.get(`${Config.API_URL}/user/verify-email`, {
+      params: { token },
+      responseType: 'text'
+    });
+  }
+
+  resendVerification(email: string, language: AppLanguage | null) {
+    return this.http.post(`${Config.API_URL}/user/email/resend-verification?language=${language}`, { email }, {
+      responseType: 'text'
+    });
+  }
+
+  forgotPassword(email: string) {
+    return this.http.post(`${Config.API_URL}/user/password/forgot`, { email }, {
+      responseType: 'text'
+    });
+  }
+
+  resetPassword(token: string, newPassword: string) {
+    return this.http.post(`${Config.API_URL}/user/password/reset`, {
+      token,
+      newPassword
+    }, {
+      responseType: 'text'
+    });
+  }
+
+  updateSubscription(subscriptionModel: 'FREE' | 'PRO' | 'ENTERPRISE') {
+    return this.http.put(`${Config.API_URL}/user/subscription`, {
+      authToken: this.authToken(),
+      subscriptionModel
+    }, {
+      responseType: 'text'
+    });
+  }
+
+  // endregion
+
+  // region
+  /** Folder **/
+  getFolders(schoolId: string) {
+    return this.http.get<FolderDTO[]>(`${Config.API_URL}/folder/school/${schoolId}`,
+      { headers: { Authorization: this.authToken() }});
+  }
+
+  createFolder(schoolId: string, dto: CreateFolderDTO) {
+    return this.http.post<FolderDTO>(`${Config.API_URL}/folder/school/${schoolId}`, dto,
+      { headers: {Authorization: this.authToken() }});
+  }
+
+  updateFolder(folderId: string, dto: CreateFolderDTO) {
+    return this.http.put<FolderDTO>(`${Config.API_URL}/folder/${folderId}`, dto);
+  }
+
+  deleteFolder(folderId: string) {
+    return this.http.delete(`${Config.API_URL}/folder/${folderId}`,
+      { headers: { Authorization: this.authToken() }});
+  }
+  // endregion
 
 
 
+  moveExampleToFolder(exampleId: string, dto: { folderId: string | null }) {
+    return this.http.put(
+      `${Config.API_URL}/example/${exampleId}/folder`,
+      { ...dto, authToken: this.authToken() },
+      { responseType: 'text' as 'json' }
+    );
+  }
 
-
-
-
+  moveTestToFolder(testId: string, dto: { folderId: string | null }) {
+    return this.http.put(
+      `${Config.API_URL}/test/${testId}/folder`,
+      {...dto, authToken: this.authToken()},
+      {responseType: 'text' as 'json'}
+    );
+  }
 
   getExamples(schoolId: string | null) {
     return this.http.get(`${Config.API_URL}/example/school/${schoolId}`);
@@ -224,135 +389,7 @@ export class HttpService {
     return this.http.put(`${Config.API_URL}/test/${testId}`, test, { responseType: 'text' as 'json' });
   }
 
-  getUserId() {
-    return this.http.post<string>(`${Config.API_URL}/user/id`, this.authToken());
-  }
 
-  getUser() {
-    return this.http.post<User>(`${Config.API_URL}/user`, this.authToken());
-  }
-
-  updateUserSettings(settings: UserSettings) {
-    return this.http.put(
-      `${Config.API_URL}/user/settings`,
-      {
-        authToken: this.authToken(),
-        settings
-      },
-      { responseType: 'text' as 'json' }
-    );
-  }
-
-  login(payload: {
-    email: string;
-    password: string;
-    language?: 'de' | 'en' | null;
-    darkMode?: boolean | null;
-  }) {
-    return this.http.post<AuthResult>(`${Config.API_URL}/user/login`, payload);
-  }
-
-  register(payload: {
-    username: string;
-    email: string;
-    password: string;
-    language?: 'de' | 'en' | null;
-    darkMode?: boolean | null;
-  }) {
-    return this.http.post<AuthResult>(`${Config.API_URL}/user/register`, payload);
-  }
-
-  setUserLocked(userId: string, locked: boolean) {
-    return this.http.put(
-      `${Config.API_URL}/user/admin/${userId}/locked`,
-      {
-        authToken: this.authToken(),
-        locked
-      },
-      { responseType: 'text' as 'json' }
-    );
-  }
-
-  updateUsername(username: string) {
-    return this.http.put(
-      `${Config.API_URL}/user/username`,
-      {
-        authToken: this.authToken(),
-        username
-      },
-      { responseType: 'text' as 'json' }
-    );
-  }
-
-  updateEmail(email: string) {
-    return this.http.put<string>(
-      `${Config.API_URL}/user/email`,
-      {
-        authToken: this.authToken(),
-        email
-      },
-      { responseType: 'text' as 'json' }
-    );
-  }
-
-  changePassword(payload: { currentPassword: string; newPassword: string }) {
-    return this.http.put(
-      `${Config.API_URL}/user/password`,
-      {
-        authToken: this.authToken(),
-        currentPassword: payload.currentPassword,
-        newPassword: payload.newPassword
-      },
-      { responseType: 'text' as 'json' }
-    );
-  }
-
-  uploadProfileImage(file: File) {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('authToken', this.authToken());
-
-    return this.http.post(`${Config.API_URL}/user/profile-image`, formData, {
-      responseType: 'text'
-    });
-  }
-
-  verifyEmail(token: string) {
-    return this.http.get(`${Config.API_URL}/user/verify-email`, {
-      params: { token },
-      responseType: 'text'
-    });
-  }
-
-  resendVerification(email: string, language: AppLanguage | null) {
-    return this.http.post(`${Config.API_URL}/user/email/resend-verification?language=${language}`, { email }, {
-      responseType: 'text'
-    });
-  }
-
-  forgotPassword(email: string) {
-    return this.http.post(`${Config.API_URL}/user/password/forgot`, { email }, {
-      responseType: 'text'
-    });
-  }
-
-  resetPassword(token: string, newPassword: string) {
-    return this.http.post(`${Config.API_URL}/user/password/reset`, {
-      token,
-      newPassword
-    }, {
-      responseType: 'text'
-    });
-  }
-
-  updateSubscription(subscriptionModel: 'FREE' | 'PRO' | 'ENTERPRISE') {
-    return this.http.put(`${Config.API_URL}/user/subscription`, {
-      authToken: this.authToken(),
-      subscriptionModel
-    }, {
-      responseType: 'text'
-    });
-  }
 
   getMyNotifications(): Observable<NotificationDTO[]> {
     return this.http.post<NotificationDTO[]>(`${Config.API_URL}/notification/my`, this.authToken(), {
@@ -452,39 +489,6 @@ export class HttpService {
     });
   }
 
-  moveExampleToFolder(exampleId: string, dto: { folderId: string | null }) {
-    return this.http.put(
-      `${Config.API_URL}/example/${exampleId}/folder`,
-      { ...dto, authToken: this.authToken() },
-      { responseType: 'text' as 'json' }
-    );
-  }
-
-  moveTestToFolder(testId: string, dto: { folderId: string | null }) {
-    return this.http.put(
-      `${Config.API_URL}/test/${testId}/folder`,
-      {...dto, authToken: this.authToken()},
-      {responseType: 'text' as 'json'}
-    );
-  }
-
-
-  getFolders(schoolId: string) {
-    return this.http.get<FolderDTO[]>(`${Config.API_URL}/folder/school/${schoolId}?authToken=${this.authToken()}`);
-  }
-
-  createFolder(schoolId: string, dto: CreateFolderDTO) {
-    console.log(dto)
-    return this.http.post<FolderDTO>(`${Config.API_URL}/folder/school/${schoolId}`, dto);
-  }
-
-  updateFolder(folderId: string, dto: UpdateFolderDTO) {
-    return this.http.put<FolderDTO>(`${Config.API_URL}/folder/${folderId}`, dto);
-  }
-
-  deleteFolder(folderId: string) {
-    return this.http.delete(`${Config.API_URL}/folder/${folderId}?authToken=${this.authToken()}`);
-  }
 
 
   getAdminDashboard(){

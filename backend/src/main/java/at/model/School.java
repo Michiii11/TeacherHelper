@@ -51,12 +51,25 @@ public class School {
         this.admin = admin;
     }
 
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public void addUser(User user) {
         if (user != null && !users.contains(user)) {
             users.add(user);
         }
     }
-
 
     public LocalDateTime getCreatedAt() {
         return createdAt;

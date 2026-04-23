@@ -473,7 +473,6 @@ export class SchoolComponent implements OnInit, OnDestroy {
     ref.afterClosed().subscribe(name => {
       if (!name?.trim() || !this.schoolId) return;
       this.service.createFolder(this.schoolId, {
-        authToken: localStorage.getItem('teacher_authToken') || '',
         name: name.trim(),
         parentId
       }).subscribe({
@@ -508,7 +507,6 @@ export class SchoolComponent implements OnInit, OnDestroy {
       if (!name?.trim()) return;
 
       this.service.updateFolder(folder.id, {
-        authToken: localStorage.getItem('teacher_authToken') || '',
         name: name.trim(),
         parentId: folder.parentId ?? null
       }).subscribe({
@@ -565,7 +563,6 @@ export class SchoolComponent implements OnInit, OnDestroy {
       if (this.isDescendantFolder(targetFolderId, folder.id)) return;
 
       this.service.updateFolder(folder.id, {
-        authToken: localStorage.getItem('teacher_authToken') || '',
         name: folder.name,
         parentId: targetFolderId ?? null
       }).subscribe({
@@ -645,7 +642,6 @@ export class SchoolComponent implements OnInit, OnDestroy {
       const folder = this.folders.find(item => item.id === this.draggedFolder?.folderId);
       if (folder && folder.id !== folderId && !this.isDescendantFolder(folderId, folder.id)) {
         this.service.updateFolder(folder.id, {
-          authToken: localStorage.getItem('teacher_authToken') || '',
           name: folder.name,
           parentId: folderId
         }).pipe(catchError(() => of(null))).subscribe(updatedFolder => {

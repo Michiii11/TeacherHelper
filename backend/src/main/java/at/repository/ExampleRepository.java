@@ -5,7 +5,7 @@ import at.dtos.Example.ExampleDTO;
 import at.dtos.Example.ExampleOverviewDTO;
 import at.dtos.Example.ExampleVariableDTO;
 import at.dtos.Example.GapDTO;
-import at.dtos.Folder.MoveExampleToFolderDTO;
+import at.dtos.Folder.MoveToFolderDTO;
 import at.model.*;
 import at.model.helper.ExampleVariable;
 import at.model.helper.Gap;
@@ -17,7 +17,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
@@ -85,7 +84,7 @@ public class ExampleRepository {
                         example.getSolutionImageWidth(),
                         new LinkedList<>(example.getFocusList()),
                         mapVariables(example.getVariables()),
-                        schoolRepository.toSchoolDTO(example.getSchool()),
+                        example.getSchool().toSchoolDTO(),
                         new LinkedList<>(example.getAnswers()),
                         new LinkedList<>(example.getOptions()),
                         example.getGapFillType(),
@@ -228,7 +227,7 @@ public class ExampleRepository {
     }
 
     @Transactional
-    public Response moveExampleToFolder(UUID exampleId, MoveExampleToFolderDTO dto) {
+    public Response moveExampleToFolder(UUID exampleId, MoveToFolderDTO dto) {
         Example example = em.find(Example.class, exampleId);
         if (example == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("Beispiel nicht gefunden.").build();

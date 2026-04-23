@@ -104,17 +104,17 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private waitForBackend(): void {
-    this.isLoading = true;
+    this.isLoading = false;
 
     const tryConnect = () => {
-      this.service.getYourCollections().subscribe({
+     /* this.service.getUser().subscribe({
         next: () => {
           this.isLoading = false;
         },
         error: () => {
           setTimeout(tryConnect, 3000);
         }
-      });
+      });*/
     };
 
     tryConnect();

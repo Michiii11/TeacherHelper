@@ -32,25 +32,10 @@ public class SchoolResource {
     @Inject
     MediaStorageService mediaStorageService;
 
-    private Response generateResponseOfAuth(String auth) {
-        if (auth == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Missing token").build();
-        }
-        UUID userId = tokenService.validateTokenAndGetUserId(auth);
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
-        }
-
-        if (userRepository.findById(userId) != null) {
-            userRepository.findById(userId).newActivity();
-        }
-        return null;
-    }
-
     @GET
     @Path("your-collections")
     public Response getYourCollections(@HeaderParam("Authorization") String auth) {
-        Response authResponse = generateResponseOfAuth(auth);
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
         if (authResponse != null) {
             return authResponse;
         }
@@ -63,7 +48,7 @@ public class SchoolResource {
     @Path("{id}")
     public Response getCollectionById(@PathParam("id") UUID collectionId,
                                       @HeaderParam("Authorization") String auth) {
-        Response authResponse = generateResponseOfAuth(auth);
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
         if (authResponse != null) {
             return authResponse;
         }
@@ -76,7 +61,7 @@ public class SchoolResource {
     @Path("add")
     public Response addCollection(String collectionName,
                                   @HeaderParam("Authorization") String auth) {
-        Response authResponse = generateResponseOfAuth(auth);
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
         if (authResponse != null) {
             return authResponse;
         }
@@ -89,7 +74,7 @@ public class SchoolResource {
     @Path("{id}")
     public Response deleteCollection(@PathParam("id") UUID collectionId,
                                      @HeaderParam("Authorization") String auth) {
-        Response authResponse = generateResponseOfAuth(auth);
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
         if (authResponse != null) {
             return authResponse;
         }
@@ -102,7 +87,7 @@ public class SchoolResource {
     @Path("{id}/logo")
     public Response getCollectionLogo(@PathParam("id") UUID collectionId,
                                       @HeaderParam("Authorization") String auth) {
-        Response authResponse = generateResponseOfAuth(auth);
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
         if (authResponse != null) {
             return authResponse;
         }
@@ -126,7 +111,7 @@ public class SchoolResource {
     public Response uploadCollectionLogo(@PathParam("id") UUID collectionId,
                                          @RestForm("file") FileUpload file,
                                          @HeaderParam("Authorization") String auth) {
-        Response authResponse = generateResponseOfAuth(auth);
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
         if (authResponse != null) {
             return authResponse;
         }
@@ -153,7 +138,7 @@ public class SchoolResource {
     @Path("{id}/logo")
     public Response deleteCollectionLogo(@PathParam("id") UUID collectionId,
                                          @HeaderParam("Authorization") String auth) {
-        Response authResponse = generateResponseOfAuth(auth);
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
         if (authResponse != null) {
             return authResponse;
         }
@@ -166,7 +151,7 @@ public class SchoolResource {
     @Path("{id}/leave")
     public Response leaveCollection(@PathParam("id") UUID collectionId,
                                     @HeaderParam("Authorization") String auth) {
-        Response authResponse = generateResponseOfAuth(auth);
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
         if (authResponse != null) {
             return authResponse;
         }
@@ -180,7 +165,7 @@ public class SchoolResource {
     public Response removeTeacher(@PathParam("id") UUID collectionId,
                                   @PathParam("teacherId") UUID teacherId,
                                   @HeaderParam("Authorization") String auth) {
-        Response authResponse = generateResponseOfAuth(auth);
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
         if (authResponse != null) {
             return authResponse;
         }
@@ -194,7 +179,7 @@ public class SchoolResource {
     public Response inviteTeacher(@PathParam("id") UUID collectionId,
                                   @HeaderParam("Authorization")  String auth,
                                   String email) {
-        Response authResponse = generateResponseOfAuth(auth);
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
         if (authResponse != null) {
             return authResponse;
         }
@@ -208,7 +193,7 @@ public class SchoolResource {
     public Response respondToInvite(@PathParam("inviteId") UUID inviteId,
                                     @HeaderParam("Authorization") String auth,
                                     boolean accept) {
-        Response authResponse = generateResponseOfAuth(auth);
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
         if (authResponse != null) {
             return authResponse;
         }
@@ -222,7 +207,7 @@ public class SchoolResource {
     public Response updateSchoolSettings(@PathParam("id") UUID collectionId,
                                          @HeaderParam("Authorization") String auth,
                                          String name) {
-        Response authResponse = generateResponseOfAuth(auth);
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
         if (authResponse != null) {
             return authResponse;
         }
@@ -236,7 +221,7 @@ public class SchoolResource {
     @Path("{id}/focus")
     public Response getFocusList(@PathParam("id") UUID collectionId,
                                     @HeaderParam("Authorization") String auth) {
-        Response authResponse = generateResponseOfAuth(auth);
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
         if (authResponse != null) {
             return authResponse;
         }
@@ -250,7 +235,7 @@ public class SchoolResource {
     public Response addFocus(@PathParam("id") UUID collectionId,
                              @HeaderParam("Authorization") String auth,
                              Focus focus) {
-        Response authResponse = generateResponseOfAuth(auth);
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
         if (authResponse != null) {
             return authResponse;
         }
@@ -264,7 +249,7 @@ public class SchoolResource {
     public Response deleteFocus(@PathParam("id") UUID collectionId,
                                 @PathParam("focusId") UUID focusId,
                                 @HeaderParam("Authorization") String auth) {
-        Response authResponse = generateResponseOfAuth(auth);
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
         if (authResponse != null) {
             return authResponse;
         }

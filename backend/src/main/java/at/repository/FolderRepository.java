@@ -2,65 +2,49 @@ package at.repository;
 
 import at.dtos.Folder.CreateFolderDTO;
 import at.dtos.Folder.FolderDTO;
-import at.dtos.Folder.UpdateFolderDTO;
 import at.model.School;
 import at.model.Folder;
 import at.model.User;
-import at.security.TokenService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
-import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
+@Transactional
 public class FolderRepository {
 
     @Inject
     EntityManager em;
 
-    @Inject
-    TokenService tokenService;
-
-    public List<FolderDTO> getFolders(UUID schoolId, String authToken) {
-        UUID userId = tokenService.validateTokenAndGetUserId(authToken);
-        if (userId == null) {
-            return List.of();
+    public Response getFolders(UUID collectionId, UUID userId) {
+        School collection = em.find(School.class, collectionId);
+        if (collection == null || !isSchoolMember(collection, userId)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
         }
 
-        School school = em.find(School.class, schoolId);
-        if (school == null || !isSchoolMember(school, userId)) {
-            return List.of();
-        }
-
-        return em.createQuery(
-                        "SELECT f FROM Folder f WHERE f.school.id = :schoolId ORDER BY f.name ASC",
+        return Response.ok(em.createQuery(
+                        "SELECT f FROM Folder f WHERE f.school.id = :collectionId ORDER BY f.name ASC",
                         Folder.class
                 )
-                .setParameter("schoolId", schoolId)
+                .setParameter("collectionId", collectionId)
                 .getResultList()
                 .stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+                .map(Folder::toDto)
+                .collect(Collectors.toList())).build();
     }
 
-    @Transactional
-    public Response createFolder(UUID schoolId, CreateFolderDTO dto) {
-        UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        }
-
-        School school = em.find(School.class, schoolId);
-        if (school == null) {
+    public Response createFolder(UUID collectionId, UUID userId, CreateFolderDTO dto) {
+        School collection = em.find(School.class, collectionId);
+        if (collection == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("Schule nicht gefunden.").build();
         }
 
-        if (!isSchoolMember(school, userId)) {
+        if (!isSchoolMember(collection, userId)) {
             return Response.status(Response.Status.FORBIDDEN).entity("Nicht berechtigt.").build();
         }
 
@@ -72,25 +56,19 @@ public class FolderRepository {
         Folder parent = null;
         if (dto.parentId() != null) {
             parent = em.find(Folder.class, dto.parentId());
-            if (parent == null || !parent.getSchool().getId().equals(schoolId)) {
+            if (parent == null || !parent.getSchool().getId().equals(collectionId)) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Parent-Ordner.").build();
             }
         }
 
-        Folder folder = new Folder(name, school, parent);
+        Folder folder = new Folder(name, collection, parent);
         em.persist(folder);
         em.flush();
 
-        return Response.ok(toDto(folder)).build();
+        return Response.ok(folder.toDto()).build();
     }
 
-    @Transactional
-    public Response updateFolder(UUID folderId, UpdateFolderDTO dto) {
-        UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        }
-
+    public Response updateFolder(UUID folderId, UUID userId, CreateFolderDTO dto) {
         Folder folder = em.find(Folder.class, folderId);
         if (folder == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("Ordner nicht gefunden.").build();
@@ -132,16 +110,10 @@ public class FolderRepository {
         em.merge(folder);
         em.flush();
 
-        return Response.ok(toDto(folder)).build();
+        return Response.ok(folder.toDto()).build();
     }
 
-    @Transactional
-    public Response deleteFolder(UUID folderId, String authToken) {
-        UUID userId = tokenService.validateTokenAndGetUserId(authToken);
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        }
-
+    public Response deleteFolder(UUID folderId, UUID userId) {
         Folder folder = em.find(Folder.class, folderId);
         if (folder == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("Ordner nicht gefunden.").build();
@@ -184,17 +156,6 @@ public class FolderRepository {
 
     public Folder findById(UUID folderId) {
         return em.find(Folder.class, folderId);
-    }
-
-    public FolderDTO toDto(Folder folder) {
-        return new FolderDTO(
-                folder.getId(),
-                folder.getName(),
-                folder.getSchool().getId(),
-                folder.getParent() != null ? folder.getParent().getId() : null,
-                folder.getCreatedAt(),
-                folder.getUpdatedAt()
-        );
     }
 
     private boolean isDescendant(Folder candidateParent, UUID folderId) {

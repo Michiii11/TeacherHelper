@@ -1,53 +1,78 @@
 package at.boundary;
 
 import at.dtos.Folder.CreateFolderDTO;
-import at.dtos.Folder.FolderDTO;
-import at.dtos.Folder.UpdateFolderDTO;
 import at.repository.FolderRepository;
+import at.repository.UserRepository;
+import at.security.TokenService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import java.util.List;
 import java.util.UUID;
 
 @Path("/folder")
 public class FolderResource {
 
     @Inject
-    FolderRepository repo;
+    FolderRepository repository;
+
+    @Inject
+    UserRepository userRepository;
+
+    @Inject
+    TokenService tokenService;
 
     @GET
-    @Path("/school/{schoolId}")
-    public List<FolderDTO> getFolders(@PathParam("schoolId") UUID schoolId,
-                                      @HeaderParam("Authorization") String authHeader,
-                                      @QueryParam("authToken") String authToken) {
-        String token = authToken;
-
-        if ((token == null || token.isBlank()) && authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring("Bearer ".length());
+    @Path("/school/{collectionId}")
+    public Response getFolders(@PathParam("collectionId") UUID collectionId,
+                               @HeaderParam("Authorization") String auth) {
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
+        if (authResponse != null) {
+            return authResponse;
         }
 
-        return repo.getFolders(schoolId, token);
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
+        return repository.getFolders(collectionId, userId);
     }
 
     @POST
-    @Path("/school/{schoolId}")
-    public Response createFolder(@PathParam("schoolId") UUID schoolId, CreateFolderDTO dto) {
-        return repo.createFolder(schoolId, dto);
+    @Path("/school/{collectionId}")
+    public Response createFolder(@PathParam("collectionId") UUID collectionId,
+                                 @HeaderParam("Authorization") String auth,
+                                 CreateFolderDTO dto) {
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
+        if (authResponse != null) {
+            return authResponse;
+        }
+
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
+        return repository.createFolder(collectionId, userId, dto);
     }
 
     @PUT
     @Path("/{folderId}")
-    public Response updateFolder(@PathParam("folderId") UUID folderId, UpdateFolderDTO dto) {
-        return repo.updateFolder(folderId, dto);
+    public Response updateFolder(@PathParam("folderId") UUID folderId,
+                                 @HeaderParam("Authorization") String auth,
+                                 CreateFolderDTO dto) {
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
+        if (authResponse != null) {
+            return authResponse;
+        }
+
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
+        return repository.updateFolder(folderId, userId, dto);
     }
 
     @DELETE
     @Path("/{folderId}")
     public Response deleteFolder(@PathParam("folderId") UUID folderId,
-                                 @QueryParam("authToken") String authToken) {
-        return repo.deleteFolder(folderId, authToken);
+                                 @HeaderParam("Authorization") String auth) {
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
+        if (authResponse != null) {
+            return authResponse;
+        }
+
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
+        return repository.deleteFolder(folderId, userId);
     }
 }

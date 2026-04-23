@@ -1,6 +1,6 @@
 package at.boundary;
 
-import at.dtos.Folder.MoveTestToFolderDTO;
+import at.dtos.Folder.MoveToFolderDTO;
 import at.dtos.Test.CreateTestDTO;
 import at.dtos.Test.TestOverviewDTO;
 import at.repository.TestRepository;
@@ -49,7 +49,7 @@ public class TestResource {
 
     @PUT
     @Path("{testId}/folder")
-    public Response moveTestToFolder(@PathParam("testId") UUID testId, MoveTestToFolderDTO dto) {
+    public Response moveTestToFolder(@PathParam("testId") UUID testId, MoveToFolderDTO dto) {
         return repo.moveTestToFolder(testId, dto);
     }
 }

@@ -127,6 +127,20 @@ public class Example {
                 '}';
     }
 
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
     public User getAdmin() { return admin; }

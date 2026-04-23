@@ -8,13 +8,6 @@ export interface FolderDTO {
 }
 
 export interface CreateFolderDTO {
-  authToken: string;
-  name: string;
-  parentId: string | null;
-}
-
-export interface UpdateFolderDTO {
-  authToken: string;
   name: string;
   parentId: string | null;
 }

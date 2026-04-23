@@ -80,9 +80,3 @@ export interface CreateTestDTO {
   manualGradeMinimums?: Record<number, number>;
   folderId?: string | null;
 }
-
-
-export interface MoveTestToFolderDTO {
-  folderId: string | null;
-  authToken: string;
-}

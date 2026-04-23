@@ -3,7 +3,7 @@ package at.boundary;
 import at.dtos.Example.CreateExampleDTO;
 import at.dtos.Example.ExampleDTO;
 import at.dtos.Example.ExampleOverviewDTO;
-import at.dtos.Folder.MoveExampleToFolderDTO;
+import at.dtos.Folder.MoveToFolderDTO;
 import at.model.Example;
 import at.repository.ExampleRepository;
 import at.security.TokenService;
@@ -262,7 +262,7 @@ public class ExampleResource {
     @PUT
     @Path("{exampleId}/folder")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response moveExampleToFolder(@PathParam("exampleId") UUID exampleId, MoveExampleToFolderDTO dto) {
+    public Response moveExampleToFolder(@PathParam("exampleId") UUID exampleId, MoveToFolderDTO dto) {
         return repo.moveExampleToFolder(exampleId, dto);
     }
 }
