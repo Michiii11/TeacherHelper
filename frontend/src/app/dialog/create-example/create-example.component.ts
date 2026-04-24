@@ -103,7 +103,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   activeVariableTarget: VariableTarget = null;
 
   example: CreateExampleDTO = {
-    authToken: '',
     schoolId: this.data.schoolId,
     type: ExampleTypes.OPEN,
     instruction: '',
@@ -173,16 +172,45 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     })
   );
 
+
+  private revokeObjectUrl(url: string | null): void {
+    if (url?.startsWith('blob:')) {
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  private setConstructionImagePreviewUrl(url: string | null): void {
+    this.revokeObjectUrl(this.constructionImagePreviewUrl);
+    this.constructionImagePreviewUrl = url;
+  }
+
+  private setConstructionSolutionPreviewUrl(url: string | null): void {
+    this.revokeObjectUrl(this.constructionSolutionPreviewUrl);
+    this.constructionSolutionPreviewUrl = url;
+  }
+
+  private async loadStoredConstructionImagePreview(isSolution: boolean): Promise<string | null> {
+    if (!this.data.exampleId) {
+      return null;
+    }
+
+    try {
+      return await this.http.getExampleImageObjectUrl(this.data.exampleId, isSolution);
+    } catch {
+      return null;
+    }
+  }
+
   ngOnInit(): void {
     this.http.getAllFocus(this.data.schoolId)
       .pipe(takeUntil(this.destroy$))
       .subscribe(focuses => this.focusSubject.next(focuses));
 
     if (this.data.exampleId) {
-      this.http.getCreateExample(this.data.exampleId)
+      this.http.getExample(this.data.exampleId)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          next: (response) => {
+          next: async (response) => {
             this.example = {
               ...response,
               imageWidth: response.imageWidth ?? this.defaultImageWidth,
@@ -192,15 +220,17 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
             this.isEditMode = true;
 
             if (this.example.type === ExampleTypes.CONSTRUCTION && this.data.exampleId) {
-              this.constructionImagePreviewUrl = this.example.image
-                ? this.http.getConstructionImageUrl(this.data.exampleId)
-                : null;
-              this.constructionSolutionPreviewUrl = this.example.solutionUrl
-                ? this.http.getConstructionSolutionImageUrl(this.data.exampleId)
-                : null;
+              this.setConstructionImagePreviewUrl(
+                this.example.image
+                  ? await this.loadStoredConstructionImagePreview(false)
+                  : null
+              );
 
-              this.example.image = this.constructionImagePreviewUrl ?? '';
-              this.example.solutionUrl = this.constructionSolutionPreviewUrl ?? '';
+              this.setConstructionSolutionPreviewUrl(
+                this.example.solutionUrl
+                  ? await this.loadStoredConstructionImagePreview(true)
+                  : null
+              );
             }
 
             this.normalizeLoadedGapState();
@@ -216,6 +246,8 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.revokeObjectUrl(this.constructionImagePreviewUrl);
+    this.revokeObjectUrl(this.constructionSolutionPreviewUrl);
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -754,10 +786,10 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     reader.onload = () => {
       if (type === 'solution') {
         this.selectedConstructionSolutionFile = compressed;
-        this.constructionSolutionPreviewUrl = reader.result as string;
+        this.setConstructionSolutionPreviewUrl(reader.result as string);
       } else {
         this.selectedConstructionImageFile = compressed;
-        this.constructionImagePreviewUrl = reader.result as string;
+        this.setConstructionImagePreviewUrl(reader.result as string);
       }
       this.markDirty();
     };
@@ -769,17 +801,19 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     if (type === 'solution') {
       if (this.selectedConstructionSolutionFile) {
         this.selectedConstructionSolutionFile = null;
-        this.constructionSolutionPreviewUrl = this.isEditMode && this.data.exampleId && this.example.solutionUrl
-          ? this.http.getConstructionSolutionImageUrl(this.data.exampleId)
-          : null;
+        this.setConstructionSolutionPreviewUrl(
+          this.isEditMode && this.data.exampleId && this.example.solutionUrl
+            ? await this.loadStoredConstructionImagePreview(true)
+            : null
+        );
         this.markDirty();
         return;
       }
 
       if (this.isEditMode && this.data.exampleId && this.constructionSolutionPreviewUrl) {
         try {
-          await firstValueFrom(this.http.deleteConstructionSolutionImage(this.data.exampleId));
-          this.constructionSolutionPreviewUrl = null;
+          await firstValueFrom(this.http.deleteExampleImage(this.data.exampleId, true));
+          this.setConstructionSolutionPreviewUrl(null);
           this.example.solutionUrl = '';
           this.example.solutionImageWidth = this.defaultImageWidth;
           this.markDirty();
@@ -791,7 +825,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
         }
       }
 
-      this.constructionSolutionPreviewUrl = null;
+      this.setConstructionSolutionPreviewUrl(null);
       this.example.solutionUrl = '';
       this.example.solutionImageWidth = this.defaultImageWidth;
       this.markDirty();
@@ -800,17 +834,19 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
     if (this.selectedConstructionImageFile) {
       this.selectedConstructionImageFile = null;
-      this.constructionImagePreviewUrl = this.isEditMode && this.data.exampleId && this.example.image
-        ? this.http.getConstructionImageUrl(this.data.exampleId)
-        : null;
+      this.setConstructionImagePreviewUrl(
+        this.isEditMode && this.data.exampleId && this.example.image
+          ? await this.loadStoredConstructionImagePreview(false)
+          : null
+      );
       this.markDirty();
       return;
     }
 
     if (this.isEditMode && this.data.exampleId && this.constructionImagePreviewUrl) {
       try {
-        await firstValueFrom(this.http.deleteConstructionImage(this.data.exampleId));
-        this.constructionImagePreviewUrl = null;
+        await firstValueFrom(this.http.deleteExampleImage(this.data.exampleId, false));
+        this.setConstructionImagePreviewUrl(null);
         this.example.image = '';
         this.example.imageWidth = this.defaultImageWidth;
         this.markDirty();
@@ -822,7 +858,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.constructionImagePreviewUrl = null;
+    this.setConstructionImagePreviewUrl(null);
     this.example.image = '';
     this.example.imageWidth = this.defaultImageWidth;
     this.markDirty();
@@ -831,7 +867,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   private buildExamplePayload(): CreateExampleDTO {
     return {
       ...this.example,
-      authToken: localStorage.getItem('teacher_authToken') || '',
       schoolId: this.example.schoolId || this.data.schoolId,
       image: this.isEditMode ? (this.example.image || '') : '',
       solutionUrl: this.isEditMode ? (this.example.solutionUrl || '') : '',
@@ -855,24 +890,29 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
   private async uploadConstructionAssets(exampleId: string): Promise<void> {
     if (this.selectedConstructionImageFile) {
-      await firstValueFrom(this.http.uploadConstructionImage(exampleId, this.selectedConstructionImageFile));
+      const imageKey = await firstValueFrom(this.http.uploadExampleImage(exampleId, this.selectedConstructionImageFile, false));
+      this.example.image = imageKey || this.example.image || '';
     }
 
     if (this.selectedConstructionSolutionFile) {
-      await firstValueFrom(this.http.uploadConstructionSolutionImage(exampleId, this.selectedConstructionSolutionFile));
+      const solutionKey = await firstValueFrom(this.http.uploadExampleImage(exampleId, this.selectedConstructionSolutionFile, true));
+      this.example.solutionUrl = solutionKey || this.example.solutionUrl || '';
     }
 
-    this.constructionImagePreviewUrl = this.example.image || this.selectedConstructionImageFile
-      ? this.http.getConstructionImageUrl(exampleId)
-      : null;
-    this.constructionSolutionPreviewUrl = this.example.solutionUrl || this.selectedConstructionSolutionFile
-      ? this.http.getConstructionSolutionImageUrl(exampleId)
-      : null;
-
-    this.example.image = this.constructionImagePreviewUrl ?? '';
-    this.example.solutionUrl = this.constructionSolutionPreviewUrl ?? '';
     this.selectedConstructionImageFile = null;
     this.selectedConstructionSolutionFile = null;
+
+    this.setConstructionImagePreviewUrl(
+      this.example.image
+        ? await this.http.getExampleImageObjectUrl(exampleId, false)
+        : null
+    );
+
+    this.setConstructionSolutionPreviewUrl(
+      this.example.solutionUrl
+        ? await this.http.getExampleImageObjectUrl(exampleId, true)
+        : null
+    );
   }
 
   async saveExample(): Promise<void> {
@@ -898,17 +938,16 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       const payload = this.buildExamplePayload();
 
       if (this.isEditMode) {
-        const updatedIdRaw = await firstValueFrom(this.http.saveExample(this.data.exampleId, payload));
+        const updatedIdRaw = await firstValueFrom(this.http.updateExample(this.data.exampleId, payload));
         const updatedId = updatedIdRaw || this.data.exampleId;
 
         if (this.example.type === ExampleTypes.CONSTRUCTION) {
-          await this.uploadConstructionAssets(updatedId);
+          await this.uploadConstructionAssets(updatedId as string);
         }
 
         this.openTranslatedSnack('exampleDialog.snackbar.saved');
       } else {
-        const createdIdRaw = await firstValueFrom(this.http.createExample(payload));
-        const createdId = createdIdRaw;
+        const createdId = await firstValueFrom(this.http.createExample(payload)) as string;
 
         if (!createdId) {
           throw new Error('Example-ID fehlt nach dem Erstellen.');

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -32,7 +32,7 @@ import {MatIcon} from '@angular/material/icon'
   templateUrl: './test-preview.component.html',
   styleUrl: './test-preview.component.scss',
 })
-export class TestPreviewComponent implements OnInit {
+export class TestPreviewComponent implements OnInit, OnDestroy {
   data = inject<{ schoolId: string; testId: string }>(MAT_DIALOG_DATA);
   private dialogRef = inject(MatDialogRef<TestPreviewComponent>);
   private service = inject(HttpService);
@@ -40,6 +40,8 @@ export class TestPreviewComponent implements OnInit {
   private testPrintService = inject(TestPrintService);
   private translate = inject(TranslateService);
   private sanitizer = inject(DomSanitizer);
+  private readonly exampleImageObjectUrls = new Set<string>();
+  private readonly exampleImageObjectUrlCache = new Map<string, string>();
 
   readonly ExampleTypes = ExampleTypes;
   readonly defaultImageWidth = 320;
@@ -79,18 +81,24 @@ export class TestPreviewComponent implements OnInit {
     if (!this.data.testId) return;
 
     this.service.getCreateTest(this.data.testId).subscribe({
-      next: (response: any) => {
+      next: async (response: any) => {
         this.test = {
           ...this.test,
           ...response,
         };
 
         this.hydratePersistedSettings(response);
-        this.test.exampleList = this.hydrateConstructionImagesForEntries(this.test.exampleList ?? []);
+        this.test.exampleList = await this.hydrateConstructionImagesForEntries(this.test.exampleList ?? []);
         this.refreshPreviewHtml();
         this.loadSchoolBranding();
       },
     });
+  }
+
+  ngOnDestroy(): void {
+    this.exampleImageObjectUrls.forEach(url => URL.revokeObjectURL(url));
+    this.exampleImageObjectUrls.clear();
+    this.exampleImageObjectUrlCache.clear();
   }
 
   private loadSchoolBranding(): void {
@@ -288,27 +296,52 @@ export class TestPreviewComponent implements OnInit {
     return this.normalizeImageWidth((example as any).imageWidth);
   }
 
-  private hydrateConstructionImagesForEntries(entries: TestExampleDTO[]): TestExampleDTO[] {
-    return (entries ?? []).map(entry => ({
+  private async hydrateConstructionImagesForEntries(entries: TestExampleDTO[]): Promise<TestExampleDTO[]> {
+    return Promise.all((entries ?? []).map(async entry => ({
       ...entry,
-      example: this.hydrateConstructionImage(entry.example)
-    }));
+      example: await this.hydrateConstructionImage(entry.example)
+    })));
   }
 
-  private hydrateConstructionImage(example: Example): Example {
+  private async hydrateConstructionImage(example: Example): Promise<Example> {
     if (!example || example.type !== ExampleTypes.CONSTRUCTION || !example.id) {
       return example;
     }
 
     const hasTaskImage = !!((example as any).imageUrl || (example as any).image);
     const hasSolutionImage = !!((example as any).solutionUrl);
+    const taskImageUrl = hasTaskImage
+      ? await this.getAuthorizedExampleImageObjectUrl(example.id, false)
+      : '';
+    const solutionImageUrl = hasSolutionImage
+      ? await this.getAuthorizedExampleImageObjectUrl(example.id, true)
+      : '';
 
     return {
       ...example,
-      imageUrl: hasTaskImage ? (this.service.getConstructionImageUrl(example.id) ?? '') : '',
-      image: hasTaskImage ? (this.service.getConstructionImageUrl(example.id) ?? '') : '',
-      solutionUrl: hasSolutionImage ? (this.service.getConstructionSolutionImageUrl(example.id) ?? '') : ''
+      imageUrl: taskImageUrl,
+      image: taskImageUrl,
+      solutionUrl: solutionImageUrl
     } as Example & { image?: string };
+  }
+
+  private async getAuthorizedExampleImageObjectUrl(exampleId: string, isSolution: boolean): Promise<string> {
+    const cacheKey = `${exampleId}:${isSolution ? 'solution' : 'task'}`;
+    const cached = this.exampleImageObjectUrlCache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      const url = await this.service.getExampleImageObjectUrl(exampleId, isSolution);
+      if (url) {
+        this.exampleImageObjectUrlCache.set(cacheKey, url);
+        this.exampleImageObjectUrls.add(url);
+      }
+      return url || '';
+    } catch {
+      return '';
+    }
   }
 
   private getResolvedGradingSchema(): GradingLevel[] {

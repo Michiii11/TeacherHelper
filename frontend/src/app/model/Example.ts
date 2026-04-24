@@ -72,7 +72,6 @@ export interface ExampleVariable {
 }
 
 export interface CreateExampleDTO {
-  authToken: string;
   schoolId: string;
   type: ExampleTypes;
   instruction: string;

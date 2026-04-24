@@ -81,8 +81,6 @@ public class TestRepository {
 
         Test test = new Test(dto.name(), dto.note(), admin, school, dto.duration());
         test.setFolder(folder);
-        test.setCreatedAt(LocalDateTime.now());
-        test.setUpdatedAt(LocalDateTime.now());
         applySettings(test, dto);
         em.persist(test);
 
@@ -121,7 +119,6 @@ public class TestRepository {
         test.setNote(dto.note());
         test.setDuration(dto.duration());
         test.setFolder(folder);
-        test.setUpdatedAt(LocalDateTime.now());
         applySettings(test, dto);
 
         List<TestExample> existingEntries = em.createQuery(

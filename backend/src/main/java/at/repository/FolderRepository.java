@@ -1,10 +1,8 @@
 package at.repository;
 
 import at.dtos.Folder.CreateFolderDTO;
-import at.dtos.Folder.FolderDTO;
 import at.model.School;
 import at.model.Folder;
-import at.model.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -21,9 +19,12 @@ public class FolderRepository {
     @Inject
     EntityManager em;
 
+    @Inject
+    SchoolRepository collectionRepository;
+
     public Response getFolders(UUID collectionId, UUID userId) {
         School collection = em.find(School.class, collectionId);
-        if (collection == null || !isSchoolMember(collection, userId)) {
+        if (collection == null || !collectionRepository.isUserPartOfCollection(collectionId, userId)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
@@ -44,7 +45,7 @@ public class FolderRepository {
             return Response.status(Response.Status.NOT_FOUND).entity("Schule nicht gefunden.").build();
         }
 
-        if (!isSchoolMember(collection, userId)) {
+        if (!collectionRepository.isUserPartOfCollection(collectionId, userId)) {
             return Response.status(Response.Status.FORBIDDEN).entity("Nicht berechtigt.").build();
         }
 
@@ -74,7 +75,7 @@ public class FolderRepository {
             return Response.status(Response.Status.NOT_FOUND).entity("Ordner nicht gefunden.").build();
         }
 
-        if (!isSchoolMember(folder.getSchool(), userId)) {
+        if (!collectionRepository.isUserPartOfCollection(folder.getSchool().getId(), userId)) {
             return Response.status(Response.Status.FORBIDDEN).entity("Nicht berechtigt.").build();
         }
 
@@ -119,7 +120,7 @@ public class FolderRepository {
             return Response.status(Response.Status.NOT_FOUND).entity("Ordner nicht gefunden.").build();
         }
 
-        if (!isSchoolMember(folder.getSchool(), userId)) {
+        if (!collectionRepository.isUserPartOfCollection(folder.getSchool().getId(), userId)) {
             return Response.status(Response.Status.FORBIDDEN).entity("Nicht berechtigt.").build();
         }
 
@@ -169,16 +170,5 @@ public class FolderRepository {
         }
 
         return false;
-    }
-
-    private boolean isSchoolMember(School school, UUID userId) {
-        if (school.getAdmin() != null && school.getAdmin().getId().equals(userId)) {
-            return true;
-        }
-
-        return school.getUsers()
-                .stream()
-                .map(User::getId)
-                .anyMatch(id -> id.equals(userId));
     }
 }

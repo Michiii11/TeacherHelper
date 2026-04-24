@@ -1,10 +1,10 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import {firstValueFrom, Observable} from 'rxjs';
 import { Config } from '../config';
 import { SchoolDTO } from '../model/School';
 import {
-  CreateExampleDTO,
+  CreateExampleDTO, ExampleDTO, ExampleOverviewDTO,
   Focus,
 } from '../model/Example';
 import {
@@ -307,14 +307,75 @@ export class HttpService {
   }
   // endregion
 
-
-  moveExampleToFolder(exampleId: string, dto: { folderId: string | null }) {
-    return this.http.put(
-      `${Config.API_URL}/example/${exampleId}/folder`,
-      { ...dto, authToken: this.authToken() },
-      { responseType: 'text' as 'json' }
-    );
+  // region Example
+  /** Example **/
+  getExamples(schoolId: string | null) {
+    return this.http.get<ExampleOverviewDTO[]>(`${Config.API_URL}/example/school/${schoolId}`,
+      { headers: { Authorization: this.authToken() }});
   }
+
+  getFullExamples(schoolId: string) {
+    return this.http.get<ExampleDTO[]>(`${Config.API_URL}/example/school/${schoolId}/full`,
+      { headers: { Authorization: this.authToken() }});
+  }
+
+  getExample(exampleId: string) {
+    return this.http.get<CreateExampleDTO>(`${Config.API_URL}/example/${exampleId}`,
+      { headers: { Authorization: this.authToken() }});
+  }
+
+  createExample(dto: CreateExampleDTO) {
+    return this.http.post(`${Config.API_URL}/example`, dto,
+      { headers: { Authorization: this.authToken() }, responseType: 'text'});
+  }
+
+  deleteExample(id: string) {
+    return this.http.delete(`${Config.API_URL}/example/${id}`,
+      { headers: { Authorization: this.authToken() }});
+  }
+
+  updateExample(exampleId: string, dto: CreateExampleDTO) {
+    return this.http.put(`${Config.API_URL}/example/${exampleId}`, dto,
+      { headers: { Authorization: this.authToken() }, responseType: 'text'});
+  }
+
+  moveExampleToFolder(exampleId: string, folderId: string | null) {
+    return this.http.put(
+      `${Config.API_URL}/example/${exampleId}/folder`, folderId,
+      { headers: { Authorization: this.authToken() }});
+  }
+
+  getExampleImage(exampleId: string, isSolution: boolean) {
+    return this.http.get(`${Config.API_URL}/example/${exampleId}/image/${isSolution}`, {
+      headers: { Authorization: this.authToken() },
+      responseType: 'blob'
+    });
+  }
+
+  async getExampleImageObjectUrl(exampleId: string, isSolution: boolean): Promise<string> {
+    const blob = await firstValueFrom(this.getExampleImage(exampleId, isSolution));
+    return URL.createObjectURL(blob);
+  }
+
+  uploadExampleImage(exampleId: string, file: File, isSolution: boolean) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http.post(`${Config.API_URL}/example/${exampleId}/image/${isSolution}`, formData,
+      { headers: { Authorization: this.authToken() }, responseType: 'text' });
+  }
+
+  deleteExampleImage(exampleId: string, isSolution: boolean) {
+    return this.http.delete(`${Config.API_URL}/example/${exampleId}/image/${isSolution}`,
+      { headers: { Authorization: this.authToken() }, responseType: 'text' });
+  }
+
+
+  // endregion
+
+
+
+
 
   moveTestToFolder(testId: string, dto: { folderId: string | null }) {
     return this.http.put(
@@ -322,79 +383,6 @@ export class HttpService {
       {...dto, authToken: this.authToken()},
       {responseType: 'text' as 'json'}
     );
-  }
-
-  getExamples(schoolId: string | null) {
-    return this.http.get(`${Config.API_URL}/example/school/${schoolId}`);
-  }
-
-  createExample(dto: CreateExampleDTO) {
-    return this.http.post(`${Config.API_URL}/example`, dto, { responseType: 'text' });
-  }
-
-  saveExample(exampleId: string, dto: CreateExampleDTO) {
-    return this.http.put(`${Config.API_URL}/example/${exampleId}`, dto, { responseType: 'text' });
-  }
-
-  deleteExample(id: string) {
-    return this.http.delete(`${Config.API_URL}/example/${id}`, {
-      body: { authToken: this.authToken() },
-      responseType: 'text' as 'json'
-    });
-  }
-
-  getFullExamples(schoolId: string) {
-    return this.http.get(`${Config.API_URL}/example/school/${schoolId}/full`);
-  }
-
-  getCreateExample(exampleId: string) {
-    return this.http.post<CreateExampleDTO>(`${Config.API_URL}/example/${exampleId}`, {
-      authToken: this.authToken()
-    });
-  }
-
-  uploadConstructionImage(exampleId: string, file: File) {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('authToken', this.authToken());
-    return this.http.post(`${Config.API_URL}/example/${exampleId}/construction-image`, formData, { responseType: 'text' });
-  }
-
-  uploadConstructionSolutionImage(exampleId: string, file: File) {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('authToken', this.authToken());
-    return this.http.post(`${Config.API_URL}/example/${exampleId}/construction-solution-image`, formData, { responseType: 'text' });
-  }
-
-  deleteConstructionImage(exampleId: string) {
-    return this.http.delete(`${Config.API_URL}/example/${exampleId}/construction-image`, {
-      body: { authToken: this.authToken() },
-      responseType: 'text'
-    });
-  }
-
-  deleteConstructionSolutionImage(exampleId: string) {
-    return this.http.delete(`${Config.API_URL}/example/${exampleId}/construction-solution-image`, {
-      body: { authToken: this.authToken() },
-      responseType: 'text'
-    });
-  }
-
-  getConstructionImageUrl(exampleId: string | null | undefined): string | null {
-    if (!exampleId) {
-      return null;
-    }
-
-    return `${Config.API_URL}/example/${exampleId}/construction-image`;
-  }
-
-  getConstructionSolutionImageUrl(exampleId: string | null | undefined): string | null {
-    if (!exampleId) {
-      return null;
-    }
-
-    return `${Config.API_URL}/example/${exampleId}/construction-solution-image`;
   }
 
   getTests(schoolId: string | null) {

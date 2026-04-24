@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.UUID;
 
 public record CreateExampleDTO(
-        String authToken,
         UUID schoolId,
         ExampleTypes type,
         String instruction,

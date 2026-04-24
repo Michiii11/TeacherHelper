@@ -40,8 +40,8 @@ public class Example {
     private String instruction;
     private String question;
     private String solution;
-    private String solutionUrl;
     private String imageUrl;
+    private String solutionUrl;
 
     private Integer imageWidth;
     private Integer solutionImageWidth;
@@ -192,16 +192,7 @@ public class Example {
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 }

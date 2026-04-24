@@ -370,7 +370,7 @@ export class SchoolComponent implements OnInit, OnDestroy {
   private loadExamples(): void {
     if (!this.schoolId) return;
     this.service.getExamples(this.schoolId).subscribe(examples => {
-      this.examples = (examples as ExampleOverviewDTO[]).map(example => ({ ...example, folderId: example.folderId ?? null }));
+      this.examples = (examples).map(example => ({ ...example, folderId: example.folderId ?? null }));
     });
   }
 
@@ -576,7 +576,7 @@ export class SchoolComponent implements OnInit, OnDestroy {
   }
 
   moveExampleToFolder(example: ExampleOverviewDTO, folderId: string | null): void {
-    this.service.moveExampleToFolder(example.id, { folderId }).pipe(catchError(() => of(null))).subscribe(result => {
+    this.service.moveExampleToFolder(example.id, folderId).pipe(catchError(() => of(null))).subscribe(result => {
       if (result === null) return;
       this.examples = this.examples.map(item => item.id === example.id ? { ...item, folderId } : item);
     });

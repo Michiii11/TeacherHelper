@@ -482,4 +482,14 @@ public class SchoolRepository {
                 invite.getDecidedAt()
         );
     }
+
+    public boolean isUserPartOfCollection(UUID schoolId, UUID userId) {
+        School school = em.find(School.class, schoolId);
+        if (school == null) {
+            return false;
+        }
+
+        return school.getAdmin().getId().equals(userId) ||
+                school.getUsers().stream().anyMatch(u -> u.getId().equals(userId));
+    }
 }
