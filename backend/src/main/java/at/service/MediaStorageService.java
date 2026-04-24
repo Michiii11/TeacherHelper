@@ -16,57 +16,74 @@ import java.util.UUID;
 @ApplicationScoped
 public class MediaStorageService {
 
+    private static final String IMAGE_CONTENT_TYPE = "image/jpeg";
+    private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream";
+    private static final String PRIVATE_CACHE_CONTROL = "private, max-age=3600";
+
+    private static final int DEFAULT_IMAGE_SIZE = 512;
+    private static final double DEFAULT_IMAGE_QUALITY = 0.8;
+    private static final double EXAMPLE_IMAGE_QUALITY = 0.72;
+
     @ConfigProperty(name = "media.bucket")
     String bucketName;
 
+    private final Storage storage = StorageOptions.getDefaultInstance().getService();
+
     public String uploadProfileImage(UUID userId, Path file, String contentType) throws IOException {
-        Storage storage = StorageOptions.getDefaultInstance().getService();
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        Thumbnails.of(file.toFile())
-                .size(512, 512)
-                .outputFormat("jpg")
-                .outputQuality(0.8)
-                .toOutputStream(out);
-
-        String objectName = "users/" + userId + "/avatar/current.jpg";
-
-        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, objectName)
-                .setContentType("image/jpeg")
-                .setCacheControl("private, max-age=3600")
-                .build();
-
-        storage.create(blobInfo, out.toByteArray());
-
-        return objectName;
+        String objectName = "users/%s/avatar/current.jpg".formatted(userId);
+        return uploadResizedJpeg(file, objectName, DEFAULT_IMAGE_QUALITY);
     }
 
     public String uploadSchoolLogo(UUID schoolId, Path file) throws IOException {
-        Storage storage = StorageOptions.getDefaultInstance().getService();
+        String objectName = "schools/%s/logo/current.jpg".formatted(schoolId);
+        return uploadResizedJpeg(file, objectName, DEFAULT_IMAGE_QUALITY);
+    }
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+    public String uploadConstructionTaskImage(UUID exampleId, Path file) throws IOException {
+        return uploadExampleImage(exampleId, file, ExampleImageVariant.TASK);
+    }
 
-        Thumbnails.of(file.toFile())
-                .size(512, 512)
-                .outputFormat("jpg")
-                .outputQuality(0.8)
-                .toOutputStream(out);
+    public String uploadConstructionSolutionImage(UUID exampleId, Path file) throws IOException {
+        return uploadExampleImage(exampleId, file, ExampleImageVariant.SOLUTION);
+    }
 
-        String objectName = "schools/" + schoolId + "/logo/current.jpg";
+    private String uploadExampleImage(UUID exampleId, Path file, ExampleImageVariant variant) throws IOException {
+        String objectName = "examples/%s/construction/%s/current.jpg"
+                .formatted(exampleId, variant.path);
+
+        return uploadResizedJpeg(file, objectName, EXAMPLE_IMAGE_QUALITY);
+    }
+
+    private String uploadResizedJpeg(Path file, String objectName, double quality) throws IOException {
+        byte[] imageData = resizeToJpeg(file, quality);
 
         BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, objectName)
-                .setContentType("image/jpeg")
-                .setCacheControl("private, max-age=3600")
+                .setContentType(IMAGE_CONTENT_TYPE)
+                .setCacheControl(PRIVATE_CACHE_CONTROL)
                 .build();
 
-        storage.create(blobInfo, out.toByteArray());
+        storage.create(blobInfo, imageData);
 
         return objectName;
     }
 
+    private byte[] resizeToJpeg(Path file, double quality) throws IOException {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Thumbnails.of(file.toFile())
+                    .size(DEFAULT_IMAGE_SIZE, DEFAULT_IMAGE_SIZE)
+                    .outputFormat("jpg")
+                    .outputQuality(quality)
+                    .toOutputStream(out);
+
+            return out.toByteArray();
+        }
+    }
+
     public StoredImage loadImage(String objectName) {
-        Storage storage = StorageOptions.getDefaultInstance().getService();
+        if (objectName == null || objectName.isBlank()) {
+            return null;
+        }
+
         Blob blob = storage.get(bucketName, objectName);
 
         if (blob == null || !blob.exists()) {
@@ -76,7 +93,10 @@ public class MediaStorageService {
         String contentType = blob.getContentType();
         byte[] data = blob.getContent();
 
-        return new StoredImage(data, contentType != null ? contentType : "application/octet-stream");
+        return new StoredImage(
+                data,
+                contentType != null ? contentType : DEFAULT_CONTENT_TYPE
+        );
     }
 
     public void delete(String objectName) {
@@ -84,40 +104,20 @@ public class MediaStorageService {
             return;
         }
 
-        Storage storage = StorageOptions.getDefaultInstance().getService();
         storage.delete(bucketName, objectName);
     }
 
-    public String uploadConstructionTaskImage(UUID exampleId, Path file) throws IOException {
-        return uploadExampleImage(exampleId, file, "task");
+    private enum ExampleImageVariant {
+        TASK("task"),
+        SOLUTION("solution");
+
+        private final String path;
+
+        ExampleImageVariant(String path) {
+            this.path = path;
+        }
     }
 
-    public String uploadConstructionSolutionImage(UUID exampleId, Path file) throws IOException {
-        return uploadExampleImage(exampleId, file, "solution");
+    public record StoredImage(byte[] data, String contentType) {
     }
-
-    private String uploadExampleImage(UUID exampleId, Path file, String variant) throws IOException {
-        Storage storage = StorageOptions.getDefaultInstance().getService();
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        Thumbnails.of(file.toFile())
-                .size(512, 512)
-                .outputFormat("jpg")
-                .outputQuality(0.72)
-                .toOutputStream(out);
-
-        String objectName = "examples/" + exampleId + "/construction/" + variant + "/current.jpg";
-
-        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, objectName)
-                .setContentType("image/jpeg")
-                .setCacheControl("private, max-age=3600")
-                .build();
-
-        storage.create(blobInfo, out.toByteArray());
-
-        return objectName;
-    }
-
-    public record StoredImage(byte[] data, String contentType) {}
 }
