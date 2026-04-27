@@ -313,6 +313,10 @@ export class HttpService {
       { headers: { Authorization: this.authToken() } });
   }
 
+  getServer() {
+    return this.http.get(`${Config.API_URL}/user/server`);
+  }
+
   deleteAccount(password: string) {
     return this.http.delete(`${Config.API_URL}/user`, {
       headers: { Authorization: this.authToken() }, body: { password }, responseType: 'text'

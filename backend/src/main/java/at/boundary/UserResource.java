@@ -27,6 +27,12 @@ public class UserResource {
     @Inject
     TokenService tokenService;
 
+    @GET
+    @Path("server")
+    public Response getServer() {
+        return Response.ok().build();
+    }
+
     @POST
     @Path("register")
     public AuthResult register(FullUserDTO dto) {
