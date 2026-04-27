@@ -1,4 +1,4 @@
 package at.dtos.User;
 
-public record ChangePasswordDTO(String authToken, String currentPassword, String newPassword) {
+public record ChangePasswordDTO(String currentPassword, String newPassword) {
 }

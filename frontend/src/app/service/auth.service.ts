@@ -21,14 +21,10 @@ export class AuthService {
     return this.http.post(Config.API_URL + '/user/login', login);
   }
 
-  register(register: UserDTO): Observable<any> {
-    return this.http.post(Config.API_URL + '/user/register', register);
-  }
-
   validateToken(token: string): Observable<boolean> {
     return this.http.post<{ valid: boolean }>(
-      Config.API_URL + '/user/validate',
-      { token }
+      Config.API_URL + '/user/validate', {},
+      { headers: { Authorization: localStorage.getItem('teacher_authToken') ?? '' } }
     ).pipe(
       map(response => response.valid)
     );
@@ -51,20 +47,18 @@ export class AuthService {
     this.loggedIn.next(true);
   }
 
-  logout() {
-    localStorage.removeItem('teacher_authToken');
-    localStorage.removeItem('teacher_userId');
-    this.loggedIn.next(false);
-  }
-
   isAdmin(): Observable<boolean> {
     const authToken = localStorage.getItem('teacher_authToken');
+
     if (!authToken) {
       return of(false);
     }
 
     return this.http.get<{ isAdmin: boolean }>(
-      Config.API_URL + `/user/isAdmin?authToken=${encodeURIComponent(authToken)}`
+      `${Config.API_URL}/user/isAdmin`,
+      {
+        headers: { Authorization: authToken }
+      }
     ).pipe(
       map(response => !!response.isAdmin),
       catchError(() => of(false))

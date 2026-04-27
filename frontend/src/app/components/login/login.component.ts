@@ -116,7 +116,7 @@ export class LoginComponent implements OnInit {
       const resetToken = params.get('resetToken');
 
       if (verifyToken) {
-        this.handleVerifyEmail(verifyToken);
+        this.handleVerifyEmail();
       }
 
       if (resetToken) {
@@ -189,6 +189,7 @@ export class LoginComponent implements OnInit {
     };
 
     this.http.login(payload).subscribe((result: AuthResult) => {
+      console.log(result)
       this.loginSuccess = result.success;
       this.loginMessage = result.message;
 
@@ -267,7 +268,7 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    this.http.forgotPassword(this.forgotForm.value.email).subscribe({
+    this.http.forgotPassword(this.forgotForm.value.email, this.languageService.getStoredLanguage()).subscribe({
       next: (message: string) => {
         this.forgotSuccess = true;
         this.forgotMessage = message;
@@ -354,10 +355,10 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  private handleVerifyEmail(token: string): void {
+  private handleVerifyEmail(): void {
     this.verifying = true;
 
-    this.http.verifyEmail(token).subscribe({
+    this.http.verifyEmail().subscribe({
       next: (message: string) => {
         this.verifying = false;
         this.snackBar.open(message, '', { duration: 3500, panelClass: 'snack-success' });

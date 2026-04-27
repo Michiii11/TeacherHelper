@@ -267,7 +267,7 @@ export class HttpService {
   moveTestToFolder(testId: string, folderId: string | null) {
     return this.http.put(
       `${Config.API_URL}/test/${testId}/folder/${folderId}`, {},
-      { headers: { Authorization: this.authToken() }, responseType: 'text'});
+      { headers: { Authorization: this.authToken() }});
   }
   // endregion
 
@@ -283,25 +283,6 @@ export class HttpService {
     return this.http.post<AuthResult>(`${Config.API_URL}/user/register`, payload);
   }
 
-  getUserId() {
-    return this.http.post<string>(`${Config.API_URL}/user/id`, this.authToken());
-  }
-
-  getUser() {
-    return this.http.post<User>(`${Config.API_URL}/user`, this.authToken());
-  }
-
-  updateUserSettings(settings: UserSettings) {
-    return this.http.put(
-      `${Config.API_URL}/user/settings`,
-      {
-        authToken: this.authToken(),
-        settings
-      },
-      { responseType: 'text' as 'json' }
-    );
-  }
-
   login(payload: {
     email: string;
     password: string;
@@ -311,137 +292,99 @@ export class HttpService {
     return this.http.post<AuthResult>(`${Config.API_URL}/user/login`, payload);
   }
 
-  setUserLocked(userId: string, locked: boolean) {
-    return this.http.put(
-      `${Config.API_URL}/user/admin/${userId}/locked`,
-      {
-        authToken: this.authToken(),
-        locked
-      },
-      { responseType: 'text' as 'json' }
-    );
+  verifyEmail() {
+    return this.http.get(`${Config.API_URL}/user/verify-email`,
+      { headers: { Authorization: this.authToken() }, responseType: 'text'});
+  }
+
+  resendVerification(email: string, language: AppLanguage | null) {
+    return this.http.post(`${Config.API_URL}/user/email/resend-verification`,
+      { email, language }, {responseType: 'text' });
+  }
+
+  getUserId() {
+    return this.http.get<string>(`${Config.API_URL}/user/id`,
+      { headers: { Authorization: this.authToken() }});
+  }
+
+  getUser() {
+    return this.http.get<User>(`${Config.API_URL}/user`,
+      { headers: { Authorization: this.authToken() } });
+  }
+
+  deleteAccount(password: string) {
+    return this.http.delete(`${Config.API_URL}/user`, {
+      headers: { Authorization: this.authToken() }, body: { password }, responseType: 'text'
+    });
+  }
+
+  changePassword(payload: { currentPassword: string; newPassword: string }) {
+    return this.http.put(`${Config.API_URL}/user/password`,
+      { currentPassword: payload.currentPassword, newPassword: payload.newPassword },
+      { headers: { Authorization: this.authToken() }, responseType: 'text' });
+  }
+
+  forgotPassword(email: string, language: string | null) {
+    return this.http.post(`${Config.API_URL}/user/password/forgot`, {email, language},
+      { responseType: 'text' });
+  }
+
+  resetPassword(token: string, newPassword: string) {
+    return this.http.post(`${Config.API_URL}/user/password/reset`, newPassword,
+      { headers: { ResetToken: token } , responseType: 'text' });
   }
 
   updateUsername(username: string) {
     return this.http.put(
-      `${Config.API_URL}/user/username`,
-      {
-        authToken: this.authToken(),
-        username
-      },
-      { responseType: 'text' as 'json' }
-    );
+      `${Config.API_URL}/user/username`, username,
+      { headers: { Authorization: this.authToken() }, responseType: 'text' });
   }
 
-  updateEmail(email: string) {
+  requestEmailChange(email: string) {
     return this.http.put<string>(
-      `${Config.API_URL}/user/email`,
-      {
-        authToken: this.authToken(),
-        email
-      },
-      { responseType: 'text' as 'json' }
+      `${Config.API_URL}/user/email`, email,
+      { headers: { Authorization: this.authToken() } }
     );
   }
 
-  changePassword(payload: { currentPassword: string; newPassword: string }) {
-    return this.http.put(
-      `${Config.API_URL}/user/password`,
-      {
-        authToken: this.authToken(),
-        currentPassword: payload.currentPassword,
-        newPassword: payload.newPassword
-      },
-      { responseType: 'text' as 'json' }
-    );
+  cancelPendingEmailChange() {
+    return this.http.post(`${Config.API_URL}/user/email/cancel-pending`, {},
+      { headers: { Authorization: this.authToken() }, responseType: 'text' });
+  }
+
+  updateUserSettings(settings: UserSettings) {
+    return this.http.put(`${Config.API_URL}/user/settings`, settings,
+      { headers: { Authorization: this.authToken() } });
   }
 
   uploadProfileImage(file: File) {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('authToken', this.authToken());
 
-    return this.http.post(`${Config.API_URL}/user/profile-image`, formData, {
-      responseType: 'text'
+    return this.http.post(`${Config.API_URL}/user/profile-image`, formData,
+      { headers: { Authorization: this.authToken() }, responseType: 'text' });
+  }
+
+  getProfileImage(userId: string) {
+    return this.http.get(`${Config.API_URL}/user/profile-image/${userId}`, {
+      headers: { Authorization: this.authToken() },
+      responseType: 'blob'
     });
   }
 
-  verifyEmail(token: string) {
-    return this.http.get(`${Config.API_URL}/user/verify-email`, {
-      params: { token },
-      responseType: 'text'
-    });
+  async getProfileImageObjectUrl(userId: string): Promise<string> {
+    const blob = await firstValueFrom(this.getProfileImage(userId));
+    return URL.createObjectURL(blob);
   }
 
-  resendVerification(email: string, language: AppLanguage | null) {
-    return this.http.post(`${Config.API_URL}/user/email/resend-verification?language=${language}`, { email }, {
-      responseType: 'text'
-    });
+  deleteProfileImage() {
+    return this.http.delete<string>(`${Config.API_URL}/user/profile-image`,
+      { headers: { Authorization: this.authToken() }});
   }
 
-  forgotPassword(email: string) {
-    return this.http.post(`${Config.API_URL}/user/password/forgot`, { email }, {
-      responseType: 'text'
-    });
-  }
-
-  resetPassword(token: string, newPassword: string) {
-    return this.http.post(`${Config.API_URL}/user/password/reset`, {
-      token,
-      newPassword
-    }, {
-      responseType: 'text'
-    });
-  }
-
-  updateSubscription(subscriptionModel: 'FREE' | 'PRO' | 'ENTERPRISE') {
-    return this.http.put(`${Config.API_URL}/user/subscription`, {
-      authToken: this.authToken(),
-      subscriptionModel
-    }, {
-      responseType: 'text'
-    });
-  }
-
-  // endregion
-
-
-
-
-
-
-
-
-
-
-
-  cancelPendingEmailChange() {
-    const authToken = localStorage.getItem('teacher_authToken') ?? '';
-    return this.http.post(`${Config.API_URL}/user/email/cancel-pending`, authToken, {
-      responseType: 'text'
-    });
-  }
-
-  deleteAccount(currentPassword: string) {
-    return this.http.post(`${Config.API_URL}/user/delete-account`, {
-      authToken: localStorage.getItem('teacher_authToken') ?? '',
-      currentPassword
-    }, {
-      responseType: 'text'
-    });
-  }
-
-  getAvatarUrl(user: User | UserDTO | null): string | null {
-    if (!user?.profileImageUrl) {
-      return null;
-    }
-
-    const token = this.authToken();
-    if (!token) {
-      return null;
-    }
-
-    return `${Config.API_URL}/user/profile-image/${user?.id}`;
+  getAdminDashboard(){
+    return this.http.get<AdminDashboardDTO>(`${Config.API_URL}/user/admin`,
+      { headers: { Authorization: this.authToken() }});
   }
 
   getUserInitials(user: User | null | UserDTO): string {
@@ -458,18 +401,5 @@ export class HttpService {
 
     return '?';
   }
-
-  deleteProfileImage() {
-    return this.http.delete<string>(`${Config.API_URL}/user/profile-image`, {
-      body: this.authToken(),
-      headers: { 'Content-Type': 'text/plain' },
-      responseType: 'text' as 'json'
-    });
-  }
-
-
-
-  getAdminDashboard(){
-    return this.http.post<AdminDashboardDTO>(`${Config.API_URL}/user/admin`, this.authToken());
-  }
+  // endregion
 }

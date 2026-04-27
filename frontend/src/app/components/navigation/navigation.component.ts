@@ -51,6 +51,8 @@ export class NavigationComponent implements OnInit, OnDestroy {
   translate = inject(TranslateService)
 
   user: User = {} as User;
+  avatarObjectUrl: string | null = null;
+  private loadedAvatarUserId: string | null = null;
   adminVisible = false;
   notifications: NotificationDTO[] = [];
   selectedTab: 'open' | 'history' = 'open';
@@ -115,6 +117,8 @@ export class NavigationComponent implements OnInit, OnDestroy {
       this.socket.close();
       this.socket = undefined;
     }
+
+    this.clearAvatarObjectUrl();
   }
 
   private handleWindowFocus = () => {
@@ -134,6 +138,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   private refreshNavigationState(): void {
     if (this.isAuthPage()) {
       this.user = {} as User;
+      this.clearAvatarObjectUrl();
       this.notifications = [];
       this.navbarActions = [];
       this.breadcrumbs = [];
@@ -152,9 +157,55 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
   private loadUser(): void {
     this.service.getUser().subscribe({
-      next: (user) => (this.user = user),
-      error: (err) => console.error(err)
+      next: (user) => {
+        this.user = user;
+        this.loadAvatarWithAuth(user);
+      },
+      error: (err) => {
+        console.error(err);
+        this.clearAvatarObjectUrl();
+      }
     });
+  }
+
+  private loadAvatarWithAuth(user: User | null): void {
+    if (!user?.id || !user?.profileImageUrl) {
+      this.clearAvatarObjectUrl();
+      return;
+    }
+
+    if (this.loadedAvatarUserId === user.id && this.avatarObjectUrl) {
+      return;
+    }
+
+    this.clearAvatarObjectUrl();
+    this.loadedAvatarUserId = user.id;
+
+    this.service.getProfileImageObjectUrl(user.id)
+      .then((objectUrl) => {
+        if (this.user?.id !== user.id) {
+          URL.revokeObjectURL(objectUrl);
+          return;
+        }
+
+        this.avatarObjectUrl = objectUrl;
+      })
+      .catch((err) => {
+        console.error('Profilbild konnte nicht geladen werden:', err);
+
+        if (this.loadedAvatarUserId === user.id) {
+          this.clearAvatarObjectUrl();
+        }
+      });
+  }
+
+  private clearAvatarObjectUrl(): void {
+    if (this.avatarObjectUrl) {
+      URL.revokeObjectURL(this.avatarObjectUrl);
+    }
+
+    this.avatarObjectUrl = null;
+    this.loadedAvatarUserId = null;
   }
 
   loadNotifications(): void {
@@ -556,7 +607,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   }
 
   getAvatarUrl(): string | null {
-    return this.service.getAvatarUrl(this.user);
+    return this.avatarObjectUrl;
   }
 
   isBreadcrumbClickable(crumb: NavbarBreadcrumb, isLast: boolean): boolean {

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, inject, OnInit } from '@angular/core';
+import { Component, Inject, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,8 +14,9 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { UserDTO } from '../../model/User';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { finalize } from 'rxjs/operators';
+import { finalize, takeUntil } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
 
 export interface SchoolSettingsDialogData {
   schoolId: string;
@@ -41,10 +42,11 @@ export interface SchoolSettingsDialogData {
   templateUrl: './school-settings.component.html',
   styleUrl: './school-settings.component.scss'
 })
-export class SchoolSettingsComponent implements OnInit {
+export class SchoolSettingsComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private service = inject(HttpService);
   private translate = inject(TranslateService);
+  private readonly destroy$ = new Subject<void>();
 
   dialog = inject(MatDialog);
   snack = inject(MatSnackBar);
@@ -86,7 +88,15 @@ export class SchoolSettingsComponent implements OnInit {
       name: this.data.school?.name ?? ''
     });
 
-    this.loadLogo()
+    this.loadLogo();
+    this.loadMemberAvatars();
+  }
+
+  ngOnDestroy(): void {
+    this.revokeLogoUrl();
+    this.revokeAvatarUrls();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get isAdmin(): boolean {
@@ -95,13 +105,27 @@ export class SchoolSettingsComponent implements OnInit {
 
   logoUrl?: string;
   logoPreviewUrl: string | undefined = '';
+  private avatarUrls = new Map<string, string>();
+  private loadingAvatarIds = new Set<string>();
 
   loadLogo() {
+    this.revokeLogoUrl();
+
     if (!this.data?.school?.logoUrl) return;
 
-    this.service.getCollectionLogo(this.data.school.id).subscribe(blob => {
-      this.logoUrl = URL.createObjectURL(blob);
-    });
+    this.service.getCollectionLogo(this.data.school.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(blob => {
+        this.revokeLogoUrl();
+        this.logoUrl = URL.createObjectURL(blob);
+      });
+  }
+
+  private revokeLogoUrl(): void {
+    if (this.logoUrl) {
+      URL.revokeObjectURL(this.logoUrl);
+      this.logoUrl = undefined;
+    }
   }
 
   getDisplayedLogoUrl(): string | null {
@@ -186,7 +210,7 @@ export class SchoolSettingsComponent implements OnInit {
           next: () => {
             this.selectedLogoFile = null;
             this.logoPreviewUrl = undefined;
-            this.logoUrl = undefined;
+            this.revokeLogoUrl();
 
             if (input) {
               input.value = '';
@@ -261,7 +285,7 @@ export class SchoolSettingsComponent implements OnInit {
           this.data.school = updatedSchool;
           this.selectedLogoFile = null;
           this.logoPreviewUrl = undefined;
-          this.logoUrl = undefined;
+          this.revokeLogoUrl();
           this.loadLogo();
 
           this.snack.open(
@@ -353,6 +377,7 @@ export class SchoolSettingsComponent implements OnInit {
       this.service.removeTeacher(this.data.schoolId, t.id).subscribe({
         next: () => {
           this.data.school.members = this.data.school.members.filter(member => member.id !== t.id);
+          this.revokeAvatarUrl(t.id);
           this.snack.open(
             this.translate.instant('schoolSettings.snackbar.teacherKicked'),
             'OK',
@@ -447,6 +472,57 @@ export class SchoolSettingsComponent implements OnInit {
   }
 
   getAvatarUrl(user: UserDTO): string | null {
-    return this.service.getAvatarUrl(user);
+    if (!user?.id || !user?.profileImageUrl) {
+      return null;
+    }
+
+    const cachedUrl = this.avatarUrls.get(user.id);
+    if (cachedUrl) {
+      return cachedUrl;
+    }
+
+    this.loadAvatar(user);
+    return null;
+  }
+
+  private loadMemberAvatars(): void {
+    this.loadAvatar(this.data.school.admin);
+    this.data.school.members.forEach(member => this.loadAvatar(member));
+  }
+
+  private loadAvatar(user: UserDTO | null | undefined): void {
+    if (!user?.id || !user?.profileImageUrl || this.avatarUrls.has(user.id) || this.loadingAvatarIds.has(user.id)) {
+      return;
+    }
+
+    this.loadingAvatarIds.add(user.id);
+
+    this.service.getProfileImage(user.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: blob => {
+          this.revokeAvatarUrl(user.id);
+          this.avatarUrls.set(user.id, URL.createObjectURL(blob));
+          this.loadingAvatarIds.delete(user.id);
+        },
+        error: () => {
+          this.loadingAvatarIds.delete(user.id);
+        }
+      });
+  }
+
+  private revokeAvatarUrl(userId: string): void {
+    const url = this.avatarUrls.get(userId);
+    if (url) {
+      URL.revokeObjectURL(url);
+      this.avatarUrls.delete(userId);
+    }
+    this.loadingAvatarIds.delete(userId);
+  }
+
+  private revokeAvatarUrls(): void {
+    this.avatarUrls.forEach(url => URL.revokeObjectURL(url));
+    this.avatarUrls.clear();
+    this.loadingAvatarIds.clear();
   }
 }
