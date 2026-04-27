@@ -65,7 +65,6 @@ export interface TestOverviewDTO {
 }
 
 export interface CreateTestDTO {
-  authToken: string;
   schoolId: string;
   name: string;
   note: string;

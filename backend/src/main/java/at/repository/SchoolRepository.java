@@ -483,13 +483,13 @@ public class SchoolRepository {
         );
     }
 
-    public boolean isUserPartOfCollection(UUID schoolId, UUID userId) {
-        School school = em.find(School.class, schoolId);
-        if (school == null) {
+    public boolean isUserPartOfCollection(UUID collectionId, UUID userId) {
+        School collection = em.find(School.class, collectionId);
+        if (collection == null) {
             return false;
         }
 
-        return school.getAdmin().getId().equals(userId) ||
-                school.getUsers().stream().anyMatch(u -> u.getId().equals(userId));
+        return collection.getAdmin().getId().equals(userId) ||
+                collection.getUsers().stream().anyMatch(u -> u.getId().equals(userId));
     }
 }

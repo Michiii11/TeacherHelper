@@ -109,11 +109,10 @@ public class ExampleResource {
     }
 
     @PUT
-    @Path("{exampleId}/folder")
-    @Produces(MediaType.TEXT_PLAIN)
+    @Path("{exampleId}/folder/{folderId}")
     public Response moveExampleToFolder(@PathParam("exampleId") UUID exampleId,
                                         @HeaderParam("Authorization") String auth,
-                                        UUID folderId) {
+                                        @PathParam("folderId") UUID folderId) {
         Response authResponse = userRepository.generateResponseOfAuth(auth);
         if (authResponse != null) {
             return authResponse;

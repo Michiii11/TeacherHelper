@@ -1,55 +1,102 @@
 package at.boundary;
 
-import at.dtos.Folder.MoveToFolderDTO;
 import at.dtos.Test.CreateTestDTO;
-import at.dtos.Test.TestOverviewDTO;
 import at.repository.TestRepository;
+import at.repository.UserRepository;
+import at.security.TokenService;
 import jakarta.inject.Inject;
-import jakarta.json.JsonObject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.UUID;
 
 @Path("/test")
 public class TestResource {
     @Inject
-    TestRepository repo;
+    TestRepository repository;
+
+    @Inject
+    TokenService tokenService;
+
+    @Inject
+    UserRepository userRepository;
 
     @GET
-    @Path("/school/{schoolId}")
-    public List<TestOverviewDTO> getTests(@PathParam("schoolId") UUID schoolId) {
-        return repo.getAllTest(schoolId);
+    @Path("/school/{collectionId}")
+    public Response getTests(@PathParam("collectionId") UUID collectionId,
+                             @HeaderParam("Authorization") String auth) {
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
+        if (authResponse != null) {
+            return authResponse;
+        }
+
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
+        return repository.getAllTest(collectionId, userId);
     }
 
-    @POST
+    @GET
     @Path("{testId}")
-    public CreateTestDTO getTest(@PathParam("testId") UUID testId, JsonObject json){
-        return repo.getTest(testId, json.getString("authToken"));
+    public Response getTest(@PathParam("testId") UUID testId,
+                            @HeaderParam("Authorization") String auth) {
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
+        if (authResponse != null) {
+            return authResponse;
+        }
+
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
+        return repository.getTest(testId, userId);
     }
 
     @POST
-    public Response createTest(CreateTestDTO dto) throws IOException {
-        return repo.createTest(dto);
+    public Response createTest(@HeaderParam("Authorization") String auth,
+                               CreateTestDTO dto) {
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
+        if (authResponse != null) {
+            return authResponse;
+        }
+
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
+        return repository.createTest(dto, userId);
     }
 
     @PUT
     @Path("{testId}")
-    public Response updateTest(@PathParam("testId") UUID testId, CreateTestDTO dto){
-        return repo.updateTest(testId, dto);
+    public Response updateTest(@PathParam("testId") UUID testId,
+                               @HeaderParam("Authorization") String auth,
+                               CreateTestDTO dto){
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
+        if (authResponse != null) {
+            return authResponse;
+        }
+
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
+        return repository.updateTest(testId, userId, dto);
     }
 
     @DELETE
     @Path("{testId}")
-    public Response deleteTest(JsonObject json, @PathParam("testId") UUID testId){
-        return repo.deleteTest(json.getString("authToken"), testId);
+    public Response deleteTest(@PathParam("testId") UUID testId,
+                               @HeaderParam("Authorization") String auth) {
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
+        if (authResponse != null) {
+            return authResponse;
+        }
+
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
+        return repository.deleteTest(testId, userId);
     }
 
     @PUT
-    @Path("{testId}/folder")
-    public Response moveTestToFolder(@PathParam("testId") UUID testId, MoveToFolderDTO dto) {
-        return repo.moveTestToFolder(testId, dto);
+    @Path("{testId}/folder/{folderId}")
+    public Response moveTestToFolder(@PathParam("testId") UUID testId,
+                                     @HeaderParam("Authorization") String auth,
+                                     @PathParam("folderId") UUID folderId) {
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
+        if (authResponse != null) {
+            return authResponse;
+        }
+
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
+        return repository.moveTestToFolder(testId, folderId, userId);
     }
 }

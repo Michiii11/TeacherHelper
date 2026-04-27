@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.UUID;
 
 public record CreateTestDTO(
-        String authToken,
         UUID schoolId,
         String name,
         String note,

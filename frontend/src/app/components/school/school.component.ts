@@ -576,17 +576,23 @@ export class SchoolComponent implements OnInit, OnDestroy {
   }
 
   moveExampleToFolder(example: ExampleOverviewDTO, folderId: string | null): void {
-    this.service.moveExampleToFolder(example.id, folderId).pipe(catchError(() => of(null))).subscribe(result => {
-      if (result === null) return;
-      this.examples = this.examples.map(item => item.id === example.id ? { ...item, folderId } : item);
-    });
+    this.service.moveExampleToFolder(example.id, folderId)
+      .pipe(catchError(() => of(null)))
+      .subscribe(result => {
+        this.examples = this.examples.map(item =>
+          item.id === example.id ? { ...item, folderId } : item
+        );
+      });
   }
 
   moveTestToFolder(test: TestOverviewDTO, folderId: string | null): void {
-    this.service.moveTestToFolder(test.id, { folderId }).pipe(catchError(() => of(null))).subscribe(result => {
-      if (result === null) return;
-      this.tests = this.tests.map(item => item.id === test.id ? { ...item, folderId } : item);
-    });
+    this.service.moveTestToFolder(test.id, folderId)
+      .pipe(catchError(() => of(null)))
+      .subscribe(result => {
+        this.tests = this.tests.map(item =>
+          item.id === test.id ? { ...item, folderId } : item
+        );
+      });
   }
 
   onItemDragStart(type: ExplorerItemType, itemId: number | string): void {

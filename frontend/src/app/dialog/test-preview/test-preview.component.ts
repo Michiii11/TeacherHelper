@@ -52,7 +52,6 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
   labels: TestPrintLabels = this.buildPrintLabels();
 
   test: CreateTestDTO & PersistedTestSettings = {
-    authToken: '',
     schoolId: this.data.schoolId,
     name: '',
     note: '',
@@ -80,7 +79,7 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     if (!this.data.testId) return;
 
-    this.service.getCreateTest(this.data.testId).subscribe({
+    this.service.getTest(this.data.testId).subscribe({
       next: async (response: any) => {
         this.test = {
           ...this.test,

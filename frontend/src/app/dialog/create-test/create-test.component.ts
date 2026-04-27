@@ -101,7 +101,6 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   selectedExamplesInternal: TestExampleDTO[] = [];
 
   test: CreateTestDTO & PersistedTestSettings = {
-    authToken: '',
     schoolId: this.data.schoolId,
     name: '',
     note: '',
@@ -198,7 +197,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.data.testId) {
-      this.service.getCreateTest(this.data.testId)
+      this.service.getTest(this.data.testId)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: async (response: any) => {
@@ -494,7 +493,6 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   saveTest(): void {
-    this.test.authToken = localStorage.getItem('teacher_authToken') || '';
     this.test.schoolId = this.test.schoolId || this.data.schoolId;
     this.test.exampleList = this.selectedExamplesInternal;
     (this.test as any).folderId = this.data.folderId ?? (this.test as any).folderId ?? null;
@@ -508,7 +506,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.attachPersistedSettingsToPayload();
 
     const request = this.isEditMode
-      ? this.service.saveTest(this.data.testId, this.test)
+      ? this.service.updateTest(this.data.testId, this.test)
       : this.service.createTest(this.test);
 
     request

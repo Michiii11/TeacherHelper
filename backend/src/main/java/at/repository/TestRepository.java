@@ -3,7 +3,6 @@ package at.repository;
 import at.dtos.Example.ExampleDTO;
 import at.dtos.Example.ExampleVariableDTO;
 import at.dtos.Example.GapDTO;
-import at.dtos.Folder.MoveToFolderDTO;
 import at.dtos.School.SchoolDTO;
 import at.dtos.Test.CreateTestDTO;
 import at.dtos.Test.GradingLevelDTO;
@@ -20,11 +19,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.*;
 
 @ApplicationScoped
+@Transactional
 public class TestRepository {
     @Inject
     EntityManager em;
@@ -35,8 +33,15 @@ public class TestRepository {
     @Inject
     FolderRepository folderRepository;
 
-    public List<TestOverviewDTO> getAllTest(UUID schoolId) {
-        return em.createQuery(
+    @Inject
+    SchoolRepository schoolRepository;
+
+    public Response getAllTest(UUID collectionId, UUID userId) {
+        if (!schoolRepository.isUserPartOfCollection(collectionId, userId)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+
+        List<TestOverviewDTO> dtos = em.createQuery(
                         "SELECT new at.dtos.Test.TestOverviewDTO(" +
                                 "t.id, " +
                                 "t.name, " +
@@ -49,33 +54,71 @@ public class TestRepository {
                                 "t.folder.id" +
                                 ") " +
                                 "FROM Test t " +
-                                "WHERE t.school.id = :schoolId " +
+                                "WHERE t.school.id = :collectionId " +
                                 "ORDER BY t.id",
                         TestOverviewDTO.class
                 )
-                .setParameter("schoolId", schoolId)
+                .setParameter("collectionId", collectionId)
                 .getResultList();
+
+        return Response.ok(dtos).build();
     }
 
-    @Transactional
-    public Response createTest(CreateTestDTO dto) throws IOException {
-        UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+    public Response getTest(UUID testId, UUID userId) {
+        Test t = em.find(Test.class, testId);
+        if (t == null) {
+            return null;
         }
 
+        if (!schoolRepository.isUserPartOfCollection(t.getSchool().getId(), userId)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+
+        List<TestExampleDTO> exampleList = new LinkedList<>();
+        t.getExampleList().forEach(example ->
+                exampleList.add(new TestExampleDTO(
+                        mapToExampleDTO(example.getExample()),
+                        example.getPoints(),
+                        example.getTitle(),
+                        copyStringMap(example.getVariableValues())
+                )));
+
+        CreateTestDTO dto = new CreateTestDTO(
+                t.getSchool().getId(),
+                t.getName(),
+                t.getNote(),
+                exampleList,
+                t.getDuration(),
+                t.getDefaultTaskSpacing(),
+                copyMap(t.getTaskSpacingMap()),
+                t.getGradingMode(),
+                t.getGradingSystemName(),
+                mapDtoSchemaToEntitySchema(t.getGradingSchema()),
+                copyMapInt(t.getGradePercentages()),
+                copyMapInt(t.getManualGradeMinimums()),
+                t.getFolder() != null ? t.getFolder().getId() : null
+        );
+
+        return Response.ok(dto).build();
+    }
+
+    public Response createTest(CreateTestDTO dto, UUID userId) {
         User admin = em.find(User.class, userId);
         School school = em.find(School.class, dto.schoolId());
 
+        if (!schoolRepository.isUserPartOfCollection(school.getId(), userId)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+
         if (school == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity("Schule nicht gefunden.").build();
+            return Response.status(Response.Status.NOT_FOUND).entity("Collection not found.").build();
         }
 
         Folder folder = null;
         if (dto.folderId() != null) {
             folder = folderRepository.findById(dto.folderId());
             if (folder == null || !folder.getSchool().getId().equals(school.getId())) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Ordner.").build();
+                return Response.status(Response.Status.BAD_REQUEST).entity("Unvalid Folder.").build();
             }
         }
 
@@ -89,16 +132,10 @@ public class TestRepository {
         return Response.ok().build();
     }
 
-    @Transactional
-    public Response updateTest(UUID testId, CreateTestDTO dto) {
+    public Response updateTest(UUID testId, UUID userId, CreateTestDTO dto) {
         Test test = em.find(Test.class, testId);
         if (test == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
         if (!test.getAdmin().getId().equals(userId) && !test.getSchool().getAdmin().getId().equals(userId)) {
@@ -111,7 +148,7 @@ public class TestRepository {
         if (dto.folderId() != null) {
             folder = folderRepository.findById(dto.folderId());
             if (folder == null || !folder.getSchool().getId().equals(test.getSchool().getId())) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Ordner.").build();
+                return Response.status(Response.Status.BAD_REQUEST).entity("Unvalid Folder.").build();
             }
         }
 
@@ -134,47 +171,10 @@ public class TestRepository {
         return Response.ok().build();
     }
 
-    @Transactional
-    public Response moveTestToFolder(UUID testId, MoveToFolderDTO dto) {
-        Test test = em.find(Test.class, testId);
-        if (test == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity("Test nicht gefunden.").build();
-        }
-
-        UUID userId = tokenService.validateTokenAndGetUserId(dto.authToken());
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        }
-
-        if (!test.getAdmin().getId().equals(userId) && !test.getSchool().getAdmin().getId().equals(userId)) {
-            return Response.status(Response.Status.FORBIDDEN)
-                    .entity("Not allowed to move this test.")
-                    .build();
-        }
-
-        Folder folder = null;
-        if (dto.folderId() != null) {
-            folder = folderRepository.findById(dto.folderId());
-            if (folder == null || !folder.getSchool().getId().equals(test.getSchool().getId())) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Zielordner.").build();
-            }
-        }
-
-        test.setFolder(folder);
-        em.merge(test);
-        return Response.ok().build();
-    }
-
-    @Transactional
-    public Response deleteTest(String authToken, UUID testId) {
+    public Response deleteTest(UUID testId, UUID userId) {
         Test test = em.find(Test.class, testId);
         if (test == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        UUID userId = tokenService.validateTokenAndGetUserId(authToken);
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
         if (!test.getAdmin().getId().equals(userId) && !test.getSchool().getAdmin().getId().equals(userId)) {
@@ -187,43 +187,34 @@ public class TestRepository {
         return Response.ok().build();
     }
 
-    public CreateTestDTO getTest(UUID testId, String authToken) {
-        UUID userId = tokenService.validateTokenAndGetUserId(authToken);
-        if (userId == null) {
-            return null;
+    public Response moveTestToFolder(UUID testId, UUID folderId, UUID userId) {
+        Test test = em.find(Test.class, testId);
+        if (test == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Test not found.").build();
         }
 
-        Test t = em.find(Test.class, testId);
-        if (t == null) {
-            return null;
+        if (!test.getAdmin().getId().equals(userId) && !test.getSchool().getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("Not allowed to move this test.")
+                    .build();
         }
 
-        List<TestExampleDTO> exampleList = new LinkedList<>();
-        t.getExampleList().forEach(example ->
-                exampleList.add(new TestExampleDTO(
-                        mapToExampleDTO(example.getExample()),
-                        example.getPoints(),
-                        example.getTitle(),
-                        copyStringMap(example.getVariableValues())
-                )));
+        Folder folder = null;
+        if (folderId != null) {
+            folder = folderRepository.findById(folderId);
+            if (folder == null || !folder.getSchool().getId().equals(test.getSchool().getId())) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Unvalid folder.").build();
+            }
+        }
 
-        return new CreateTestDTO(
-                "",
-                t.getSchool().getId(),
-                t.getName(),
-                t.getNote(),
-                exampleList,
-                t.getDuration(),
-                t.getDefaultTaskSpacing(),
-                copyMap(t.getTaskSpacingMap()),
-                t.getGradingMode(),
-                t.getGradingSystemName(),
-                mapDtoSchemaToEntitySchema(t.getGradingSchema()),
-                copyMapInt(t.getGradePercentages()),
-                copyMapInt(t.getManualGradeMinimums()),
-                t.getFolder() != null ? t.getFolder().getId() : null
-        );
+        test.setFolder(folder);
+        em.merge(test);
+        return Response.ok().build();
     }
+
+
+
+
 
     private ExampleDTO mapToExampleDTO(Example e) {
         return new ExampleDTO(

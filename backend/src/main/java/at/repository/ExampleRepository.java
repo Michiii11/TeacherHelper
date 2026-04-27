@@ -41,8 +41,8 @@ public class ExampleRepository {
     @Inject
     SchoolRepository schoolRepository;
 
-    public Response getAllExamples(UUID schoolId, UUID userId) {
-        if (!schoolRepository.isUserPartOfCollection(schoolId, userId)) {
+    public Response getAllExamples(UUID collectionId, UUID userId) {
+        if (!schoolRepository.isUserPartOfCollection(collectionId, userId)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
@@ -53,11 +53,11 @@ public class ExampleRepository {
                 LEFT JOIN FETCH e.focusList
                 LEFT JOIN FETCH e.admin
                 LEFT JOIN FETCH e.folder
-                WHERE e.school.id = :schoolId
+                WHERE e.school.id = :collectionId
                 ORDER BY e.id
                 """,
                 Example.class
-        ).setParameter("schoolId", schoolId).getResultList();
+        ).setParameter("collectionId", collectionId).getResultList();
 
         return Response.ok(examples.stream().map(e ->
                 new ExampleOverviewDTO(
@@ -75,15 +75,15 @@ public class ExampleRepository {
         ).collect(Collectors.toList())).build();
     }
 
-    public Response getFullExamples(UUID schoolId, UUID userId) {
-        if (!schoolRepository.isUserPartOfCollection(schoolId, userId)) {
+    public Response getFullExamples(UUID collectionId, UUID userId) {
+        if (!schoolRepository.isUserPartOfCollection(collectionId, userId)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
         List<Example> examples = em.createQuery(
-                        "SELECT DISTINCT e FROM Example e LEFT JOIN FETCH e.gaps WHERE e.school.id = :schoolId ORDER BY e.id",
+                        "SELECT DISTINCT e FROM Example e LEFT JOIN FETCH e.gaps WHERE e.school.id = :collectionId ORDER BY e.id",
                         Example.class
-                ).setParameter("schoolId", schoolId)
+                ).setParameter("collectionId", collectionId)
                 .getResultList();
 
         List<ExampleDTO> dtos = examples.stream().map(example ->

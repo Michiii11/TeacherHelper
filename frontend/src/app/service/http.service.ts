@@ -341,7 +341,7 @@ export class HttpService {
 
   moveExampleToFolder(exampleId: string, folderId: string | null) {
     return this.http.put(
-      `${Config.API_URL}/example/${exampleId}/folder`, folderId,
+      `${Config.API_URL}/example/${exampleId}/folder/${folderId}`, {},
       { headers: { Authorization: this.authToken() }});
   }
 
@@ -369,47 +369,46 @@ export class HttpService {
     return this.http.delete(`${Config.API_URL}/example/${exampleId}/image/${isSolution}`,
       { headers: { Authorization: this.authToken() }, responseType: 'text' });
   }
+  // endregion
 
+  // region Test
+  /** Test **/
+  getTests(collectionId: string | null) {
+    return this.http.get(`${Config.API_URL}/test/school/${collectionId}`,
+      { headers: { Authorization: this.authToken() }});
+  }
 
+  getTest(testId: string) {
+    return this.http.get<CreateTestDTO>(`${Config.API_URL}/test/${testId}`,
+      { headers: { Authorization: this.authToken() } });
+  }
+
+  createTest(test: CreateTestDTO) {
+    return this.http.post(`${Config.API_URL}/test`, test,
+      { headers: { Authorization: this.authToken() }});
+  }
+
+  updateTest(testId: string | undefined, test: CreateTestDTO) {
+    return this.http.put(`${Config.API_URL}/test/${testId}`, test,
+      { headers: { Authorization: this.authToken() }});
+  }
+
+  deleteTest(id: string) {
+    return this.http.delete(`${Config.API_URL}/test/${id}`,
+      { headers: { Authorization: this.authToken() } });
+  }
+
+  moveTestToFolder(testId: string, folderId: string | null) {
+    return this.http.put(
+      `${Config.API_URL}/test/${testId}/folder/${folderId}`, {},
+      { headers: { Authorization: this.authToken() }, responseType: 'text'});
+  }
   // endregion
 
 
 
 
 
-  moveTestToFolder(testId: string, dto: { folderId: string | null }) {
-    return this.http.put(
-      `${Config.API_URL}/test/${testId}/folder`,
-      {...dto, authToken: this.authToken()},
-      {responseType: 'text' as 'json'}
-    );
-  }
-
-  getTests(schoolId: string | null) {
-    return this.http.get(`${Config.API_URL}/test/school/${schoolId}`);
-  }
-
-  getCreateTest(testId: string) {
-    return this.http.post<CreateTestDTO>(`${Config.API_URL}/test/${testId}`, {
-      authToken: this.authToken()
-    });
-  }
-
-  createTest(test: CreateTestDTO) {
-    console.log(test)
-    return this.http.post(`${Config.API_URL}/test`, test, { responseType: 'text' as 'json' });
-  }
-
-  deleteTest(id: string) {
-    return this.http.delete(`${Config.API_URL}/test/${id}`, {
-      body: { authToken: this.authToken() },
-      responseType: 'text' as 'json'
-    });
-  }
-
-  saveTest(testId: string | undefined, test: CreateTestDTO) {
-    return this.http.put(`${Config.API_URL}/test/${testId}`, test, { responseType: 'text' as 'json' });
-  }
 
 
 
