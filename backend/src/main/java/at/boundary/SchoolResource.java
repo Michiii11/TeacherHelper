@@ -16,6 +16,8 @@ import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Set;
 import java.util.UUID;
 
 @Path("school")
@@ -92,17 +94,8 @@ public class SchoolResource {
             return authResponse;
         }
 
-        String objectName = repository.getSchoolUrl(collectionId);
-        if (objectName == null || objectName.isBlank()) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        MediaStorageService.StoredImage image = mediaStorageService.loadImage(objectName);
-        if (image == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        return Response.ok(image.data()).type(image.contentType()).build();
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
+        return repository.getCollectionLogo(collectionId, userId);
     }
 
     @POST
@@ -116,22 +109,8 @@ public class SchoolResource {
             return authResponse;
         }
 
-        if (file == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("No file uploaded").build();
-        }
-
-        String contentType = file.contentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Uploaded file must be an image").build();
-        }
-
-        try {
-            UUID userId = tokenService.validateTokenAndGetUserId(auth);
-            String objectName = mediaStorageService.uploadSchoolLogo(collectionId, file.uploadedFile());
-            return repository.updateCollectionLogo(collectionId, userId, objectName);
-        } catch (IOException e) {
-            return Response.serverError().entity("Logo upload failed").build();
-        }
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
+        return repository.uploadCollectionLogo(collectionId, userId, file);
     }
 
     @DELETE

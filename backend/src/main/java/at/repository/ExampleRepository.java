@@ -18,19 +18,21 @@ import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
 @Transactional
 public class ExampleRepository {
-    @Inject
-    EntityManager em;
+    private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
+    private static final long MAX_PROFILE_IMAGE_SIZE = 2L * 1024L * 1024L;
 
     @Inject
-    TokenService tokenService;
+    EntityManager em;
 
     @Inject
     FolderRepository folderRepository;
@@ -366,8 +368,17 @@ public class ExampleRepository {
             return Response.status(Response.Status.BAD_REQUEST).entity("No file uploaded.").build();
         }
 
+        String contentType = file.contentType() == null ? "" : file.contentType().toLowerCase();
+        if (!ALLOWED_IMAGE_TYPES.contains(contentType)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Use JPG, PNG or WEBP.").build();
+        }
+
         try {
             String objectKey = "";
+
+            if (Files.size(file.uploadedFile()) > MAX_PROFILE_IMAGE_SIZE) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("File is too big. Max. 2 MB.").build();
+            }
 
             if(isSolution) {
                 if (example.getSolutionUrl() != null) {

@@ -12,6 +12,7 @@ import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Path("/example")
@@ -21,9 +22,6 @@ public class ExampleResource {
 
     @Inject
     UserRepository userRepository;
-
-    @Inject
-    MediaStorageService mediaStorageService;
 
     @Inject
     TokenService tokenService;

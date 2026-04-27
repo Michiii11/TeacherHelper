@@ -20,7 +20,6 @@ import java.util.UUID;
 
 @Path("user")
 public class UserResource {
-
     private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
     private static final long MAX_PROFILE_IMAGE_SIZE = 2L * 1024L * 1024L;
 

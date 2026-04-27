@@ -116,140 +116,6 @@ export class HttpService {
   }
   // endregion
 
-  // region User
-  /** User **/
-  register(payload: {
-    username: string;
-    email: string;
-    password: string;
-    language?: 'de' | 'en' | null;
-    darkMode?: boolean | null;
-  }) {
-    return this.http.post<AuthResult>(`${Config.API_URL}/user/register`, payload);
-  }
-
-  getUserId() {
-    return this.http.post<string>(`${Config.API_URL}/user/id`, this.authToken());
-  }
-
-  getUser() {
-    return this.http.post<User>(`${Config.API_URL}/user`, this.authToken());
-  }
-
-  updateUserSettings(settings: UserSettings) {
-    return this.http.put(
-      `${Config.API_URL}/user/settings`,
-      {
-        authToken: this.authToken(),
-        settings
-      },
-      { responseType: 'text' as 'json' }
-    );
-  }
-
-  login(payload: {
-    email: string;
-    password: string;
-    language?: 'de' | 'en' | null;
-    darkMode?: boolean | null;
-  }) {
-    return this.http.post<AuthResult>(`${Config.API_URL}/user/login`, payload);
-  }
-
-  setUserLocked(userId: string, locked: boolean) {
-    return this.http.put(
-      `${Config.API_URL}/user/admin/${userId}/locked`,
-      {
-        authToken: this.authToken(),
-        locked
-      },
-      { responseType: 'text' as 'json' }
-    );
-  }
-
-  updateUsername(username: string) {
-    return this.http.put(
-      `${Config.API_URL}/user/username`,
-      {
-        authToken: this.authToken(),
-        username
-      },
-      { responseType: 'text' as 'json' }
-    );
-  }
-
-  updateEmail(email: string) {
-    return this.http.put<string>(
-      `${Config.API_URL}/user/email`,
-      {
-        authToken: this.authToken(),
-        email
-      },
-      { responseType: 'text' as 'json' }
-    );
-  }
-
-  changePassword(payload: { currentPassword: string; newPassword: string }) {
-    return this.http.put(
-      `${Config.API_URL}/user/password`,
-      {
-        authToken: this.authToken(),
-        currentPassword: payload.currentPassword,
-        newPassword: payload.newPassword
-      },
-      { responseType: 'text' as 'json' }
-    );
-  }
-
-  uploadProfileImage(file: File) {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('authToken', this.authToken());
-
-    return this.http.post(`${Config.API_URL}/user/profile-image`, formData, {
-      responseType: 'text'
-    });
-  }
-
-  verifyEmail(token: string) {
-    return this.http.get(`${Config.API_URL}/user/verify-email`, {
-      params: { token },
-      responseType: 'text'
-    });
-  }
-
-  resendVerification(email: string, language: AppLanguage | null) {
-    return this.http.post(`${Config.API_URL}/user/email/resend-verification?language=${language}`, { email }, {
-      responseType: 'text'
-    });
-  }
-
-  forgotPassword(email: string) {
-    return this.http.post(`${Config.API_URL}/user/password/forgot`, { email }, {
-      responseType: 'text'
-    });
-  }
-
-  resetPassword(token: string, newPassword: string) {
-    return this.http.post(`${Config.API_URL}/user/password/reset`, {
-      token,
-      newPassword
-    }, {
-      responseType: 'text'
-    });
-  }
-
-  updateSubscription(subscriptionModel: 'FREE' | 'PRO' | 'ENTERPRISE') {
-    return this.http.put(`${Config.API_URL}/user/subscription`, {
-      authToken: this.authToken(),
-      subscriptionModel
-    }, {
-      responseType: 'text'
-    });
-  }
-
-  // endregion
-
   // region Notification
   /** Notification **/
   getMyNotifications(): Observable<NotificationDTO[]> {
@@ -405,6 +271,139 @@ export class HttpService {
   }
   // endregion
 
+  // region User
+  /** User **/
+  register(payload: {
+    username: string;
+    email: string;
+    password: string;
+    language?: 'de' | 'en' | null;
+    darkMode?: boolean | null;
+  }) {
+    return this.http.post<AuthResult>(`${Config.API_URL}/user/register`, payload);
+  }
+
+  getUserId() {
+    return this.http.post<string>(`${Config.API_URL}/user/id`, this.authToken());
+  }
+
+  getUser() {
+    return this.http.post<User>(`${Config.API_URL}/user`, this.authToken());
+  }
+
+  updateUserSettings(settings: UserSettings) {
+    return this.http.put(
+      `${Config.API_URL}/user/settings`,
+      {
+        authToken: this.authToken(),
+        settings
+      },
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  login(payload: {
+    email: string;
+    password: string;
+    language?: 'de' | 'en' | null;
+    darkMode?: boolean | null;
+  }) {
+    return this.http.post<AuthResult>(`${Config.API_URL}/user/login`, payload);
+  }
+
+  setUserLocked(userId: string, locked: boolean) {
+    return this.http.put(
+      `${Config.API_URL}/user/admin/${userId}/locked`,
+      {
+        authToken: this.authToken(),
+        locked
+      },
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  updateUsername(username: string) {
+    return this.http.put(
+      `${Config.API_URL}/user/username`,
+      {
+        authToken: this.authToken(),
+        username
+      },
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  updateEmail(email: string) {
+    return this.http.put<string>(
+      `${Config.API_URL}/user/email`,
+      {
+        authToken: this.authToken(),
+        email
+      },
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  changePassword(payload: { currentPassword: string; newPassword: string }) {
+    return this.http.put(
+      `${Config.API_URL}/user/password`,
+      {
+        authToken: this.authToken(),
+        currentPassword: payload.currentPassword,
+        newPassword: payload.newPassword
+      },
+      { responseType: 'text' as 'json' }
+    );
+  }
+
+  uploadProfileImage(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('authToken', this.authToken());
+
+    return this.http.post(`${Config.API_URL}/user/profile-image`, formData, {
+      responseType: 'text'
+    });
+  }
+
+  verifyEmail(token: string) {
+    return this.http.get(`${Config.API_URL}/user/verify-email`, {
+      params: { token },
+      responseType: 'text'
+    });
+  }
+
+  resendVerification(email: string, language: AppLanguage | null) {
+    return this.http.post(`${Config.API_URL}/user/email/resend-verification?language=${language}`, { email }, {
+      responseType: 'text'
+    });
+  }
+
+  forgotPassword(email: string) {
+    return this.http.post(`${Config.API_URL}/user/password/forgot`, { email }, {
+      responseType: 'text'
+    });
+  }
+
+  resetPassword(token: string, newPassword: string) {
+    return this.http.post(`${Config.API_URL}/user/password/reset`, {
+      token,
+      newPassword
+    }, {
+      responseType: 'text'
+    });
+  }
+
+  updateSubscription(subscriptionModel: 'FREE' | 'PRO' | 'ENTERPRISE') {
+    return this.http.put(`${Config.API_URL}/user/subscription`, {
+      authToken: this.authToken(),
+      subscriptionModel
+    }, {
+      responseType: 'text'
+    });
+  }
+
+  // endregion
 
 
 

@@ -14,14 +14,21 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @ApplicationScoped
 @Transactional
 public class SchoolRepository {
+    private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
+    private static final long MAX_PROFILE_IMAGE_SIZE = 2L * 1024L * 1024L;
+
     @Inject
     EntityManager em;
 
@@ -448,6 +455,46 @@ public class SchoolRepository {
         return Response.ok().build();
     }
 
+    public Response getCollectionLogo(UUID collectionId, UUID userId) {
+        String objectName = getSchoolUrl(collectionId);
+        if (objectName == null || objectName.isBlank()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        MediaStorageService.StoredImage image = mediaStorageService.loadImage(objectName);
+        if (image == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        return Response.ok(image.data()).type(image.contentType()).build();
+    }
+
+    public Response uploadCollectionLogo(UUID collectionId, UUID userId, FileUpload file) {
+        if (file == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("No file uploaded").build();
+        }
+
+
+        String contentType = file.contentType() == null ? "" : file.contentType().toLowerCase();
+        if (!ALLOWED_IMAGE_TYPES.contains(contentType)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Use JPG, PNG or WEBP.").build();
+        }
+        if (contentType == null || !contentType.startsWith("image/")) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Uploaded file must be an image").build();
+        }
+
+        try {
+            if (Files.size(file.uploadedFile()) > MAX_PROFILE_IMAGE_SIZE) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("File is too big. Max. 2 MB.").build();
+            }
+
+            String objectName = mediaStorageService.uploadSchoolLogo(collectionId, file.uploadedFile());
+            return updateCollectionLogo(collectionId, userId, objectName);
+        } catch (IOException e) {
+            return Response.serverError().entity("Logo upload failed").build();
+        }
+    }
+
 
 
     private String appendOptionalMessage(String baseMessage, String customMessage) {
@@ -455,7 +502,7 @@ public class SchoolRepository {
             return baseMessage;
         }
 
-        return baseMessage + "\n\nNachricht: " + customMessage.trim();
+        return baseMessage + "\n\nMessage: " + customMessage.trim();
     }
 
     public String getSchoolUrl(UUID id) {
@@ -466,8 +513,6 @@ public class SchoolRepository {
 
         return school.getLogoUrl();
     }
-
-
 
     private SchoolInviteDTO toSchoolInviteDTO(SchoolInvite invite) {
         return new SchoolInviteDTO(
