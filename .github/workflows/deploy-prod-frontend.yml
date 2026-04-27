@@ -37,6 +37,10 @@ jobs:
           echo "  buildVersion: 'prod-${{ github.run_number }}-${GITHUB_SHA::7}'," >> frontend/src/environments/version.ts
           echo "};" >> frontend/src/environments/version.ts
 
+      - name: Force prod Angular configuration in Dockerfile
+        run: |
+          sed -i 's/ARG CONFIGURATION=production/ARG CONFIGURATION=production/' frontend/Dockerfile
+          
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
         with:
