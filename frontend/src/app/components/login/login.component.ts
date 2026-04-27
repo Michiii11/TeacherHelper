@@ -192,6 +192,11 @@ export class LoginComponent implements OnInit {
       this.loginSuccess = result.success;
       this.loginMessage = this.translate.instant('auth.backend.AUTH_SUCCESS');
 
+      if(!result.success) {
+        this.loginMessage = this.translate.instant('auth.backend.' + result.code);
+      }
+
+
       this.snackBar.open(this.loginMessage, '', {
         duration: 3000,
         panelClass: result.success ? 'snack-success' : 'snack-error'
