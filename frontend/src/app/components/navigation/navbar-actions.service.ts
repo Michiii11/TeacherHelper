@@ -23,19 +23,27 @@ export class NavbarActionsService {
   readonly breadcrumbs$ = this.breadcrumbsSubject.asObservable();
 
   setActions(actions: NavbarAction[]): void {
-    this.actionsSubject.next(actions);
+    queueMicrotask(() => {
+      this.actionsSubject.next(actions ?? []);
+    });
   }
 
   clearActions(): void {
-    this.actionsSubject.next([]);
+    queueMicrotask(() => {
+      this.actionsSubject.next([]);
+    });
   }
 
   setBreadcrumbs(breadcrumbs: NavbarBreadcrumb[]): void {
-    this.breadcrumbsSubject.next(breadcrumbs);
+    queueMicrotask(() => {
+      this.breadcrumbsSubject.next(breadcrumbs ?? []);
+    });
   }
 
   clearBreadcrumbs(): void {
-    this.breadcrumbsSubject.next([]);
+    queueMicrotask(() => {
+      this.breadcrumbsSubject.next([]);
+    });
   }
 
   clearAll(): void {

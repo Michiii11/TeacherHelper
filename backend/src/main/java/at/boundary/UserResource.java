@@ -53,8 +53,9 @@ public class UserResource {
 
     @GET
     @Path("verify-email")
-    public Response verifyEmail(@HeaderParam("Authorization") String auth) {
-        return repository.verifyEmail(auth);
+    public Response verifyEmail(@QueryParam("token") String token) {
+        System.out.println(token);
+        return repository.verifyEmail(token);
     }
 
     @POST
@@ -126,7 +127,7 @@ public class UserResource {
                                    String username) {
         UUID userId = tokenFromDto(auth);
         if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED)                    .entity("Invalid token").build();
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }
 
         return repository.updateUsername(userId, username);
@@ -138,7 +139,7 @@ public class UserResource {
                                        String email) {
         UUID userId = tokenFromDto(auth);
         if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED)                    .entity("Invalid token").build();
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }
 
         return repository.requestEmailChange(userId, email);
@@ -149,7 +150,7 @@ public class UserResource {
     public Response cancelPendingEmailChange(@HeaderParam("Authorization") String auth) {
         UUID userId = tokenFromDto(auth);
         if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED)                    .entity("Invalid token").build();
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }
 
         return repository.cancelPendingEmailChange(userId);
@@ -161,7 +162,7 @@ public class UserResource {
                                    UserSettingsDTO settings) {
         UUID userId = tokenFromDto(auth);
         if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED)                    .entity("Invalid token").build();
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
         }
 
         return repository.updateUserSettings(userId, settings);
@@ -215,11 +216,11 @@ public class UserResource {
 
         User user = repository.findById(userId);
         if (user == null) {
-            return Response.status(Response.Status.NOT_FOUND)                    .entity("User not found").build();
+            return Response.status(Response.Status.NOT_FOUND).entity("User not found").build();
         }
 
         if(!user.isAdmin()){
-            return Response.status(Response.Status.FORBIDDEN)                    .entity("Access denied: Admins only").build();
+            return Response.status(Response.Status.FORBIDDEN).entity("Access denied: Admins only").build();
         }
 
         return repository.getAdminDashboard();

@@ -1022,7 +1022,35 @@
       "resetError": "Password could not be reset.",
       "enterRegisterEmailFirst": "Please enter an email first in the register tab.",
       "resendError": "Verification email could not be sent.",
-      "verifyError": "Email could not be verified."
+      "verifyError": "Email could not be verified.",
+      "success": "Action completed successfully.",
+      "error": "Action failed.",
+      "forgotSuccess": "If the email exists, a reset link has been sent.",
+      "resetSuccess": "Password was reset successfully.",
+      "resendSuccess": "Verification email was sent again.",
+      "verifySuccess": "Email was verified successfully."
+    },
+    "backend": {
+      "INVALID_DATA": "Please fill in all required fields.",
+      "INVALID_USERNAME": "Username must be between 3 and 40 characters.",
+      "INVALID_EMAIL": "Please enter a valid email address.",
+      "INVALID_PASSWORD": "Password must be at least 8 characters long.",
+      "USERNAME_TAKEN": "This username is already taken.",
+      "EMAIL_TAKEN": "This email address is already in use.",
+      "EMAIL_CONFIRMATION_REQUIRED": "Please confirm your email address to complete registration.",
+      "INVALID_CREDENTIALS": "Email or password is incorrect.",
+      "EMAIL_NOT_VERIFIED": "Please verify your email address first.",
+      "TOKEN_REQUIRED": "Token is required.",
+      "VERIFICATION_TOKEN_INVALID": "The verification link is invalid.",
+      "VERIFICATION_TOKEN_EXPIRED": "The verification link has expired.",
+      "EMAIL_REQUIRED": "Email is required.",
+      "EMAIL_NOT_FOUND": "This email address was not found.",
+      "EMAIL_ALREADY_VERIFIED": "This email address is already verified.",
+      "USER_NOT_FOUND": "User was not found.",
+      "NEW_PASSWORD_REQUIRED": "New password is required.",
+      "PASSWORD_RESET_TOKEN_INVALID": "The reset link is invalid.",
+      "PASSWORD_RESET_TOKEN_EXPIRED": "The reset link has expired.",
+      "AUTH_SUCCESS": "Login successful"
     }
   }
 }

@@ -116,7 +116,7 @@ export class LoginComponent implements OnInit {
       const resetToken = params.get('resetToken');
 
       if (verifyToken) {
-        this.handleVerifyEmail();
+        this.handleVerifyEmail(verifyToken);
       }
 
       if (resetToken) {
@@ -189,11 +189,10 @@ export class LoginComponent implements OnInit {
     };
 
     this.http.login(payload).subscribe((result: AuthResult) => {
-      console.log(result)
       this.loginSuccess = result.success;
-      this.loginMessage = result.message;
+      this.loginMessage = this.translate.instant('auth.backend.AUTH_SUCCESS');
 
-      this.snackBar.open(result.message, '', {
+      this.snackBar.open(this.loginMessage, '', {
         duration: 3000,
         panelClass: result.success ? 'snack-success' : 'snack-error'
       });
@@ -232,9 +231,9 @@ export class LoginComponent implements OnInit {
 
     this.http.register(payload).subscribe((result: AuthResult) => {
       this.registerSuccess = result.success;
-      this.registerMessage = result.message;
+      this.registerMessage = this.translateAuthResult(result);
 
-      this.snackBar.open(result.message, '', {
+      this.snackBar.open(this.registerMessage, '', {
         duration: 3500,
         panelClass: result.success ? 'snack-success' : 'snack-error'
       });
@@ -269,13 +268,13 @@ export class LoginComponent implements OnInit {
     }
 
     this.http.forgotPassword(this.forgotForm.value.email, this.languageService.getStoredLanguage()).subscribe({
-      next: (message: string) => {
+      next: () => {
         this.forgotSuccess = true;
-        this.forgotMessage = message;
-        this.snackBar.open(message, '', { duration: 3500, panelClass: 'snack-success' });
+        this.forgotMessage = this.translate.instant('auth.messages.forgotSuccess');
+        this.snackBar.open(this.forgotMessage, '', { duration: 3500, panelClass: 'snack-success' });
       },
       error: (err) => {
-        const message = typeof err?.error === 'string' ? err.error : this.translate.instant('auth.messages.forgotError');
+        const message = this.translateHttpError(err, 'auth.messages.forgotError');
         this.forgotSuccess = false;
         this.forgotMessage = message;
         this.snackBar.open(message, '', { duration: 3500, panelClass: 'snack-error' });
@@ -302,11 +301,11 @@ export class LoginComponent implements OnInit {
     const hashedPassword = CryptoJS.SHA256(password).toString();
 
     this.http.resetPassword(this.resetToken, hashedPassword).subscribe({
-      next: (message: string) => {
+      next: () => {
         this.resetSuccess = true;
-        this.resetMessage = message;
+        this.resetMessage = this.translate.instant('auth.messages.resetSuccess');
 
-        this.snackBar.open(message, '', {
+        this.snackBar.open(this.resetMessage, '', {
           duration: 3500,
           panelClass: 'snack-success'
         });
@@ -325,7 +324,7 @@ export class LoginComponent implements OnInit {
         });
       },
       error: (err) => {
-        const message = typeof err?.error === 'string' ? err.error : this.translate.instant('auth.messages.resetError');
+        const message = this.translateHttpError(err, 'auth.messages.resetError');
         this.resetSuccess = false;
         this.resetMessage = message;
         this.snackBar.open(message, '', { duration: 3500, panelClass: 'snack-error' });
@@ -345,22 +344,24 @@ export class LoginComponent implements OnInit {
     }
 
     this.http.resendVerification(email, this.languageService.getStoredLanguage()).subscribe({
-      next: (message: string) => {
+      next: () => {
+        const message = this.translate.instant('auth.messages.resendSuccess');
         this.snackBar.open(message, '', { duration: 3500, panelClass: 'snack-success' });
       },
       error: (err) => {
-        const message = typeof err?.error === 'string' ? err.error : this.translate.instant('auth.messages.resendError');
+        const message = this.translateHttpError(err, 'auth.messages.resendError');
         this.snackBar.open(message, '', { duration: 3500, panelClass: 'snack-error' });
       }
     });
   }
 
-  private handleVerifyEmail(): void {
+  private handleVerifyEmail(token: string): void {
     this.verifying = true;
 
-    this.http.verifyEmail().subscribe({
-      next: (message: string) => {
+    this.http.verifyEmail(token).subscribe({
+      next: () => {
         this.verifying = false;
+        const message = this.translate.instant('auth.messages.verifySuccess');
         this.snackBar.open(message, '', { duration: 3500, panelClass: 'snack-success' });
         this.router.navigate([], {
           queryParams: { verifyToken: null },
@@ -369,7 +370,7 @@ export class LoginComponent implements OnInit {
       },
       error: (err) => {
         this.verifying = false;
-        const message = typeof err?.error === 'string' ? err.error : this.translate.instant('auth.messages.verifyError');
+        const message = this.translateHttpError(err, 'auth.messages.verifyError');
         this.snackBar.open(message, '', { duration: 3500, panelClass: 'snack-error' });
         this.router.navigate([], {
           queryParams: { verifyToken: null },
@@ -377,6 +378,85 @@ export class LoginComponent implements OnInit {
         });
       }
     });
+  }
+
+
+  private translateAuthResult(result: AuthResult): string {
+    const code = result?.code?.trim();
+
+    if (code) {
+      const translated = this.translate.instant(`auth.backend.${code}`);
+      if (translated !== `auth.backend.${code}`) {
+        return translated;
+      }
+    }
+
+    return this.translateBackendText(result?.message, result?.success ? 'auth.messages.success' : 'auth.messages.error');
+  }
+
+  private translateHttpError(err: any, fallbackKey: string): string {
+    return this.translateBackendText(this.extractBackendError(err), fallbackKey);
+  }
+
+  private extractBackendError(err: any): string | null {
+    if (typeof err?.error === 'string') {
+      return err.error;
+    }
+
+    if (typeof err?.error?.message === 'string') {
+      return err.error.message;
+    }
+
+    if (typeof err?.message === 'string') {
+      return err.message;
+    }
+
+    return null;
+  }
+
+  private translateBackendText(message: string | null | undefined, fallbackKey: string): string {
+    const normalized = (message ?? '').trim();
+
+    if (!normalized) {
+      return this.translate.instant(fallbackKey);
+    }
+
+    const directKey = `auth.backend.${normalized}`;
+    const directTranslation = this.translate.instant(directKey);
+    if (directTranslation !== directKey) {
+      return directTranslation;
+    }
+
+    const mappedKey = this.backendMessageKey(normalized);
+    return mappedKey ? this.translate.instant(mappedKey) : normalized;
+  }
+
+  private backendMessageKey(message: string): string | null {
+    const map: Record<string, string> = {
+      'username, mail and password are required.': 'auth.backend.INVALID_DATA',
+      'email and password are required.': 'auth.backend.INVALID_DATA',
+      'username must be between 3 and 40 characters.': 'auth.backend.INVALID_USERNAME',
+      'please enter a valid email address.': 'auth.backend.INVALID_EMAIL',
+      'email is too long.': 'auth.backend.INVALID_EMAIL',
+      'password must be at least 8 characters long.': 'auth.backend.INVALID_PASSWORD',
+      'new password must be at least 8 characters long.': 'auth.backend.INVALID_PASSWORD',
+      'username already exists.': 'auth.backend.USERNAME_TAKEN',
+      'email already exists.': 'auth.backend.EMAIL_TAKEN',
+      'invalid credentials.': 'auth.backend.INVALID_CREDENTIALS',
+      'email is not verified.': 'auth.backend.EMAIL_NOT_VERIFIED',
+      'token is required.': 'auth.backend.TOKEN_REQUIRED',
+      'verification token is invalid.': 'auth.backend.VERIFICATION_TOKEN_INVALID',
+      'verification token expired.': 'auth.backend.VERIFICATION_TOKEN_EXPIRED',
+      'email is required.': 'auth.backend.EMAIL_REQUIRED',
+      'email not found.': 'auth.backend.EMAIL_NOT_FOUND',
+      'email is already verified.': 'auth.backend.EMAIL_ALREADY_VERIFIED',
+      'user not found.': 'auth.backend.USER_NOT_FOUND',
+      'new password is required.': 'auth.backend.NEW_PASSWORD_REQUIRED',
+      'invalid password reset token.': 'auth.backend.PASSWORD_RESET_TOKEN_INVALID',
+      'password reset token expired.': 'auth.backend.PASSWORD_RESET_TOKEN_EXPIRED'
+    };
+
+    return map[message.trim().toLowerCase()] ?? null;
   }
 
   private applyResolvedPreferences(user: User): void {

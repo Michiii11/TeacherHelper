@@ -66,34 +66,34 @@ public class UserRepository {
         if (dto == null || dto.username() == null || dto.username().isBlank()
                 || dto.email() == null || dto.email().isBlank()
                 || dto.password() == null || dto.password().isBlank()) {
-            return AuthResult.failure("INVALID_DATA", "Username, mail and password are required.");
+            return AuthResult.failure("INVALID_DATA");
         }
 
         String username = dto.username().trim();
         String email = dto.email().trim().toLowerCase();
 
         if (username.length() < 3 || username.length() > 40) {
-            return AuthResult.failure("INVALID_USERNAME", "Username must be between 3 and 40 characters.");
+            return AuthResult.failure("INVALID_USERNAME");
         }
 
         if (!isValidEmail(email)) {
-            return AuthResult.failure("INVALID_EMAIL", "Please enter a valid email address.");
+            return AuthResult.failure("INVALID_EMAIL");
         }
 
         if (email.length() > 120) {
-            return AuthResult.failure("INVALID_EMAIL", "Email is too long.");
+            return AuthResult.failure("INVALID_EMAIL");
         }
 
         if (dto.password().length() < 8) {
-            return AuthResult.failure("INVALID_PASSWORD", "Password must be at least 8 characters long.");
+            return AuthResult.failure("INVALID_PASSWORD");
         }
 
         if (findByUsername(username) != null) {
-            return AuthResult.failure("USERNAME_TAKEN", "Username already exists.");
+            return AuthResult.failure("USERNAME_TAKEN");
         }
 
         if (findByEmail(email) != null) {
-            return AuthResult.failure("EMAIL_TAKEN", "Email already exists.");
+            return AuthResult.failure("EMAIL_TAKEN");
         }
 
         String hashed = BCrypt.hashpw(dto.password(), BCrypt.gensalt());
@@ -122,21 +122,21 @@ public class UserRepository {
     public AuthResult login(LoginDTO dto) {
         if (dto == null || dto.email() == null || dto.email().isBlank()
                 || dto.password() == null || dto.password().isBlank()) {
-            return AuthResult.failure("INVALID_DATA", "Email and password are required.");
+            return AuthResult.failure("INVALID_DATA");
         }
 
         User user = findByEmail(dto.email());
         if (user == null) {
-            return AuthResult.failure("INVALID_CREDENTIALS", "Invalid credentials.");
+            return AuthResult.failure("INVALID_CREDENTIALS");
         }
 
         boolean ok = BCrypt.checkpw(dto.password(), user.getPassword());
         if (!ok) {
-            return AuthResult.failure("INVALID_CREDENTIALS", "Invalid credentials.");
+            return AuthResult.failure("INVALID_CREDENTIALS");
         }
 
         if (!user.isEmailVerified()) {
-            return AuthResult.failure("EMAIL_NOT_VERIFIED", "Email is not verified.");
+            return AuthResult.failure("EMAIL_NOT_VERIFIED");
         }
 
         String token = tokenService.createToken(user.getId());

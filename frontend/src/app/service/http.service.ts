@@ -35,7 +35,7 @@ export class HttpService {
   /** Collection **/
   getYourCollections() {
     return this.http.get<SchoolDTO[]>(`${Config.API_URL}/school/your-collections`,
-    { headers: { Authorization: this.authToken() }});
+      { headers: { Authorization: this.authToken() }});
   }
 
   getCollectionById(collectionId: string) {
@@ -292,14 +292,15 @@ export class HttpService {
     return this.http.post<AuthResult>(`${Config.API_URL}/user/login`, payload);
   }
 
-  verifyEmail() {
-    return this.http.get(`${Config.API_URL}/user/verify-email`,
-      { headers: { Authorization: this.authToken() }, responseType: 'text'});
+  verifyEmail(token: string) {
+    return this.http.get(`${Config.API_URL}/user/verify-email?token=${encodeURIComponent(token)}`,
+      { responseType: 'text' });
   }
 
   resendVerification(email: string, language: AppLanguage | null) {
-    return this.http.post(`${Config.API_URL}/user/email/resend-verification`,
-      { email, language }, {responseType: 'text' });
+    const lang = language ? `?language=${encodeURIComponent(language)}` : '';
+    return this.http.post(`${Config.API_URL}/user/email/resend-verification${lang}`,
+      { email }, { responseType: 'text' });
   }
 
   getUserId() {

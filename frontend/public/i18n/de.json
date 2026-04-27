@@ -1014,7 +1014,35 @@
       "resetError": "Passwort konnte nicht zurückgesetzt werden.",
       "enterRegisterEmailFirst": "Bitte zuerst im Registrieren-Tab eine E-Mail eingeben.",
       "resendError": "Bestätigungs-Mail konnte nicht gesendet werden.",
-      "verifyError": "E-Mail konnte nicht bestätigt werden."
+      "verifyError": "E-Mail konnte nicht bestätigt werden.",
+      "success": "Aktion erfolgreich ausgeführt.",
+      "error": "Aktion fehlgeschlagen.",
+      "forgotSuccess": "Falls die E-Mail existiert, wurde ein Reset-Link gesendet.",
+      "resetSuccess": "Passwort wurde erfolgreich zurückgesetzt.",
+      "resendSuccess": "Bestätigungs-Mail wurde erneut gesendet.",
+      "verifySuccess": "E-Mail wurde erfolgreich bestätigt."
+    },
+    "backend": {
+      "INVALID_DATA": "Bitte fülle alle erforderlichen Felder aus.",
+      "INVALID_USERNAME": "Der Benutzername muss zwischen 3 und 40 Zeichen lang sein.",
+      "INVALID_EMAIL": "Bitte gib eine gültige E-Mail-Adresse ein.",
+      "INVALID_PASSWORD": "Das Passwort muss mindestens 8 Zeichen lang sein.",
+      "USERNAME_TAKEN": "Dieser Benutzername ist bereits vergeben.",
+      "EMAIL_TAKEN": "Diese E-Mail-Adresse wird bereits verwendet.",
+      "EMAIL_CONFIRMATION_REQUIRED": "Bitte bestätige deine E-Mail-Adresse, um die Registrierung abzuschließen.",
+      "INVALID_CREDENTIALS": "E-Mail oder Passwort ist falsch.",
+      "EMAIL_NOT_VERIFIED": "Bitte bestätige zuerst deine E-Mail-Adresse.",
+      "TOKEN_REQUIRED": "Token ist erforderlich.",
+      "VERIFICATION_TOKEN_INVALID": "Der Bestätigungslink ist ungültig.",
+      "VERIFICATION_TOKEN_EXPIRED": "Der Bestätigungslink ist abgelaufen.",
+      "EMAIL_REQUIRED": "E-Mail ist erforderlich.",
+      "EMAIL_NOT_FOUND": "Diese E-Mail-Adresse wurde nicht gefunden.",
+      "EMAIL_ALREADY_VERIFIED": "Diese E-Mail-Adresse ist bereits bestätigt.",
+      "USER_NOT_FOUND": "Benutzer wurde nicht gefunden.",
+      "NEW_PASSWORD_REQUIRED": "Neues Passwort ist erforderlich.",
+      "PASSWORD_RESET_TOKEN_INVALID": "Der Reset-Link ist ungültig.",
+      "PASSWORD_RESET_TOKEN_EXPIRED": "Der Reset-Link ist abgelaufen.",
+      "AUTH_SUCCESS": "Login erfolgreich"
     }
   }
 }
