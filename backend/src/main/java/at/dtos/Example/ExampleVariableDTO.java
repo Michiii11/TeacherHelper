@@ -1,7 +1,9 @@
 package at.dtos.Example;
 
+import java.util.UUID;
+
 public record ExampleVariableDTO(
-        String id,
+        UUID id,
         String key,
         String defaultValue
 ) {

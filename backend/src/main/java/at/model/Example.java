@@ -11,18 +11,28 @@ import at.model.helper.Option;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 public class Example {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    private UUID id;
 
     @ManyToOne
     private User admin;
+
+    @ManyToOne
+    private School school;
+
+    @ManyToOne
+    @JoinColumn(name = "folder_id")
+    private Folder folder;
 
     @Enumerated(EnumType.STRING)
     private ExampleTypes type;
@@ -30,8 +40,8 @@ public class Example {
     private String instruction;
     private String question;
     private String solution;
-    private String solutionUrl;
     private String imageUrl;
+    private String solutionUrl;
 
     private Integer imageWidth;
     private Integer solutionImageWidth;
@@ -48,9 +58,6 @@ public class Example {
     @CollectionTable(name = "example_variables", joinColumns = @JoinColumn(name = "example_id"))
     @OrderColumn(name = "variable_order")
     private List<ExampleVariable> variables = new ArrayList<>();
-
-    @ManyToOne
-    private School school;
 
     @ElementCollection
     @CollectionTable(name = "example_answers", joinColumns = @JoinColumn(name = "example_id"))
@@ -75,16 +82,12 @@ public class Example {
     @Column(name = "right_item")
     private List<String> assignRightItems = new ArrayList<>();
 
-    @ManyToOne
-    @JoinColumn(name = "folder_id")
-    private ExampleFolder folder;
-
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public Example() {
-        createdAt = new Timestamp(System.currentTimeMillis());
-        updatedAt = new Timestamp(System.currentTimeMillis());
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
     public Example(User admin, ExampleTypes type, String instruction, String question, String solution, School school) {
@@ -96,8 +99,50 @@ public class Example {
         this.school = school;
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    @Override
+    public String toString() {
+        return "Example{" +
+                "id=" + id +
+                ", admin=" + admin +
+                ", school=" + school +
+                ", folder=" + folder +
+                ", type=" + type +
+                ", instruction='" + instruction + '\'' +
+                ", question='" + question + '\'' +
+                ", solution='" + solution + '\'' +
+                ", solutionUrl='" + solutionUrl + '\'' +
+                ", imageUrl='" + imageUrl + '\'' +
+                ", imageWidth=" + imageWidth +
+                ", solutionImageWidth=" + solutionImageWidth +
+                ", focusList=" + focusList +
+                ", variables=" + variables +
+                ", answers=" + answers +
+                ", options=" + options +
+                ", gapFillType=" + gapFillType +
+                ", gaps=" + gaps +
+                ", assigns=" + assigns +
+                ", assignRightItems=" + assignRightItems +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
+    }
+
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
     public User getAdmin() { return admin; }
     public void setAdmin(User admin) { this.admin = admin; }
     public ExampleTypes getType() { return type; }
@@ -141,10 +186,13 @@ public class Example {
     public void setAssignRightItems(List<String> assignRightItems) { this.assignRightItems = assignRightItems; }
     public School getSchool() { return school; }
     public void setSchool(School school) { this.school = school; }
-    public ExampleFolder getFolder() { return folder; }
-    public void setFolder(ExampleFolder folder) { this.folder = folder; }
-    public Timestamp getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
-    public Timestamp getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
+    public Folder getFolder() { return folder; }
+    public void setFolder(Folder folder) { this.folder = folder; }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
 }

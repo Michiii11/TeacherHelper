@@ -2,10 +2,12 @@
   min-height: 100vh;
   display: grid;
   place-items: center;
+  padding: 1.5rem;
+  box-sizing: border-box;
 }
 
 .auth-card {
-  width: min(100%, 520px);
+  width: min(100%, 560px);
   border-radius: 28px !important;
   background: var(--bg) !important;
   border: 1px solid var(--border);
@@ -17,22 +19,14 @@
   padding: 1.75rem 1.75rem 1rem;
   text-align: center;
 
-  img{
-    width: 70%;
+  img {
+    width: min(72%, 320px);
+    max-width: 100%;
   }
 }
 
-.auth-header h2 {
-  margin: 0;
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--text);
-}
-
-.auth-header p {
-  margin: 0.45rem 0 0;
-  color: var(--text-soft);
-  font-size: 0.98rem;
+.auth-status {
+  margin: 0 1.25rem 1rem;
 }
 
 .auth-form {
@@ -179,7 +173,30 @@ button[type="submit"][mat-raised-button] {
   box-shadow: 0 4px 14px var(--theme-primary-soft) !important;
 }
 
-.mat-mdc-raised-button:disabled{
+.mat-mdc-raised-button:disabled {
   background: var(--bg-soft) !important;
   color: var(--text) !important;
+}
+
+.auth-preferences{
+  display: flex;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  :host {
+    padding: 1rem;
+  }
+
+  .auth-preferences {
+    flex-direction: column;
+  }
+
+  .forgot-actions {
+    flex-direction: column;
+  }
+
+  .forgot-actions button {
+    width: 100%;
+  }
 }

@@ -1,17 +1,21 @@
 package at.model;
 
+import at.dtos.School.SchoolDTO;
 import at.dtos.User.UserDTO;
 import at.model.helper.Focus;
 import jakarta.persistence.*;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 public class School {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    private UUID id;
 
     @Column(nullable = false, unique = true)
     private String name;
@@ -34,12 +38,31 @@ public class School {
     @OneToMany
     private List<Focus> focusList;
 
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
     public School() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
     public School(String name, User admin) {
         this.name = name;
         this.admin = admin;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void addUser(User user) {
@@ -48,15 +71,23 @@ public class School {
         }
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
     public void removeUser(User user) {
         users.remove(user);
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -105,5 +136,16 @@ public class School {
 
     public void setFocusList(List<Focus> focusList) {
         this.focusList = focusList;
+    }
+
+    public SchoolDTO toSchoolDTO() {
+        return new SchoolDTO(
+                this.getId(),
+                this.getName(),
+                this.getLogoUrl(),
+                this.getAdminDTO(),
+                this.getUsers().size(),
+                this.getUsers().stream().map(User::toUserDTO).toList()
+        );
     }
 }

@@ -1,7 +1,7 @@
 import {User, UserDTO} from './User'
 
 export interface School {
-  id: number;
+  id: string;
   name: string;
   admin: User;
   users: User[];
@@ -9,7 +9,7 @@ export interface School {
 }
 
 export interface SchoolDTO {
-  id: number;
+  id: string;
   name: string;
   admin: UserDTO;
   exampleCount: number;
@@ -18,7 +18,7 @@ export interface SchoolDTO {
 }
 
 export interface SchoolInviteDTO {
-  id: number;
+  id: string;
   school: SchoolDTO;
   sender: UserDTO;
   recipient: UserDTO;
@@ -38,30 +38,4 @@ export enum SchoolInviteStatus {
   PENDING = 'PENDING',
   ACCEPTED = 'ACCEPTED',
   DECLINED = 'DECLINED',
-}
-
-export interface CreateSchoolInviteDTO {
-  authToken: string;
-  teacherId: number;
-  message: string;
-}
-
-export interface RespondSchoolInviteDTO {
-  authToken: string;
-  accept: boolean;
-}
-
-export interface ChangeLog {
-  id: number;
-  entityType: string;
-  entityId: number;
-  action: string;
-  user: User;
-  school: School;
-  createdAt: Date;
-}
-
-export interface LastActivityDTO {
-  username: string;
-  createdAt: Date;
 }

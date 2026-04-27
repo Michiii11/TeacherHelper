@@ -1,74 +1,106 @@
-import {Component, inject, OnInit} from '@angular/core';
-import {MatButton} from '@angular/material/button'
-import {MatDialog} from '@angular/material/dialog'
-import {AddSchoolDialogComponent} from '../../dialog/add-school-dialog/add-school-dialog.component'
-import {SchoolDTO} from '../../model/School'
-import {HttpService} from '../../service/http.service'
-import {MatCard} from '@angular/material/card'
-import {MatFormField, MatInput, MatLabel} from '@angular/material/input'
-import {FormsModule} from '@angular/forms'
-import {NgForOf, NgIf} from '@angular/common'
-import {Router} from '@angular/router'
-import {MatIcon} from '@angular/material/icon'
-import {MatSnackBar} from '@angular/material/snack-bar'
-import {TranslatePipe} from '@ngx-translate/core'
-import {FolderNameDialogComponent} from '../../dialog/folder-name-dialog/folder-name-dialog.component'
+import {Component, inject, OnDestroy, OnInit} from '@angular/core';
+import { MatButton } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
+import { AddSchoolDialogComponent } from '../../dialog/add-school-dialog/add-school-dialog.component';
+import { SchoolDTO } from '../../model/School';
+import { HttpService } from '../../service/http.service';
+import { MatCard } from '@angular/material/card';
+import { FormsModule } from '@angular/forms';
+import {NgClass, NgForOf, NgIf} from '@angular/common';
+import { Router } from '@angular/router';
+import { MatIcon } from '@angular/material/icon';
+import { TranslatePipe } from '@ngx-translate/core';
+import { NavbarActionsService } from '../navigation/navbar-actions.service';
 
 @Component({
   selector: 'app-home',
   imports: [
-    MatButton,
     MatCard,
     FormsModule,
     NgForOf,
     MatIcon,
     NgIf,
-    TranslatePipe
+    TranslatePipe,
+    NgClass
   ],
   templateUrl: './home.component.html',
   standalone: true,
   styleUrl: './home.component.scss'
 })
-export class HomeComponent implements OnInit{
-  adminSchools: SchoolDTO[] = [];
-  memberSchools: SchoolDTO[] = [];
-  allOtherSchools: SchoolDTO[] = [];
-  otherSchools: SchoolDTO[] = [];
+export class HomeComponent implements OnInit, OnDestroy {
+  schools: SchoolDTO[] = [];
+  userId = '';
+  navbarService = inject(NavbarActionsService)
 
-  userId: number = 0;
+  constructor(
+    private dialog: MatDialog,
+    private http: HttpService,
+    private router: Router,
+    private navbarActions: NavbarActionsService
+  ) {}
 
-  constructor(private dialog: MatDialog, private http: HttpService, private router: Router) {}
-
-  ngOnInit() {
+  ngOnInit(): void {
+    this.setNavbarActions();
     this.loadSchools();
+
+    this.navbarService.getReloadSchools().subscribe(() => {
+      this.loadSchools();
+    });
   }
 
-  loadSchools() {
-    this.http.getYourSchools().subscribe((schools: SchoolDTO[]) => {
-      this.http.getUserId().subscribe((id: number) => {
+  ngOnDestroy(): void {
+    this.navbarActions.clearAll();
+    Object.values(this.logoUrls).forEach(url => URL.revokeObjectURL(url));
+  }
+
+  private setNavbarActions(): void {
+    this.navbarActions.setBreadcrumbs([
+      {
+        labelKey: 'navbar.home',
+        route: ['/home']
+      }
+    ]);
+
+    this.navbarActions.setActions([
+      {
+        labelKey: 'home.createSchool',
+        icon: 'add_circle',
+        variant: 'flat',
+        action: () => this.openCreateDialog()
+      }
+    ]);
+  }
+
+  loadSchools(): void {
+    this.http.getYourCollections().subscribe((schools: SchoolDTO[]) => {
+      this.http.getUserId().subscribe((id: string) => {
         this.userId = id;
 
-        this.adminSchools = schools.filter((school) => this.isAdminSchool(school, this.userId));
-        this.memberSchools = schools.filter((school) => !this.isAdminSchool(school, this.userId));
+        this.schools = [...schools].sort((a, b) => {
+          const aIsAdmin = this.isAdminSchool(a, this.userId);
+          const bIsAdmin = this.isAdminSchool(b, this.userId);
 
-        this.http.getSchools().subscribe((allSchools: SchoolDTO[]) => {
-          this.allOtherSchools = allSchools.filter(
-            school => !schools.some(yourSchool => yourSchool.id === school.id)
-          );
-          this.otherSchools = [...this.allOtherSchools];
-        })
-      })
-    })
+          if (aIsAdmin !== bIsAdmin) {
+            return aIsAdmin ? -1 : 1;
+          }
+
+          return a.name.localeCompare(b.name);
+        });
+
+        this.schools.forEach(s => this.loadLogo(s));
+      });
+    });
   }
 
-  openCreateDialog() {
+  openCreateDialog(): void {
     const dialogRef = this.dialog.open(AddSchoolDialogComponent, {
       width: 'min(92vw, 500px)',
       maxWidth: '92vw',
     });
+
     dialogRef.afterClosed().subscribe(schoolName => {
       if (schoolName) {
-        this.http.addSchool(schoolName).subscribe({
+        this.http.addCollection(schoolName).subscribe({
           next: () => {
             this.loadSchools();
           },
@@ -80,7 +112,7 @@ export class HomeComponent implements OnInit{
     });
   }
 
-  openSchool(school: SchoolDTO) {
+  openSchool(school: SchoolDTO): void {
     this.router.navigate(['/collection', school.id]);
   }
 
@@ -95,18 +127,41 @@ export class HomeComponent implements OnInit{
       .join('');
   }
 
-  getSchoolRoleLabel(type: 'admin' | 'member'): string {
-    return type === 'admin' ? 'Admin' : 'Mitglied';
+  getSchoolRoleLabel(school: SchoolDTO): string {
+    return this.isAdminSchool(school, this.userId) ? 'Admin' : 'Mitglied';
   }
 
-  private isAdminSchool(school: SchoolDTO, userId: number): boolean {
+  getRoleBadgeClass(school: SchoolDTO): string {
+    return this.isAdminSchool(school, this.userId) ? 'admin-badge' : 'member-badge';
+  }
+
+  getAvatarClass(school: SchoolDTO): string {
+    return this.isAdminSchool(school, this.userId) ? 'school-avatar' : 'school-avatar member-avatar';
+  }
+
+  getCardClass(school: SchoolDTO): string {
+    return this.isAdminSchool(school, this.userId) ? 'school-card admin-card' : 'school-card member-card';
+  }
+
+  private isAdminSchool(school: SchoolDTO, userId: string): boolean {
     if (!school?.admin) return false;
     if (!userId) return false;
 
     return school.admin.id === userId;
   }
 
-  protected getSchoolLogoUrl(school: SchoolDTO) {
-    return  this.http.getSchoolLogo(school, school.id.toString());
+  logoUrls: Record<string, string> = {};
+  loadLogo(school: SchoolDTO) {
+    if (!school.logoUrl) return;
+
+    this.http.getCollectionLogo(school.id).subscribe({
+      next: (blob) => {
+        console.log(blob)
+        this.logoUrls[school.id] = URL.createObjectURL(blob);
+      },
+      error: () => {
+        this.logoUrls[school.id] = '';
+      }
+    });
   }
 }

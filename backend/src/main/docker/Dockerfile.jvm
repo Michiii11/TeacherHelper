@@ -63,7 +63,7 @@
 #   (example: "20")
 # - GC_MAX_HEAP_FREE_RATIO: Maximum percentage of heap free after GC to avoid shrinking.
 #   (example: "40")
-# - GC_TIME_RATIO: Specifies the ratio of the time spent outside the garbage collection.
+# - GC_TIME_RATIO: Specifies the ratio of the time spent outside the garbage school.
 #   (example: "4")
 # - GC_ADAPTIVE_SIZE_POLICY_WEIGHT: The weighting given to the current GC time versus
 #   previous GC times. (example: "90")

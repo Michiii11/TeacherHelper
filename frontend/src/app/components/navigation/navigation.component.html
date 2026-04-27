@@ -2,21 +2,78 @@
   <mat-toolbar class="navbar">
     <div class="navbar-container">
       <div class="navbar-left">
-        <img [src]="getLogo()" alt="">
+        <button mat-icon-button routerLink="/home">
+          <mat-icon>home</mat-icon>
+        </button>
+
+        @for (crumb of breadcrumbs; track crumb.route || crumb.labelKey || crumb.label || $index; let last = $last) {
+          <div>/</div>
+
+          <a
+            mat-button
+            [routerLink]="crumb.route"
+            routerLinkActive="active-link"
+            [routerLinkActiveOptions]="{ exact: true }">
+            {{ crumb.labelKey ? (crumb.labelKey | translate) : crumb.label }}
+          </a>
+        }
       </div>
 
       <nav class="navbar-right">
-        <a mat-button routerLink="/home" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
-          {{ 'navbar.home' | translate }}
-        </a>
+        <div class="navbar-page-actions">
+          @for (action of navbarActions; track action.labelKey || action.label || $index) {
+            @if (action.variant === 'icon') {
+              <button
+                mat-icon-button
+                type="button"
+                class="navbar-action-btn"
+                [disabled]="!!action.disabled"
+                (click)="action.action()"
+              >
+                <mat-icon>{{ action.icon }}</mat-icon>
+              </button>
+            } @else if (action.variant === 'stroked') {
+              <button
+                mat-stroked-button
+                type="button"
+                class="navbar-action-btn"
+                [disabled]="!!action.disabled"
+                (click)="action.action()"
+              >
+                @if (action.icon) {
+                  <mat-icon>{{ action.icon }}</mat-icon>
+                }
+                {{ action.labelKey ? (action.labelKey | translate) : action.label }}
+              </button>
+            } @else {
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                class="navbar-action-btn"
+                [disabled]="!!action.disabled"
+                (click)="action.action()"
+              >
+                @if (action.icon) {
+                  <mat-icon>{{ action.icon }}</mat-icon>
+                }
+                {{ action.labelKey ? (action.labelKey | translate) : action.label }}
+              </button>
+            }
+          }
+        </div>
 
-        <a mat-button routerLink="/collection" routerLinkActive="active-link" (click)="goToSchool()">
-          {{ 'navbar.school' | translate }}
-        </a>
+        <mat-divider class="navbar-divider" [vertical]="true"></mat-divider>
 
-        <a mat-button routerLink="/help" routerLinkActive="active-link">
-          {{ 'navbar.help' | translate }}
-        </a>
+        <button mat-icon-button class="icon-btn" routerLink="/help">
+          <mat-icon>help</mat-icon>
+        </button>
+
+        @if (adminVisible) {
+          <button mat-icon-button class="icon-btn" routerLink="/admin">
+            <mat-icon>dashboard</mat-icon>
+          </button>
+        }
 
         <button mat-icon-button class="icon-btn notif-trigger" [matMenuTriggerFor]="notifMenu">
           <mat-icon>notifications</mat-icon>
@@ -174,7 +231,7 @@
                 <div class="notif-main">
                   <div class="notif-title-row">
                     <div class="notif-title-wrap">
-                      <div class="notif-title">{{ n.title }}</div>
+                      <div class="notif-title">{{ getNotificationTitle(n) }}</div>
 
                       @if (getMetaLine(n)) {
                         <div class="notif-meta">{{ getMetaLine(n) }}</div>
@@ -182,11 +239,11 @@
                     </div>
 
                     <div class="notif-title-actions">
-                      <div class="notif-type-badge">{{ getNotificationBadge(n) }}</div>
+                      <div class="notif-type-badge">{{ getBadgeLabel(n.type) }}</div>
                     </div>
                   </div>
 
-                  <div class="notif-message">{{ n.message }}</div>
+                  <div class="notif-message">{{getNotificationMessage(n)}}</div>
 
                   <div class="notif-footer-row">
                     <div class="notif-date">{{ n.createdAt | date:'dd.MM.yyyy • HH:mm' }}</div>

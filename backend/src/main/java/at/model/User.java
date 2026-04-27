@@ -5,14 +5,16 @@ import at.enums.SubscriptionModel;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "app_user")
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    private UUID id;
 
     @Column(nullable = false, unique = true, length = 40)
     private String username;
@@ -49,13 +51,23 @@ public class User {
     private LocalDateTime passwordResetExpiresAt;
 
     @Column(name = "allow_invitations", nullable = false)
-    private boolean allowInvitations = true;
+    private Boolean allowInvitations = true;
 
     @Column(name = "preferred_dark_mode")
     private Boolean darkMode;
 
     @Column(name = "preferred_language", length = 10)
     private String language;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "last_activity_at", nullable = false)
+    private LocalDateTime lastActivityAt;
+
+    @Column(name = "locked", nullable = false)
+    private Boolean locked = false;
+
 
     public User() {
     }
@@ -64,19 +76,80 @@ public class User {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.subscriptionModel = SubscriptionModel.FREE;
         this.emailVerified = false;
-        this.allowInvitations = true;
         this.darkMode = null;
         this.language = null;
+        this.locked = false;
     }
 
-    public Long getId() {
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        this.lastActivityAt = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.lastActivityAt = LocalDateTime.now();
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", subscriptionModel=" + subscriptionModel +
+                ", profileImageUrl='" + profileImageUrl + '\'' +
+                ", emailVerified=" + emailVerified +
+                ", pendingEmail='" + pendingEmail + '\'' +
+                ", emailVerificationToken='" + emailVerificationToken + '\'' +
+                ", emailVerificationExpiresAt=" + emailVerificationExpiresAt +
+                ", passwordResetToken='" + passwordResetToken + '\'' +
+                ", passwordResetExpiresAt=" + passwordResetExpiresAt +
+                ", allowInvitations=" + allowInvitations +
+                ", darkMode=" + darkMode +
+                ", language='" + language + '\'' +
+                ", createdAt=" + createdAt +
+                ", lastActivityAt=" + lastActivityAt +
+                ", locked=" + locked +
+                '}';
+    }
+
+    public void newActivity(){
+        this.setLastActivityAt(LocalDateTime.now());
+    }
+
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getLastActivityAt() {
+        return lastActivityAt;
+    }
+
+    public void setLastActivityAt(LocalDateTime lastActivityAt) {
+        this.lastActivityAt = lastActivityAt;
+    }
+
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
     }
 
     public String getUsername() {
@@ -119,11 +192,11 @@ public class User {
         this.profileImageUrl = profileImageUrl;
     }
 
-    public boolean isEmailVerified() {
+    public Boolean isEmailVerified() {
         return emailVerified;
     }
 
-    public void setEmailVerified(boolean emailVerified) {
+    public void setEmailVerified(Boolean emailVerified) {
         this.emailVerified = emailVerified;
     }
 
@@ -167,11 +240,11 @@ public class User {
         this.passwordResetExpiresAt = passwordResetExpiresAt;
     }
 
-    public boolean isAllowInvitations() {
+    public Boolean isAllowInvitations() {
         return allowInvitations;
     }
 
-    public void setAllowInvitations(boolean allowInvitations) {
+    public void setAllowInvitations(Boolean allowInvitations) {
         this.allowInvitations = allowInvitations;
     }
 
@@ -193,5 +266,25 @@ public class User {
 
     public UserDTO toUserDTO() {
         return new UserDTO(id, username, getProfileImageUrl());
+    }
+
+    public Boolean isAdmin() {
+        return subscriptionModel == SubscriptionModel.ADMIN;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public Boolean getAllowInvitations() {
+        return allowInvitations;
+    }
+
+    public Boolean getLocked() {
+        return locked;
+    }
+
+    public void setLocked(Boolean locked) {
+        this.locked = locked;
     }
 }

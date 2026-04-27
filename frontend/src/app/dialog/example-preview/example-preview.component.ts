@@ -9,7 +9,7 @@ import { CreateExampleDTO, ExampleTypes } from '../../model/Example';
 
 type ExamplePreviewDialogData = {
   example?: CreateExampleDTO;
-  exampleId?: number;
+  exampleId?: string;
   schoolId?: number;
 };
 
@@ -31,34 +31,64 @@ export class ExamplePreviewComponent implements OnInit, OnDestroy {
 
   example!: CreateExampleDTO;
 
-  ngOnInit(): void {
+  private readonly imageObjectUrls = new Set<string>();
+
+  async ngOnInit(): Promise<void> {
+    const id = this.data?.exampleId;
+
     if (this.data?.example) {
-      this.example = this.withNormalizedImageWidths(this.data.example);
+      const normalized = this.withNormalizedImageWidths(this.data.example);
+      this.example = await this.withAuthorizedConstructionImages(normalized, id);
       return;
     }
 
-    const id = this.data?.exampleId;
     if (id) {
-      this.http.getCreateExample(id).subscribe(example => {
-        const normalized = this.withNormalizedImageWidths(example);
-
-        if (example.type === ExampleTypes.CONSTRUCTION) {
-          this.example = {
-            ...normalized,
-            image: example.image ? (this.http.getConstructionImageUrl(id) ?? '') : '',
-            solutionUrl: example.solutionUrl ? (this.http.getConstructionSolutionImageUrl(id) ?? '') : ''
-          };
-          return;
+      this.http.getExample(id).subscribe({
+        next: async (example) => {
+          const normalized = this.withNormalizedImageWidths(example);
+          this.example = await this.withAuthorizedConstructionImages(normalized, id);
         }
-
-        this.example = normalized;
       });
     }
   }
 
   ngOnDestroy(): void {
+    this.imageObjectUrls.forEach(url => URL.revokeObjectURL(url));
+    this.imageObjectUrls.clear();
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private async withAuthorizedConstructionImages(example: CreateExampleDTO, exampleId?: string): Promise<CreateExampleDTO> {
+    if (example.type !== ExampleTypes.CONSTRUCTION || !exampleId) {
+      return example;
+    }
+
+    const image = example.image
+      ? await this.loadExampleImageObjectUrl(exampleId, false)
+      : '';
+
+    const solutionUrl = example.solutionUrl
+      ? await this.loadExampleImageObjectUrl(exampleId, true)
+      : '';
+
+    return {
+      ...example,
+      image,
+      solutionUrl,
+    };
+  }
+
+  private async loadExampleImageObjectUrl(exampleId: string, isSolution: boolean): Promise<string> {
+    try {
+      const objectUrl = await this.http.getExampleImageObjectUrl(exampleId, isSolution);
+      if (objectUrl) {
+        this.imageObjectUrls.add(objectUrl);
+      }
+      return objectUrl || '';
+    } catch {
+      return '';
+    }
   }
 
   getQuestionWithGapLabels(): string {

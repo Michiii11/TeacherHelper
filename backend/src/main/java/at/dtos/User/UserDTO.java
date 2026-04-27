@@ -1,4 +1,6 @@
 package at.dtos.User;
 
-public record UserDTO(Long id, String username, String profileImageUrl) {
+import java.util.UUID;
+
+public record UserDTO(UUID id, String username, String profileImageUrl) {
 }

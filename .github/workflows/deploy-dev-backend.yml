@@ -1,0 +1,53 @@
+name: Deploy Dev Backend
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-dev-backend.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-dev-backend
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: coral-chiller-474405-d9
+          workload_identity_provider: projects/346197888787/locations/global/workloadIdentityPools/github/providers/my-repo
+          service_account: github-deployer-dev@coral-chiller-474405-d9.iam.gserviceaccount.com
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build backend
+        working-directory: ./backend
+        run: mvn clean package -DskipTests
+
+      - name: Deploy backend to Cloud Run
+        run: |
+          gcloud run deploy teacher-helper-backend-development \
+            --source ./backend \
+            --region europe-west1 \
+            --platform managed \
+            --allow-unauthenticated

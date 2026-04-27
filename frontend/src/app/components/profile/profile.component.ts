@@ -16,6 +16,8 @@ import { User, UserSettings } from '../../model/User';
 import { ConfirmDialogComponent } from '../../dialog/confirm-dialog/confirm-dialog.component';
 import { ThemeService } from '../../service/theme.service';
 import { LanguageService } from '../../service/language.service';
+import {NavbarActionsService} from '../navigation/navbar-actions.service'
+import {AddSchoolDialogComponent} from '../../dialog/add-school-dialog/add-school-dialog.component'
 
 type ProfileSettings = {
   darkMode: boolean;
@@ -48,11 +50,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private readonly languageService = inject(LanguageService);
   private readonly translate = inject(TranslateService);
 
+  navbarActions = inject(NavbarActionsService)
+
   user: User | null = null;
   loading = true;
 
   selectedAvatarFile: File | null = null;
   avatarPreviewUrl: string | null = null;
+  avatarObjectUrl: string | null = null;
 
   savingUsername = false;
   savingEmail = false;
@@ -122,11 +127,32 @@ export class ProfileComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.setupSettingsAutoSave();
     this.loadUser();
+    this.setNavbarActions();
   }
 
   ngOnDestroy(): void {
+    this.revokeAvatarObjectUrl();
     this.destroy$.next();
     this.destroy$.complete();
+    this.navbarActions.clearAll();
+  }
+
+  private setNavbarActions(): void {
+    this.navbarActions.setBreadcrumbs([
+      {
+        labelKey: 'profile.title',
+        route: '/profile'
+      }
+    ])
+
+    this.navbarActions.setActions([
+      {
+        labelKey: 'common.logout',
+        icon: 'logout',
+        variant: 'flat',
+        action: () => this.logout()
+      }
+    ]);
   }
 
   loadUser(): void {
@@ -147,6 +173,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
           this.lastSavedSettings = resolvedSettings;
           this.settingsReady = true;
+          this.loadAvatar();
         },
         error: () => {
           this.snack.open(this.translate.instant('snackbar.userLoadedError'), 'OK', { duration: 3500 });
@@ -297,7 +324,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     const email = this.emailForm.controls.email.value?.trim() ?? '';
 
     this.savingEmail = true;
-    this.http.updateEmail(email)
+    this.http.requestEmailChange(email)
       .pipe(finalize(() => this.savingEmail = false))
       .subscribe({
         next: (message: string) => {
@@ -325,7 +352,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.http.cancelPendingEmailChange()
       .pipe(finalize(() => this.cancelingPendingEmail = false))
       .subscribe({
-        next: (message: string) => {
+        next: (message) => {
           if (this.user) {
             this.user.pendingEmail = null as any;
           }
@@ -484,6 +511,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             this.user.profileImageUrl = imageUrl;
           }
           this.selectedAvatarFile = null;
+          this.loadAvatar();
           window.dispatchEvent(new Event('storage'));
           this.snack.open(this.translate.instant('snackbar.avatarUpdated'), 'OK', { duration: 3000 });
         },
@@ -500,31 +528,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
   clearAvatarSelection(): void {
     this.selectedAvatarFile = null;
     this.avatarPreviewUrl = null;
-  }
-
-  upgradeTo(plan: 'FREE' | 'PRO' | 'ENTERPRISE'): void {
-    if (!this.user || this.user.subscriptionModel === plan || this.savingSubscription) {
-      return;
-    }
-
-    this.savingSubscription = true;
-    this.http.updateSubscription(plan)
-      .pipe(finalize(() => this.savingSubscription = false))
-      .subscribe({
-        next: (message: string) => {
-          if (this.user) {
-            this.user.subscriptionModel = plan;
-          }
-          this.snack.open(message, 'OK', { duration: 3000 });
-        },
-        error: (err) => {
-          this.snack.open(
-            typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.subscriptionUpdateError'),
-            'OK',
-            { duration: 3500 }
-          );
-        }
-      });
   }
 
   logout(): void {
@@ -551,7 +554,34 @@ export class ProfileComponent implements OnInit, OnDestroy {
       return this.avatarPreviewUrl;
     }
 
-    return this.http.getAvatarUrl(this.user);
+    return this.avatarObjectUrl;
+  }
+
+  private loadAvatar(): void {
+    this.revokeAvatarObjectUrl();
+
+    if (!this.user?.id || !this.user?.profileImageUrl) {
+      return;
+    }
+
+    this.http.getProfileImage(this.user.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: blob => {
+          this.revokeAvatarObjectUrl();
+          this.avatarObjectUrl = URL.createObjectURL(blob);
+        },
+        error: () => {
+          this.avatarObjectUrl = null;
+        }
+      });
+  }
+
+  private revokeAvatarObjectUrl(): void {
+    if (this.avatarObjectUrl) {
+      URL.revokeObjectURL(this.avatarObjectUrl);
+      this.avatarObjectUrl = null;
+    }
   }
 
   getInitials(): string {
@@ -594,6 +624,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             if (this.user) {
               this.user.profileImageUrl = null;
             }
+            this.revokeAvatarObjectUrl();
             this.snack.open(msg, 'OK', { duration: 3000 });
           },
           error: () => {

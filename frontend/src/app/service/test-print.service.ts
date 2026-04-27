@@ -55,7 +55,7 @@ export type TestPrintOptions = {
   printCopies: number;
   includeSolutionSheet: boolean;
   getGradeRangeLabel: (gradeOrIndex: number) => string;
-  getTaskSpacing: (exampleId: number) => number;
+  getTaskSpacing: (exampleId: string) => number;
   getQuestionWithGapLabels: (example: Example) => string;
   getLetter: (index: number) => string;
   labels: TestPrintLabels;
@@ -511,7 +511,7 @@ export class TestPrintService {
   }
 
   private buildTaskHtml(entry: TestExampleDTO, index: number, isSolution: boolean, options: TestPrintOptions): string {
-    const exampleId = entry.example?.id ?? -1;
+    const exampleId = entry.example?.id ?? '';
     const margin = options.getTaskSpacing(exampleId);
     const exampleLabel = options.labels.exampleShort;
 

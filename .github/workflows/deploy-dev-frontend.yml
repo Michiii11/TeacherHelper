@@ -1,0 +1,60 @@
+name: Deploy Dev Frontend
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-dev-frontend.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-dev-frontend
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Force dev environment
+        run: cp frontend/src/environments/environment.development.ts frontend/src/environments/environment.ts
+
+      - name: Generate version
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          echo "import { Config } from '../app/config';" > frontend/src/environments/version.ts
+          echo "export const version = {" >> frontend/src/environments/version.ts
+          echo "  appVersion: Config.APP_VERSION," >> frontend/src/environments/version.ts
+          echo "  buildVersion: 'dev-${{ github.run_number }}-${GITHUB_SHA::7}'," >> frontend/src/environments/version.ts
+          echo "};" >> frontend/src/environments/version.ts
+
+      - name: Force dev Angular configuration in Dockerfile
+        run: |
+          sed -i 's/ARG CONFIGURATION=production/ARG CONFIGURATION=cloud-development/' frontend/Dockerfile
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: coral-chiller-474405-d9
+          workload_identity_provider: projects/346197888787/locations/global/workloadIdentityPools/github/providers/my-repo
+          service_account: github-deployer-dev@coral-chiller-474405-d9.iam.gserviceaccount.com
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy frontend
+        run: |
+          gcloud run deploy teacher-helper-frontend-development \
+            --source ./frontend \
+            --region europe-west1 \
+            --platform managed \
+            --allow-unauthenticated

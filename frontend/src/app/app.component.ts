@@ -2,7 +2,7 @@ import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { NavigationComponent } from './components/navigation/navigation.component';
 import { HttpService } from './service/http.service';
-import { interval, filter, switchMap, take, Subject, distinctUntilChanged, takeUntil } from 'rxjs';
+import { filter, Subject, distinctUntilChanged, takeUntil } from 'rxjs';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { FooterComponent } from './components/footer/footer.component';
 import { AuthService } from './service/auth.service';
@@ -35,6 +35,9 @@ export class AppComponent implements OnInit, OnDestroy {
   currentUrl = '/';
 
   constructor(private authService: AuthService) {
+    this.themeService.init();
+    this.languageService.init();
+
     this.authService.loggedIn$
       .pipe(
         distinctUntilChanged(),
@@ -72,7 +75,7 @@ export class AppComponent implements OnInit, OnDestroy {
       this.applyGuestDefaults();
     }
 
-    this.loadInitialData();
+    this.waitForBackend();
   }
 
   ngOnDestroy(): void {
@@ -86,45 +89,35 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private loadAndApplyUserSettings(): void {
-    this.service.getUser()
-      .pipe(take(1))
-      .subscribe({
-        next: user => {
-          const resolvedDarkMode = this.themeService.resolveDarkMode(user.settings?.darkMode ?? null);
-          const resolvedLanguage = this.languageService.resolveLanguage(user.settings?.language ?? null);
+    this.service.getUser().subscribe({
+      next: user => {
+        const resolvedDarkMode = this.themeService.resolveDarkMode(user.settings?.darkMode ?? null);
+        const resolvedLanguage = this.languageService.resolveLanguage(user.settings?.language ?? null);
 
-          this.themeService.setDarkMode(resolvedDarkMode);
-          this.languageService.applyUserPreference(resolvedLanguage);
-        },
-        error: () => {
-          this.applyGuestDefaults();
-        }
-      });
-  }
-
-  private loadInitialData(): void {
-    this.service.getSchools().subscribe({
-      next: () => {
-        this.isLoading = false;
+        this.themeService.setDarkMode(resolvedDarkMode);
+        this.languageService.applyUserPreference(resolvedLanguage);
       },
       error: () => {
-        this.isLoading = false;
+        this.applyGuestDefaults();
       }
     });
+  }
 
-    if (this.isLoading) {
-      interval(2000).pipe(
-        switchMap(() => this.service.getSchools()),
-        takeUntil(this.destroy$)
-      ).subscribe({
+  private waitForBackend(): void {
+    this.isLoading = true;
+
+    const tryConnect = () => {
+      this.service.getServer().subscribe({
         next: () => {
           this.isLoading = false;
         },
         error: () => {
-          this.isLoading = false;
+          setTimeout(tryConnect, 3000);
         }
       });
-    }
+    };
+
+    tryConnect();
   }
 
   get isLandingRoute(): boolean {

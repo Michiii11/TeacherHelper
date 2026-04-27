@@ -1,0 +1,169 @@
+<main class="admin-dashboard">
+  <section class="hero-grid">
+    <mat-card class="hero-card stat-card primary-tone">
+      <div class="stat-kicker">Amount Users</div>
+      <div class="stat-value">{{ dash.amountUsers }}</div>
+    </mat-card>
+
+    <mat-card class="hero-card stat-card success-tone">
+      <div class="stat-kicker">Active Users (Month)</div>
+      <div class="stat-value">{{ dash.activeUsersMonth }}</div>
+    </mat-card>
+
+    <mat-card class="hero-card stat-card warning-tone pending-card">
+      <div class="stat-kicker">Active Users (Week)</div>
+      <div class="stat-value">{{ dash.activeUsersWeek }}</div>
+    </mat-card>
+
+    <mat-card class="hero-card stat-card dark-tone">
+      <div class="stat-kicker">New Users (Month)</div>
+      <div class="stat-value">{{ dash.newUsersMonth }}</div>
+    </mat-card>
+  </section>
+
+  <section class="hero-grid">
+    <mat-card class="hero-card stat-card primary-tone">
+      <div class="stat-kicker">Free Abos</div>
+      <div class="stat-value">{{ dash.freeAbos }}</div>
+    </mat-card>
+
+    <mat-card class="hero-card stat-card success-tone">
+      <div class="stat-kicker">Pro Abos</div>
+      <div class="stat-value">{{ dash.proAbos }}</div>
+    </mat-card>
+
+    <mat-card class="hero-card stat-card warning-tone pending-card">
+      <div class="stat-kicker">School Abos</div>
+      <div class="stat-value">{{ dash.schoolAbos }}</div>
+    </mat-card>
+
+    <mat-card class="hero-card stat-card dark-tone">
+      <div class="stat-kicker">Estimated Money / Month</div>
+      <div class="stat-value">{{ dash.cashflow }}</div>
+    </mat-card>
+  </section>
+
+  <section class="section">
+    <div class="metric-panels">
+      <mat-card class="metric-card">
+        <div class="metric-title-row">
+          <div>
+            <div class="metric-kicker">Collections</div>
+          </div>
+          <mat-icon>folder</mat-icon>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-chip"><span>Stunde</span><strong>{{ dash.collections.hour }}</strong></div>
+          <div class="metric-chip"><span>Tag</span><strong>{{ dash.collections.day }}</strong></div>
+          <div class="metric-chip"><span>Woche</span><strong>{{ dash.collections.week }}</strong></div>
+          <div class="metric-chip"><span>Monat</span><strong>{{ dash.collections.month }}</strong></div>
+          <div class="metric-chip"><span>Jahr</span><strong>{{ dash.collections.year }}</strong></div>
+        </div>
+      </mat-card>
+
+      <mat-card class="metric-card">
+        <div class="metric-title-row">
+          <div>
+            <div class="metric-kicker">Examples</div>
+          </div>
+          <mat-icon>post_add</mat-icon>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-chip"><span>Stunde</span><strong>{{ dash.examples.hour }}</strong></div>
+          <div class="metric-chip"><span>Tag</span><strong>{{ dash.examples.day }}</strong></div>
+          <div class="metric-chip"><span>Woche</span><strong>{{ dash.examples.week }}</strong></div>
+          <div class="metric-chip"><span>Monat</span><strong>{{ dash.examples.month }}</strong></div>
+          <div class="metric-chip"><span>Jahr</span><strong>{{ dash.examples.year }}</strong></div>
+        </div>
+      </mat-card>
+
+      <mat-card class="metric-card">
+        <div class="metric-title-row">
+          <div>
+            <div class="metric-kicker">Tests</div>
+          </div>
+          <mat-icon>assignment</mat-icon>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-chip"><span>Stunde</span><strong>{{ dash.tests.hour }}</strong></div>
+          <div class="metric-chip"><span>Tag</span><strong>{{ dash.tests.day }}</strong></div>
+          <div class="metric-chip"><span>Woche</span><strong>{{ dash.tests.week }}</strong></div>
+          <div class="metric-chip"><span>Monat</span><strong>{{ dash.tests.month }}</strong></div>
+          <div class="metric-chip"><span>Jahr</span><strong>{{ dash.tests.year }}</strong></div>
+        </div>
+      </mat-card>
+    </div>
+  </section>
+
+  <section class="section layout-grid single-panel">
+    <article class="panel user-list-panel">
+      <div class="panel-header sticky-header">
+        <div class="toolbar-grid">
+          <label class="control search-control search-control-wide">
+            <input type="text" [(ngModel)]="search" placeholder="Suche nach Name oder ID">
+          </label>
+
+          <label class="control select-control">
+            <select [(ngModel)]="sort">
+              <option value="lastActive">Zuletzt aktiv</option>
+              <option value="newest">Neueste zuerst</option>
+              <option value="oldest">Älteste zuerst</option>
+              <option value="nameAsc">Name A–Z</option>
+              <option value="nameDesc">Name Z–A</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="user-list">
+        @for (user of visibleUsers; track user.id) {
+          <button type="button" class="user-card">
+            <div class="user-card-top">
+              <div class="avatar-tile">{{ user.username.slice(0, 2).toUpperCase() }}</div>
+
+              <div class="user-main">
+                <div class="user-name-row">
+                  <div class="user-name">{{ user.username }}</div>
+                </div>
+
+                <div class="user-meta-row">
+                  <span>#{{ user.id }}</span>
+                  <span>erstellt: {{ user.createdAt | date:'dd.MM.yyyy' }}</span>
+                  <span>aktiv: {{ getLastActiveLabel(user.lastActive) }}</span>
+                </div>
+              </div>
+
+              <button mat-icon-button type="button" (click)="copyUserId(user, $event)" title="ID kopieren">
+                <mat-icon>content_copy</mat-icon>
+              </button>
+            </div>
+
+            <div class="user-stats-row">
+              <div class="mini-stat">
+                <span>Sammlungen</span>
+                <strong>{{ user.collections }}</strong>
+              </div>
+              <div class="mini-stat">
+                <span>Examples</span>
+                <strong>{{ user.examples }}</strong>
+              </div>
+              <div class="mini-stat">
+                <span>Tests</span>
+                <strong>{{ user.tests }}</strong>
+              </div>
+            </div>
+          </button>
+        }
+
+        <div class="empty-state" *ngIf="!visibleUsers.length">
+          <mat-icon>person_search</mat-icon>
+          <h3>Keine User gefunden</h3>
+          <p>Probier eine andere Suche oder Sortierung.</p>
+        </div>
+      </div>
+    </article>
+  </section>
+</main>

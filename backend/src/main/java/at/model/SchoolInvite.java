@@ -5,12 +5,13 @@ import at.enums.SchoolInviteType;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 public class SchoolInvite {
     @Id
     @GeneratedValue
-    private Long id;
+    private UUID id;
 
     @ManyToOne(optional = false)
     private School school;
@@ -30,7 +31,7 @@ public class SchoolInvite {
     @Column(length = 1000)
     private String message;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
     private LocalDateTime decidedAt;
 
     public SchoolInvite() {
@@ -42,11 +43,33 @@ public class SchoolInvite {
         this.recipient = recipient;
         this.type = type;
         this.message = message;
-        this.status = SchoolInviteStatus.PENDING;
         this.createdAt = LocalDateTime.now();
     }
 
-    public Long getId() {
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "SchoolInvite{" +
+                "id=" + id +
+                ", school=" + school +
+                ", sender=" + sender +
+                ", recipient=" + recipient +
+                ", type=" + type +
+                ", status=" + status +
+                ", message='" + message + '\'' +
+                ", createdAt=" + createdAt +
+                ", decidedAt=" + decidedAt +
+                '}';
+    }
+
+    public UUID getId() {
         return id;
     }
 

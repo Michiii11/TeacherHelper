@@ -10,10 +10,12 @@
     "deleting": "Deleting...",
     "close": "Close",
     "ok": "OK",
-    "create": "Create"
+    "create": "Create",
+    "filter": "Filter",
+    "type": "Type"
   },
   "profile": {
-    "title": "My Profile",
+    "title": "Profile",
     "subtitle": "Manage your account, security, settings, subscription and profile picture here.",
     "loading": "Loading profile...",
     "darkMode": "Dark mode",
@@ -84,8 +86,8 @@
     "confirmAction": "I confirm this action"
   },
   "navbar": {
-    "home": "Home",
-    "school": "School",
+    "home": "Collections",
+    "school": "Collection",
     "help": "Help"
   },
   "notifications": {
@@ -117,6 +119,35 @@
       "messagePlaceholder": "Message",
       "linkPlaceholder": "Optional link, e.g. /school/12",
       "submit": "Send"
+    },
+    "schoolInvitation": {
+      "title": "Invitation to {{school}}",
+      "message": "{{actor}} invited you to join {{school}}."
+    },
+    "invitationAccepted": {
+      "title": "Invitation accepted",
+      "message": "{{actor}} joined {{school}}."
+    },
+    "invitationDeclined": {
+      "title": "Invitation declined",
+      "message": "{{actor}} declined the invitation to {{school}}."
+    },
+    "default": {
+      "title": "Notification",
+      "message": "There is a new activity."
+    },
+    "notificationBadges": {
+      "SCHOOL_INVITATION": "Invitation",
+      "INVITATION_ACCEPTED": "Joined",
+      "INVITATION_DECLINED": "Declined",
+      "SYSTEM_INFO": "Info"
+    },
+    "notificationActions": {
+      "ACCEPT_INVITATION": "Accept",
+      "DECLINE_INVITATION": "Decline",
+      "MARK_AS_READ": "Mark as read",
+      "OPEN_LINK": "Open",
+      "DELETE": "Delete"
     }
   },
   "home": {
@@ -293,7 +324,7 @@
     "folderShort": "Folder",
     "folders": "Folders",
     "folder": "Folder",
-    "newFolder": "New folder",
+    "newFolder": "Folder",
     "root": "Root",
     "rootLevel": "Top level",
     "parentFolder": "Parent folder",
@@ -355,7 +386,10 @@
     "renameFolderTitle": "Rename folder",
     "renameFolderSubtitle": "Adjust the folder name.",
     "folderNameLabel": "Folder name",
-    "folderNamePlaceholder": "e.g. Exams / Chapter 1 / Exercises"
+    "folderNamePlaceholder": "e.g. Exams / Chapter 1 / Exercises",
+    "focuses": "Focuses",
+    "author": "Author",
+    "searchPlaceholder": "Search"
   },
   "schoolSettings": {
     "title": "School settings",
@@ -497,7 +531,6 @@
     "assignRightPlaceholder": "Right statement",
     "assignRemoveLeft": "Remove left item",
     "assignRemoveRight": "Remove right item",
-
     "addTag": "add",
     "taskImagePreviewAlt": "Task image preview",
     "solutionImagePreviewAlt": "Solution image preview",
@@ -865,8 +898,8 @@
         "text": "As your content grows, finding things well becomes essential. Search and filters help you get back to exactly what you need much faster."
       },
       "invites": {
-        "title": "Invitation system",
-        "text": "Invite members, track responses, and organize collaboration directly inside the app."
+        "title": "Cooperation & teamwork",
+        "text": "Invite members and manage your tasks and tests together in one shared collection."
       }
     },
     "changelog": {
@@ -887,8 +920,7 @@
         "description": "1.1.0 improves TeacherHelper especially where clarity and speed matter most in everyday work.",
         "c1": "Added a folder system so content can be structured more cleanly",
         "c2": "Use variables to make examples more flexible and reusable",
-        "c3": "Added filters and search to find examples and tests much faster",
-        "c4": "Introduced a new create-test window for a cleaner workflow"
+        "c3": "Added filters and search to find examples and tests much faster"
       }
     },
     "actions": {
@@ -939,5 +971,86 @@
     "multipleChoice": "Choose one or more options.",
     "gapFill": "Fill the gaps by selecting or typing.",
     "assign": "Match elements to each other."
+  },
+  "auth": {
+    "tabs": {
+      "login": "Login",
+      "register": "Register"
+    },
+    "username": {
+      "label": "Username",
+      "error": "At least 3 characters"
+    },
+    "email": {
+      "label": "Email",
+      "error": "Valid email required"
+    },
+    "password": {
+      "label": "Password",
+      "required": "Password required",
+      "min": "At least 8 characters"
+    },
+    "actions": {
+      "show": "Show",
+      "hide": "Hide"
+    },
+    "forgot": {
+      "open": "Forgot password?",
+      "title": "Reset password",
+      "description": "Enter your email address and we will send you a reset link.",
+      "submit": "Send reset link"
+    },
+    "reset": {
+      "title": "Set new password",
+      "description": "Please enter your new password.",
+      "newPassword": "New password",
+      "confirmPassword": "Repeat new password",
+      "confirmRequired": "Confirmation required",
+      "submit": "Set password"
+    },
+    "verify": {
+      "loading": "Verifying email...",
+      "resend": "Resend verification email"
+    },
+    "preferences": {
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "messages": {
+      "passwordMismatch": "The new passwords do not match.",
+      "forgotError": "Password reset could not be requested.",
+      "resetError": "Password could not be reset.",
+      "enterRegisterEmailFirst": "Please enter an email first in the register tab.",
+      "resendError": "Verification email could not be sent.",
+      "verifyError": "Email could not be verified.",
+      "success": "Action completed successfully.",
+      "error": "Action failed.",
+      "forgotSuccess": "If the email exists, a reset link has been sent.",
+      "resetSuccess": "Password was reset successfully.",
+      "resendSuccess": "Verification email was sent again.",
+      "verifySuccess": "Email was verified successfully."
+    },
+    "backend": {
+      "INVALID_DATA": "Please fill in all required fields.",
+      "INVALID_USERNAME": "Username must be between 3 and 40 characters.",
+      "INVALID_EMAIL": "Please enter a valid email address.",
+      "INVALID_PASSWORD": "Password must be at least 8 characters long.",
+      "USERNAME_TAKEN": "This username is already taken.",
+      "EMAIL_TAKEN": "This email address is already in use.",
+      "EMAIL_CONFIRMATION_REQUIRED": "Please confirm your email address to complete registration.",
+      "INVALID_CREDENTIALS": "Email or password is incorrect.",
+      "EMAIL_NOT_VERIFIED": "Please verify your email address first.",
+      "TOKEN_REQUIRED": "Token is required.",
+      "VERIFICATION_TOKEN_INVALID": "The verification link is invalid.",
+      "VERIFICATION_TOKEN_EXPIRED": "The verification link has expired.",
+      "EMAIL_REQUIRED": "Email is required.",
+      "EMAIL_NOT_FOUND": "This email address was not found.",
+      "EMAIL_ALREADY_VERIFIED": "This email address is already verified.",
+      "USER_NOT_FOUND": "User was not found.",
+      "NEW_PASSWORD_REQUIRED": "New password is required.",
+      "PASSWORD_RESET_TOKEN_INVALID": "The reset link is invalid.",
+      "PASSWORD_RESET_TOKEN_EXPIRED": "The reset link has expired.",
+      "AUTH_SUCCESS": "Login successful"
+    }
   }
 }

@@ -14,7 +14,7 @@ export interface GradingLevel {
 }
 
 export interface Test {
-  id: number;
+  id: string;
   admin: User;
   name: string;
   note: string;
@@ -36,7 +36,7 @@ export interface TestExampleVariableValues {
 }
 
 export interface TestExample{
-  id: number;
+  id: string;
   example: Example;
   test: Test;
   points: number;
@@ -52,12 +52,12 @@ export interface TestExampleDTO{
 }
 
 export interface TestOverviewDTO {
-  id: number;
+  id: string;
   name: string;
   amountOfQuestions: number;
   duration: number;
   adminUsername: string;
-  adminId: number;
+  adminId: string;
   folderId: string | null;
 
   createdAt?: string;
@@ -65,41 +65,17 @@ export interface TestOverviewDTO {
 }
 
 export interface CreateTestDTO {
-  authToken: string;
-  schoolId: number;
+  schoolId: string;
   name: string;
   note: string;
   exampleList: TestExampleDTO[];
   duration: number;
   defaultTaskSpacing?: number;
-  taskSpacingMap?: Record<number, number>;
+  taskSpacingMap?: Record<string, number>;
   gradingMode?: TestGradingMode;
   gradingSystemName?: string;
   gradingSchema?: GradingLevel[];
   gradePercentages?: Record<number, number>;
   manualGradeMinimums?: Record<number, number>;
   folderId?: string | null;
-}
-
-
-export interface TestFolderDTO {
-  id: string;
-  name: string;
-  schoolId: string;
-  parentId: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateTestFolderDTO {
-  name: string;
-  parentId: string | null;
-}
-
-export interface UpdateTestFolderDTO {
-  name: string;
-}
-
-export interface MoveTestToFolderDTO {
-  folderId: string | null;
 }

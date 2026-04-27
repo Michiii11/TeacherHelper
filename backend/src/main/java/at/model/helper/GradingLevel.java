@@ -1,4 +1,4 @@
-package at.model;
+package at.model.helper;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

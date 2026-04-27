@@ -23,12 +23,12 @@ type ExplorerFolder = {
 
 export type ExamplePickerDialogData = {
   examples: ExampleDTO[];
-  selectedIds: number[];
+  selectedIds: string[];
   folders: ExplorerFolder[];
 };
 
 export type ExamplePickerDialogResult = {
-  selectedIds: number[];
+  selectedIds: string[];
 };
 
 type ExampleSortKey =
@@ -55,8 +55,8 @@ type ExampleSortKey =
   styleUrl: './example-picker-dialog.component.scss',
 })
 export class ExamplePickerDialogComponent implements OnInit {
-  readonly workingSelection = new Set<number>();
-  readonly initiallySelected = new Set<number>();
+  readonly workingSelection = new Set<string>();
+  readonly initiallySelected = new Set<string>();
 
   search = '';
   selectedFolderId: string | null = null;
@@ -168,11 +168,11 @@ export class ExamplePickerDialogComponent implements OnInit {
     return this.workingSelection.size;
   }
 
-  isAlreadySelected(exampleId: number): boolean {
+  isAlreadySelected(exampleId: string): boolean {
     return this.initiallySelected.has(exampleId);
   }
 
-  isWorkingSelected(exampleId: number): boolean {
+  isWorkingSelected(exampleId: string): boolean {
     return this.workingSelection.has(exampleId);
   }
 
@@ -184,7 +184,7 @@ export class ExamplePickerDialogComponent implements OnInit {
     return this.selectedFocuses.includes(focus);
   }
 
-  toggleExample(exampleId: number, checked: boolean): void {
+  toggleExample(exampleId: string, checked: boolean): void {
     if (this.isAlreadySelected(exampleId)) {
       return;
     }

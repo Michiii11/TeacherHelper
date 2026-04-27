@@ -3,16 +3,15 @@ package at.boundary;
 import at.dtos.Notification.NotificationDTO;
 import at.enums.NotificationActionType;
 import at.repository.NotificationRepository;
+import at.repository.UserRepository;
 import at.security.TokenService;
 import jakarta.inject.Inject;
 import jakarta.json.JsonObject;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 
 import java.util.List;
+import java.util.UUID;
 
 @Path("notification")
 public class NotificationResource {
@@ -23,105 +22,93 @@ public class NotificationResource {
     @Inject
     TokenService tokenService;
 
-    @POST
-    @Path("my")
-    public List<NotificationDTO> getMyNotifications(String auth) {
-        Long userId = tokenService.validateTokenAndGetUserId(auth);
-        if (userId == null) {
-            return List.of();
+    @Inject
+    UserRepository userRepository;
+
+    @GET
+    public Response getMyNotifications(@HeaderParam("Authorization") String auth) {
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
+        if (authResponse != null) {
+            return authResponse;
         }
 
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
         return notificationRepository.getMyNotifications(userId);
     }
 
-    @POST
+    @PUT
     @Path("{id}/read")
-    public Response markAsRead(@PathParam("id") Long id, String auth) {
-        Long userId = tokenService.validateTokenAndGetUserId(auth);
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
+    public Response markAsRead(@PathParam("id") UUID notificationId,
+                               @HeaderParam("Authorization") String auth) {
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
+        if (authResponse != null) {
+            return authResponse;
         }
 
-        return notificationRepository.markAsRead(id, userId);
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
+        return notificationRepository.markAsRead(notificationId, userId);
     }
 
     @DELETE
     @Path("{id}")
-    public Response delete(@PathParam("id") Long id, String auth) {
-        Long userId = tokenService.validateTokenAndGetUserId(auth);
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
+    public Response delete(@PathParam("id") UUID notificationId,
+                           @HeaderParam("Authorization") String auth) {
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
+        if (authResponse != null) {
+            return authResponse;
         }
 
-        return notificationRepository.delete(id, userId);
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
+        return notificationRepository.delete(notificationId, userId);
     }
 
     @POST
     @Path("{id}/action")
-    public Response executeAction(@PathParam("id") Long id, JsonObject request) {
-        String authToken = request.containsKey("authToken") ? request.getString("authToken", null) : null;
-        String actionRaw = request.containsKey("action") ? request.getString("action", null) : null;
-
-        if (authToken == null || authToken.isBlank()) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Missing auth token").build();
+    public Response executeAction(@PathParam("id") UUID notificationId,
+                                  @HeaderParam("Authorization") String auth,
+                                  NotificationActionType action) {
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
+        if (authResponse != null) {
+            return authResponse;
         }
 
-        Long userId = tokenService.validateTokenAndGetUserId(authToken);
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
-        }
-
-        if (actionRaw == null || actionRaw.isBlank()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Missing action").build();
-        }
-
-        NotificationActionType action;
-        try {
-            action = NotificationActionType.valueOf(actionRaw);
-        } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid action: " + actionRaw).build();
-        }
-
-        return notificationRepository.executeAction(id, userId, action);
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
+        return notificationRepository.executeAction(notificationId, userId, action);
     }
 
     @POST
     @Path("system-info/school/{schoolId}")
-    public Response sendSystemInfoToSchool(@PathParam("schoolId") Long schoolId, JsonObject request) {
-        String authToken = request.containsKey("authToken") ? request.getString("authToken", null) : null;
+    public Response sendSystemInfoToSchool(@PathParam("schoolId") UUID schoolId,
+                                           @HeaderParam("Authorization") String auth,
+                                           JsonObject request) {
+
         String title = request.containsKey("title") ? request.getString("title", null) : null;
         String message = request.containsKey("message") ? request.getString("message", null) : null;
         String link = request.containsKey("link") ? request.getString("link", null) : null;
 
-        if (authToken == null || authToken.isBlank()) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Missing auth token").build();
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
+        if (authResponse != null) {
+            return authResponse;
         }
 
-        Long userId = tokenService.validateTokenAndGetUserId(authToken);
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
-        }
-
-        return notificationRepository.sendSystemInfoToSchool(userId, schoolId, title, message, link);
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
+        return notificationRepository.sendSystemInfo(userId, schoolId, title, message, link, false);
     }
 
     @POST
     @Path("system-info/all")
-    public Response sendSystemInfoToAll(JsonObject request) {
-        String authToken = request.containsKey("authToken") ? request.getString("authToken", null) : null;
+    public Response sendSystemInfoToAll(@HeaderParam("Authorization") String auth,
+                                        JsonObject request) {
         String title = request.containsKey("title") ? request.getString("title", null) : null;
         String message = request.containsKey("message") ? request.getString("message", null) : null;
         String link = request.containsKey("link") ? request.getString("link", null) : null;
 
-        if (authToken == null || authToken.isBlank()) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Missing auth token").build();
+        Response authResponse = userRepository.generateResponseOfAuth(auth);
+        if (authResponse != null) {
+            return authResponse;
         }
 
-        Long userId = tokenService.validateTokenAndGetUserId(authToken);
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
-        }
-
-        return notificationRepository.sendSystemInfoToAll(userId, title, message, link);
+        UUID userId = tokenService.validateTokenAndGetUserId(auth);
+        return notificationRepository.sendSystemInfo(userId, null, title, message, link, true);
     }
 }

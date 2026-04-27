@@ -1,7 +1,8 @@
 package at.websocket;
 
 import at.security.TokenService;
-import io.quarkus.arc.Arc;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnError;
@@ -10,21 +11,35 @@ import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
 
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+@ApplicationScoped
 @ServerEndpoint("/socket/notification")
 public class NotificationSocket {
 
-    private static final ConcurrentHashMap<Long, Set<Session>> USER_SESSIONS = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<UUID, Set<Session>> USER_SESSIONS = new ConcurrentHashMap<>();
+
+    @Inject
+    TokenService tokenService;
 
     @OnOpen
     public void onOpen(Session session) throws IOException {
         String token = extractToken(session.getQueryString());
 
-        TokenService tokenService = Arc.container().instance(TokenService.class).get();
-        Long userId = tokenService.validateTokenAndGetUserId(token);
+        if (token == null || token.isBlank()) {
+            session.close(new CloseReason(
+                    CloseReason.CloseCodes.VIOLATED_POLICY,
+                    "Missing token"
+            ));
+            return;
+        }
+
+        UUID userId = tokenService.validateTokenAndGetUserId(token);
 
         if (userId == null) {
             session.close(new CloseReason(
@@ -35,7 +50,9 @@ public class NotificationSocket {
         }
 
         session.getUserProperties().put("userId", userId);
-        USER_SESSIONS.computeIfAbsent(userId, ignored -> new CopyOnWriteArraySet<>()).add(session);
+        USER_SESSIONS
+                .computeIfAbsent(userId, ignored -> new CopyOnWriteArraySet<>())
+                .add(session);
     }
 
     @OnClose
@@ -51,7 +68,7 @@ public class NotificationSocket {
         removeSession(session);
     }
 
-    public static void notifyUser(Long userId) {
+    public static void notifyUser(UUID userId) {
         if (userId == null) {
             return;
         }
@@ -71,7 +88,7 @@ public class NotificationSocket {
     private void removeSession(Session session) {
         Object rawUserId = session.getUserProperties().get("userId");
 
-        if (!(rawUserId instanceof Long userId)) {
+        if (!(rawUserId instanceof UUID userId)) {
             return;
         }
 
@@ -93,10 +110,12 @@ public class NotificationSocket {
         }
 
         String[] pairs = queryString.split("&");
+
         for (String pair : pairs) {
             String[] kv = pair.split("=", 2);
+
             if (kv.length == 2 && "token".equals(kv[0])) {
-                return kv[1];
+                return URLDecoder.decode(kv[1], StandardCharsets.UTF_8);
             }
         }
 

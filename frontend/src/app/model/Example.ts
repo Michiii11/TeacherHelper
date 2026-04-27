@@ -20,7 +20,7 @@ export const ExampleTypeLabels: Record<ExampleTypes, string> = {
 };
 
 export interface Example {
-  id: number;
+  id: string;
   admin: User;
   adminUsername?: string;
   folderId?: string | null;
@@ -42,7 +42,7 @@ export interface Example {
 }
 
 export interface ExampleDTO {
-  id: number;
+  id: string;
   admin: UserDTO;
   adminUsername?: string;
   folderId?: string | null;
@@ -72,8 +72,7 @@ export interface ExampleVariable {
 }
 
 export interface CreateExampleDTO {
-  authToken: string;
-  schoolId: number;
+  schoolId: string;
   type: ExampleTypes;
   instruction: string;
   question: string;
@@ -90,6 +89,7 @@ export interface CreateExampleDTO {
   variables?: ExampleVariable[];
   imageWidth: number | null;
   solutionImageWidth: number | null;
+  folderId?: string | null;
   imageFile?: File;
   solutionFile?: File;
 }
@@ -114,43 +114,20 @@ export interface Assign {
 }
 
 export interface Focus {
-  id: number;
+  id: string;
   label: string;
 }
 
 export interface ExampleOverviewDTO {
-  id: number;
+  id: string;
   type: ExampleTypes;
   instruction: string;
   question: string;
   adminUsername: string;
-  adminId: number;
+  adminId: string;
   focusList: Focus[];
   folderId: string | null;
 
   createdAt?: string;
   updatedAt?: string;
-}
-
-
-export interface ExampleFolderDTO {
-  id: string;
-  name: string;
-  schoolId: string;
-  parentId: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateExampleFolderDTO {
-  name: string;
-  parentId: string | null;
-}
-
-export interface UpdateExampleFolderDTO {
-  name: string;
-}
-
-export interface MoveExampleToFolderDTO {
-  folderId: string | null;
 }

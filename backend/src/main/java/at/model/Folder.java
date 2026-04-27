@@ -1,16 +1,18 @@
 package at.model;
 
+import at.dtos.Folder.FolderDTO;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "example_folder")
-public class ExampleFolder {
+@Table(name = "folder")
+public class Folder {
 
     @Id
-    private String id;
+    @GeneratedValue
+    private UUID id;
 
     @Column(nullable = false, length = 180)
     private String name;
@@ -20,18 +22,15 @@ public class ExampleFolder {
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
-    private ExampleFolder parent;
+    private Folder parent;
 
-    @Column(nullable = false)
     private LocalDateTime createdAt;
-
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    public ExampleFolder() {
+    public Folder() {
     }
 
-    public ExampleFolder(String name, School school, ExampleFolder parent) {
+    public Folder(String name, School school, Folder parent) {
         this.name = name;
         this.school = school;
         this.parent = parent;
@@ -39,10 +38,6 @@ public class ExampleFolder {
 
     @PrePersist
     public void prePersist() {
-        if (this.id == null || this.id.isBlank()) {
-            this.id = UUID.randomUUID().toString();
-        }
-
         LocalDateTime now = LocalDateTime.now();
         if (this.createdAt == null) {
             this.createdAt = now;
@@ -55,11 +50,22 @@ public class ExampleFolder {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public String getId() {
+    public FolderDTO toDto() {
+        return new FolderDTO(
+                this.getId(),
+                this.getName(),
+                this.getSchool().getId(),
+                this.getParent() != null ? this.getParent().getId() : null,
+                this.getCreatedAt(),
+                this.getUpdatedAt()
+        );
+    }
+
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -79,11 +85,11 @@ public class ExampleFolder {
         this.school = school;
     }
 
-    public ExampleFolder getParent() {
+    public Folder getParent() {
         return parent;
     }
 
-    public void setParent(ExampleFolder parent) {
+    public void setParent(Folder parent) {
         this.parent = parent;
     }
 

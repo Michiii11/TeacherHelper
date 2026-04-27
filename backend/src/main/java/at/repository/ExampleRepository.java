@@ -5,7 +5,6 @@ import at.dtos.Example.ExampleDTO;
 import at.dtos.Example.ExampleOverviewDTO;
 import at.dtos.Example.ExampleVariableDTO;
 import at.dtos.Example.GapDTO;
-import at.dtos.Example.MoveExampleToFolderDTO;
 import at.model.*;
 import at.model.helper.ExampleVariable;
 import at.model.helper.Gap;
@@ -16,22 +15,27 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
 
-import java.sql.Timestamp;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
+@Transactional
 public class ExampleRepository {
+    private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
+    private static final long MAX_PROFILE_IMAGE_SIZE = 2L * 1024L * 1024L;
+
     @Inject
     EntityManager em;
 
     @Inject
-    TokenService tokenService;
-
-    @Inject
-    ExampleFolderRepository exampleFolderRepository;
+    FolderRepository folderRepository;
 
     @Inject
     MediaStorageService mediaStorageService;
@@ -39,13 +43,25 @@ public class ExampleRepository {
     @Inject
     SchoolRepository schoolRepository;
 
-    public List<ExampleOverviewDTO> getAllExamples(Long schoolId) {
-        List<Example> examples = em.createQuery(
-                "SELECT e FROM Example e WHERE e.school.id = :schoolId ORDER BY e.id",
-                Example.class
-        ).setParameter("schoolId", schoolId).getResultList();
+    public Response getAllExamples(UUID collectionId, UUID userId) {
+        if (!schoolRepository.isUserPartOfCollection(collectionId, userId)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
 
-        return examples.stream().map(e ->
+        List<Example> examples = em.createQuery(
+                """
+                SELECT DISTINCT e
+                FROM Example e
+                LEFT JOIN FETCH e.focusList
+                LEFT JOIN FETCH e.admin
+                LEFT JOIN FETCH e.folder
+                WHERE e.school.id = :collectionId
+                ORDER BY e.id
+                """,
+                Example.class
+        ).setParameter("collectionId", collectionId).getResultList();
+
+        return Response.ok(examples.stream().map(e ->
                 new ExampleOverviewDTO(
                         e.getId(),
                         e.getType(),
@@ -53,23 +69,26 @@ public class ExampleRepository {
                         e.getQuestion(),
                         e.getAdmin().getUsername(),
                         e.getAdmin().getId(),
-                        e.getFocusList(),
+                        new LinkedList<>(e.getFocusList()),
                         e.getFolder() != null ? e.getFolder().getId() : null,
                         e.getCreatedAt(),
                         e.getUpdatedAt()
                 )
-        ).collect(Collectors.toList());
+        ).collect(Collectors.toList())).build();
     }
 
-    @Transactional
-    public List<ExampleDTO> getFullExamples(Long schoolId) {
+    public Response getFullExamples(UUID collectionId, UUID userId) {
+        if (!schoolRepository.isUserPartOfCollection(collectionId, userId)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+
         List<Example> examples = em.createQuery(
-                        "SELECT DISTINCT e FROM Example e LEFT JOIN FETCH e.gaps WHERE e.school.id = :schoolId ORDER BY e.id",
+                        "SELECT DISTINCT e FROM Example e LEFT JOIN FETCH e.gaps WHERE e.school.id = :collectionId ORDER BY e.id",
                         Example.class
-                ).setParameter("schoolId", schoolId)
+                ).setParameter("collectionId", collectionId)
                 .getResultList();
 
-        return examples.stream().map(example ->
+        List<ExampleDTO> dtos = examples.stream().map(example ->
                 new ExampleDTO(
                         example.getId(),
                         example.getAdmin().toUserDTO(),
@@ -83,7 +102,7 @@ public class ExampleRepository {
                         example.getSolutionImageWidth(),
                         new LinkedList<>(example.getFocusList()),
                         mapVariables(example.getVariables()),
-                        schoolRepository.toSchoolDTO(example.getSchool()),
+                        example.getSchool().toSchoolDTO(),
                         new LinkedList<>(example.getAnswers()),
                         new LinkedList<>(example.getOptions()),
                         example.getGapFillType(),
@@ -92,13 +111,48 @@ public class ExampleRepository {
                         new LinkedList<>(example.getAssignRightItems())
                 )
         ).collect(Collectors.toList());
+
+        return Response.ok(dtos).build();
     }
 
-    @Transactional
-    public Response createExample(CreateExampleDTO dto) {
-        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+    public Response getExample(UUID exampleId, UUID userId) {
+        Example e = em.find(Example.class, exampleId);
+
+        if (e == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        if (!schoolRepository.isUserPartOfCollection(e.getSchool().getId(), userId)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+
+        CreateExampleDTO dto = new CreateExampleDTO(
+                e.getSchool().getId(),
+                e.getType(),
+                e.getInstruction(),
+                e.getQuestion(),
+                new LinkedList<>(e.getAnswers()),
+                new LinkedList<>(e.getOptions()),
+                e.getGapFillType(),
+                new LinkedList<>(e.getGapDTO()),
+                new LinkedList<>(e.getAssigns()),
+                new LinkedList<>(e.getAssignRightItems()),
+                e.getImageUrl(),
+                e.getSolution(),
+                e.getSolutionUrl(),
+                new LinkedList<>(e.getFocusList()),
+                mapVariables(e.getVariables()),
+                e.getImageWidth(),
+                e.getSolutionImageWidth(),
+                e.getFolder() != null ? e.getFolder().getId() : null
+        );
+
+        return Response.ok(dto).build();
+    }
+
+    public Response createExample(CreateExampleDTO dto, UUID userId) {
+        if (!schoolRepository.isUserPartOfCollection(dto.schoolId(), userId)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
         }
 
         User admin = em.find(User.class, userId);
@@ -108,9 +162,9 @@ public class ExampleRepository {
             return Response.status(Response.Status.NOT_FOUND).entity("Schule nicht gefunden.").build();
         }
 
-        ExampleFolder folder = null;
-        if (dto.folderId() != null && !dto.folderId().isBlank()) {
-            folder = exampleFolderRepository.findById(dto.folderId());
+        Folder folder = null;
+        if (dto.folderId() != null) {
+            folder = folderRepository.findById(dto.folderId());
             if (folder == null || !folder.getSchool().getId().equals(school.getId())) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Ordner.").build();
             }
@@ -121,8 +175,6 @@ public class ExampleRepository {
         example.getFocusList().clear();
         example.getFocusList().addAll(dto.focusList());
         example.setVariables(mapVariableEntities(dto.variables()));
-        example.setCreatedAt(Timestamp.from(java.time.Instant.now()));
-        example.setUpdatedAt(Timestamp.from(java.time.Instant.now()));
 
         clearTypeSpecificFields(example);
 
@@ -157,16 +209,43 @@ public class ExampleRepository {
         return Response.ok(example.getId()).build();
     }
 
-    @Transactional
-    public Response updateExample(Long exampleId, CreateExampleDTO dto) {
+    public Response deleteExample(UUID userId, UUID exampleId) {
         Example example = em.find(Example.class, exampleId);
         if (example == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+        if (!example.getAdmin().getId().equals(userId) && !example.getSchool().getAdmin().getId().equals(userId)) {
+            return Response.status(403)
+                    .entity("Not allowed to delete this Example.")
+                    .build();
+        }
+
+        List<Test> tests = em.createQuery(
+                "SELECT t FROM Test t JOIN t.exampleList e WHERE e.example.id = :exampleId",
+                Test.class
+        ).setParameter("exampleId", exampleId).getResultList();
+
+        if (!tests.isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Example is part of a Test and cannot be deleted.")
+                    .build();
+        }
+
+        if (example.getImageUrl() != null) {
+            mediaStorageService.delete(example.getImageUrl());
+        }
+        if (example.getSolutionUrl() != null) {
+            mediaStorageService.delete(example.getSolutionUrl());
+        }
+        em.remove(example);
+        return Response.ok().build();
+    }
+
+    public Response updateExample(UUID exampleId, UUID userId, CreateExampleDTO dto) {
+        Example example = em.find(Example.class, exampleId);
+        if (example == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
 
         if (!example.getAdmin().getId().equals(userId) && !example.getSchool().getAdmin().getId().equals(userId)) {
@@ -175,11 +254,11 @@ public class ExampleRepository {
                     .build();
         }
 
-        ExampleFolder folder = null;
-        if (dto.folderId() != null && !dto.folderId().isBlank()) {
-            folder = exampleFolderRepository.findById(dto.folderId());
+        Folder folder = null;
+        if (dto.folderId() != null) {
+            folder = folderRepository.findById(dto.folderId());
             if (folder == null || !folder.getSchool().getId().equals(example.getSchool().getId())) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Ordner.").build();
+                return Response.status(Response.Status.BAD_REQUEST).entity("Folder is invalid.").build();
             }
         }
 
@@ -191,7 +270,6 @@ public class ExampleRepository {
         example.getFocusList().clear();
         example.getFocusList().addAll(dto.focusList());
         example.setVariables(mapVariableEntities(dto.variables()));
-        example.setUpdatedAt(Timestamp.from(java.time.Instant.now()));
 
         clearTypeSpecificFields(example);
 
@@ -225,16 +303,10 @@ public class ExampleRepository {
         return Response.ok(example.getId()).build();
     }
 
-    @Transactional
-    public Response moveExampleToFolder(Long exampleId, MoveExampleToFolderDTO dto) {
-        Example example = em.find(Example.class, exampleId);
+    public Response moveExampleToFolder(UUID exampleId, UUID userId, UUID folderId) {
+       Example example = em.find(Example.class, exampleId);
         if (example == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity("Beispiel nicht gefunden.").build();
-        }
-
-        Long userId = tokenService.validateTokenAndGetUserId(dto.authToken());
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+            return Response.status(Response.Status.NOT_FOUND).entity("Example not found.").build();
         }
 
         if (!example.getAdmin().getId().equals(userId) && !example.getSchool().getAdmin().getId().equals(userId)) {
@@ -243,11 +315,11 @@ public class ExampleRepository {
                     .build();
         }
 
-        ExampleFolder folder = null;
-        if (dto.folderId() != null && !dto.folderId().isBlank()) {
-            folder = exampleFolderRepository.findById(dto.folderId());
+        Folder folder = null;
+        if (folderId != null) {
+            folder = folderRepository.findById(folderId);
             if (folder == null || !folder.getSchool().getId().equals(example.getSchool().getId())) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Zielordner.").build();
+                return Response.status(Response.Status.BAD_REQUEST).entity("Folder is invalid.").build();
             }
         }
 
@@ -256,99 +328,109 @@ public class ExampleRepository {
         return Response.ok().build();
     }
 
-    @Transactional
-    public Response deleteExample(String authToken, Long exampleId) {
-        Example example = em.find(Example.class, exampleId);
-        if (example == null) {
+    public Response getExampleImage(UUID exampleId, UUID userId, boolean isSolution) {
+        Example example = findById(exampleId);
+        if (example == null || example.getImageUrl() == null || example.getImageUrl().isBlank()) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        Long userId = tokenService.validateTokenAndGetUserId(authToken);
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+        if (!schoolRepository.isUserPartOfCollection(example.getSchool().getId(), userId)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+
+        MediaStorageService.StoredImage image = null;
+        if(isSolution) {
+            image = mediaStorageService.loadImage(example.getSolutionUrl());
+        } else {
+            image = mediaStorageService.loadImage(example.getImageUrl());
+        }
+
+        if (image == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        return Response.ok(image.data(), image.contentType()).build();
+    }
+
+    public Response uploadExampleImage(UUID exampleId, UUID userId, FileUpload file, boolean isSolution) {
+        Example example = findById(exampleId);
+        if (example == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Example not found.").build();
         }
 
         if (!example.getAdmin().getId().equals(userId) && !example.getSchool().getAdmin().getId().equals(userId)) {
-            return Response.status(403)
-                    .entity("Not allowed to delete this Example.")
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("Not allowed to upload image for this Example.")
                     .build();
         }
 
-        List<Test> tests = em.createQuery(
-                "SELECT t FROM Test t JOIN t.exampleList e WHERE e.example.id = :exampleId",
-                Test.class
-        ).setParameter("exampleId", exampleId).getResultList();
-
-        if (!tests.isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Example is part of a Test and cannot be deleted.")
-                    .build();
+        if (file == null || file.fileName() == null || file.fileName().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("No file uploaded.").build();
         }
 
-        if (example.getImageUrl() != null) {
-            mediaStorageService.delete(example.getImageUrl());
+        String contentType = file.contentType() == null ? "" : file.contentType().toLowerCase();
+        if (!ALLOWED_IMAGE_TYPES.contains(contentType)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Use JPG, PNG or WEBP.").build();
         }
-        if (example.getSolutionUrl() != null) {
-            mediaStorageService.delete(example.getSolutionUrl());
+
+        try {
+            String objectKey = "";
+
+            if (Files.size(file.uploadedFile()) > MAX_PROFILE_IMAGE_SIZE) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("File is too big. Max. 2 MB.").build();
+            }
+
+            if(isSolution) {
+                if (example.getSolutionUrl() != null) {
+                    mediaStorageService.delete(example.getSolutionUrl());
+                }
+
+                objectKey = mediaStorageService.uploadConstructionSolutionImage(exampleId, file.uploadedFile());
+                example.setSolutionUrl(objectKey);
+            } else{
+                if (example.getImageUrl() != null) {
+                    mediaStorageService.delete(example.getImageUrl());
+                }
+
+                objectKey = mediaStorageService.uploadConstructionTaskImage(exampleId, file.uploadedFile());
+                example.setImageUrl(objectKey);
+            }
+
+            em.merge(example);
+            return Response.ok(objectKey).build();
+        } catch (IOException e) {
+            return Response.serverError().entity("Failed to upload image.").build();
         }
-        em.remove(example);
+    }
+
+    public Response deleteExampleImage(UUID exampleId, UUID userId, boolean isSolution) {
+        Example example = findById(exampleId);
+        if (example == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Example not found.").build();
+        }
+
+        if (!example.getAdmin().getId().equals(userId) && !example.getSchool().getAdmin().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Not allowed to delete this Example.").build();
+        }
+
+        if(isSolution) {
+            if (example.getSolutionUrl() != null) {
+                mediaStorageService.delete(example.getSolutionUrl());
+            }
+            example.setSolutionUrl("");
+        } else{
+            if (example.getImageUrl() != null) {
+                mediaStorageService.delete(example.getImageUrl());
+            }
+            example.setImageUrl("");
+        }
+
+        em.merge(example);
         return Response.ok().build();
     }
 
-    public CreateExampleDTO getExample(Long exampleId, String authToken) {
-        tokenService.validateTokenAndGetUserId(authToken);
 
-        Example e = em.find(Example.class, exampleId);
-
-        return new CreateExampleDTO(
-                "",
-                e.getSchool().getId(),
-                e.getType(),
-                e.getInstruction(),
-                e.getQuestion(),
-                e.getAnswers(),
-                e.getOptions(),
-                e.getGapFillType(),
-                e.getGapDTO(),
-                e.getAssigns(),
-                e.getAssignRightItems(),
-                e.getImageUrl(),
-                e.getSolution(),
-                e.getSolutionUrl(),
-                e.getFocusList(),
-                mapVariables(e.getVariables()),
-                e.getImageWidth(),
-                e.getSolutionImageWidth(),
-                e.getFolder() != null ? e.getFolder().getId() : null
-        );
-    }
-
-    @Transactional
-    public String updateConstructionTaskImage(Long exampleId, String imageKey) {
-        Example example = em.find(Example.class, exampleId);
-        if (example == null) {
-            return "EXAMPLE_NOT_FOUND";
-        }
-
-        example.setImageUrl(imageKey);
-        em.merge(example);
-
-        return null;
-    }
-
-    @Transactional
-    public String updateConstructionSolutionImage(Long exampleId, String solutionKey) {
-        Example example = em.find(Example.class, exampleId);
-        if (example == null) {
-            return "EXAMPLE_NOT_FOUND";
-        }
-
-        example.setSolutionUrl(solutionKey);
-        em.merge(example);
-        return null;
-    }
-
-    public Example findById(Long exampleId) {
+    public Example findById(UUID exampleId) {
         return em.find(Example.class, exampleId);
     }
 

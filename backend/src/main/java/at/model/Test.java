@@ -1,21 +1,28 @@
 package at.model;
 
+import at.model.helper.GradingLevel;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Entity
 public class Test {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    private UUID id;
 
     @ManyToOne
     private User admin;
+
+    @ManyToOne
+    private School school;
+
+    @ManyToOne
+    @JoinColumn(name = "folder_id")
+    private Folder folder;
 
     @Column(nullable = false)
     private String name;
@@ -27,9 +34,6 @@ public class Test {
 
     @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TestExample> exampleList = new ArrayList<>();
-
-    @ManyToOne
-    private School school;
 
     @Column(name = "default_task_spacing")
     private Integer defaultTaskSpacing;
@@ -44,7 +48,7 @@ public class Test {
     @CollectionTable(name = "test_task_spacing", joinColumns = @JoinColumn(name = "test_id"))
     @MapKeyColumn(name = "example_id")
     @Column(name = "spacing_value")
-    private Map<Integer, Integer> taskSpacingMap = new HashMap<>();
+    private Map<UUID, Integer> taskSpacingMap = new HashMap<>();
 
     @ElementCollection
     @CollectionTable(name = "test_grading_levels", joinColumns = @JoinColumn(name = "test_id"))
@@ -63,16 +67,12 @@ public class Test {
     @Column(name = "minimum_points")
     private Map<Integer, Integer> manualGradeMinimums = new HashMap<>();
 
-    @ManyToOne
-    @JoinColumn(name = "folder_id")
-    private TestFolder folder;
-
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public Test() {
-        createdAt = new Timestamp(System.currentTimeMillis());
-        updatedAt = new Timestamp(System.currentTimeMillis());
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
     public Test(String name, String note, User admin, School school, int duration) {
@@ -82,6 +82,43 @@ public class Test {
         this.school = school;
         this.admin = admin;
         this.duration = duration;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @Override
+    public String toString() {
+        return "Test{" +
+                "id=" + id +
+                ", admin=" + admin +
+                ", school=" + school +
+                ", folder=" + folder +
+                ", name='" + name + '\'' +
+                ", note='" + note + '\'' +
+                ", duration=" + duration +
+                ", exampleList=" + exampleList +
+                ", defaultTaskSpacing=" + defaultTaskSpacing +
+                ", gradingMode='" + gradingMode + '\'' +
+                ", gradingSystemName='" + gradingSystemName + '\'' +
+                ", taskSpacingMap=" + taskSpacingMap +
+                ", gradingSchema=" + gradingSchema +
+                ", gradePercentages=" + gradePercentages +
+                ", manualGradeMinimums=" + manualGradeMinimums +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
 
     public int getDuration() {
@@ -108,11 +145,11 @@ public class Test {
         this.school = school;
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -164,11 +201,11 @@ public class Test {
         this.gradingSystemName = gradingSystemName;
     }
 
-    public Map<Integer, Integer> getTaskSpacingMap() {
+    public Map<UUID, Integer> getTaskSpacingMap() {
         return taskSpacingMap;
     }
 
-    public void setTaskSpacingMap(Map<Integer, Integer> taskSpacingMap) {
+    public void setTaskSpacingMap(Map<UUID, Integer> taskSpacingMap) {
         this.taskSpacingMap = taskSpacingMap != null ? new HashMap<>(taskSpacingMap) : new HashMap<>();
     }
 
@@ -196,27 +233,18 @@ public class Test {
         this.manualGradeMinimums = manualGradeMinimums != null ? new HashMap<>(manualGradeMinimums) : new HashMap<>();
     }
 
-    public TestFolder getFolder() {
+    public Folder getFolder() {
         return folder;
     }
 
-    public void setFolder(TestFolder folder) {
+    public void setFolder(Folder folder) {
         this.folder = folder;
     }
 
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Timestamp getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
-
-    public void setUpdatedAt(Timestamp updatedAt) {
-        this.updatedAt = updatedAt;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 }

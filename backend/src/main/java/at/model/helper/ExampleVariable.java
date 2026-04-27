@@ -3,10 +3,12 @@ package at.model.helper;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
+import java.util.UUID;
+
 @Embeddable
 public class ExampleVariable {
-    @Column(name = "variable_id", length = 120)
-    private String id;
+    @Column
+    private UUID id;
 
     @Column(name = "variable_key", nullable = false, length = 120)
     private String key;
@@ -17,17 +19,26 @@ public class ExampleVariable {
     public ExampleVariable() {
     }
 
-    public ExampleVariable(String id, String key, String defaultValue) {
+    public ExampleVariable(UUID id, String key, String defaultValue) {
         this.id = id;
         this.key = key;
         this.defaultValue = defaultValue;
     }
 
-    public String getId() {
+    @Override
+    public String toString() {
+        return "ExampleVariable{" +
+                "id=" + id +
+                ", key='" + key + '\'' +
+                ", defaultValue='" + defaultValue + '\'' +
+                '}';
+    }
+
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

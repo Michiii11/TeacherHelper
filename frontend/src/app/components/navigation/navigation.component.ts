@@ -1,5 +1,5 @@
 import { Component, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
@@ -12,8 +12,12 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { HttpService } from '../../service/http.service';
 import { User } from '../../model/User';
 import { NotificationDTO, NotificationActionType, NotificationType } from '../../model/Notification';
-import {TranslatePipe} from '@ngx-translate/core'
-import {MatButtonToggle, MatButtonToggleGroup} from '@angular/material/button-toggle'
+import {TranslatePipe, TranslateService} from '@ngx-translate/core';
+import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
+import { NavbarActionsService } from './navbar-actions.service';
+import { NavbarAction, NavbarBreadcrumb } from './navbar-action.model';
+import { MatDivider } from '@angular/material/list';
+import { AuthService } from '../../service/auth.service';
 
 @Component({
   selector: 'app-navigation',
@@ -34,7 +38,8 @@ import {MatButtonToggle, MatButtonToggleGroup} from '@angular/material/button-to
     MatTooltip,
     TranslatePipe,
     MatButtonToggle,
-    MatButtonToggleGroup
+    MatButtonToggleGroup,
+    MatDivider
   ],
   templateUrl: './navigation.component.html',
   styleUrl: './navigation.component.scss'
@@ -42,11 +47,18 @@ import {MatButtonToggle, MatButtonToggleGroup} from '@angular/material/button-to
 export class NavigationComponent implements OnInit, OnDestroy {
   service = inject(HttpService);
   snackBar = inject(MatSnackBar);
+  navbarActionsService = inject(NavbarActionsService);
+  translate = inject(TranslateService)
 
   user: User = {} as User;
+  avatarObjectUrl: string | null = null;
+  private loadedAvatarUserId: string | null = null;
+  adminVisible = false;
   notifications: NotificationDTO[] = [];
   selectedTab: 'open' | 'history' = 'open';
-  processingIds = new Set<number>();
+  processingIds = new Set<string>();
+  navbarActions: NavbarAction[] = [];
+  breadcrumbs: NavbarBreadcrumb[] = [];
 
   historyExpanded = false;
 
@@ -61,6 +73,8 @@ export class NavigationComponent implements OnInit, OnDestroy {
   private reconnectTimer?: ReturnType<typeof setTimeout>;
   private socketDestroyed = false;
   private routerSub?: Subscription;
+  private navbarActionsSub?: Subscription;
+  private breadcrumbsSub?: Subscription;
 
   constructor(private router: Router) {}
 
@@ -73,6 +87,14 @@ export class NavigationComponent implements OnInit, OnDestroy {
         this.refreshNavigationState();
       });
 
+    this.navbarActionsSub = this.navbarActionsService.actions$.subscribe(actions => {
+      this.navbarActions = actions.filter(action => action.visible !== false);
+    });
+
+    this.breadcrumbsSub = this.navbarActionsService.breadcrumbs$.subscribe(breadcrumbs => {
+      this.breadcrumbs = breadcrumbs;
+    });
+
     window.addEventListener('focus', this.handleWindowFocus);
     window.addEventListener('storage', this.handleStorageRefresh);
     this.connectNotificationSocket();
@@ -81,6 +103,8 @@ export class NavigationComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.socketDestroyed = true;
     this.routerSub?.unsubscribe();
+    this.navbarActionsSub?.unsubscribe();
+    this.breadcrumbsSub?.unsubscribe();
 
     window.removeEventListener('focus', this.handleWindowFocus);
     window.removeEventListener('storage', this.handleStorageRefresh);
@@ -93,6 +117,8 @@ export class NavigationComponent implements OnInit, OnDestroy {
       this.socket.close();
       this.socket = undefined;
     }
+
+    this.clearAvatarObjectUrl();
   }
 
   private handleWindowFocus = () => {
@@ -112,12 +138,17 @@ export class NavigationComponent implements OnInit, OnDestroy {
   private refreshNavigationState(): void {
     if (this.isAuthPage()) {
       this.user = {} as User;
+      this.clearAvatarObjectUrl();
       this.notifications = [];
+      this.navbarActions = [];
+      this.breadcrumbs = [];
+      this.adminVisible = false;
       return;
     }
 
     this.loadUser();
     this.loadNotifications();
+    this.refreshAdminVisibility();
   }
 
   isAuthPage(): boolean {
@@ -126,9 +157,55 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
   private loadUser(): void {
     this.service.getUser().subscribe({
-      next: (user) => (this.user = user),
-      error: (err) => console.error(err)
+      next: (user) => {
+        this.user = user;
+        this.loadAvatarWithAuth(user);
+      },
+      error: (err) => {
+        console.error(err);
+        this.clearAvatarObjectUrl();
+      }
     });
+  }
+
+  private loadAvatarWithAuth(user: User | null): void {
+    if (!user?.id || !user?.profileImageUrl) {
+      this.clearAvatarObjectUrl();
+      return;
+    }
+
+    if (this.loadedAvatarUserId === user.id && this.avatarObjectUrl) {
+      return;
+    }
+
+    this.clearAvatarObjectUrl();
+    this.loadedAvatarUserId = user.id;
+
+    this.service.getProfileImageObjectUrl(user.id)
+      .then((objectUrl) => {
+        if (this.user?.id !== user.id) {
+          URL.revokeObjectURL(objectUrl);
+          return;
+        }
+
+        this.avatarObjectUrl = objectUrl;
+      })
+      .catch((err) => {
+        console.error('Profilbild konnte nicht geladen werden:', err);
+
+        if (this.loadedAvatarUserId === user.id) {
+          this.clearAvatarObjectUrl();
+        }
+      });
+  }
+
+  private clearAvatarObjectUrl(): void {
+    if (this.avatarObjectUrl) {
+      URL.revokeObjectURL(this.avatarObjectUrl);
+    }
+
+    this.avatarObjectUrl = null;
+    this.loadedAvatarUserId = null;
   }
 
   loadNotifications(): void {
@@ -295,7 +372,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
     if (!n.relatedEntityId && this.requiresRelatedEntity(action)) {
       this.snackBar.open('Diese Nachricht kann nicht verarbeitet werden.', 'Schließen', {
-        duration: 3200
+        duration: 3000
       });
       return;
     }
@@ -309,11 +386,12 @@ export class NavigationComponent implements OnInit, OnDestroy {
             this.snackBar.open('Einladung angenommen.', 'OK', { duration: 2200 });
             this.loadNotifications();
             this.loadUser();
+            this.navbarActionsService.triggerReloadSchools();
           },
           error: (err) => {
             console.error('Fehler beim Annehmen der Einladung:', err);
             this.snackBar.open(this.extractError(err, 'Einladung konnte nicht angenommen werden.'), 'Schließen', {
-              duration: 3600
+              duration: 3000
             });
           },
           complete: () => this.processingIds.delete(n.id)
@@ -330,7 +408,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
           error: (err) => {
             console.error('Fehler beim Ablehnen der Einladung:', err);
             this.snackBar.open(this.extractError(err, 'Einladung konnte nicht abgelehnt werden.'), 'Schließen', {
-              duration: 3600
+              duration: 3000
             });
           },
           complete: () => this.processingIds.delete(n.id)
@@ -403,42 +481,6 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
   isProcessing(n: NotificationDTO): boolean {
     return this.processingIds.has(n.id);
-  }
-
-  getActionLabel(action?: NotificationActionType): string {
-    switch (action) {
-      case NotificationActionType.ACCEPT_INVITATION:
-        return 'Bestätigen';
-      case NotificationActionType.DECLINE_INVITATION:
-        return 'Ablehnen';
-      case NotificationActionType.OPEN_LINK:
-        return 'Öffnen';
-      case NotificationActionType.MARK_AS_READ:
-        return 'Archivieren';
-      case NotificationActionType.DELETE:
-        return 'Löschen';
-      default:
-        return 'Aktion';
-    }
-  }
-
-  getNotificationBadge(n: NotificationDTO): string {
-    switch (n.type) {
-      case NotificationType.JOIN_REQUEST:
-        return 'Anfrage';
-      case NotificationType.SCHOOL_INVITATION:
-        return 'Einladung';
-      case NotificationType.INVITATION_ACCEPTED:
-        return 'Bestätigt';
-      case NotificationType.INVITATION_DECLINED:
-        return 'Abgelehnt';
-      case NotificationType.SCHOOL_NEWS:
-        return 'News';
-      case NotificationType.SYSTEM_INFO:
-        return 'System';
-      default:
-        return 'Info';
-    }
   }
 
   getNotificationIcon(n: NotificationDTO): string {
@@ -545,15 +587,8 @@ export class NavigationComponent implements OnInit, OnDestroy {
     });
   }
 
-  private getLastViewedSchoolId(): number | null {
-    const raw = localStorage.getItem('lastViewedSchoolId');
-
-    if (!raw) {
-      return null;
-    }
-
-    const parsed = Number(raw);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  private getLastViewedSchoolId(): string | null {
+    return localStorage.getItem('lastViewedSchoolId')
   }
 
   private isDeveloperUser(): boolean {
@@ -572,7 +607,15 @@ export class NavigationComponent implements OnInit, OnDestroy {
   }
 
   getAvatarUrl(): string | null {
-    return this.service.getAvatarUrl(this.user);
+    return this.avatarObjectUrl;
+  }
+
+  isBreadcrumbClickable(crumb: NavbarBreadcrumb, isLast: boolean): boolean {
+    if (crumb.clickable === false) {
+      return false;
+    }
+
+    return !!crumb.route && !isLast;
   }
 
   private extractError(err: any, fallback: string): string {
@@ -583,4 +626,65 @@ export class NavigationComponent implements OnInit, OnDestroy {
     const isDark = document.body.classList.contains('dark-mode');
     return isDark ? '/darkmode.png' : '/lightmode.png';
   }
+
+  private authService = inject(AuthService);
+
+  private refreshAdminVisibility(): void {
+    this.authService.isAdmin().subscribe({
+      next: (isAdmin) => (this.adminVisible = isAdmin),
+      error: () => (this.adminVisible = false)
+    });
+  }
+
+  getNotificationTitle(n: NotificationDTO): string {
+    switch (n.type) {
+      case 'SCHOOL_INVITATION':
+        return this.translate.instant('notifications.schoolInvitation.title', {
+          school: n.school?.name ?? ''
+        });
+
+      case 'INVITATION_ACCEPTED':
+        return this.translate.instant('notifications.invitationAccepted.title');
+
+      case 'INVITATION_DECLINED':
+        return this.translate.instant('notifications.invitationDeclined.title');
+
+      default:
+        return n.title;
+    }
+  }
+
+  getNotificationMessage(n: NotificationDTO): string {
+    switch (n.type) {
+      case 'SCHOOL_INVITATION':
+        return this.translate.instant('notifications.schoolInvitation.message', {
+          actor: n.actor?.username ?? '',
+          school: n.school?.name ?? ''
+        });
+
+      case 'INVITATION_ACCEPTED':
+        return this.translate.instant('notifications.invitationAccepted.message', {
+          actor: n.actor?.username ?? '',
+          school: n.school?.name ?? ''
+        });
+
+      case 'INVITATION_DECLINED':
+        return this.translate.instant('notifications.invitationDeclined.message', {
+          actor: n.actor?.username ?? '',
+          school: n.school?.name ?? ''
+        });
+
+      default:
+        return n.message;
+    }
+  }
+
+  getBadgeLabel(type: NotificationType): string {
+    return this.translate.instant('notifications.notificationBadges.' + type);
+  }
+
+  getActionLabel(action: NotificationActionType): string {
+    return this.translate.instant('notifications.notificationActions.' + action);
+  }
 }
+

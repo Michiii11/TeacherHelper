@@ -1,11 +1,10 @@
 import { Injectable } from '@angular/core';
-import {HttpClient} from '@angular/common/http'
-import {BehaviorSubject, Observable, of} from 'rxjs'
-import {LoginDTO, UserDTO} from '../model/User'
-import {Config} from '../config'
-import {map} from "rxjs/operators"
-import {SchoolDTO} from '../model/School'
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
+import { LoginDTO, UserDTO } from '../model/User';
+import { Config } from '../config';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -17,20 +16,17 @@ export class AuthService {
       this.loggedIn.next(isValid);
     });
   }
+
   login(login: LoginDTO): Observable<any> {
     return this.http.post(Config.API_URL + '/user/login', login);
   }
 
-  register(register: UserDTO): Observable<any> {
-    return this.http.post(Config.API_URL + '/user/register', register);
-  }
-
   validateToken(token: string): Observable<boolean> {
     return this.http.post<{ valid: boolean }>(
-        Config.API_URL + '/user/validate',
-        { token }
+      Config.API_URL + '/user/validate', {},
+      { headers: { Authorization: localStorage.getItem('teacher_authToken') ?? '' } }
     ).pipe(
-        map(response => response.valid)
+      map(response => response.valid)
     );
   }
 
@@ -40,7 +36,9 @@ export class AuthService {
       return of(false);
     }
 
-    return this.validateToken(token);
+    return this.validateToken(token).pipe(
+      catchError(() => of(false))
+    );
   }
 
   setLogin(token: string, userId: string) {
@@ -49,9 +47,21 @@ export class AuthService {
     this.loggedIn.next(true);
   }
 
-  logout() {
-    localStorage.removeItem('teacher_authToken');
-    localStorage.removeItem('teacher_userId');
-    this.loggedIn.next(false);
+  isAdmin(): Observable<boolean> {
+    const authToken = localStorage.getItem('teacher_authToken');
+
+    if (!authToken) {
+      return of(false);
+    }
+
+    return this.http.get<{ isAdmin: boolean }>(
+      `${Config.API_URL}/user/isAdmin`,
+      {
+        headers: { Authorization: authToken }
+      }
+    ).pipe(
+      map(response => !!response.isAdmin),
+      catchError(() => of(false))
+    );
   }
 }

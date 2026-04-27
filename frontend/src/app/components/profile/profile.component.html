@@ -1,18 +1,4 @@
 <main class="profile-page" [attr.aria-label]="'profile.ariaPage' | translate">
-  <header class="page-header">
-    <div>
-      <div class="title-icon">
-        <mat-icon>person</mat-icon>
-      </div>
-      <h1 class="page-title">{{ 'profile.title' | translate }}</h1>
-    </div>
-
-    <button mat-flat-button color="warn" type="button" (click)="logout()">
-      <mat-icon>logout</mat-icon>
-      {{ 'common.logout' | translate }}
-    </button>
-  </header>
-
   @if (loading) {
     <section class="loading-card">
       <mat-icon>hourglass_top</mat-icon>
@@ -101,6 +87,17 @@
             </label>
           </div>
 
+          <div class="setting-language-card">
+            <div class="setting-copy">
+              <div class="setting-title">{{ 'profile.language' | translate }}</div>
+            </div>
+
+            <select formControlName="language" class="native-select">
+              <option value="de">{{ 'languages.de' | translate }}</option>
+              <option value="en">{{ 'languages.en' | translate }}</option>
+            </select>
+          </div>
+
           <div class="setting-card">
             <div class="setting-copy">
               <div class="setting-title">{{ 'profile.allowInvitations' | translate }}</div>
@@ -112,17 +109,6 @@
                 <span class="switch-thumb"></span>
               </span>
             </label>
-          </div>
-
-          <div class="setting-language-card">
-            <div class="setting-copy">
-              <div class="setting-title">{{ 'profile.language' | translate }}</div>
-            </div>
-
-            <select formControlName="language" class="native-select">
-              <option value="de">{{ 'languages.de' | translate }}</option>
-              <option value="en">{{ 'languages.en' | translate }}</option>
-            </select>
           </div>
         </div>
       </article>
@@ -136,7 +122,6 @@
               <mat-icon>badge</mat-icon>
               {{ 'profile.usernameSection' | translate }}
             </h2>
-            <p class="panel-subtitle">{{ 'profile.usernameSub' | translate }}</p>
           </div>
         </div>
 
@@ -169,7 +154,6 @@
               <mat-icon>mail</mat-icon>
               {{ 'profile.emailSection' | translate }}
             </h2>
-            <p class="panel-subtitle">{{ 'profile.emailSub' | translate }}</p>
           </div>
         </div>
 
@@ -220,7 +204,6 @@
               <mat-icon>lock</mat-icon>
               {{ 'profile.passwordSection' | translate }}
             </h2>
-            <p class="panel-subtitle">{{ 'profile.passwordSub' | translate }}</p>
           </div>
         </div>
 
@@ -287,7 +270,6 @@
               <mat-icon>workspace_premium</mat-icon>
               Abo-Modelle & Upgrade
             </h2>
-            <p class="panel-subtitle">Hier kannst du dein Modell ändern.</p>
           </div>
         </div>
 

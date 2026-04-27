@@ -4,5 +4,4 @@ public record UserSettingsDTO(
         Boolean darkMode,
         String language,
         Boolean allowInvitations
-) {
-}
+) {}

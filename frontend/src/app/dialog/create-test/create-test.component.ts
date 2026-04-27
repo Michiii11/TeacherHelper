@@ -73,7 +73,7 @@ type PersistedTestSettings = {
   styleUrl: './create-test.component.scss',
 })
 export class CreateTestComponent implements OnInit, OnDestroy {
-  data = inject<{ schoolId: number; testId?: number; folderId?: string | null }>(MAT_DIALOG_DATA);
+  data = inject<{ schoolId: string; testId?: string; folderId?: string | null }>(MAT_DIALOG_DATA);
   private dialogRef = inject(MatDialogRef<CreateTestComponent>);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
@@ -82,6 +82,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   private service = inject(HttpService);
   private testPrintService = inject(TestPrintService);
   private readonly destroy$ = new Subject<void>();
+  private readonly exampleImageObjectUrls = new Set<string>();
+  private readonly exampleImageObjectUrlCache = new Map<string, string>();
 
   showAdvancedSettings = false;
   printCopies = 1;
@@ -99,7 +101,6 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   selectedExamplesInternal: TestExampleDTO[] = [];
 
   test: CreateTestDTO & PersistedTestSettings = {
-    authToken: '',
     schoolId: this.data.schoolId,
     name: '',
     note: '',
@@ -119,7 +120,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   defaultTaskSpacing = 48;
   spacingForAll = 48;
-  taskSpacingMap: Record<number, number> = {};
+  taskSpacingMap: Record<string, number> = {};
 
   useAutomaticGrading = true;
   gradingSystemName = this.translate.instant('createTest.grading.presets.atName');
@@ -196,16 +197,16 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.data.testId) {
-      this.service.getCreateTest(this.data.testId)
+      this.service.getTest(this.data.testId)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          next: (response: any) => {
+          next: async (response: any) => {
             this.test = {
               ...this.test,
               ...response,
             };
             this.isEditMode = true;
-            const hydratedEntries = this.hydrateConstructionImagesForEntries(this.test.exampleList ?? []).map(entry => ({
+            const hydratedEntries = (await this.hydrateConstructionImagesForEntries(this.test.exampleList ?? [])).map(entry => ({
               ...entry,
               variableValues: {
                 ...this.buildDefaultVariableValues(entry.example),
@@ -224,12 +225,12 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
     this.service.getFullExamples(this.data.schoolId)
       .pipe(takeUntil(this.destroy$))
-      .subscribe((examples) => {
-        this.allExamples = this.hydrateConstructionImagesForExamples(examples as ExampleDTO[]);
+      .subscribe(async (examples) => {
+        this.allExamples = await this.hydrateConstructionImagesForExamples(examples);
         this.refreshPreviewHtml();
       });
 
-    this.service.getExampleFolders(String(this.data.schoolId))
+    this.service.getFolders(String(this.data.schoolId))
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (folders: any) => {
@@ -289,6 +290,9 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.exampleImageObjectUrls.forEach(url => URL.revokeObjectURL(url));
+    this.exampleImageObjectUrls.clear();
+    this.exampleImageObjectUrlCache.clear();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -306,14 +310,14 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.includeSolutionSheet = value;
   }
 
-  addExampleToSelection(example: Example | ExampleDTO): void {
+  async addExampleToSelection(example: Example | ExampleDTO): Promise<void> {
     const current = this.selectedExamplesInternal;
     if (current.some((x) => x.example?.id === example.id)) return;
 
-    const hydratedExample = this.hydrateConstructionImage(example);
+    const hydratedExample = await this.hydrateConstructionImage(example);
 
     const newEntry: TestExample = {
-      id: -1,
+      id: example.id,
       example: hydratedExample,
       points: 0,
       title: '',
@@ -362,7 +366,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.markDirty();
   }
 
-  trackBySelectedExample = (_: number, entry: TestExampleDTO): number => entry.example.id;
+  trackBySelectedExample = (_: number, entry: TestExampleDTO): string => entry.example.id;
 
   trackByGradingLevel = (_: number, level: GradingLevel): string =>
     String(level.key ?? level.order ?? _);
@@ -489,8 +493,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   saveTest(): void {
-    this.test.authToken = localStorage.getItem('teacher_authToken') || '';
-    this.test.schoolId = Number(this.test.schoolId || this.data.schoolId);
+    this.test.schoolId = this.test.schoolId || this.data.schoolId;
     this.test.exampleList = this.selectedExamplesInternal;
     (this.test as any).folderId = this.data.folderId ?? (this.test as any).folderId ?? null;
 
@@ -503,7 +506,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.attachPersistedSettingsToPayload();
 
     const request = this.isEditMode
-      ? this.service.saveTest(this.data.testId, this.test)
+      ? this.service.updateTest(this.data.testId, this.test)
       : this.service.createTest(this.test);
 
     request
@@ -652,7 +655,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.markDirty();
   }
 
-  onTaskSpacingChange(exampleId: number, value: number | string | null): void {
+  onTaskSpacingChange(exampleId: string, value: number | string | null): void {
     const numeric = this.normalizeSpacingValue(value);
     this.taskSpacingMap[exampleId] = numeric;
     this.markDirty();
@@ -676,7 +679,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.markDirty();
   }
 
-  getTaskSpacing(exampleId: number): number {
+  getTaskSpacing(exampleId: string): number {
     return this.taskSpacingMap[exampleId] ?? this.defaultTaskSpacing;
   }
 
@@ -1031,18 +1034,20 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.previewHtml = this.sanitizer.bypassSecurityTrustHtml(html);
   }
 
-  private hydrateConstructionImagesForExamples(examples: ExampleDTO[]): ExampleDTO[] {
-    return (examples ?? []).map(example => this.hydrateConstructionImage(example) as unknown as ExampleDTO);
+  private async hydrateConstructionImagesForExamples(examples: ExampleDTO[]): Promise<ExampleDTO[]> {
+    return Promise.all((examples ?? []).map(async example =>
+      await this.hydrateConstructionImage(example) as unknown as ExampleDTO
+    ));
   }
 
-  private hydrateConstructionImagesForEntries(entries: TestExampleDTO[]): TestExampleDTO[] {
-    return (entries ?? []).map(entry => ({
+  private async hydrateConstructionImagesForEntries(entries: TestExampleDTO[]): Promise<TestExampleDTO[]> {
+    return Promise.all((entries ?? []).map(async entry => ({
       ...entry,
-      example: this.hydrateConstructionImage(entry.example)
-    }));
+      example: await this.hydrateConstructionImage(entry.example)
+    })));
   }
 
-  private hydrateConstructionImage(example: Example | ExampleDTO): Example {
+  private async hydrateConstructionImage(example: Example | ExampleDTO): Promise<Example> {
     if (!example || example.type !== ExampleTypes.CONSTRUCTION || !example.id) {
       return <Example>example;
     }
@@ -1050,13 +1055,38 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     const normalizedExample = this.toExample(example);
     const hasTaskImage = !!((normalizedExample as any).imageUrl || (normalizedExample as any).image);
     const hasSolutionImage = !!((normalizedExample as any).solutionUrl);
+    const taskImageUrl = hasTaskImage
+      ? await this.getAuthorizedExampleImageObjectUrl(normalizedExample.id, false)
+      : '';
+    const solutionImageUrl = hasSolutionImage
+      ? await this.getAuthorizedExampleImageObjectUrl(normalizedExample.id, true)
+      : '';
 
     return {
       ...normalizedExample,
-      imageUrl: hasTaskImage ? (this.service.getConstructionImageUrl(normalizedExample.id) ?? '') : '',
-      image: hasTaskImage ? (this.service.getConstructionImageUrl(normalizedExample.id) ?? '') : '',
-      solutionUrl: hasSolutionImage ? (this.service.getConstructionSolutionImageUrl(normalizedExample.id) ?? '') : ''
+      imageUrl: taskImageUrl,
+      image: taskImageUrl,
+      solutionUrl: solutionImageUrl,
     } as Example & { image?: string };
+  }
+
+  private async getAuthorizedExampleImageObjectUrl(exampleId: string, isSolution: boolean): Promise<string> {
+    const cacheKey = `${exampleId}:${isSolution ? 'solution' : 'task'}`;
+    const cached = this.exampleImageObjectUrlCache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      const url = await this.service.getExampleImageObjectUrl(exampleId, isSolution);
+      if (url) {
+        this.exampleImageObjectUrlCache.set(cacheKey, url);
+        this.exampleImageObjectUrls.add(url);
+      }
+      return url || '';
+    } catch {
+      return '';
+    }
   }
 
   private toExample(example: Example | ExampleDTO): Example {
@@ -1258,11 +1288,13 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
     ref.afterClosed()
       .pipe(takeUntil(this.destroy$))
-      .subscribe((result?: ExamplePickerDialogResult) => {
+      .subscribe(async (result?: ExamplePickerDialogResult) => {
         if (!result?.selectedIds?.length) return;
 
         const examplesToAdd = this.allExamples.filter(example => result.selectedIds.includes(example.id));
-        examplesToAdd.forEach(example => this.addExampleToSelection(example));
+        for (const example of examplesToAdd) {
+          await this.addExampleToSelection(example);
+        }
       });
   }
 

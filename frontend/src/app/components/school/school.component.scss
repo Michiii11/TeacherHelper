@@ -570,6 +570,10 @@
     background 0.18s ease;
 }
 
+.folder-node-main mat-icon{
+  width: 3rem;
+}
+
 .folder-node:hover {
   transform: translateY(-1px);
   border-color: rgba(37, 99, 235, 0.24);
@@ -761,6 +765,24 @@
   background: rgba(37, 99, 235, 0.12);
 }
 
+.item-icon.example-icon {
+  background: rgba(37, 99, 235, 0.14);
+  color: rgb(37, 99, 235);
+}
+
+.item-icon.test-icon {
+  background: rgba(139, 92, 246, 0.14);
+  color: rgb(124, 58, 237);
+}
+
+.item-card.example-card {
+  border-color: rgba(37, 99, 235, 0.14);
+}
+
+.item-card.test-card {
+  border-color: rgba(124, 58, 237, 0.16);
+}
+
 .content-card-icon mat-icon {
   width: 24px;
   height: 24px;
@@ -898,6 +920,22 @@
 
 .compact-icon.item {
   color: rgb(37, 99, 235);
+}
+
+.compact-icon.item.example {
+  color: rgb(37, 99, 235);
+}
+
+.compact-icon.item.test {
+  color: rgb(124, 58, 237);
+}
+
+.compact-row.example-row {
+  border-color: rgba(37, 99, 235, 0.14);
+}
+
+.compact-row.test-row {
+  border-color: rgba(124, 58, 237, 0.16);
 }
 
 .compact-actions {
@@ -1066,4 +1104,129 @@
     margin-top: 0.5rem;
     box-shadow: none;
   }
+}
+
+.filter-popup-wrap {
+  position: relative;
+}
+
+.filter-popup-panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 30;
+  width: min(92vw, 420px);
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1rem;
+  border-radius: 1rem;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 96%, transparent), color-mix(in srgb, var(--surface) 100%, transparent));
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  color: var(--text);
+  backdrop-filter: blur(12px);
+}
+
+.filter-popup-section + .filter-popup-section {
+  margin-top: 1rem;
+}
+
+.filter-popup-title {
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+
+.filter-popup-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.static-panel {
+  position: static;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 220px;
+  overflow: visible;
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+  padding: 0;
+}
+
+.filter-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+
+.filter-select-panel.static-panel {
+  position: static;
+  top: auto;
+  left: auto;
+  right: auto;
+  max-height: none;
+  overflow: visible;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.filter-popup-panel::-webkit-scrollbar,
+.filter-select-panel::-webkit-scrollbar {
+  width: 10px;
+}
+
+.filter-popup-panel::-webkit-scrollbar-thumb,
+.filter-select-panel::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-soft) 45%, transparent);
+  border-radius: 999px;
+}
+
+
+.filter-popup-section {
+  &:not(:last-child) {
+    padding-bottom: 0.1rem;
+  }
+}
+
+.filter-popup-panel .filter-option {
+  color: var(--text);
+}
+
+.filter-popup-panel .filter-option:hover {
+  background: var(--row-hover);
+}
+
+.filter-popup-panel .filter-option.checked {
+  background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--primary) 18%, transparent),
+      color-mix(in srgb, var(--primary-2) 14%, transparent)
+  );
+}
+
+.filter-popup-panel .filter-checkbox {
+  border-color: color-mix(in srgb, var(--border-strong) 85%, transparent);
+  background: color-mix(in srgb, var(--surface-3) 70%, transparent);
+}
+
+.filter-popup-panel .filter-checkbox.checked {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
 }
