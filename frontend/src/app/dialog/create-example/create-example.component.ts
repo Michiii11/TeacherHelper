@@ -119,7 +119,8 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     focusList: [],
     variables: [],
     imageWidth: this.defaultImageWidth,
-    solutionImageWidth: this.defaultImageWidth
+    solutionImageWidth: this.defaultImageWidth,
+    folderId: ''
   };
 
   readonly ExampleTypes = ExampleTypes;

@@ -4,10 +4,12 @@ import { of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 import { AuthService } from '../service/auth.service';
+import {HttpService} from '../service/http.service'
 
 export const adminGuard: CanActivateFn = () => {
   const router = inject(Router);
   const authService = inject(AuthService);
+  const httpService = inject(HttpService)
 
   const token = localStorage.getItem('teacher_authToken');
   if (!token) {
@@ -15,7 +17,7 @@ export const adminGuard: CanActivateFn = () => {
     return of(false);
   }
 
-  return authService.isAdmin().pipe(
+  return httpService.isAdmin().pipe(
     map((isAdmin) => {
       if (isAdmin) {
         return true;

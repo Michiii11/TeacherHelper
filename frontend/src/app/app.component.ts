@@ -23,26 +23,25 @@ import { Config } from './config';
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit, OnDestroy {
-  service = inject(HttpService);
-
-  private router = inject(Router);
-  private readonly themeService = inject(ThemeService);
-  private readonly languageService = inject(LanguageService);
   private readonly destroy$ = new Subject<void>();
+  protected readonly Config = Config
+
+  themeService = inject(ThemeService);
+  languageService = inject(LanguageService);
+
+  router = inject(Router);
+  service = inject(HttpService);
+  authService = inject(AuthService);
 
   isLoggedIn = false;
   isLoading = true;
   currentUrl = '/';
 
-  constructor(private authService: AuthService) {
+  constructor() {
     this.themeService.init();
     this.languageService.init();
 
-    this.authService.loggedIn$
-      .pipe(
-        distinctUntilChanged(),
-        takeUntil(this.destroy$)
-      )
+    this.authService.loggedIn$.pipe(distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe(status => {
         this.isLoggedIn = status;
 
@@ -53,11 +52,8 @@ export class AppComponent implements OnInit, OnDestroy {
         }
       });
 
-    this.router.events
-      .pipe(
-        filter(event => event instanceof NavigationEnd),
-        takeUntil(this.destroy$)
-      )
+    this.router.events.pipe(filter(event => event instanceof NavigationEnd),
+        takeUntil(this.destroy$))
       .subscribe((event: NavigationEnd) => {
         this.currentUrl = event.urlAfterRedirects || event.url || '/';
       });
@@ -66,16 +62,17 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    const token = localStorage.getItem('teacher_authToken');
-
-    if (token) {
-      this.isLoggedIn = true;
-      this.loadAndApplyUserSettings();
-    } else {
-      this.applyGuestDefaults();
-    }
-
     this.waitForBackend();
+
+    this.service.validateToken().subscribe({
+      next: data => {
+        this.isLoggedIn = data;
+        this.loadAndApplyUserSettings();
+      }, error: () => {
+        this.isLoggedIn = false;
+        this.applyGuestDefaults();
+      }
+    })
   }
 
   ngOnDestroy(): void {
@@ -91,11 +88,8 @@ export class AppComponent implements OnInit, OnDestroy {
   private loadAndApplyUserSettings(): void {
     this.service.getUser().subscribe({
       next: user => {
-        const resolvedDarkMode = this.themeService.resolveDarkMode(user.settings?.darkMode ?? null);
-        const resolvedLanguage = this.languageService.resolveLanguage(user.settings?.language ?? null);
-
-        this.themeService.setDarkMode(resolvedDarkMode);
-        this.languageService.applyUserPreference(resolvedLanguage);
+        this.themeService.setDarkMode(this.themeService.resolveDarkMode(user.settings?.darkMode ?? null));
+        this.languageService.applyUserPreference(this.languageService.resolveLanguage(user.settings?.language ?? null));
       },
       error: () => {
         this.applyGuestDefaults();
@@ -131,6 +125,4 @@ export class AppComponent implements OnInit, OnDestroy {
   get showFooter(): boolean {
     return this.isLoggedIn || this.isLandingRoute;
   }
-
-  protected readonly Config = Config;
 }

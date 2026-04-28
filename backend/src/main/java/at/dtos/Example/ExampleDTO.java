@@ -1,5 +1,6 @@
 package at.dtos.Example;
 
+import at.dtos.Folder.FolderDTO;
 import at.dtos.School.SchoolDTO;
 import at.dtos.User.UserDTO;
 import at.enums.ExampleTypes;
@@ -14,6 +15,7 @@ import java.util.UUID;
 public record ExampleDTO(
         UUID id,
         UserDTO admin,
+        FolderDTO folder,
         ExampleTypes type,
         String instruction,
         String question,

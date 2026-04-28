@@ -369,6 +369,7 @@
     "deleteExampleMessage": "Delete example \"{{name}}\"?",
     "deleteTestTitle": "Delete test",
     "deleteFolderTitle": "Delete folder",
+    "deleteFolderMessage": "Delete folder \"{{name}}\" permanently?",
     "confirmDeleteFolder": "Delete folder permanently?",
     "deleteTestMessage": "Delete test \"{{name}}\"?",
     "emptyExamplesTitle": "No examples found",

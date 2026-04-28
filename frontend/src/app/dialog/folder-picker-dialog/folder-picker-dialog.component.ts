@@ -36,119 +36,78 @@ export interface FolderPickerDialogData {
     TranslatePipe
   ],
   template: `
-    <div class="dialog-shell">
-      <div class="dialog-header">
-        <div class="dialog-icon">
-          <mat-icon>drive_file_move</mat-icon>
+    <div class="dialog-header">
+      <div class="title-icon">
+        <mat-icon>drive_file_move</mat-icon>
+      </div>
+
+      <div>
+        <h2>{{ data.title }}</h2>
+        <p *ngIf="data.subtitle">{{ data.subtitle }}</p>
+      </div>
+    </div>
+
+    <mat-form-field appearance="outline" class="full-width search-field">
+      <input
+        matInput
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event ?? '')"
+        [placeholder]="'school.folderPickerSearch' | translate"
+      >
+    </mat-form-field>
+
+    <div class="folder-list">
+      <button
+        type="button"
+        class="folder-option"
+        [class.selected]="selectedFolderId() === null"
+        (click)="select(null)"
+      >
+        <div class="folder-option-main">
+          <mat-icon>home</mat-icon>
+          <div class="folder-option-text">
+            <span class="folder-name">{{ data.rootLabel }}</span>
+            <span class="folder-path">{{ data.rootLabel }}</span>
+          </div>
         </div>
 
-        <div class="header-text">
-          <h2>{{ data.title }}</h2>
-          <p *ngIf="data.subtitle">{{ data.subtitle }}</p>
+        <mat-icon *ngIf="selectedFolderId() === null">check_circle</mat-icon>
+      </button>
+
+      <button
+        type="button"
+        class="folder-option"
+        *ngFor="let folder of filteredFolders()"
+        [disabled]="folder.disabled"
+        [class.selected]="selectedFolderId() === folder.id"
+        (click)="select(folder.id)"
+      >
+        <div class="folder-option-main">
+          <mat-icon>folder</mat-icon>
+          <div class="folder-option-text">
+            <span class="folder-name">{{ folder.name }}</span>
+            <span class="folder-path">{{ folder.path }}</span>
+          </div>
         </div>
-      </div>
 
-      <mat-form-field appearance="outline" class="full-width search-field">
-        <input
-          matInput
-          [ngModel]="search()"
-          (ngModelChange)="search.set($event ?? '')"
-          [placeholder]="'school.folderPickerSearch' | translate"
-        >
-      </mat-form-field>
+        <mat-icon *ngIf="selectedFolderId() === folder.id">check_circle</mat-icon>
+      </button>
+    </div>
 
-      <div class="folder-list">
-        <button
-          type="button"
-          class="folder-option"
-          [class.selected]="selectedFolderId() === null"
-          (click)="select(null)"
-        >
-          <div class="folder-option-main">
-            <mat-icon>home</mat-icon>
-            <div class="folder-option-text">
-              <span class="folder-name">{{ data.rootLabel }}</span>
-              <span class="folder-path">{{ data.rootLabel }}</span>
-            </div>
-          </div>
+    <div class="dialog-actions">
+      <button mat-stroked-button type="button" (click)="close()">
+        {{ 'common.cancel' | translate }}
+      </button>
 
-          <mat-icon *ngIf="selectedFolderId() === null">check_circle</mat-icon>
-        </button>
-
-        <button
-          type="button"
-          class="folder-option"
-          *ngFor="let folder of filteredFolders()"
-          [disabled]="folder.disabled"
-          [class.selected]="selectedFolderId() === folder.id"
-          (click)="select(folder.id)"
-        >
-          <div class="folder-option-main">
-            <mat-icon>folder</mat-icon>
-            <div class="folder-option-text">
-              <span class="folder-name">{{ folder.name }}</span>
-              <span class="folder-path">{{ folder.path }}</span>
-            </div>
-          </div>
-
-          <mat-icon *ngIf="selectedFolderId() === folder.id">check_circle</mat-icon>
-        </button>
-      </div>
-
-      <div class="dialog-actions">
-        <button mat-stroked-button type="button" (click)="close()">
-          {{ 'common.cancel' | translate }}
-        </button>
-
-        <button mat-flat-button color="primary" type="button" (click)="confirm()">
-          {{ 'school.moveConfirm' | translate }}
-        </button>
-      </div>
+      <button mat-flat-button color="primary" type="button" (click)="confirm()">
+        {{ 'school.moveConfirm' | translate }}
+      </button>
     </div>
   `,
   styles: [`
     :host {
       display: block;
-      background: var(--menu-bg);
-    }
-
-    .dialog-shell {
-      padding: 1.25rem 1.35rem 1.35rem;
-      max-height: 85vh;
-      overflow: auto;
-    }
-
-    .dialog-header {
-      display: flex;
-      gap: 1rem;
-      align-items: flex-start;
-      margin-bottom: 1rem;
-    }
-
-    .dialog-icon {
-      width: 44px;
-      height: 44px;
-      min-width: 44px;
-      border-radius: 14px;
-      display: grid;
-      place-items: center;
-      background: var(--surface-2);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-
-    .header-text h2 {
-      margin: 0;
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .header-text p {
-      margin: .35rem 0 0;
-      color: var(--text-subtle);
-      line-height: 1.45;
-      font-size: .92rem;
+      padding: 1.4rem 1.5rem 1.6rem;
     }
 
     .full-width {

@@ -30,13 +30,12 @@ export interface FolderNameDialogData {
     MatInputModule,
   ],
   template: `
-    <div class="dialog-shell">
       <div class="dialog-header">
-        <div class="dialog-icon">
+        <div class="title-icon">
           <mat-icon>create_new_folder</mat-icon>
         </div>
 
-        <div class="header-text">
+        <div>
           <h2>{{ data.title }}</h2>
           <p *ngIf="data.subtitle">{{ data.subtitle }}</p>
         </div>
@@ -69,49 +68,11 @@ export interface FolderNameDialogData {
           {{ data.confirmText }}
         </button>
       </div>
-    </div>
   `,
   styles: [`
     :host {
       display: block;
-      background: var(--menu-bg);
-    }
-
-    .dialog-shell {
-      padding: 1.35rem 1.5rem 1.45rem;
-    }
-
-    .dialog-header {
-      display: flex;
-      gap: 1rem;
-      align-items: flex-start;
-      margin-bottom: 1rem;
-    }
-
-    .dialog-icon {
-      width: 44px;
-      height: 44px;
-      min-width: 44px;
-      border-radius: 14px;
-      display: grid;
-      place-items: center;
-      background: var(--surface-2);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-
-    .header-text h2 {
-      margin: 0;
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .header-text p {
-      margin: .35rem 0 0;
-      font-size: .92rem;
-      color: var(--text-subtle);
-      line-height: 1.5;
+      padding: 1.4rem 1.5rem 1.6rem;
     }
 
     .full-width {

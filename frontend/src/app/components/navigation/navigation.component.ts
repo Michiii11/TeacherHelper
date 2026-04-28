@@ -627,10 +627,8 @@ export class NavigationComponent implements OnInit, OnDestroy {
     return isDark ? '/darkmode.png' : '/lightmode.png';
   }
 
-  private authService = inject(AuthService);
-
   private refreshAdminVisibility(): void {
-    this.authService.isAdmin().subscribe({
+    this.service.isAdmin().subscribe({
       next: (isAdmin) => (this.adminVisible = isAdmin),
       error: () => (this.adminVisible = false)
     });

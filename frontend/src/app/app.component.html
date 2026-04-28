@@ -5,11 +5,15 @@
 } @else {
   @if(Config.TYPE === 'LOCALS'){
     <div class="header">
-      You are currently viewing a local deployment. <!--Please go to Shotly.at instead.-->
+      You are currently viewing a local deployment. Please go to
+      <a href="http://leisch.me">leisch.me</a>
+      instead.
     </div>
   } @else if(Config.TYPE === 'DEVELOPMENT'){
     <div class="header">
-      You are currently viewing a development deployment. <!--Please go to Shotly.at instead.-->
+      You are currently viewing a development deployment. Please go to
+      <a href="http://leisch.me">leisch.me</a>
+      instead.
     </div>
   }
   <div class="app-wrapper" [class.logged-in]="isLoggedIn" [class.guest]="!isLoggedIn">

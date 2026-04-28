@@ -3,10 +3,11 @@ import { CanActivate, Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import {AuthService} from '../service/auth.service'
+import {HttpService} from '../service/http.service'
 
 @Injectable({ providedIn: 'root' })
 export class AuthGuard implements CanActivate {
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(private router: Router, private httpService: HttpService) {}
 
   canActivate(): Observable<boolean> {
     const token = localStorage.getItem('teacher_authToken');
@@ -16,7 +17,7 @@ export class AuthGuard implements CanActivate {
     }
 
     // Token beim Backend validieren
-    return this.authService.validateToken(token).pipe(
+    return this.httpService.validateToken().pipe(
       map(isValid => {
         if (isValid) {
           return true;

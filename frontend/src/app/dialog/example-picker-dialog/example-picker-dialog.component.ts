@@ -137,7 +137,7 @@ export class ExamplePickerDialogComponent implements OnInit {
 
     return [...(this.data.examples ?? [])]
       .filter(example => {
-        if (this.selectedFolderId !== null && (example.folderId ?? null) !== this.selectedFolderId) {
+        if (this.selectedFolderId !== null && (example.folder.id ?? null) !== this.selectedFolderId) {
           return false;
         }
 
@@ -262,8 +262,8 @@ export class ExamplePickerDialogComponent implements OnInit {
   private compareExamples(a: ExampleDTO, b: ExampleDTO): number {
     const titleA = this.getExampleTitle(a);
     const titleB = this.getExampleTitle(b);
-    const folderA = this.getFolderPathLabel(a.folderId ?? null);
-    const folderB = this.getFolderPathLabel(b.folderId ?? null);
+    const folderA = this.getFolderPathLabel(a.folder.id ?? null);
+    const folderB = this.getFolderPathLabel(b.folder.id ?? null);
     const typeA = this.getTypeLabel(a.type);
     const typeB = this.getTypeLabel(b.type);
 
@@ -327,11 +327,10 @@ export class ExamplePickerDialogComponent implements OnInit {
         example.question,
         example.instruction,
         example.admin?.username ?? '',
-        (example as any).adminUsername ?? '',
         String(example.id),
         this.getTypeLabel(example.type),
         focusLabels,
-        this.getFolderPathLabel(example.folderId ?? null),
+        this.getFolderPathLabel(example.folder.id ?? null),
       ].join(' ')
     );
 

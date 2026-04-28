@@ -12,43 +12,20 @@ import { HelpComponent } from './components/help/help.component';
 import { AdminComponent } from './components/admin/admin.component';
 
 export const routes: Routes = [
-  { path: '', component: LandingPageComponent },
   { path: 'home', component: HomeComponent, canActivate: [AuthGuard] },
   { path: 'collection/:id', component: SchoolComponent, canActivate: [AuthGuard] },
   { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
-  { path: 'login', component: LoginComponent },
+
+  { path: 'help', component: HelpComponent },
+  { path: 'privacy', component: LegalPageComponent, data: { pageKey: 'privacy' } },
+  { path: 'terms', component: LegalPageComponent, data: { pageKey: 'terms' } },
+  { path: 'legal', component: LegalPageComponent, data: { pageKey: 'legal' } },
+  { path: 'cookies', component: LegalPageComponent, data: { pageKey: 'cookies' } },
+  { path: 'support', component: LegalPageComponent, data: { pageKey: 'support' } },
 
   { path: 'admin', component: AdminComponent, canActivate: [AuthGuard, adminGuard] },
 
-  {
-    path: 'help',
-    component: HelpComponent,
-  },
-
-  {
-    path: 'privacy',
-    component: LegalPageComponent,
-    data: { pageKey: 'privacy' }
-  },
-  {
-    path: 'terms',
-    component: LegalPageComponent,
-    data: { pageKey: 'terms' }
-  },
-  {
-    path: 'legal',
-    component: LegalPageComponent,
-    data: { pageKey: 'legal' }
-  },
-  {
-    path: 'cookies',
-    component: LegalPageComponent,
-    data: { pageKey: 'cookies' }
-  },
-  {
-    path: 'support',
-    component: LegalPageComponent,
-    data: { pageKey: 'support' }
-  },
+  { path: 'login', component: LoginComponent },
+  { path: '', component: LandingPageComponent },
   { path: '**', component: NotFoundComponent }
 ];

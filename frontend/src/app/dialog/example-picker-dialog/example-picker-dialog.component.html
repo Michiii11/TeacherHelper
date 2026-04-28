@@ -147,9 +147,9 @@
               }
 
               <div class="picker-row-subline">
-                <span>{{ getFolderPathLabel(example.folderId ?? null) }}</span>
-                @if (example.admin.username || example.adminUsername) {
-                  <span>· {{ example.admin.username || example.adminUsername }}</span>
+                <span>{{ getFolderPathLabel(example.folder.id) }}</span>
+                @if (example.admin.username) {
+                  <span>· {{ example.admin.username }}</span>
                 }
               </div>
 

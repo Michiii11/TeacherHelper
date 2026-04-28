@@ -410,7 +410,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
     const parts = [
       this.getExampleTypeLabel(entry.example.type),
-      this.getFolderPathLabel(entry.example.folderId ?? null),
+      this.getFolderPathLabel(entry.example.folder?.id ?? null),
       focusLabels || ''
     ].filter(Boolean);
 

@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import {firstValueFrom, Observable} from 'rxjs';
+import {firstValueFrom, Observable, of} from 'rxjs';
 import { Config } from '../config';
 import { SchoolDTO } from '../model/School';
 import {
@@ -14,6 +14,7 @@ import {AdminDashboardDTO, AuthResult, User, UserDTO, UserSettings} from '../mod
 import { NotificationActionType, NotificationDTO } from '../model/Notification';
 import {CreateFolderDTO, FolderDTO} from '../model/Folder'
 import {AppLanguage} from './language.service'
+import {catchError, map} from 'rxjs/operators'
 
 @Injectable({ providedIn: 'root' })
 export class HttpService {
@@ -405,6 +406,27 @@ export class HttpService {
     }
 
     return '?';
+  }
+
+  validateToken(): Observable<boolean> {
+    return this.http.post<{ valid: boolean }>(
+      Config.API_URL + '/user/validate', {},
+      { headers: { Authorization: this.authToken() }}
+    ).pipe(
+      map(response => response.valid)
+    );
+  }
+
+  isAdmin(): Observable<boolean> {
+    return this.http.get<{ isAdmin: boolean }>(
+      `${Config.API_URL}/user/isAdmin`,
+      {
+        headers: { Authorization: this.authToken() }
+      }
+    ).pipe(
+      map(response => response.isAdmin),
+      catchError(() => of(false))
+    );
   }
   // endregion
 }
