@@ -189,7 +189,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     }
 
     const ref = this.dialog.open(ConfirmDialogComponent, {
-      width: '420px',
+      width: '400px',
       maxWidth: 'calc(100vw - 24px)',
       data: {
         title: this.translate.instant('schoolSettings.deleteLogoTitle'),

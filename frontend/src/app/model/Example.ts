@@ -1,5 +1,6 @@
 import {User, UserDTO} from './User'
 import {SchoolDTO} from './School'
+import {Folder, FolderDTO} from './Folder'
 
 export enum ExampleTypes {
   OPEN = 'OPEN',
@@ -22,40 +23,41 @@ export const ExampleTypeLabels: Record<ExampleTypes, string> = {
 export interface Example {
   id: string;
   admin: User;
-  adminUsername?: string;
-  folderId?: string | null;
-  focusList: Focus[];
+  folder: Folder;
   type: ExampleTypes;
   instruction: string;
   question: string;
+  solution: string;
+  imageUrl: string;
+  solutionUrl: string;
+  imageWidth: number;
+  solutionImageWidth: number;
+  focusList: Focus[];
+  variables?: ExampleVariable[];
   answers: string[][];
-  imageUrl: string | null;
-  solutionUrl: string | null;
-  imageWidth: number | null;
-  solutionImageWidth: number | null;
   options: Option[];
   gapFillType: 'INPUT' | 'SELECT';
   gaps: Gap[];
   assigns: Assign[];
   assignRightItems: string[];
-  variables?: ExampleVariable[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ExampleDTO {
   id: string;
   admin: UserDTO;
-  adminUsername?: string;
-  folderId?: string | null;
+  folder: FolderDTO;
   type: ExampleTypes;
   instruction: string;
   question: string;
-  solution: string | null;
-  solutionUrl: string | null;
-  imageUrl: string | null;
-  imageWidth: number | null;
-  solutionImageWidth: number | null;
+  solution: string;
+  solutionUrl: string;
+  imageUrl: string;
+  imageWidth: number;
+  solutionImageWidth: number;
   focusList: Focus[];
-  variables?: ExampleVariable[];
+  variables: ExampleVariable[];
   school: SchoolDTO;
   answers: string[][];
   options: Option[];
@@ -63,12 +65,6 @@ export interface ExampleDTO {
   gaps: Gap[];
   assigns: Assign[];
   assignRightItems: string[];
-}
-
-export interface ExampleVariable {
-  id: string;
-  key: string;
-  defaultValue: string;
 }
 
 export interface CreateExampleDTO {
@@ -86,36 +82,13 @@ export interface CreateExampleDTO {
   solution: string;
   solutionUrl: string;
   focusList: Focus[];
-  variables?: ExampleVariable[];
-  imageWidth: number | null;
-  solutionImageWidth: number | null;
-  folderId?: string | null;
+  variables: ExampleVariable[];
+  imageWidth: number;
+  solutionImageWidth: number;
+  folderId: string;
+
   imageFile?: File;
   solutionFile?: File;
-}
-
-export interface Option {
-  id: string;
-  text: string;
-  correct: boolean;
-}
-
-export interface Gap {
-  id: string;
-  label: string;
-  solution: string;
-  width?: number | null;
-  options: Option[];
-}
-
-export interface Assign {
-  left: string;
-  right: string;
-}
-
-export interface Focus {
-  id: string;
-  label: string;
 }
 
 export interface ExampleOverviewDTO {
@@ -127,7 +100,39 @@ export interface ExampleOverviewDTO {
   adminId: string;
   focusList: Focus[];
   folderId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
 
-  createdAt?: string;
-  updatedAt?: string;
+
+export interface ExampleVariable {
+  id: string;
+  key: string;
+  defaultValue: string;
+}
+
+export interface Option {
+  id: string;
+
+  text: string;
+  correct: boolean;
+}
+
+export interface Gap {
+  id: string;
+  label: string;
+  solution: string;
+  width: number;
+  options: Option[];
+  example: Example;
+}
+
+export interface Assign {
+  left: string;
+  right: string;
+}
+
+export interface Focus {
+  id: string;
+  label: string;
 }

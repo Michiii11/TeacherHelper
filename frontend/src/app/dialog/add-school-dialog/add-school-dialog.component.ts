@@ -58,23 +58,6 @@ import { TranslatePipe } from '@ngx-translate/core';
       display: block;
       padding: 1.4rem 1.5rem 1.6rem;
     }
-
-    .dialog-form {
-      display: flex;
-      flex-direction: column;
-      gap: 1.2rem;
-    }
-
-    .full-width {
-      width: 100%;
-    }
-
-    .dialog-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: .6rem;
-      margin-top: .5rem;
-    }
   `]
 })
 export class AddSchoolDialogComponent {

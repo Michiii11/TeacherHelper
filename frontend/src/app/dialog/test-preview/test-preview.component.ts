@@ -53,6 +53,7 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
 
   test: CreateTestDTO & PersistedTestSettings = {
     schoolId: this.data.schoolId,
+    folderId: null,
     name: '',
     note: '',
     exampleList: [],

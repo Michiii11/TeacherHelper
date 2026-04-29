@@ -359,6 +359,7 @@
     "moveConfirm": "Verschieben",
     "deleteExampleTitle": "Beispiel löschen",
     "deleteFolderTitle": "Ordner löschen",
+    "deleteFolderMessage": "Der Ordner \"{{name}}\" wird dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
     "confirmDeleteFolder": "Ordner wirklich löschen",
     "deleteExampleMessage": "Beispiel \"{{name}}\" wirklich löschen?",
     "deleteTestTitle": "Test löschen",

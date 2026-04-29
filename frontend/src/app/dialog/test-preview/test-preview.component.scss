@@ -376,11 +376,6 @@
   scrollbar-width: thin;
 }
 
-::ng-deep .mat-mdc-dialog-actions .mdc-button,
-::ng-deep .mdc-button {
-  border-radius: 999px;
-}
-
 ::ng-deep .mat-mdc-stroked-button {
   border-color: color-mix(in srgb, var(--text-soft) 40%, #9ca3af) !important;
 }

@@ -19,17 +19,6 @@
   gap: 1rem;
 }
 
-.page-title {
-  margin: 0;
-  font-size: 1.8rem;
-  font-weight: 700;
-}
-
-.page-subtitle {
-  margin: 0.35rem 0 0;
-  color: var(--text-soft);
-}
-
 .loading-card,
 .card,
 .panel,
@@ -479,7 +468,6 @@
     width: 100px;
   }
 
-  .page-header,
   .profile-hero-top,
   .hero-actions,
   .form-actions,

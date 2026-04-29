@@ -60,7 +60,7 @@
           }
         </div>
       }
-  </div>
+    </div>
 
     <!--<div>
       <mat-form-field appearance="outline" class="sort-field">
@@ -120,10 +120,15 @@
 
       <div class="picker-list">
         @for (example of filteredExamples; track example.id) {
-          <label class="picker-row" [class.disabled]="isAlreadySelected(example.id)">
+          <div
+            class="picker-row"
+            [class.selected]="isWorkingSelected(example.id)"
+            [class.disabled]="isAlreadySelected(example.id)"
+            (click)="toggleExampleRow(example.id)">
             <mat-checkbox
               [checked]="isWorkingSelected(example.id)"
               [disabled]="isAlreadySelected(example.id)"
+              (click)="$event.stopPropagation()"
               (change)="toggleExample(example.id, $event.checked)">
             </mat-checkbox>
 
@@ -147,13 +152,13 @@
               }
 
               <div class="picker-row-subline">
-                <span>{{ getFolderPathLabel(example.folderId ?? null) }}</span>
-                @if (example.admin.username || example.adminUsername) {
-                  <span>· {{ example.admin.username || example.adminUsername }}</span>
+                <span>{{ getExampleFolderPathLabel(example) }}</span>
+                @if (example.admin.username) {
+                  <span>· {{ example.admin.username }}</span>
                 }
               </div>
 
-              @if (example.focusList.length) {
+              @if ((example.focusList).length) {
                 <div class="picker-focus-list">
                   @for (focus of example.focusList; track focus.label) {
                     <span class="focus-badge">{{ focus.label }}</span>
@@ -161,7 +166,7 @@
                 </div>
               }
             </div>
-          </label>
+          </div>
         } @empty {
           <div class="picker-empty">
             <mat-icon>filter_alt_off</mat-icon>

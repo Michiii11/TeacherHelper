@@ -11,70 +11,57 @@ export class LanguageService {
   private readonly translate = inject(TranslateService);
   private readonly document = inject(DOCUMENT);
 
-  private readonly STORAGE_KEY = 'teacher_settings_language';
-  private readonly supportedLanguages: AppLanguage[] = ['de', 'en'];
+  private readonly storageKey = 'teacher_settings_language';
+  private readonly supportedLanguages: readonly AppLanguage[] = ['de', 'en'];
   private readonly defaultLanguage: AppLanguage = 'de';
 
   init(): void {
-    this.translate.addLangs(this.supportedLanguages);
-    this.translate.setDefaultLang(this.defaultLanguage);
-
-    const lang = this.resolveLanguage(this.getStoredLanguage() ?? this.getSystemLanguage());
-    this.applyLanguage(lang, false);
-  }
-
-  applyUserPreference(language: string | null | undefined): void {
-    const resolved = this.resolveLanguage(language);
-
-    if (this.isSupported(language)) {
-      this.applyLanguage(resolved, true);
-      return;
-    }
-
-    localStorage.removeItem(this.STORAGE_KEY);
-    this.applyLanguage(resolved, false);
+    this.translate.addLangs([...this.supportedLanguages]);
+    this.applyLanguage(this.resolveLanguage(), false);
   }
 
   setLanguage(language: AppLanguage | string | null | undefined): void {
-    const resolved = this.resolveLanguage(language);
-    this.applyLanguage(resolved, true);
+    this.applyLanguage(this.resolveLanguage(language), true);
+  }
+
+  applyUserPreference(language: string | null | undefined): void {
+    if (!this.isSupported(language)) {
+      localStorage.removeItem(this.storageKey);
+      this.applyLanguage(this.resolveLanguage(), false);
+      return;
+    }
+
+    this.applyLanguage(language, true);
   }
 
   getStoredLanguage(): AppLanguage | null {
-    const stored = localStorage.getItem(this.STORAGE_KEY);
+    const stored = localStorage.getItem(this.storageKey);
     return this.isSupported(stored) ? stored : null;
   }
 
-  getSystemLanguage(): AppLanguage {
-    const browserLang = this.translate.getBrowserLang() ?? navigator.language ?? this.defaultLanguage;
-
-    if (String(browserLang).toLowerCase().startsWith('en')) {
-      return 'en';
-    }
-
-    return 'de';
-  }
-
-  resolveLanguage(language: string | null | undefined): AppLanguage {
+  resolveLanguage(language?: string | null): AppLanguage {
     if (this.isSupported(language)) {
       return language;
     }
 
-    return this.getStoredLanguage() ?? this.getSystemLanguage() ?? this.defaultLanguage;
+    return this.getStoredLanguage() ?? this.getSystemLanguage();
   }
 
-  private applyLanguage(language: AppLanguage | string | null | undefined, persist: boolean): void {
-    const resolved = this.resolveLanguage(language);
+  private getSystemLanguage(): AppLanguage {
+    const browserLang = this.translate.getBrowserLang() ?? navigator.language;
+    return browserLang?.toLowerCase().startsWith('en') ? 'en' : this.defaultLanguage;
+  }
 
-    this.translate.use(resolved);
-    this.document.documentElement.lang = resolved;
+  private applyLanguage(language: AppLanguage, persist: boolean): void {
+    this.translate.use(language);
+    this.document.documentElement.lang = language;
 
     if (persist) {
-      localStorage.setItem(this.STORAGE_KEY, resolved);
+      localStorage.setItem(this.storageKey, language);
     }
   }
 
-  private isSupported(lang: string | null | undefined): lang is AppLanguage {
-    return !!lang && this.supportedLanguages.includes(lang as AppLanguage);
+  private isSupported(language: string | null | undefined): language is AppLanguage {
+    return !!language && this.supportedLanguages.includes(language as AppLanguage);
   }
 }

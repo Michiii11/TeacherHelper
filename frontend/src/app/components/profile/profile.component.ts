@@ -417,7 +417,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '440px',
+      width: '600px',
       maxWidth: 'calc(100vw - 24px)',
       disableClose: true,
       data: {

@@ -2,7 +2,6 @@ import {UserDTO} from './User'
 import {SchoolDTO} from './School'
 
 export enum NotificationType {
-  JOIN_REQUEST = 'JOIN_REQUEST',
   SCHOOL_INVITATION = 'SCHOOL_INVITATION',
   INVITATION_ACCEPTED = 'INVITATION_ACCEPTED',
   INVITATION_DECLINED = 'INVITATION_DECLINED',
@@ -20,15 +19,15 @@ export enum NotificationActionType {
 
 export interface NotificationDTO {
   id: string;
-  actor?: UserDTO;
-  school?: SchoolDTO;
+  actor: UserDTO;
+  school: SchoolDTO;
   type: NotificationType;
   title: string;
   message: string;
-  link?: string;
+  link: string;
   read: boolean;
-  relatedEntityId?: string;
-  primaryAction?: NotificationActionType;
-  secondaryAction?: NotificationActionType;
+  relatedEntityId: string;
+  primaryAction: NotificationActionType;
+  secondaryAction: NotificationActionType;
   createdAt: string;
 }

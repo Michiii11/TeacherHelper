@@ -590,10 +590,6 @@
   font-weight: 700;
 }
 
-.mat-mdc-dialog-actions{
-  margin-left: auto;
-}
-
 /* dialog surface */
 ::ng-deep .mat-mdc-dialog-container .mdc-dialog__surface {
   background: transparent !important;
@@ -902,41 +898,12 @@
     max-width: 100%;
     height: auto;
   }
-
-  mat-dialog-actions {
-    display: flex;
-    flex-direction: column-reverse;
-    align-items: stretch;
-    gap: 8px;
-  }
-
-  mat-dialog-actions button {
-    width: 100%;
-  }
 }
 
 
 ::ng-deep .example-picker-dialog-panel .mdc-dialog__surface {
   background: transparent !important;
   box-shadow: none !important;
-}
-
-
-mat-dialog-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-mat-dialog-actions .mat-mdc-progress-bar {
-  flex: 1 0 100%;
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-mat-dialog-actions button[mat-flat-button] mat-icon {
-  margin-right: 0.35rem;
 }
 
 

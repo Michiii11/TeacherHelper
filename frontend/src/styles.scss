@@ -15,6 +15,7 @@ body {
   color: var(--text);
 }
 
+// region Variables
 :root {
   color-scheme: light;
 
@@ -198,15 +199,17 @@ body.dark-mode {
   --navbar-shadow: 0 10px 30px hsla(0, 0%, 0%, 0.45);
   --navbar-shadow-scrolled: 0 18px 45px hsla(0, 0%, 0%, 0.6);
 }
+// endregion
 
+// region Dialog header
 .title-icon {
   aspect-ratio: 1/1;
   width: 3rem;
   border-radius: 14px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, var(--primary), var(--primary-2));
-  color: var(--on-primary);
+  background: linear-gradient(135deg, var(--primary), var(--primary-2)) !important;
+  color: var(--bg) !important;
   overflow: hidden;
 
   img{
@@ -214,28 +217,11 @@ body.dark-mode {
     object-fit: cover;
     object-position: center;
   }
-}
 
-.title-icon mat-icon{
-  font-size: 2rem;
-  width: 2rem;
-  height: 2rem;
-}
-
-.page-header{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  border-radius: 24px;
-  background: var(--bg-soft);
-  border: 1px solid color-mix(in srgb, var(--border-strong) 18%, transparent);
-
-  > div{
-    display: flex;
-    gap: 1rem;
-    align-items: center;
+  mat-icon{
+    font-size: 2rem;
+    width: 2rem;
+    height: 2rem;
   }
 }
 
@@ -258,12 +244,13 @@ body.dark-mode {
     color: var(--text-soft);
   }
 }
+// endregion
 
+// region Button
 button{
   border-radius: 14px !important;
   transition: all .2s ease !important;
 }
-
 
 .mat-mdc-unelevated-button,
 .mat-mdc-mini-fab.mat-primary,
@@ -315,47 +302,24 @@ button{
   }
 }
 
-
-:host {
-  display: block;
-  background: var(--menu-bg);
-}
-
-.dialog-shell {
-  padding: 1.35rem 1.5rem 1.45rem;
-}
-
-.dialog-header {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-}
-
-.dialog-icon {
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
+.mat-mdc-icon-button {
+  width: 42px;
+  height: 42px;
   border-radius: 14px;
-  display: grid;
-  place-items: center;
-  background: var(--danger);
-  color: var(--bg);
+  color: var(--text-subtle-2) !important;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
-.header-text h2 {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text);
+.mat-mdc-icon-button:hover {
+  background: var(--primary-soft) !important;
+  color: var(--primary-strong) !important;
 }
+// endregion
 
-.header-text p {
-  margin: .35rem 0 0;
-  font-size: .92rem;
-  color: var(--text-subtle);
-  line-height: 1.5;
-}
-
+// region Checkbox
 .checkbox-wrapper {
   margin-top: 1rem;
   padding: .9rem 1rem;
@@ -412,7 +376,9 @@ button{
   font-size: .96rem;
   line-height: 1.45;
 }
+// endregion
 
+// region Dialog Actions
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
@@ -426,34 +392,12 @@ button{
   font-weight: 600;
   border-radius: 10px;
 }
+// endregion
 
 
-.page-title {
-  margin: 0;
-  font-size: 1.8rem;
-  font-weight: 700;
-}
 
-.page-subtitle {
-  margin: 0.35rem 0 0;
-  color: var(--text-soft);
-}
 
-.mat-mdc-icon-button {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-  color: var(--text-subtle-2) !important;
-  transition:
-    background-color 0.18s ease,
-    color 0.18s ease,
-    box-shadow 0.18s ease;
-}
 
-.mat-mdc-icon-button:hover {
-  background: var(--primary-soft) !important;
-  color: var(--primary-strong) !important;
-}
 
 
 .card,
@@ -480,7 +424,6 @@ button{
   box-shadow: var(--shadow-md) !important;
 }
 
-.page-title,
 .profile-name,
 .panel-title,
 .setting-title,
@@ -503,7 +446,6 @@ button{
   color: var(--text) !important;
 }
 
-.page-subtitle,
 .profile-mail,
 .panel-subtitle,
 .info-text,
@@ -551,7 +493,6 @@ button{
   border-top: 1px solid var(--border);
 }
 
-.title-icon,
 .empty-icon-wrap,
 .notif-icon,
 .brand-logo,

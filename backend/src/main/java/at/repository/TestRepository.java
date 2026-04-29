@@ -106,12 +106,12 @@ public class TestRepository {
         User admin = em.find(User.class, userId);
         School school = em.find(School.class, dto.schoolId());
 
-        if (!schoolRepository.isUserPartOfCollection(school.getId(), userId)) {
-            return Response.status(Response.Status.FORBIDDEN).build();
-        }
-
         if (school == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("Collection not found.").build();
+        }
+
+        if (!schoolRepository.isUserPartOfCollection(school.getId(), userId)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
         }
 
         Folder folder = null;
@@ -220,6 +220,7 @@ public class TestRepository {
         return new ExampleDTO(
                 e.getId(),
                 e.getAdmin().toUserDTO(),
+                e.getFolder() != null ? e.getFolder().toDto() : null,
                 e.getType(),
                 e.getInstruction(),
                 e.getQuestion(),
@@ -228,7 +229,7 @@ public class TestRepository {
                 e.getImageUrl(),
                 e.getImageWidth(),
                 e.getSolutionImageWidth(),
-                e.getFocusList(),
+                e.getFocusList() == null ? new LinkedList<>() : new LinkedList<>(e.getFocusList()),
                 mapVariables(e.getVariables()),
                 new SchoolDTO(
                         e.getSchool().getId(),
@@ -238,20 +239,20 @@ public class TestRepository {
                         0,
                         null
                 ),
-                e.getAnswers(),
-                e.getOptions(),
+                e.getAnswers() == null ? new LinkedList<>() : new LinkedList<>(e.getAnswers()),
+                e.getOptions() == null ? new LinkedList<>() : new LinkedList<>(e.getOptions()),
                 e.getGapFillType(),
-                new LinkedList<>(
+                e.getGaps() == null ? new LinkedList<>() : new LinkedList<>(
                         e.getGaps().stream().map(g -> new GapDTO(
                                 g.getId(),
                                 g.getLabel(),
                                 g.getSolution(),
                                 g.getWidth(),
-                                g.getOptions()
+                                g.getOptions() == null ? new LinkedList<>() : new LinkedList<>(g.getOptions())
                         )).toList()
                 ),
-                e.getAssigns(),
-                e.getAssignRightItems()
+                e.getAssigns() == null ? new LinkedList<>() : new LinkedList<>(e.getAssigns()),
+                e.getAssignRightItems() == null ? new LinkedList<>() : new LinkedList<>(e.getAssignRightItems())
         );
     }
 

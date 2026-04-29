@@ -485,8 +485,6 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
   getNotificationIcon(n: NotificationDTO): string {
     switch (n.type) {
-      case NotificationType.JOIN_REQUEST:
-        return 'person_add';
       case NotificationType.SCHOOL_INVITATION:
         return 'mail';
       case NotificationType.INVITATION_ACCEPTED:
@@ -627,10 +625,8 @@ export class NavigationComponent implements OnInit, OnDestroy {
     return isDark ? '/darkmode.png' : '/lightmode.png';
   }
 
-  private authService = inject(AuthService);
-
   private refreshAdminVisibility(): void {
-    this.authService.isAdmin().subscribe({
+    this.service.isAdmin().subscribe({
       next: (isAdmin) => (this.adminVisible = isAdmin),
       error: () => (this.adminVisible = false)
     });

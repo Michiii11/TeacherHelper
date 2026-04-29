@@ -112,7 +112,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     gradingSystemName: this.translate.instant('createTest.grading.presets.atName'),
     gradingSchema: [],
     gradePercentages: {},
-    manualGradeMinimums: {}
+    manualGradeMinimums: {},
+    folderId: null
   };
 
   hasUnsavedChanges = false;
@@ -410,7 +411,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
     const parts = [
       this.getExampleTypeLabel(entry.example.type),
-      this.getFolderPathLabel(entry.example.folderId ?? null),
+      this.getFolderPathLabel(entry.example.folder?.id ?? null),
       focusLabels || ''
     ].filter(Boolean);
 
