@@ -36,6 +36,10 @@ import { HttpService } from '../../service/http.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatProgressBar } from '@angular/material/progress-bar';
+import { ExampleTypeSelectorComponent } from './example-type-selector/example-type-selector.component';
+import { ExamplePreviewComponent } from '../example-preview/example-preview.component';
+import { ExampleFocusSelectorComponent } from './example-focus-selector/example-focus-selector.component';
+import { ConstructionImageCardComponent } from './construction-image-card/construction-image-card.component';
 
 type VariableTarget =
   | { type: 'instruction' | 'question' | 'solution' }
@@ -62,15 +66,16 @@ type VariableTarget =
     MatButtonToggleModule,
     MatDialogActions,
     MatTooltip,
-    MatPseudoCheckbox,
     MatDivider,
     MatSliderModule,
     ReactiveFormsModule,
     MatChipsModule,
-    MatAutocompleteTrigger,
-    MatAutocomplete,
     TranslateModule,
     MatProgressBar,
+    ExampleTypeSelectorComponent,
+    ExamplePreviewComponent,
+    ExampleFocusSelectorComponent,
+    ConstructionImageCardComponent,
   ],
   templateUrl: './create-example.component.html',
   styleUrls: ['./create-example.component.scss']

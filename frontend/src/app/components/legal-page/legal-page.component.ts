@@ -1,12 +1,11 @@
-import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {ActivatedRoute, Router, RouterLink} from '@angular/router';
-import { map } from 'rxjs/operators';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { Component, DestroyRef, OnDestroy, OnInit, computed, inject } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import {NavbarActionsService} from '../navigation/navbar-actions.service'
+import { map, startWith } from 'rxjs/operators';
+
+import { NavbarActionsService } from '../navigation/navbar-actions.service';
 
 type LegalPageKey = 'privacy' | 'terms' | 'legal' | 'cookies' | 'support';
 
@@ -24,89 +23,98 @@ type LegalPageContent = {
   primaryActionHref?: string;
 };
 
+const SUPPORT_URL = 'https://github.com/Michiii11/TeacherHelper/issues/new';
+
 @Component({
   selector: 'app-legal-page',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule, TranslateModule],
+  imports: [CommonModule, TranslateModule],
   templateUrl: './legal-page.component.html',
   styleUrl: './legal-page.component.scss'
 })
-export class LegalPageComponent {
+export class LegalPageComponent implements OnInit, OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
-  navbarActions = inject(NavbarActionsService)
-  router = inject(Router);
-
-  ngOnInit(): void {
-    this.setNavbarActions();
-  }
-
-  ngOnDestroy(): void {
-    this.navbarActions.clearAll();
-  }
+  private readonly navbarActions = inject(NavbarActionsService);
 
   private readonly pageKey = toSignal(
-    this.route.data.pipe(map(data => (data['pageKey'] as LegalPageKey) ?? 'privacy')),
+    this.route.data.pipe(map(data => this.toLegalPageKey(data['pageKey']))),
     { initialValue: 'privacy' as LegalPageKey }
+  );
+
+  private readonly language = toSignal(
+    this.translate.onLangChange.pipe(
+      map(event => event.lang),
+      startWith(this.translate.currentLang || this.translate.getDefaultLang() || 'en')
+    ),
+    { initialValue: this.translate.currentLang || this.translate.getDefaultLang() || 'en' }
   );
 
   readonly currentYear = new Date().getFullYear();
 
   readonly content = computed<LegalPageContent>(() => {
     const key = this.pageKey();
-    const language = this.translate.currentLang || this.translate.getDefaultLang() || 'en';
+    this.language();
 
-    this.translate.use(language);
+    const sections = this.translate.instant(`legalPages.pages.${key}.sections`);
 
     return {
       title: this.translate.instant(`legalPages.pages.${key}.title`),
       subtitle: this.translate.instant(`legalPages.pages.${key}.subtitle`),
-      sections: (this.translate.instant(`legalPages.pages.${key}.sections`) as LegalPageSection[]) ?? [],
+      sections: Array.isArray(sections) ? sections : [],
       primaryActionLabel: this.translate.instant(`legalPages.pages.${key}.primaryActionLabel`),
-      primaryActionHref: key === 'support'
-        ? 'https://github.com/Michiii11/TeacherHelper/issues/new'
-        : undefined,
+      primaryActionHref: key === 'support' ? SUPPORT_URL : undefined
     };
   });
 
+  ngOnInit(): void {
+    this.route.data
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.setNavbarActions());
+  }
+
+  ngOnDestroy(): void {
+    this.navbarActions.clearAll();
+  }
+
+  openSupport(): void {
+    window.location.href = SUPPORT_URL;
+  }
+
   private setNavbarActions(): void {
+    const key = this.pageKey();
+    const actions = [
+      ...(key === 'support'
+        ? [{
+          labelKey: `legalPages.pages.${key}.primaryActionLabel`,
+          icon: 'open_in_new',
+          variant: 'flat' as const,
+          action: () => this.openSupport()
+        }]
+        : []),
+      {
+        labelKey: 'legalPages.back',
+        icon: 'arrow_back',
+        variant: 'stroked' as const,
+        action: () => void this.router.navigate(['/home'])
+      }
+    ];
+
     this.navbarActions.setBreadcrumbs([
       {
-        labelKey: `legalPages.pages.${this.pageKey()}.title`,
+        labelKey: `legalPages.pages.${key}.title`,
         route: ['/home']
       }
     ]);
 
-    if(this.pageKey() === 'support') {
-      this.navbarActions.setActions([
-        {
-          labelKey: `legalPages.pages.${this.pageKey()}.primaryActionLabel`,
-          icon: 'open_in_new',
-          variant: 'flat',
-          action: () => {
-            window.location.href = 'https://github.com/Michiii11/TeacherHelper/issues/new';
-          }
-        },
-        {
-          labelKey: `legalPages.back`,
-          icon: 'arrow_back',
-          variant: 'stroked',
-          action: () => {
-            this.router.navigate(['/home'])
-          }
-        }
-      ])
-    } else {
-      this.navbarActions.setActions([
-        {
-          labelKey: `legalPages.back`,
-          icon: 'arrow_back',
-          variant: 'stroked',
-          action: () => {
-            this.router.navigate(['/home'])
-          }
-        }
-      ]);
-    }
+    this.navbarActions.setActions(actions);
+  }
+
+  private toLegalPageKey(value: unknown): LegalPageKey {
+    return value === 'terms' || value === 'legal' || value === 'cookies' || value === 'support'
+      ? value
+      : 'privacy';
   }
 }

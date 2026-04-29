@@ -1,7 +1,7 @@
 <h2 mat-dialog-title>{{ 'schoolSettings.title' | translate }}</h2>
 
 <mat-dialog-content class="dialog-content">
-  @if(isAdmin){
+  @if (isAdmin) {
     <mat-tab-group animationDuration="200ms">
       <mat-tab [label]="'schoolSettings.tabs.general' | translate">
         <div class="tab-content">
@@ -11,18 +11,18 @@
               <input matInput formControlName="name" maxlength="120">
             </mat-form-field>
 
-            @if(savingGeneral){
+            @if (savingGeneral) {
               <mat-progress-bar mode="indeterminate"></mat-progress-bar>
             }
 
-            <div class="logo-layout">
-              <div class="logo-preview-card">
+            <section class="logo-layout">
+              <article class="settings-card logo-preview-card">
                 <div class="preview-box">
-                  @if(getDisplayedLogoUrl()){
+                  @if (displayedLogoUrl) {
                     <img
-                      [src]="getDisplayedLogoUrl()!"
-                      [alt]="'schoolSettings.logoPreviewAlt' | translate"
                       class="logo-preview-image"
+                      [src]="displayedLogoUrl"
+                      [alt]="'schoolSettings.logoPreviewAlt' | translate"
                     >
                   } @else {
                     <div class="logo-fallback">
@@ -31,14 +31,14 @@
                     </div>
                   }
                 </div>
-              </div>
+              </article>
 
-              <div class="logo-actions-card">
+              <article class="settings-card logo-actions-card">
                 <input
                   #logoInput
+                  hidden
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
-                  hidden
                   (change)="onLogoSelected($event)"
                 >
 
@@ -47,7 +47,7 @@
                     mat-stroked-button
                     type="button"
                     (click)="logoInput.click()"
-                    [disabled]="uploadingLogo || deletingLogo"
+                    [disabled]="isLogoBusy"
                   >
                     <mat-icon>upload</mat-icon>
                     {{ 'schoolSettings.selectLogo' | translate }}
@@ -64,39 +64,39 @@
                   </button>
                 </div>
 
-                <div class="logo-danger-actions">
-                  <button
-                    mat-stroked-button
-                    type="button"
-                    color="warn"
-                    class="danger-soft-button"
-                    (click)="deleteSchoolLogo(logoInput)"
-                    [disabled]="!hasExistingLogo() || deletingLogo || uploadingLogo"
-                  >
-                    <mat-icon>delete</mat-icon>
-                    {{ 'schoolSettings.deleteLogo' | translate }}
-                  </button>
-                </div>
+                <button
+                  mat-stroked-button
+                  type="button"
+                  color="warn"
+                  class="danger-soft-button"
+                  (click)="deleteSchoolLogo(logoInput)"
+                  [disabled]="!hasExistingLogo || isLogoBusy"
+                >
+                  <mat-icon>delete</mat-icon>
+                  {{ 'schoolSettings.deleteLogo' | translate }}
+                </button>
 
-                <p class="hint">
-                  {{ 'schoolSettings.logoHint' | translate }}
-                </p>
+                <p class="hint">{{ 'schoolSettings.logoHint' | translate }}</p>
+                <p class="hint subtle-hint">{{ 'schoolSettings.logoUploadHint' | translate }}</p>
 
-                <p class="hint subtle-hint">
-                  {{ 'schoolSettings.logoUploadHint' | translate }}
-                </p>
-
-                @if(uploadingLogo || deletingLogo){
+                @if (isLogoBusy) {
                   <mat-progress-bar mode="indeterminate"></mat-progress-bar>
                 }
-              </div>
-            </div>
+              </article>
+            </section>
 
             <div class="form-actions">
               <button mat-stroked-button type="button" (click)="close()">
                 {{ 'common.cancel' | translate }}
               </button>
-              <button mat-flat-button color="primary" type="button" (click)="saveAll()" [disabled]="uploadingLogo">
+
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                (click)="saveAll()"
+                [disabled]="uploadingLogo"
+              >
                 {{ 'common.save' | translate }}
               </button>
             </div>
@@ -107,57 +107,27 @@
       <mat-tab [label]="'schoolSettings.tabs.teachers' | translate">
         <div class="tab-content teacher-tab">
           <div class="teacher-layout">
-            <div class="teacher-card member-list-card">
-              <div class="teacher-card-head">
+            <article class="teacher-card member-list-card">
+              <header class="teacher-card-head">
                 <div>
                   <h4>{{ 'schoolSettings.members' | translate }}</h4>
-                  <p>{{ getMemberCountLabel() }}</p>
+                  <p>{{ memberCountLabel }}</p>
                 </div>
                 <div class="head-badge">
                   <mat-icon>groups</mat-icon>
                 </div>
-              </div>
+              </header>
 
-              @if(data.school.members.length + 1 > 0){
+              @if (hasMembers) {
                 <div class="member-list">
-                  <div class="member-item">
-                    <div class="avatar">
-                      @if (getAvatarUrl(data.school.admin)) {
-                        <img class="avatar-image" [src]="getAvatarUrl(data.school.admin)!" [alt]="'schoolSettings.avatarAlt' | translate">
-                      } @else {
-                        <div class="avatar-circle">{{ getInitials(data.school.admin) }}</div>
-                      }
-                    </div>
+                  <ng-container
+                    *ngTemplateOutlet="memberItem; context: { user: data.school.admin, admin: true }"
+                  ></ng-container>
 
-                    <div class="member-info">
-                      <div class="member-top-row">
-                        <strong>{{ data.school.admin.username }}</strong>
-                        <span class="member-role role-admin">{{ 'school.admin' | translate }}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  @for(member of data.school.members; track member.id){
-                    <div class="member-item">
-                      <div class="avatar">
-                        @if (getAvatarUrl(member)) {
-                          <img class="avatar-image" [src]="getAvatarUrl(member)!" [alt]="'schoolSettings.avatarAlt' | translate">
-                        } @else {
-                          <div class="avatar-circle">{{ getInitials(member) }}</div>
-                        }
-                      </div>
-
-                      <div class="member-info">
-                        <div class="member-top-row">
-                          <strong>{{ member.username }}</strong>
-                          <span class="member-role">{{ 'school.teacher' | translate }}</span>
-                        </div>
-                      </div>
-
-                      <button mat-icon-button (click)="kickTeacher(member)">
-                        <mat-icon>person_remove</mat-icon>
-                      </button>
-                    </div>
+                  @for (member of data.school.members; track member.id) {
+                    <ng-container
+                      *ngTemplateOutlet="memberItem; context: { user: member, admin: false }"
+                    ></ng-container>
                   }
                 </div>
               } @else {
@@ -169,10 +139,10 @@
                   </div>
                 </div>
               }
-            </div>
+            </article>
 
-            <div class="teacher-card invite-card">
-              <div class="teacher-card-head">
+            <article class="teacher-card invite-card">
+              <header class="teacher-card-head">
                 <div>
                   <h4>{{ 'schoolSettings.inviteTitle' | translate }}</h4>
                   <p>{{ 'schoolSettings.inviteSubtitle' | translate }}</p>
@@ -180,7 +150,7 @@
                 <div class="head-badge">
                   <mat-icon>mail</mat-icon>
                 </div>
-              </div>
+              </header>
 
               <form [formGroup]="inviteForm" class="invite-form">
                 <mat-form-field appearance="outline">
@@ -191,10 +161,10 @@
                     formControlName="email"
                     (keydown.enter)="sendTeacherInvite()"
                   >
-                  @if(inviteForm.controls.email.hasError('required')){
+
+                  @if (inviteEmailControl.hasError('required')) {
                     <mat-error>{{ 'profile.emailRequired' | translate }}</mat-error>
-                  }
-                  @else if(inviteForm.controls.email.hasError('email')){
+                  } @else if (inviteEmailControl.hasError('email')) {
                     <mat-error>{{ 'profile.emailInvalid' | translate }}</mat-error>
                   }
                 </mat-form-field>
@@ -211,61 +181,47 @@
                   {{ 'schoolSettings.sendInvite' | translate }}
                 </button>
 
-                @if(invitingTeacher){
+                @if (invitingTeacher) {
                   <mat-progress-bar mode="indeterminate"></mat-progress-bar>
                 }
 
-                @if(inviteSuccessMessage){
+                @if (inviteSuccessMessage) {
                   <div class="inline-message success-message">
                     <mat-icon>check_circle</mat-icon>
                     <span>{{ inviteSuccessMessage }}</span>
                   </div>
                 }
 
-                @if(inviteErrorMessage){
+                @if (inviteErrorMessage) {
                   <div class="inline-message error-message">
                     <mat-icon>error</mat-icon>
                     <span>{{ inviteErrorMessage }}</span>
                   </div>
                 }
               </form>
-            </div>
+            </article>
           </div>
         </div>
       </mat-tab>
 
       <mat-tab [label]="'schoolSettings.tabs.templates' | translate">
         <div class="tab-content temp">
-          <div class="placeholder-item">
-            <mat-icon>dashboard_customize</mat-icon>
-            <div>
-              <strong>{{ 'schoolSettings.comingSoonTitle' | translate }}</strong>
-              <p>{{ 'schoolSettings.comingSoonText' | translate }}</p>
+          @for (item of templatePlaceholders; track item.icon) {
+            <div class="placeholder-item">
+              <mat-icon>{{ item.icon }}</mat-icon>
+              <div>
+                <strong>{{ item.titleKey | translate }}</strong>
+                <p>{{ item.textKey | translate }}</p>
+              </div>
             </div>
-          </div>
-
-          <div class="placeholder-item">
-            <mat-icon>grading</mat-icon>
-            <div>
-              <strong>{{ 'schoolSettings.more.gradeSystemTitle' | translate }}</strong>
-              <p>{{ 'schoolSettings.more.gradeSystemText' | translate }}</p>
-            </div>
-          </div>
-
-          <div class="placeholder-item">
-            <mat-icon>print</mat-icon>
-            <div>
-              <strong>{{ 'schoolSettings.more.exportTitle' | translate }}</strong>
-              <p>{{ 'schoolSettings.more.exportText' | translate }}</p>
-            </div>
-          </div>
+          }
         </div>
       </mat-tab>
 
       <mat-tab [label]="'schoolSettings.tabs.more' | translate">
         <div class="tab-content">
-          <div class="danger-zone-card">
-            <div class="danger-zone-head">
+          <article class="danger-zone-card">
+            <header class="danger-zone-head">
               <div class="danger-zone-icon">
                 <mat-icon>warning_amber</mat-icon>
               </div>
@@ -274,7 +230,7 @@
                 <h4>{{ 'schoolSettings.dangerZone' | translate }}</h4>
                 <p>{{ 'schoolSettings.dangerZoneText' | translate }}</p>
               </div>
-            </div>
+            </header>
 
             <div class="danger-zone-box">
               <form [formGroup]="deleteSchoolForm" class="danger-confirm-form">
@@ -283,14 +239,8 @@
                 </div>
 
                 <mat-form-field appearance="outline" class="danger-confirm-field">
-                  <mat-label>
-                    {{ 'schoolSettings.deleteSchoolInputLabel' | translate }}
-                  </mat-label>
-                  <input
-                    matInput
-                    formControlName="schoolName"
-                    [placeholder]="data.school.name"
-                  >
+                  <mat-label>{{ 'schoolSettings.deleteSchoolInputLabel' | translate }}</mat-label>
+                  <input matInput formControlName="schoolName" [placeholder]="data.school.name">
                 </mat-form-field>
 
                 <button
@@ -299,28 +249,52 @@
                   type="button"
                   class="danger-delete-button"
                   (click)="confirmDeleteSchool()"
-                  [disabled]="!isDeleteSchoolNameValid() || deletingSchool"
+                  [disabled]="!isDeleteSchoolNameValid || deletingSchool"
                 >
-                  <mat-icon>
-                    {{ deletingSchool ? 'hourglass_top' : 'delete_forever' }}
-                  </mat-icon>
-
-                  {{
-                    deletingSchool
-                      ? ('common.deleting' | translate)
-                      : ('schoolSettings.deleteSchool' | translate)
-                  }}
+                  <mat-icon>{{ deletingSchool ? 'hourglass_top' : 'delete_forever' }}</mat-icon>
+                  {{ deletingSchool ? ('common.deleting' | translate) : ('schoolSettings.deleteSchool' | translate) }}
                 </button>
               </form>
             </div>
 
-            @if(deletingSchool){
+            @if (deletingSchool) {
               <mat-progress-bar mode="indeterminate"></mat-progress-bar>
             }
-          </div>
+          </article>
         </div>
       </mat-tab>
     </mat-tab-group>
+
+    <ng-template #memberItem let-user="user" let-admin="admin">
+      <div class="member-item">
+        <div class="avatar">
+          @if (getAvatarUrl(user)) {
+            <img
+              class="avatar-image"
+              [src]="getAvatarUrl(user)!"
+              [alt]="'schoolSettings.avatarAlt' | translate"
+            >
+          } @else {
+            <div class="avatar-circle">{{ getInitials(user) }}</div>
+          }
+        </div>
+
+        <div class="member-info">
+          <div class="member-top-row">
+            <strong>{{ user.username }}</strong>
+            <span class="member-role" [class.role-admin]="admin">
+              {{ admin ? ('school.admin' | translate) : ('school.teacher' | translate) }}
+            </span>
+          </div>
+        </div>
+
+        @if (!admin) {
+          <button mat-icon-button type="button" (click)="kickTeacher(user)">
+            <mat-icon>person_remove</mat-icon>
+          </button>
+        }
+      </div>
+    </ng-template>
   } @else {
     <div class="not-allowed">
       <mat-icon>lock</mat-icon>

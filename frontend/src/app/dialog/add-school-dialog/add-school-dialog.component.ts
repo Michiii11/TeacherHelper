@@ -1,53 +1,55 @@
-import { Component } from '@angular/core';
-import { MatDialogRef } from '@angular/material/dialog';
-import { MatFormField, MatInput, MatLabel } from '@angular/material/input';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
+import { MatDialogRef } from '@angular/material/dialog';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
+import { MatInput } from '@angular/material/input';
 import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-add-school-dialog',
   standalone: true,
   imports: [
-    MatFormField,
-    MatInput,
     FormsModule,
     MatButton,
-    MatLabel,
+    MatFormField,
     MatIcon,
+    MatInput,
+    MatLabel,
     TranslatePipe
   ],
   template: `
     <div class="dialog-header">
-      <div class="title-icon">
+      <div class="title-icon" aria-hidden="true">
         <mat-icon>school</mat-icon>
       </div>
+
       <div>
         <h2>{{ 'home.createSchool' | translate }}</h2>
         <p>{{ 'dialog.createSchoolSubtitle' | translate }}</p>
       </div>
     </div>
 
-    <form (ngSubmit)="onCreate()" class="dialog-form">
+    <form class="dialog-form" (ngSubmit)="createSchool()">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>{{ 'dialog.schoolName' | translate }}</mat-label>
         <input
           matInput
-          [(ngModel)]="schoolName"
-          name="schoolName"
-          required
           autofocus
+          required
+          name="schoolName"
+          [(ngModel)]="schoolName"
           [placeholder]="'dialog.schoolPlaceholder' | translate"
         />
       </mat-form-field>
 
       <div class="dialog-actions">
-        <button mat-stroked-button type="button" (click)="onCancel()">
+        <button mat-stroked-button type="button" (click)="closeDialog()">
           {{ 'common.cancel' | translate }}
         </button>
 
-        <button mat-flat-button color="primary" type="submit" [disabled]="!schoolName">
+        <button mat-flat-button color="primary" type="submit" [disabled]="!canCreateSchool">
           {{ 'common.save' | translate }}
         </button>
       </div>
@@ -61,17 +63,27 @@ import { TranslatePipe } from '@ngx-translate/core';
   `]
 })
 export class AddSchoolDialogComponent {
+  private readonly dialogRef = inject(MatDialogRef<AddSchoolDialogComponent, string | undefined>);
+
   schoolName = '';
 
-  constructor(private dialogRef: MatDialogRef<AddSchoolDialogComponent>) {}
+  get canCreateSchool(): boolean {
+    return this.normalizedSchoolName.length > 0;
+  }
 
-  onCancel() {
+  closeDialog(): void {
     this.dialogRef.close();
   }
 
-  onCreate() {
-    if (this.schoolName) {
-      this.dialogRef.close(this.schoolName);
+  createSchool(): void {
+    if (!this.canCreateSchool) {
+      return;
     }
+
+    this.dialogRef.close(this.normalizedSchoolName);
+  }
+
+  private get normalizedSchoolName(): string {
+    return this.schoolName.trim();
   }
 }

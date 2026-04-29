@@ -1,0 +1,62 @@
+:host {
+  display: block;
+}
+
+.panel-box {
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 18px;
+  padding: 16px;
+  background: #fff;
+}
+
+.construction-card-header,
+.image-width-head,
+.panel-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.panel-actions {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+
+.panel-title {
+  font-weight: 700;
+}
+
+.small-title {
+  font-size: 13px;
+}
+
+.construction-stage-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  border-radius: 16px;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.construction-preview-image,
+.image-preview {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+.construction-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #94a3b8;
+}
+
+.image-width-card {
+  margin-top: 14px;
+}

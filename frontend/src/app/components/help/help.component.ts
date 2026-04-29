@@ -1,62 +1,48 @@
-import {Component, OnInit, inject, signal, OnDestroy} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, DestroyRef, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatButtonToggleChange, MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
 import { TranslatePipe } from '@ngx-translate/core';
-import {MatButtonToggle, MatButtonToggleGroup} from '@angular/material/button-toggle'
-import {FormsModule} from '@angular/forms'
-import {NavbarActionsService} from '../navigation/navbar-actions.service'
+
+import { NavbarActionsService } from '../navigation/navbar-actions.service';
 
 type HelpTab = 'docs' | 'changelog';
+
+type HelpCard = {
+  icon: string;
+  titleKey: string;
+  textKey: string;
+};
+
+type ChangelogEntry = {
+  version: string;
+  isLatest: boolean;
+  changes: string[];
+};
 
 @Component({
   selector: 'app-help',
   standalone: true,
   imports: [
     CommonModule,
+    MatButtonToggleModule,
     MatIconModule,
-    MatButtonModule,
-    TranslatePipe,
-    MatButtonToggle,
-    MatButtonToggleGroup,
-    FormsModule
+    TranslatePipe
   ],
   templateUrl: './help.component.html',
   styleUrl: './help.component.scss'
 })
 export class HelpComponent implements OnInit, OnDestroy {
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
-  navbarActions = inject(NavbarActionsService)
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly navbarActions = inject(NavbarActionsService);
 
-  activeTab = signal<HelpTab>('changelog');
+  readonly activeTab = signal<HelpTab>('changelog');
 
-  readonly quickHighlights = [
-    {
-      icon: 'auto_awesome',
-      titleKey: 'help.highlights.h1.title',
-      textKey: 'help.highlights.h1.text'
-    },
-    {
-      icon: 'flash_on',
-      titleKey: 'help.highlights.h2.title',
-      textKey: 'help.highlights.h2.text'
-    },
-    {
-      icon: 'groups',
-      titleKey: 'help.highlights.h3.title',
-      textKey: 'help.highlights.h3.text'
-    }
-  ];
-
-  readonly sideCardPoints = [
-    'help.sidecard.p1',
-    'help.sidecard.p2',
-    'help.sidecard.p3'
-  ];
-
-  readonly docsSections = [
+  readonly docsSections: HelpCard[] = [
     {
       icon: 'folder_copy',
       titleKey: 'help.docs.collections.title',
@@ -79,23 +65,19 @@ export class HelpComponent implements OnInit, OnDestroy {
     }
   ];
 
-  readonly changelog = [
+  readonly changelog: ChangelogEntry[] = [
     {
       version: 'v1.1.0',
       isLatest: true,
-      titleKey: 'help.changelog.v110.title',
-      descriptionKey: 'help.changelog.v110.description',
       changes: [
         'help.changelog.v110.c1',
         'help.changelog.v110.c2',
-        'help.changelog.v110.c3',
+        'help.changelog.v110.c3'
       ]
     },
     {
       version: 'v1.0.0',
       isLatest: false,
-      titleKey: 'help.changelog.v100.title',
-      descriptionKey: 'help.changelog.v100.description',
       changes: [
         'help.changelog.v100.c1',
         'help.changelog.v100.c2',
@@ -105,27 +87,34 @@ export class HelpComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe(params => {
-      const tab = params.get('tab');
-      this.activeTab.set(tab === 'docs' ? 'docs' : 'changelog');
-    });
-
-    this.setNavbarActions()
-  }
-
-  onTabChange(index: number): void {
-    const tab: HelpTab = index === 1 ? 'changelog' : 'docs';
-    this.activeTab.set(tab);
-
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { tab },
-      queryParamsHandling: 'merge'
-    });
+    this.syncTabFromQueryParams();
+    this.setNavbarActions();
   }
 
   ngOnDestroy(): void {
     this.navbarActions.clearAll();
+  }
+
+  onTabChange(event: MatButtonToggleChange): void {
+    this.setActiveTab(event.value === 'docs' ? 'docs' : 'changelog');
+  }
+
+  private syncTabFromQueryParams(): void {
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(params => {
+        this.activeTab.set(params.get('tab') === 'docs' ? 'docs' : 'changelog');
+      });
+  }
+
+  private setActiveTab(tab: HelpTab): void {
+    this.activeTab.set(tab);
+
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab },
+      queryParamsHandling: 'merge'
+    });
   }
 
   private setNavbarActions(): void {

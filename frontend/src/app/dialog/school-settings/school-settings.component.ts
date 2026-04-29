@@ -48,9 +48,9 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   private translate = inject(TranslateService);
   private readonly destroy$ = new Subject<void>();
 
-  dialog = inject(MatDialog);
-  snack = inject(MatSnackBar);
-  router = inject(Router);
+  private dialog = inject(MatDialog);
+  private snack = inject(MatSnackBar);
+  private router = inject(Router);
 
   savingGeneral = false;
   uploadingLogo = false;
@@ -65,6 +65,24 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
 
   readonly maxLogoBytes = 2 * 1024 * 1024;
   readonly allowedLogoTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
+  readonly templatePlaceholders = [
+    {
+      icon: 'dashboard_customize',
+      titleKey: 'schoolSettings.comingSoonTitle',
+      textKey: 'schoolSettings.comingSoonText'
+    },
+    {
+      icon: 'grading',
+      titleKey: 'schoolSettings.more.gradeSystemTitle',
+      textKey: 'schoolSettings.more.gradeSystemText'
+    },
+    {
+      icon: 'print',
+      titleKey: 'schoolSettings.more.exportTitle',
+      textKey: 'schoolSettings.more.exportText'
+    }
+  ] as const;
 
   generalForm = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(120)]]
@@ -104,7 +122,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   }
 
   logoUrl?: string;
-  logoPreviewUrl: string | undefined = '';
+  logoPreviewUrl?: string;
   private avatarUrls = new Map<string, string>();
   private loadingAvatarIds = new Set<string>();
 
@@ -128,17 +146,27 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
-  getDisplayedLogoUrl(): string | null {
-    if (this.logoPreviewUrl) return this.logoPreviewUrl;
-    if (this.logoUrl) return this.logoUrl;
-    return null;
+  get displayedLogoUrl(): string | null {
+    return this.logoPreviewUrl ?? this.logoUrl ?? null;
   }
 
-  hasExistingLogo(): boolean {
+  get hasExistingLogo(): boolean {
     return !!this.data.school?.logoUrl;
   }
 
-  isDeleteSchoolNameValid(): boolean {
+  get hasMembers(): boolean {
+    return !!this.data.school?.admin || this.data.school.members.length > 0;
+  }
+
+  get inviteEmailControl() {
+    return this.inviteForm.controls.email;
+  }
+
+  get isLogoBusy(): boolean {
+    return this.uploadingLogo || this.deletingLogo;
+  }
+
+  get isDeleteSchoolNameValid(): boolean {
     const entered = (this.deleteSchoolForm.controls.schoolName.value ?? '').trim();
     const current = (this.data.school?.name ?? '').trim();
     return entered.length > 0 && entered === current;
@@ -184,7 +212,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   }
 
   deleteSchoolLogo(input?: HTMLInputElement): void {
-    if (!this.isAdmin || !this.hasExistingLogo()) {
+    if (!this.isAdmin || !this.hasExistingLogo) {
       return;
     }
 
@@ -199,38 +227,43 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       }
     });
 
-    ref.afterClosed().subscribe(confirmed => {
-      if (!confirmed) return;
+    ref.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(confirmed => {
+        if (!confirmed) {
+          return;
+        }
 
-      this.deletingLogo = true;
+        this.deletingLogo = true;
 
-      this.service.deleteCollectionLogo(this.data.schoolId)
-        .pipe(finalize(() => (this.deletingLogo = false)))
-        .subscribe({
-          next: () => {
-            this.selectedLogoFile = null;
-            this.logoPreviewUrl = undefined;
-            this.revokeLogoUrl();
+        this.service.deleteCollectionLogo(this.data.schoolId)
+          .pipe(takeUntil(this.destroy$), finalize(() => (this.deletingLogo = false)))
+          .subscribe({
+            next: () => {
+              this.selectedLogoFile = null;
+              this.logoPreviewUrl = undefined;
+              this.revokeLogoUrl();
+              this.data.school = { ...this.data.school, logoUrl: null } as SchoolDTO;
 
-            if (input) {
-              input.value = '';
+              if (input) {
+                input.value = '';
+              }
+
+              this.snack.open(
+                this.translate.instant('schoolSettings.snackbar.logoDeleted'),
+                'OK',
+                { duration: 4000 }
+              );
+            },
+            error: () => {
+              this.snack.open(
+                this.translate.instant('schoolSettings.snackbar.logoDeleteError'),
+                'OK',
+                { duration: 5000 }
+              );
             }
-
-            this.snack.open(
-              this.translate.instant('schoolSettings.snackbar.logoDeleted'),
-              'OK',
-              { duration: 4000 }
-            );
-          },
-          error: () => {
-            this.snack.open(
-              this.translate.instant('schoolSettings.snackbar.logoDeleteError'),
-              'OK',
-              { duration: 5000 }
-            );
-          }
-        });
-    });
+          });
+      });
   }
 
   saveGeneral(): void {
@@ -242,7 +275,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     this.savingGeneral = true;
 
     this.service.updateCollectionSettings(this.data.schoolId, this.generalForm.value.name?.trim())
-      .pipe(finalize(() => (this.savingGeneral = false)))
+      .pipe(takeUntil(this.destroy$), finalize(() => (this.savingGeneral = false)))
       .subscribe({
         next: updatedSchool => {
           this.data.school = updatedSchool;
@@ -275,11 +308,8 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
 
     this.uploadingLogo = true;
 
-    const formData = new FormData();
-    formData.append('file', this.selectedLogoFile);
-
     this.service.uploadCollectionLogo(this.data.schoolId, this.selectedLogoFile)
-      .pipe(finalize(() => (this.uploadingLogo = false)))
+      .pipe(takeUntil(this.destroy$), finalize(() => (this.uploadingLogo = false)))
       .subscribe({
         next: updatedSchool => {
           this.data.school = updatedSchool;
@@ -293,9 +323,6 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
             'OK',
             { duration: 4000 }
           );
-
-
-          this.loadLogo();
 
           this.dialogRef.close({
             updated: true,
@@ -317,12 +344,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   }
 
   saveAll(): void {
-    if (this.selectedLogoFile) {
-      this.uploadLogo();
-      return;
-    }
-
-    this.saveGeneral();
+    this.selectedLogoFile ? this.uploadLogo() : this.saveGeneral();
   }
 
   sendTeacherInvite(): void {
@@ -341,7 +363,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     this.inviteErrorMessage = null;
 
     this.service.inviteTeacher(this.data.schoolId, email)
-      .pipe(finalize(() => (this.invitingTeacher = false)))
+      .pipe(takeUntil(this.destroy$), finalize(() => (this.invitingTeacher = false)))
       .subscribe({
         next: () => {
           this.inviteForm.reset();
@@ -359,44 +381,46 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       });
   }
 
-  kickTeacher(t: UserDTO): void {
+  kickTeacher(teacher: UserDTO): void {
     const ref = this.dialog.open(ConfirmDialogComponent, {
       width: '420px',
       maxWidth: 'calc(100vw - 24px)',
       data: {
         title: this.translate.instant('schoolSettings.teacherKickTitle'),
-        message: this.translate.instant('schoolSettings.teacherKickMessage', { name: t.username }),
+        message: this.translate.instant('schoolSettings.teacherKickMessage', { name: teacher.username }),
         confirmText: this.translate.instant('schoolSettings.teacherKickConfirm'),
         cancelText: this.translate.instant('common.cancel')
       }
     });
 
-    ref.afterClosed().subscribe(confirmed => {
-      if (!confirmed) return;
-
-      this.service.removeTeacher(this.data.schoolId, t.id).subscribe({
-        next: () => {
-          this.data.school.members = this.data.school.members.filter(member => member.id !== t.id);
-          this.revokeAvatarUrl(t.id);
-          this.snack.open(
-            this.translate.instant('schoolSettings.snackbar.teacherKicked'),
-            'OK',
-            { duration: 4000 }
-          );
-        },
-        error: (err) => {
-          this.snack.open(
-            err.error,
-            'OK',
-            { duration: 5000 }
-          );
+    ref.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(confirmed => {
+        if (!confirmed) {
+          return;
         }
+
+        this.service.removeTeacher(this.data.schoolId, teacher.id)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: () => {
+              this.data.school.members = this.data.school.members.filter(member => member.id !== teacher.id);
+              this.revokeAvatarUrl(teacher.id);
+              this.snack.open(
+                this.translate.instant('schoolSettings.snackbar.teacherKicked'),
+                'OK',
+                { duration: 4000 }
+              );
+            },
+            error: error => {
+              this.snack.open(error.error, 'OK', { duration: 5000 });
+            }
+          });
       });
-    });
   }
 
   confirmDeleteSchool(): void {
-    if (this.deleteSchoolForm.invalid || !this.isDeleteSchoolNameValid() || this.deletingSchool) {
+    if (this.deleteSchoolForm.invalid || !this.isDeleteSchoolNameValid || this.deletingSchool) {
       this.deleteSchoolForm.markAllAsTouched();
       return;
     }
@@ -419,11 +443,13 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       }
     });
 
-    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-      if (confirmed) {
-        this.deleteSchool();
-      }
-    });
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((confirmed: boolean) => {
+        if (confirmed) {
+          this.deleteSchool();
+        }
+      });
   }
 
   deleteSchool(): void {
@@ -434,7 +460,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     this.deletingSchool = true;
 
     this.service.deleteCollection(this.data.schoolId)
-      .pipe(finalize(() => (this.deletingSchool = false)))
+      .pipe(takeUntil(this.destroy$), finalize(() => (this.deletingSchool = false)))
       .subscribe({
         next: () => {
           this.snack.open(
@@ -456,7 +482,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       });
   }
 
-  getMemberCountLabel(): string {
+  get memberCountLabel(): string {
     const count = this.data.school.members.length + 1;
     return count === 1
       ? this.translate.instant('schoolSettings.memberSingle')

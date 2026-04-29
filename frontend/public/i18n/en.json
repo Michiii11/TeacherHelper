@@ -12,7 +12,8 @@
     "ok": "OK",
     "create": "Create",
     "filter": "Filter",
-    "type": "Type"
+    "type": "Type",
+    "sort": "Sort"
   },
   "profile": {
     "title": "Profile",

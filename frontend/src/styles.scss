@@ -378,7 +378,7 @@ button{
 }
 // endregion
 
-// region Dialog Actions
+// region Dialog form
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
@@ -391,6 +391,10 @@ button{
   min-width: 120px;
   font-weight: 600;
   border-radius: 10px;
+}
+
+.dialog-form mat-form-field{
+  width: 100%;
 }
 // endregion
 
@@ -411,7 +415,6 @@ button{
 .school-card,
 .empty-card,
 .test-card,
-.teacher-card,
 .kpi-card,
 .auth-card,
 .hero-card,

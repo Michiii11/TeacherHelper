@@ -25,6 +25,9 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
 import { ExamplePickerDialogComponent, ExamplePickerDialogResult } from '../example-picker-dialog/example-picker-dialog.component';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { TestSelectedExamplesComponent } from './test-selected-examples/test-selected-examples.component';
+import { TestAdvancedSettingsComponent } from './test-advanced-settings/test-advanced-settings.component';
+import { TestPrintPreviewPaneComponent } from './test-print-preview-pane/test-print-preview-pane.component';
 
 type GradeMode = 'auto' | 'manual';
 type GradePresetKey = 'AT' | 'DE' | 'US' | 'MITARBEIT' | 'CUSTOM';
@@ -56,18 +59,17 @@ type PersistedTestSettings = {
     FormsModule,
     ReactiveFormsModule,
     MatButtonModule,
-    MatDialogActions,
     CdkTextareaAutosize,
     MatFormField,
     MatInput,
     MatLabel,
     MatIconModule,
     MatDividerModule,
-    MatIconButton,
-    MatButtonToggle,
-    MatButtonToggleGroup,
     MatProgressBarModule,
     TranslateModule,
+    TestSelectedExamplesComponent,
+    TestAdvancedSettingsComponent,
+    TestPrintPreviewPaneComponent,
   ],
   templateUrl: './create-test.component.html',
   styleUrl: './create-test.component.scss',
@@ -372,6 +374,30 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   trackByGradingLevel = (_: number, level: GradingLevel): string =>
     String(level.key ?? level.order ?? _);
 
+  readonly getResolvedExampleHeadingFn = (example: Example | ExampleDTO, variableValues?: TestExampleVariableValues): string =>
+    this.getResolvedExampleHeading(example, variableValues);
+
+  readonly getExampleMetaFn = (entry: TestExampleDTO): string =>
+    this.getExampleMeta(entry);
+
+  readonly getTaskSpacingFn = (exampleId: string): number =>
+    this.getTaskSpacing(exampleId);
+
+  readonly hasVariablesFn = (entry: TestExampleDTO): boolean =>
+    this.hasVariables(entry);
+
+  readonly getExampleVariablesFn = (entry: TestExampleDTO) =>
+    this.getExampleVariables(entry);
+
+  readonly getVariableValueFn = (entry: TestExampleDTO, key: string): string =>
+    this.getVariableValue(entry, key);
+
+  readonly getResolvedEntryTitleFn = (entry: TestExampleDTO): string =>
+    this.getResolvedEntryTitle(entry);
+
+  readonly getGradeRangeLabelByIndexFn = (index: number): string =>
+    this.getGradeRangeLabelByIndex(index);
+
   get selectedExamples(): TestExampleDTO[] {
     return this.selectedExamplesInternal;
   }
@@ -411,7 +437,6 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
     const parts = [
       this.getExampleTypeLabel(entry.example.type),
-      this.getFolderPathLabel(entry.example.folder?.id ?? null),
       focusLabels || ''
     ].filter(Boolean);
 
@@ -475,7 +500,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   getExampleTypeLabel(type: ExampleTypes | string): string {
     if (type == null) return '—';
 
-    return ExampleTypeLabels[type as ExampleTypes] ?? String(type);
+    let label = ExampleTypeLabels[type as ExampleTypes] ?? String(type)
+    return this.translate.instant(label)
   }
 
   getFolderPathLabel(folderId: string | null): string {

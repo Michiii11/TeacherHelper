@@ -1,0 +1,140 @@
+<div class="advanced-settings">
+  <div class="settings-card spacing-card">
+    <div class="settings-head compact-head">
+      <div>
+        <h3>{{ 'createTest.layoutAndSpacing' | translate }}</h3>
+      </div>
+    </div>
+
+    <div class="layout-toolbar compact-grid">
+      <div class="layout-helper-block">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'createTest.defaultSpacing' | translate }}</mat-label>
+          <input
+            matInput
+            type="number"
+            min="0"
+            max="240"
+            name="defaultTaskSpacing"
+            [ngModel]="defaultTaskSpacing"
+            (ngModelChange)="defaultSpacingChanged.emit($event)"
+          />
+        </mat-form-field>
+      </div>
+
+      <div class="toolbar-actions stacked-actions layout-helper-block">
+        <button mat-stroked-button type="button" (click)="applySpacingToEveryTask.emit()">
+          {{ 'createTest.applyToAll' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-card grading-card">
+    <div class="settings-head compact-head">
+      <h3>{{ 'createTest.grading.title' | translate }}</h3>
+
+      <mat-button-toggle-group
+        name="gradingMode"
+        [ngModel]="gradingModeSelection"
+        (ngModelChange)="gradingModeChanged.emit($event)"
+        [hideSingleSelectionIndicator]="true"
+      >
+        <mat-button-toggle value="auto">
+          {{ 'createTest.grading.percent' | translate }}
+        </mat-button-toggle>
+        <mat-button-toggle value="manual">
+          {{ 'createTest.grading.points' | translate }}
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <button mat-icon-button type="button" (click)="resetGradingRequested.emit()">
+        <mat-icon>rotate_left</mat-icon>
+      </button>
+    </div>
+
+    <div class="preset-toolbar">
+      <button mat-stroked-button type="button" (click)="gradingPresetSelected.emit('AT')">AT 1–5</button>
+      <button mat-stroked-button type="button" (click)="gradingPresetSelected.emit('DE')">DE 1–6</button>
+      <button mat-stroked-button type="button" (click)="gradingPresetSelected.emit('US')">US A–F</button>
+      <button mat-stroked-button type="button" (click)="gradingPresetSelected.emit('MITARBEIT')">Mitarbeit</button>
+      <button mat-stroked-button type="button" (click)="gradingPresetSelected.emit('CUSTOM')">
+        {{ 'createTest.grading.custom' | translate }}
+      </button>
+    </div>
+
+    <div class="grading-level-list">
+      <div class="grading-level-card" *ngFor="let level of gradingSchema; let i = index; trackBy: trackByGradingLevel">
+        <div class="grading-level-header">
+          <strong>
+            {{ 'createTest.grading.level' | translate }} {{ i + 1 }}
+            {{ 'createTest.grading.of' | translate }} {{ getGradeRangeLabelByIndex(i) }}
+          </strong>
+
+          <div class="level-actions">
+            <button mat-icon-button type="button" (click)="levelMoved.emit({ index: i, direction: -1 })" [disabled]="i === 0">
+              <mat-icon>arrow_upward</mat-icon>
+            </button>
+            <button mat-icon-button type="button" (click)="levelMoved.emit({ index: i, direction: 1 })" [disabled]="i === gradingSchema.length - 1">
+              <mat-icon>arrow_downward</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" type="button" (click)="levelRemoved.emit(i)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="task-settings-grid compact-grid four-cols">
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'createTest.grading.label' | translate }}</mat-label>
+            <input
+              matInput
+              name="grade-short-{{ i }}"
+              [(ngModel)]="level.shortLabel"
+              (ngModelChange)="levelDirty.emit()"
+              [placeholder]="'createTest.grading.labelPlaceholder' | translate"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ gradeTableHeading }}</mat-label>
+            <input
+              *ngIf="useAutomaticGrading"
+              matInput
+              type="number"
+              min="0"
+              max="100"
+              step="0.1"
+              inputmode="decimal"
+              name="grade-threshold-percentage-{{ i }}"
+              [(ngModel)]="level.percentageFrom"
+              (ngModelChange)="automaticThresholdInput.emit({ level, value: $event })"
+              (blur)="levelBlur.emit()"
+            />
+
+            <input
+              *ngIf="!useAutomaticGrading"
+              matInput
+              type="number"
+              min="0"
+              step="0.1"
+              inputmode="decimal"
+              [max]="totalPoints"
+              name="grade-threshold-minimum-{{ i }}"
+              [(ngModel)]="level.minimumPoints"
+              (ngModelChange)="manualThresholdInput.emit({ level, value: $event })"
+              (blur)="levelBlur.emit()"
+            />
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+
+    <div class="grading-footer-actions">
+      <button mat-stroked-button type="button" (click)="levelAdded.emit()">
+        <mat-icon>add</mat-icon>
+        {{ 'createTest.grading.addLevel' | translate }}
+      </button>
+    </div>
+  </div>
+</div>

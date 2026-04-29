@@ -1,29 +1,35 @@
-import { Component, Inject } from '@angular/core';
 import { NgIf } from '@angular/common';
-import {
-  MAT_DIALOG_DATA,
-  MatDialogRef
-} from '@angular/material/dialog';
-import { MatButton } from '@angular/material/button';
+import { Component, Inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatButton } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import {TranslatePipe} from '@ngx-translate/core'
+import { TranslatePipe } from '@ngx-translate/core';
+
+export interface ConfirmDialogData {
+  title: string;
+  message: string;
+  confirmText: string;
+  cancelText: string;
+  requireConfirmation?: boolean;
+  confirmationText?: string;
+}
 
 @Component({
   selector: 'app-confirm-dialog',
   standalone: true,
   imports: [
-    MatButton,
+    NgIf,
     FormsModule,
+    MatButton,
     MatCheckboxModule,
     MatIconModule,
-    NgIf,
     TranslatePipe
   ],
   template: `
     <div class="dialog-header">
-      <div class="title-icon">
+      <div class="title-icon" aria-hidden="true">
         <mat-icon>warning_amber</mat-icon>
       </div>
 
@@ -38,10 +44,10 @@ import {TranslatePipe} from '@ngx-translate/core'
         type="button"
         class="confirm-check"
         [class.checked]="isChecked"
-        (click)="isChecked = !isChecked"
         [attr.aria-pressed]="isChecked"
+        (click)="toggleConfirmation()"
       >
-        <span class="confirm-check-box">
+        <span class="confirm-check-box" aria-hidden="true">
           <mat-icon *ngIf="isChecked">check</mat-icon>
         </span>
 
@@ -60,8 +66,9 @@ import {TranslatePipe} from '@ngx-translate/core'
         mat-flat-button
         color="warn"
         type="button"
+        [disabled]="isConfirmDisabled"
         (click)="onConfirm()"
-        [disabled]="data.requireConfirmation && !isChecked">
+      >
         {{ data.confirmText }}
       </button>
     </div>
@@ -70,6 +77,7 @@ import {TranslatePipe} from '@ngx-translate/core'
     :host {
       display: block;
       padding: 1.4rem 1.5rem 1.6rem;
+      background: var(--menu-bg);
     }
 
     .dialog-actions {
@@ -91,19 +99,24 @@ export class ConfirmDialogComponent {
   isChecked = false;
 
   constructor(
-    public dialogRef: MatDialogRef<ConfirmDialogComponent>,
-    @Inject(MAT_DIALOG_DATA)
-    public data: {
-      title: string;
-      message: string;
-      confirmText: string;
-      cancelText: string;
-      requireConfirmation?: boolean;
-      confirmationText?: string;
-    }
+    private readonly dialogRef: MatDialogRef<ConfirmDialogComponent, boolean>,
+    @Inject(MAT_DIALOG_DATA) public readonly data: ConfirmDialogData
   ) {}
 
+
+  get isConfirmDisabled(): boolean {
+    return !!this.data.requireConfirmation && !this.isChecked;
+  }
+
+  toggleConfirmation(): void {
+    this.isChecked = !this.isChecked;
+  }
+
   onConfirm(): void {
+    if (this.isConfirmDisabled) {
+      return;
+    }
+
     this.dialogRef.close(true);
   }
 

@@ -1,0 +1,57 @@
+<div class="panel-box image-upload image-upload-modern construction-card">
+  <div class="construction-card-header">
+    <div class="panel-title">{{ titleKey | translate }}</div>
+  </div>
+
+  <input
+    #fileInput
+    hidden
+    type="file"
+    accept="image/png,image/jpeg,image/webp"
+    (change)="imageSelected.emit({ event: $event, kind })"
+  />
+
+  <div class="panel-actions">
+    <button mat-stroked-button color="primary" type="button" (click)="fileInput.click()">
+      <mat-icon>upload</mat-icon>
+      {{ previewUrl ? ('exampleDialog.replaceImage' | translate) : ('exampleDialog.selectImage' | translate) }}
+    </button>
+
+    @if (previewUrl) {
+      <button mat-stroked-button color="warn" type="button" (click)="imageRemoved.emit(kind)">
+        {{ selectedFile ? ('exampleDialog.discardSelection' | translate) : ('exampleDialog.deleteImage' | translate) }}
+      </button>
+    }
+  </div>
+
+  <div class="construction-stage-preview">
+    @if (previewUrl) {
+      <img
+        [src]="previewUrl"
+        [alt]="previewAltKey | translate"
+        class="image-preview construction-preview-image"
+        [style.width.px]="width || 320"
+      />
+    } @else {
+      <div class="construction-empty-state">
+        <mat-icon>{{ emptyIcon }}</mat-icon>
+        <span>{{ emptyTextKey | translate }}</span>
+      </div>
+    }
+  </div>
+
+  <div class="image-width-card">
+    <div class="image-width-head">
+      <div class="panel-title small-title">{{ widthLabelKey | translate }}</div>
+    </div>
+
+    <mat-slider min="30" max="360" step="10" discrete>
+      <input
+        matSliderThumb
+        [ngModel]="width"
+        [name]="widthName"
+        (ngModelChange)="onWidthChange($event)"
+      />
+    </mat-slider>
+  </div>
+</div>

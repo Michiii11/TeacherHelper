@@ -12,8 +12,8 @@
             [placeholder]="'createTest.titlePlaceholder' | translate"
             cdkTextareaAutosize
             cdkAutosizeMinRows="2"
-            cdkAutosizeMaxRows="8">
-          </textarea>
+            cdkAutosizeMaxRows="8"
+          ></textarea>
         </mat-form-field>
       </div>
 
@@ -28,8 +28,8 @@
             [placeholder]="'createTest.descriptionPlaceholder' | translate"
             cdkTextareaAutosize
             cdkAutosizeMinRows="4"
-            cdkAutosizeMaxRows="8">
-          </textarea>
+            cdkAutosizeMaxRows="8"
+          ></textarea>
         </mat-form-field>
       </div>
 
@@ -39,7 +39,10 @@
         </div>
 
         <div class="selection-toolbar-actions">
-          <div class="selection-count-badge">{{ selectedExamples.length }} {{ 'createTest.selectedCount' | translate }}</div>
+          <div class="selection-count-badge">
+            {{ selectedExamples.length }} {{ 'createTest.selectedCount' | translate }}
+          </div>
+
           <button mat-flat-button type="button" (click)="openAddExampleDialog()">
             <mat-icon>playlist_add</mat-icon>
             {{ 'createTest.addExamples' | translate }}
@@ -47,294 +50,69 @@
         </div>
       </div>
 
-      <div *ngIf="selectedExamples.length > 0" class="selected-section">
-        <div *ngFor="let entry of selectedExamples; let i = index; trackBy: trackBySelectedExample" class="selected-task-card">
-          <div class="selected-task-main">
-            <div class="task-index-badge">{{ i + 1 }}</div>
-
-            <div class="task-copy">
-              <strong>{{ getResolvedExampleHeading(entry.example, entry.variableValues) }}</strong>
-              <div class="task-subline">{{ getExampleMeta(entry) }}</div>
-            </div>
-
-            <div class="task-main-actions">
-              <button
-                mat-icon-button
-                type="button"
-                (click)="moveSelectedExample(i, -1)"
-                [disabled]="i === 0"
-                [attr.aria-label]="'Move example up'">
-                <mat-icon>arrow_upward</mat-icon>
-              </button>
-
-              <button
-                mat-icon-button
-                type="button"
-                (click)="moveSelectedExample(i, 1)"
-                [disabled]="i === selectedExamples.length - 1"
-                [attr.aria-label]="'Move example down'">
-                <mat-icon>arrow_downward</mat-icon>
-              </button>
-
-              <button mat-icon-button color="warn" type="button" (click)="removeSelectedExample(entry)" [attr.aria-label]="'Remove example'">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </div>
-          </div>
-
-          <div class="task-settings-grid compact-grid three-cols">
-            <mat-form-field appearance="outline">
-              <mat-label>{{ 'createTest.taskTitle' | translate }}</mat-label>
-              <input
-                matInput
-                name="title-{{ entry.example.id }}"
-                [(ngModel)]="entry.title"
-                (ngModelChange)="markDirty()"
-                [placeholder]="'createTest.taskTitlePlaceholder' | translate" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>{{ 'createTest.points' | translate }}</mat-label>
-              <input
-                matInput
-                type="number"
-                min="0"
-                step="0.1"
-                inputmode="decimal"
-                name="points-{{ entry.example.id }}"
-                [(ngModel)]="entry.points"
-                (ngModelChange)="onPointsInput(entry, $event)"
-                (blur)="onPointsBlur(entry)" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>{{ 'createTest.spacingAfterTask' | translate }}</mat-label>
-              <input
-                matInput
-                type="number"
-                min="0"
-                max="240"
-                name="spacing-{{ entry.example.id }}"
-                [ngModel]="getTaskSpacing(entry.example.id)"
-                (ngModelChange)="onTaskSpacingChange(entry.example.id, $event)" />
-            </mat-form-field>
-          </div>
-
-          <div class="task-variable-block" *ngIf="hasVariables(entry)">
-            <div class="task-variable-head">
-              <strong>{{ 'createTest.variables.title' | translate }}</strong>
-              <span>{{ 'createTest.variables.description' | translate }}</span>
-            </div>
-
-            <div class="task-variable-grid">
-              <mat-form-field appearance="outline" *ngFor="let variable of getExampleVariables(entry); trackBy: trackByVariableValue">
-                <mat-label>{{ '{' }}{{ variable.key }}{{ '}' }}</mat-label>
-                <input
-                  matInput
-                  [ngModel]="getVariableValue(entry, variable.key)"
-                  (ngModelChange)="onVariableValueChange(entry, variable.key, $event)"
-                  name="variable-{{ entry.example.id }}-{{ variable.key }}"
-                  [placeholder]="variable.defaultValue || ('createTest.variables.valuePlaceholder' | translate)" />
-              </mat-form-field>
-            </div>
-
-            <div class="task-variable-preview">
-              <span>{{ 'createTest.variables.preview' | translate }}</span>
-              <strong>{{ getResolvedEntryTitle(entry) }}</strong>
-            </div>
-          </div>
-        </div>
+      @if (selectedExamples.length > 0) {
+        <app-test-selected-examples
+          [selectedExamples]="selectedExamples"
+          [getResolvedExampleHeading]="getResolvedExampleHeadingFn"
+          [getExampleMeta]="getExampleMetaFn"
+          [getTaskSpacing]="getTaskSpacingFn"
+          [hasVariables]="hasVariablesFn"
+          [getExampleVariables]="getExampleVariablesFn"
+          [getVariableValue]="getVariableValueFn"
+          [getResolvedEntryTitle]="getResolvedEntryTitleFn"
+          (moveExample)="moveSelectedExample($event.index, $event.direction)"
+          (removeExample)="removeSelectedExample($event)"
+          (pointsInput)="onPointsInput($event.entry, $event.value)"
+          (pointsBlur)="onPointsBlur($event)"
+          (spacingChange)="onTaskSpacingChange($event.exampleId, $event.value)"
+          (variableValueChange)="onVariableValueChange($event.entry, $event.key, $event.value)"
+          (dirty)="markDirty()"
+        ></app-test-selected-examples>
 
         <button mat-stroked-button type="button" class="advanced-toggle" (click)="toggleAdvancedSettings()">
           <mat-icon>{{ showAdvancedSettings ? 'expand_less' : 'tune' }}</mat-icon>
           {{ showAdvancedSettings ? ('createTest.hideLayoutAndGrading' | translate) : ('createTest.editLayoutAndGrading' | translate) }}
         </button>
 
-        <div class="advanced-settings" *ngIf="showAdvancedSettings">
-          <div class="settings-card spacing-card">
-            <div class="settings-head compact-head">
-              <div>
-                <h3>{{ 'createTest.layoutAndSpacing' | translate }}</h3>
-              </div>
-            </div>
-
-            <div class="layout-toolbar compact-grid">
-              <div class="layout-helper-block">
-                <mat-form-field appearance="outline">
-                  <mat-label>{{ 'createTest.defaultSpacing' | translate }}</mat-label>
-                  <input
-                    matInput
-                    type="number"
-                    min="0"
-                    max="240"
-                    name="defaultTaskSpacing"
-                    [ngModel]="defaultTaskSpacing"
-                    (ngModelChange)="onDefaultSpacingChanged($event)"/>
-                </mat-form-field>
-              </div>
-
-              <div class="toolbar-actions stacked-actions layout-helper-block">
-                <button mat-stroked-button type="button" (click)="applySpacingToAll()">{{ 'createTest.applyToAll' | translate }}</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="settings-card grading-card">
-            <div class="settings-head compact-head">
-              <h3>{{ 'createTest.grading.title' | translate }}</h3>
-
-              <mat-button-toggle-group
-                name="gradingMode"
-                [ngModel]="gradingModeSelection"
-                (ngModelChange)="onGradingModeChange($event)"
-                [hideSingleSelectionIndicator]="true">
-                <mat-button-toggle value="auto">
-                  {{ 'createTest.grading.percent' | translate }}
-                </mat-button-toggle>
-                <mat-button-toggle value="manual">
-                  {{ 'createTest.grading.points' | translate }}
-                </mat-button-toggle>
-              </mat-button-toggle-group>
-
-              <button mat-icon-button type="button" (click)="resetGrading()">
-                <mat-icon>rotate_left</mat-icon>
-              </button>
-            </div>
-
-            <div class="preset-toolbar">
-              <button mat-stroked-button type="button" (click)="applyGradingPreset('AT')">AT 1–5</button>
-              <button mat-stroked-button type="button" (click)="applyGradingPreset('DE')">DE 1–6</button>
-              <button mat-stroked-button type="button" (click)="applyGradingPreset('US')">US A–F</button>
-              <button mat-stroked-button type="button" (click)="applyGradingPreset('MITARBEIT')">Mitarbeit</button>
-              <button mat-stroked-button type="button" (click)="applyGradingPreset('CUSTOM')">{{ 'createTest.grading.custom' | translate }}</button>
-            </div>
-
-            <div class="grading-level-list">
-              <div class="grading-level-card" *ngFor="let level of gradingSchema; let i = index; trackBy: trackByGradingLevel">
-                <div class="grading-level-header">
-                  <strong>{{ 'createTest.grading.level' | translate }} {{ i + 1 }} {{ 'createTest.grading.of' | translate }} {{ getGradeRangeLabelByIndex(i) }}</strong>
-
-                  <div class="level-actions">
-                    <button mat-icon-button type="button" (click)="moveGradingLevel(i, -1)" [disabled]="i === 0">
-                      <mat-icon>arrow_upward</mat-icon>
-                    </button>
-                    <button mat-icon-button type="button" (click)="moveGradingLevel(i, 1)" [disabled]="i === gradingSchema.length - 1">
-                      <mat-icon>arrow_downward</mat-icon>
-                    </button>
-                    <button mat-icon-button color="warn" type="button" (click)="removeGradingLevel(i)">
-                      <mat-icon>delete</mat-icon>
-                    </button>
-                  </div>
-                </div>
-
-                <div class="task-settings-grid compact-grid four-cols">
-                  <mat-form-field appearance="outline">
-                    <mat-label>{{ 'createTest.grading.label' | translate }}</mat-label>
-                    <input
-                      matInput
-                      name="grade-short-{{ i }}"
-                      [(ngModel)]="level.shortLabel"
-                      (ngModelChange)="markDirty()"
-                      [placeholder]="'createTest.grading.labelPlaceholder' | translate" />
-                  </mat-form-field>
-
-                  <mat-form-field appearance="outline">
-                    <mat-label>{{ gradeTableHeading }}</mat-label>
-                    <input
-                      *ngIf="useAutomaticGrading"
-                      matInput
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      inputmode="decimal"
-                      name="grade-threshold-percentage-{{ i }}"
-                      [(ngModel)]="level.percentageFrom"
-                      (ngModelChange)="onAutomaticThresholdInput(level, $event)"
-                      (blur)="onLevelBlur()" />
-
-                    <input
-                      *ngIf="!useAutomaticGrading"
-                      matInput
-                      type="number"
-                      min="0"
-                      step="0.1"
-                      inputmode="decimal"
-                      [max]="totalPoints"
-                      name="grade-threshold-minimum-{{ i }}"
-                      [(ngModel)]="level.minimumPoints"
-                      (ngModelChange)="onManualThresholdInput(level, $event)"
-                      (blur)="onLevelBlur()" />
-                  </mat-form-field>
-                </div>
-              </div>
-            </div>
-
-            <div class="grading-footer-actions">
-              <button mat-stroked-button type="button" (click)="addGradingLevel()">
-                <mat-icon>add</mat-icon>
-                {{ 'createTest.grading.addLevel' | translate }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+        @if (showAdvancedSettings) {
+          <app-test-advanced-settings
+            [defaultTaskSpacing]="defaultTaskSpacing"
+            [gradingModeSelection]="gradingModeSelection"
+            [useAutomaticGrading]="useAutomaticGrading"
+            [gradingSchema]="gradingSchema"
+            [totalPoints]="totalPoints"
+            [gradeTableHeading]="gradeTableHeading"
+            [getGradeRangeLabelByIndex]="getGradeRangeLabelByIndexFn"
+            [trackByGradingLevel]="trackByGradingLevel"
+            (defaultSpacingChanged)="onDefaultSpacingChanged($event)"
+            (applySpacingToEveryTask)="applySpacingToAll()"
+            (gradingModeChanged)="onGradingModeChange($event)"
+            (resetGradingRequested)="resetGrading()"
+            (gradingPresetSelected)="applyGradingPreset($event)"
+            (automaticThresholdInput)="onAutomaticThresholdInput($event.level, $event.value)"
+            (manualThresholdInput)="onManualThresholdInput($event.level, $event.value)"
+            (levelBlur)="onLevelBlur()"
+            (levelDirty)="markDirty()"
+            (levelMoved)="moveGradingLevel($event.index, $event.direction)"
+            (levelRemoved)="removeGradingLevel($event)"
+            (levelAdded)="addGradingLevel()"
+          ></app-test-advanced-settings>
+        }
+      }
     </form>
   </div>
 
-  <div class="preview-pane">
-
-    <div class="print-controls settings-card">
-      <div class="print-controls-grid">
-        <div class="section">
-          <div class="stepper">
-            <button mat-icon-button type="button" (click)="decreaseCount()">
-              <mat-icon>remove</mat-icon>
-            </button>
-            <input type="number" min="1" max="100" [(ngModel)]="printCopies" (ngModelChange)="onPrintCopiesChange($event)">
-            <button mat-icon-button type="button" (click)="increaseCount()">
-              <mat-icon>add</mat-icon>
-            </button>
-          </div>
-        </div>
-
-        <div class="section">
-          <mat-button-toggle-group [(ngModel)]="includeSolutionSheet" [hideSingleSelectionIndicator]="true">
-            <mat-button-toggle [value]="false"
-                               (click)="setIncludeSolutionSheet(false)">
-              {{ 'createTest.print.onlyTest' | translate }}
-            </mat-button-toggle>
-            <mat-button-toggle [value]="true"
-                               (click)="setIncludeSolutionSheet(true)">
-              {{ 'createTest.print.includeSolutions' | translate }}
-            </mat-button-toggle>
-          </mat-button-toggle-group>
-        </div>
-
-        <div class="section">
-          <button mat-flat-button color="primary" type="button" (click)="printPreview()">
-            {{ 'createTest.print.print' | translate }}
-            <mat-icon>
-              print
-            </mat-icon>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="print-area preview-surface">
-      <div class="print-page shared-preview-page" [innerHTML]="previewHtml"></div>
-    </div>
-
-    <mat-dialog-actions>
-      <button mat-stroked-button type="button" (click)="closeDialog()" [disabled]="isSaving">{{ 'common.cancel' | translate }}</button>
-      <button mat-flat-button color="primary" type="submit" [disabled]="isSaving" (click)="saveTest()">
-        <mat-icon>{{ isSaving ? 'hourglass_top' : 'save' }}</mat-icon>
-        {{ isSaving ? ('common.saving' | translate) : ('common.save' | translate) }}
-      </button>
-      @if (isSaving) {
-        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-      }
-    </mat-dialog-actions>
-  </div>
+  <app-test-print-preview-pane
+    [previewHtml]="previewHtml"
+    [printCopies]="printCopies"
+    [includeSolutionSheet]="includeSolutionSheet"
+    [isSaving]="isSaving"
+    (printCopiesChange)="onPrintCopiesChange($event)"
+    (includeSolutionSheetChange)="setIncludeSolutionSheet($event)"
+    (increaseCopies)="increaseCount()"
+    (decreaseCopies)="decreaseCount()"
+    (printRequested)="printPreview()"
+    (closeRequested)="closeDialog()"
+    (saveRequested)="saveTest()"
+  ></app-test-print-preview-pane>
 </main>

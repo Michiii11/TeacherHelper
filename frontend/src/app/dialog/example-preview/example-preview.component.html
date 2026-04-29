@@ -1,111 +1,115 @@
-<div class="preview-dialog">
-  <div class="preview-header">
-    <h1>Vorschau</h1>
-  </div>
-
-  <div class="preview-panel">
-    <div>
-      <p class="multiline-text">{{ example.instruction }}</p>
-    </div>
-
-    <p><strong>Aufgabenstellung:</strong></p>
-
-    <div>
-      <p class="multiline-text">{{ getQuestionWithGapLabels() }}</p>
-    </div>
-
-    @if(example.type === ExampleTypes.HALF_OPEN){
-      <div class="half-open-preview">
-        @for (ans of example.answers; track ans){
-          <p>{{ ans[0] }} = ___________________</p>
-        }
+@if(example){
+  <div class="preview-dialog">
+    @if(showHeader){
+      <div class="preview-header">
+        <h1>Vorschau</h1>
       </div>
     }
 
-    @if(example.type === ExampleTypes.CONSTRUCTION){
-      <div class="construction-preview">
-        <div>
-          <p><strong>Aufgabenbild</strong></p>
-          <img
-            *ngIf="example.image"
-            [src]="example.image"
-            alt="Aufgabenbild Vorschau"
-            class="image-preview"
-            [style.width.px]="getImageWidth(example)" />
-          <p *ngIf="!example.image">Kein Bild ausgewählt.</p>
-        </div>
-
-        <div class="construction-section">
-          <p><strong>Lösungsbild</strong></p>
-          <img
-            *ngIf="example.solutionUrl"
-            [src]="example.solutionUrl"
-            alt="Lösungsbild Vorschau"
-            class="image-preview"
-            [style.width.px]="getSolutionImageWidth(example)" />
-          <p *ngIf="!example.solutionUrl">Kein Lösungsbild ausgewählt.</p>
-        </div>
+    <div class="preview-panel">
+      <div>
+        <p class="multiline-text">{{ example.instruction }}</p>
       </div>
-    }
 
-    @if(example.type === ExampleTypes.MULTIPLE_CHOICE){
-      <div class="multiple-choice-preview">
-        <table>
-          @for (option of example.options; track option){
-            <tr>
-              <td>
-                {{ option.text }}
-              </td>
-              <td class="small">
-                <mat-pseudo-checkbox></mat-pseudo-checkbox>
-              </td>
-            </tr>
-          }
-        </table>
+      <p><strong>Aufgabenstellung:</strong></p>
+
+      <div>
+        <p class="multiline-text">{{ getQuestionWithGapLabels() }}</p>
       </div>
-    }
 
-    @if(example.type === ExampleTypes.GAP_FILL){
-      @if(example.gapFillType === 'SELECT'){
-        <div class="gap-fill-preview">
-          @for (gap of example.gaps; track gap){
-            <table>
-              <tr>
-                <th>({{gap.label}})</th>
-              </tr>
-
-              @for(opt of gap.options; track opt){
-                <tr>
-                  <td>{{ opt.text }}</td>
-                  <td class="small">
-                    <mat-pseudo-checkbox></mat-pseudo-checkbox>
-                  </td>
-                </tr>
-              }
-            </table>
+      @if(example.type === ExampleTypes.HALF_OPEN){
+        <div class="half-open-preview">
+          @for (ans of example.answers; track ans){
+            <p>{{ ans[0] }} = ___________________</p>
           }
         </div>
       }
-    }
 
-    @if(example.type === ExampleTypes.ASSIGN){
-      <div class="assign-preview">
-        <table class="leftSide">
-          @for(assign of example.assigns; track assign){
-            <tr>
-              <td>{{ assign.left }}</td>
-              <td class="fill"></td>
+      @if(example.type === ExampleTypes.CONSTRUCTION){
+        <div class="construction-preview">
+          <div>
+            <p><strong>Aufgabenbild</strong></p>
+            <img
+              *ngIf="getPreviewImageUrl()"
+              [src]="getPreviewImageUrl()"
+              alt="Aufgabenbild Vorschau"
+              class="image-preview"
+              [style.width.px]="getImageWidth(example)" />
+            <p *ngIf="!getPreviewImageUrl()">Kein Bild ausgewählt.</p>
+          </div>
+
+          <div class="construction-section">
+            <p><strong>Lösungsbild</strong></p>
+            <img
+              *ngIf="getPreviewSolutionImageUrl()"
+              [src]="getPreviewSolutionImageUrl()"
+              alt="Lösungsbild Vorschau"
+              class="image-preview"
+              [style.width.px]="getSolutionImageWidth(example)" />
+            <p *ngIf="!getPreviewSolutionImageUrl()">Kein Lösungsbild ausgewählt.</p>
+          </div>
+        </div>
+      }
+
+      @if(example.type === ExampleTypes.MULTIPLE_CHOICE){
+        <div class="multiple-choice-preview">
+          <table>
+            @for (option of example.options; track option){
+              <tr>
+                <td>
+                  {{ option.text }}
+                </td>
+                <td class="small">
+                  <mat-pseudo-checkbox></mat-pseudo-checkbox>
+                </td>
+              </tr>
+            }
+          </table>
+        </div>
+      }
+
+      @if(example.type === ExampleTypes.GAP_FILL){
+        @if(example.gapFillType === 'SELECT'){
+          <div class="gap-fill-preview">
+            @for (gap of example.gaps; track gap){
+              <table>
+                <tr>
+                  <th>({{gap.label}})</th>
+                </tr>
+
+                @for(opt of gap.options; track opt){
+                  <tr>
+                    <td>{{ opt.text }}</td>
+                    <td class="small">
+                      <mat-pseudo-checkbox></mat-pseudo-checkbox>
+                    </td>
+                  </tr>
+                }
+              </table>
+            }
+          </div>
+        }
+      }
+
+      @if(example.type === ExampleTypes.ASSIGN){
+        <div class="assign-preview">
+          <table class="leftSide">
+            @for(assign of example.assigns; track assign){
+              <tr>
+                <td>{{ assign.left }}</td>
+                <td class="fill"></td>
+              </tr>
+            }
+          </table>
+
+          <table class="rightSide">
+            <tr *ngFor="let right of example.assignRightItems; let i = index">
+              <td class="fill">{{ getLetter(i) }}</td>
+              <td>{{ right }}</td>
             </tr>
-          }
-        </table>
-
-        <table class="rightSide">
-          <tr *ngFor="let right of example.assignRightItems; let i = index">
-            <td class="fill">{{ getLetter(i) }}</td>
-            <td>{{ right }}</td>
-          </tr>
-        </table>
-      </div>
-    }
+          </table>
+        </div>
+      }
+    </div>
   </div>
-</div>
+}

@@ -12,7 +12,8 @@
     "ok": "OK",
     "create": "Erstellen",
     "filter": "Filter",
-    "type": "Typ"
+    "type": "Typ",
+    "sort": "Sortieren"
   },
   "profile": {
     "title": "Profil",
@@ -359,7 +360,7 @@
     "moveConfirm": "Verschieben",
     "deleteExampleTitle": "Beispiel löschen",
     "deleteFolderTitle": "Ordner löschen",
-    "deleteFolderMessage": "Der Ordner \"{{name}}\" wird dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
+    "deleteFolderMessage": "Der Ordner \"{{name}}\" wird dauerhaft gelöscht.",
     "confirmDeleteFolder": "Ordner wirklich löschen",
     "deleteExampleMessage": "Beispiel \"{{name}}\" wirklich löschen?",
     "deleteTestTitle": "Test löschen",
@@ -529,7 +530,7 @@
     "solutionImagePreviewAlt": "Lösungsbild Vorschau",
     "closeDialog": {
       "title": "Dialog schließen?",
-      "message": "Nicht gespeicherte Änderungen gehen verloren. Möchtest du den Dialog wirklich schließen?",
+      "message": "Nicht gespeicherte Änderungen gehen verloren.",
       "cancel": "Weiter bearbeiten",
       "confirm": "Schließen"
     },

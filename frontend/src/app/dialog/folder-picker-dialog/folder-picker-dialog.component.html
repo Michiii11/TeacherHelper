@@ -1,1 +1,79 @@
-<p>folder-picker-dialog works!</p>
+<div class="dialog-header">
+  <div class="title-icon">
+    <mat-icon>drive_file_move</mat-icon>
+  </div>
+
+  <div>
+    <h2>{{ data.title }}</h2>
+
+    @if (data.subtitle) {
+      <p>{{ data.subtitle }}</p>
+    }
+  </div>
+</div>
+
+<mat-form-field appearance="outline" class="full-width search-field">
+  <input
+    matInput
+    [ngModel]="search()"
+    (ngModelChange)="updateSearch($event)"
+    [placeholder]="'school.folderPickerSearch' | translate" />
+</mat-form-field>
+
+<div class="folder-list">
+  <button
+    type="button"
+    class="folder-option"
+    [class.selected]="isSelected(null)"
+    (click)="select(null)">
+    <div class="folder-option-main">
+      <mat-icon>home</mat-icon>
+
+      <div class="folder-option-text">
+        <span class="folder-name">{{ data.rootLabel }}</span>
+        <span class="folder-path">{{ data.rootLabel }}</span>
+      </div>
+    </div>
+
+    @if (isSelected(null)) {
+      <mat-icon>check_circle</mat-icon>
+    }
+  </button>
+
+  @for (folder of filteredFolders(); track folder.id) {
+    <button
+      type="button"
+      class="folder-option"
+      [disabled]="folder.disabled"
+      [class.selected]="isSelected(folder.id)"
+      (click)="select(folder.id)">
+      <div class="folder-option-main">
+        <mat-icon>folder</mat-icon>
+
+        <div class="folder-option-text">
+          <span class="folder-name">{{ folder.name }}</span>
+          <span class="folder-path">{{ folder.path }}</span>
+        </div>
+      </div>
+
+      @if (isSelected(folder.id)) {
+        <mat-icon>check_circle</mat-icon>
+      }
+    </button>
+  } @empty {
+    <div class="folder-empty">
+      <mat-icon>search_off</mat-icon>
+      <span>{{ 'school.noFoldersFound' | translate }}</span>
+    </div>
+  }
+</div>
+
+<div class="dialog-actions">
+  <button mat-stroked-button type="button" (click)="close()">
+    {{ 'common.cancel' | translate }}
+  </button>
+
+  <button mat-flat-button color="primary" type="button" (click)="confirm()">
+    {{ 'school.moveConfirm' | translate }}
+  </button>
+</div>

@@ -1,0 +1,76 @@
+:host {
+  display: block;
+  min-height: 100%;
+}
+
+.not-found-shell {
+  min-height: 70vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+}
+
+.not-found-card {
+  width: min(100%, 560px);
+  padding: 2.2rem 2rem;
+  border-radius: 1rem;
+  background: var(--bg-soft);
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+
+.code {
+  margin-bottom: 0.6rem;
+  color: var(--primary);
+  font-size: clamp(4.5rem, 10vw, 6.5rem);
+  font-weight: 800;
+  line-height: 1;
+}
+
+h1 {
+  margin: 0;
+  color: var(--text);
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+p {
+  max-width: 420px;
+  margin: 0.8rem auto 0;
+  color: var(--text-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+a[mat-raised-button] {
+  min-height: 46px;
+  margin-top: 1.4rem;
+  padding: 0 1.2rem;
+  border-radius: 14px;
+  font-weight: 700;
+}
+
+.mat-mdc-raised-button {
+  color: var(--on-primary) !important;
+  background-color: var(--primary) !important;
+}
+
+@media (max-width: 640px) {
+  .not-found-shell {
+    padding: 1rem 0.75rem;
+  }
+
+  .not-found-card {
+    padding: 1.6rem 1.2rem;
+    border-radius: 22px;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+  }
+
+  p {
+    font-size: 0.96rem;
+  }
+}

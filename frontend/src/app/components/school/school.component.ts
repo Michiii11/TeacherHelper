@@ -530,7 +530,7 @@ export class SchoolComponent implements OnInit, OnDestroy {
     }
 
     const ref = this.dialog.open(ConfirmDialogComponent, {
-      width: '600px',
+      width: '420px',
       data: {
         title: this.t('school.deleteFolderTitle'),
         message: this.t('school.deleteFolderMessage', { name: folder.name }),

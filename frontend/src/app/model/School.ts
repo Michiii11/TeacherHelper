@@ -4,7 +4,7 @@ import {Focus} from './Example'
 export interface School {
   id: string;
   name: string;
-  logoUrl: string;
+  logoUrl: string | null;
   admin: User;
   users: User[];
   focusList: Focus[];
@@ -15,7 +15,7 @@ export interface School {
 export interface SchoolDTO {
   id: string;
   name: string;
-  logoUrl: string;
+  logoUrl: string | null;
   admin: UserDTO;
   exampleCount: number;
   members: UserDTO[],

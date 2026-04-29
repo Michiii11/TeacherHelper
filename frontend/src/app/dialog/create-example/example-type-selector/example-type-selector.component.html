@@ -1,0 +1,31 @@
+<div class="example-type-toggle-group">
+  @for (type of exampleTypes; track type) {
+    <button
+      type="button"
+      class="example-type-toggle"
+      [class.active]="selectedType === type"
+      (click)="selectType(type)"
+    >
+      <div class="type-card-head">
+        <mat-icon class="type-icon">
+          @switch (type) {
+            @case (ExampleTypes.OPEN) { edit }
+            @case (ExampleTypes.HALF_OPEN) { help_outline }
+            @case (ExampleTypes.MULTIPLE_CHOICE) { list_alt }
+            @case (ExampleTypes.GAP_FILL) { view_week }
+            @case (ExampleTypes.CONSTRUCTION) { image }
+            @case (ExampleTypes.ASSIGN) { swap_horiz }
+          }
+        </mat-icon>
+
+        <h3 class="type-title">
+          {{ typeLabels[type] | translate }}
+        </h3>
+      </div>
+
+      <p class="type-description">
+        {{ tooltipResolver(type) }}
+      </p>
+    </button>
+  }
+</div>

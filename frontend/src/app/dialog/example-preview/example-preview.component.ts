@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, HostBinding, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { NgIf, NgForOf } from '@angular/common';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatPseudoCheckbox } from '@angular/material/core';
@@ -23,17 +23,29 @@ type ExamplePreviewDialogData = {
 export class ExamplePreviewComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
-  private readonly data = inject<ExamplePreviewDialogData>(MAT_DIALOG_DATA);
+  private readonly data = inject<ExamplePreviewDialogData | null>(MAT_DIALOG_DATA, { optional: true });
   private readonly http = inject(HttpService);
 
   readonly ExampleTypes = ExampleTypes;
   readonly defaultImageWidth = 320;
 
-  example!: CreateExampleDTO;
+  @Input() example: CreateExampleDTO | null = null;
+  @Input() constructionImagePreviewUrl: string | null = null;
+  @Input() constructionSolutionPreviewUrl: string | null = null;
+  @Input() showHeader = true;
+
+  @HostBinding('class.embedded-preview')
+  get embeddedPreview(): boolean {
+    return !this.showHeader;
+  }
 
   private readonly imageObjectUrls = new Set<string>();
 
   async ngOnInit(): Promise<void> {
+    if (this.example) {
+      return;
+    }
+
     const id = this.data?.exampleId;
 
     if (this.data?.example) {
@@ -89,6 +101,14 @@ export class ExamplePreviewComponent implements OnInit, OnDestroy {
     } catch {
       return '';
     }
+  }
+
+  getPreviewImageUrl(): string {
+    return this.constructionImagePreviewUrl || this.example?.image || '';
+  }
+
+  getPreviewSolutionImageUrl(): string {
+    return this.constructionSolutionPreviewUrl || this.example?.solutionUrl || '';
   }
 
   getQuestionWithGapLabels(): string {

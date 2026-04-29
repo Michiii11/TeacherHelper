@@ -1,0 +1,107 @@
+<div class="selected-section">
+  <div
+    *ngFor="let entry of selectedExamples; let i = index; trackBy: trackBySelectedExample"
+    class="selected-task-card"
+  >
+    <div class="selected-task-main">
+      <div class="task-index-badge">{{ i + 1 }}</div>
+
+      <div class="task-copy">
+        <strong>{{ getResolvedExampleHeading(entry.example, entry.variableValues) }}</strong>
+        <div class="task-subline">{{ getExampleMeta(entry) }}</div>
+      </div>
+
+      <div class="task-main-actions">
+        <button
+          mat-icon-button
+          type="button"
+          (click)="moveExample.emit({ index: i, direction: -1 })"
+          [disabled]="i === 0"
+          [attr.aria-label]="'Move example up'"
+        >
+          <mat-icon>arrow_upward</mat-icon>
+        </button>
+
+        <button
+          mat-icon-button
+          type="button"
+          (click)="moveExample.emit({ index: i, direction: 1 })"
+          [disabled]="i === selectedExamples.length - 1"
+          [attr.aria-label]="'Move example down'"
+        >
+          <mat-icon>arrow_downward</mat-icon>
+        </button>
+
+        <button mat-icon-button color="warn" type="button" (click)="removeExample.emit(entry)" [attr.aria-label]="'Remove example'">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="task-settings-grid compact-grid three-cols">
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'createTest.taskTitle' | translate }}</mat-label>
+        <input
+          matInput
+          name="title-{{ entry.example.id }}"
+          [(ngModel)]="entry.title"
+          (ngModelChange)="dirty.emit()"
+          [placeholder]="'createTest.taskTitlePlaceholder' | translate"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'createTest.points' | translate }}</mat-label>
+        <input
+          matInput
+          type="number"
+          min="0"
+          step="0.1"
+          inputmode="decimal"
+          name="points-{{ entry.example.id }}"
+          [(ngModel)]="entry.points"
+          (ngModelChange)="pointsInput.emit({ entry, value: $event })"
+          (blur)="pointsBlur.emit(entry)"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'createTest.spacingAfterTask' | translate }}</mat-label>
+        <input
+          matInput
+          type="number"
+          min="0"
+          max="240"
+          name="spacing-{{ entry.example.id }}"
+          [ngModel]="getTaskSpacing(entry.example.id)"
+          (ngModelChange)="spacingChange.emit({ exampleId: entry.example.id, value: $event })"
+        />
+      </mat-form-field>
+    </div>
+
+    <div class="task-variable-block" *ngIf="hasVariables(entry)">
+      <div class="task-variable-head">
+        <strong>{{ 'createTest.variables.title' | translate }}</strong>
+        <span>{{ 'createTest.variables.description' | translate }}</span>
+      </div>
+
+      <div class="task-variable-grid">
+        <mat-form-field appearance="outline" *ngFor="let variable of getExampleVariables(entry); trackBy: trackByVariableValue">
+          <mat-label>{{ '{' }}{{ variable.key }}{{ '}' }}</mat-label>
+          <input
+            matInput
+            [ngModel]="getVariableValue(entry, variable.key)"
+            (ngModelChange)="variableValueChange.emit({ entry, key: variable.key, value: $event })"
+            name="variable-{{ entry.example.id }}-{{ variable.key }}"
+            [placeholder]="variable.defaultValue || ('createTest.variables.valuePlaceholder' | translate)"
+          />
+        </mat-form-field>
+      </div>
+
+      <div class="task-variable-preview">
+        <span>{{ 'createTest.variables.preview' | translate }}</span>
+        <strong>{{ getResolvedEntryTitle(entry) }}</strong>
+      </div>
+    </div>
+  </div>
+</div>

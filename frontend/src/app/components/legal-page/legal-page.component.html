@@ -1,18 +1,22 @@
 <main class="legal-page">
-  <section class="content-card">
-    <article class="section-block" *ngFor="let section of content().sections">
-      <h2>{{ section.heading }}</h2>
+  <section class="content-card" [attr.aria-label]="content().title">
+    @for (section of content().sections; track section.heading) {
+      <article class="section-block">
+        <h2>{{ section.heading }}</h2>
 
-      <p *ngFor="let paragraph of section.paragraphs">
-        {{ paragraph }}
-      </p>
+        @for (paragraph of section.paragraphs ?? []; track paragraph) {
+          <p>{{ paragraph }}</p>
+        }
 
-      <ul *ngIf="section.bullets?.length">
-        <li *ngFor="let bullet of section.bullets">
-          {{ bullet }}
-        </li>
-      </ul>
-    </article>
+        @if (section.bullets?.length) {
+          <ul>
+            @for (bullet of section.bullets; track bullet) {
+              <li>{{ bullet }}</li>
+            }
+          </ul>
+        }
+      </article>
+    }
   </section>
 
   <section class="bottom-note">

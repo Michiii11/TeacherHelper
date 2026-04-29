@@ -1,98 +1,25 @@
 <main class="create-example-shell">
-  <div class="example-type-toggle-group">
-    @for (t of exampleTypes; track t) {
-      <div
-        class="example-type-toggle"
-        [class.active]="example.type === t"
-        (click)="onTypeChange(t)"
-      >
-        <div class="type-card-head">
-          <mat-icon class="type-icon">
-            @switch (t) {
-              @case (ExampleTypes.OPEN) { edit }
-              @case (ExampleTypes.HALF_OPEN) { help_outline }
-              @case (ExampleTypes.MULTIPLE_CHOICE) { list_alt }
-              @case (ExampleTypes.GAP_FILL) { view_week }
-              @case (ExampleTypes.CONSTRUCTION) { image }
-              @case (ExampleTypes.ASSIGN) { swap_horiz }
-            }
-          </mat-icon>
-
-          <h3 class="type-title">
-            {{ ExampleTypeLabels[t] | translate }}
-          </h3>
-        </div>
-
-        <p class="type-description">
-          {{ getTooltip(t) }}
-        </p>
-      </div>
-    }
-  </div>
+  <app-example-type-selector
+    [exampleTypes]="exampleTypes"
+    [selectedType]="example.type"
+    [typeLabels]="ExampleTypeLabels"
+    [tooltipResolver]="getTooltip.bind(this)"
+    (selectedTypeChange)="onTypeChange($event)"
+  ></app-example-type-selector>
 
   <div class="grid">
     <div class="create-example-dialog">
       <form class="example-form">
-        <div class="row">
-          <mat-form-field appearance="outline" class="full-width focus-field">
-            <mat-label>{{ 'exampleDialog.tags' | translate }}</mat-label>
-
-            <mat-chip-grid
-              #chipGrid
-              aria-label="Selection"
-              class="focus-chip-grid"
-              [class.hidden-chip-grid]="!example.focusList.length"
-            >
-              <mat-chip-row *ngFor="let focus of example.focusList" (removed)="remove(focus)">
-                {{ focus.label }}
-                <button matChipRemove type="button" [attr.aria-label]="'exampleDialog.removeTag' | translate">✕</button>
-              </mat-chip-row>
-            </mat-chip-grid>
-
-            <input
-              matInput
-              class="focus-input"
-              placeholder="{{ 'exampleDialog.tagsPlaceholder' | translate }}"
-              [matChipInputFor]="chipGrid"
-              [matAutocomplete]="auto"
-              [formControl]="inputCtrl"
-              (matChipInputTokenEnd)="addFromInput($event)"
-              #inputEl
-            />
-
-            <mat-autocomplete
-              #auto="matAutocomplete"
-              autoActiveFirstOption
-              (optionSelected)="selected($event)"
-              class="focus-autocomplete"
-            >
-              <mat-option *ngFor="let focus of filteredFocusList | async" [value]="focus">
-                <div class="focus-option-row">
-                  <span class="focus-option-label">{{ focus.label }}</span>
-
-                  <button
-                    mat-icon-button
-                    class="focus-option-delete"
-                    tabindex="-1"
-                    type="button"
-                    (click)="deleteFocus(focus, $event)"
-                    [attr.aria-label]="'exampleDialog.deleteTag' | translate"
-                  >
-                    <mat-icon fontIcon="delete"></mat-icon>
-                  </button>
-                </div>
-              </mat-option>
-
-              <mat-option *ngIf="showCreateOption(inputCtrl.value)" [value]="inputCtrl.value" class="focus-create-option">
-                <div class="focus-option-row">
-                  <span class="focus-option-label">
-                    "{{ inputCtrl.value }}" {{ 'exampleDialog.addTag' | translate }}
-                  </span>
-                </div>
-              </mat-option>
-            </mat-autocomplete>
-          </mat-form-field>
-        </div>
+        <app-example-focus-selector
+          [focuses]="example.focusList"
+          [inputCtrl]="inputCtrl"
+          [filteredFocusList]="filteredFocusList"
+          [showCreateOption]="showCreateOption.bind(this)"
+          (focusRemoved)="remove($event)"
+          (focusDeleted)="deleteFocus($event.focus, $event.event)"
+          (focusSelected)="selected($event)"
+          (focusInputTokenEnd)="addFromInput($event)"
+        ></app-example-focus-selector>
 
         <div class="variable-toolbar">
           <button mat-stroked-button type="button" (click)="insertVariableAtCursor()">
@@ -342,86 +269,39 @@
                         cdkAutosizeMaxRows="10"></textarea>
             </mat-form-field>
 
-            <div class="panel-box image-upload image-upload-modern construction-card">
-              <div class="construction-card-header">
-                <div class="panel-title">{{ 'exampleDialog.taskImage' | translate }}</div>
-              </div>
-
-              <input #previewFileInput hidden type="file" accept="image/png,image/jpeg,image/webp" (change)="onImageSelected($event, 'preview')" />
-
-              <div class="panel-actions">
-                <button mat-stroked-button color="primary" type="button" (click)="previewFileInput.click()">
-                  <mat-icon>upload</mat-icon>
-                  {{ constructionImagePreviewUrl ? ('exampleDialog.replaceImage' | translate) : ('exampleDialog.selectImage' | translate) }}
-                </button>
-
-                <button *ngIf="constructionImagePreviewUrl" mat-stroked-button color="warn" type="button" (click)="removeSelectedImage('preview')">
-                  {{ selectedConstructionImageFile ? ('exampleDialog.discardSelection' | translate) : ('exampleDialog.deleteImage' | translate) }}
-                </button>
-              </div>
-
-              <div class="construction-stage-preview">
-                <img *ngIf="constructionImagePreviewUrl" [src]="constructionImagePreviewUrl" [alt]="'exampleDialog.taskImagePreviewAlt' | translate" class="image-preview construction-preview-image" [style.width.px]="example.imageWidth || 320" />
-                <div *ngIf="!constructionImagePreviewUrl" class="construction-empty-state">
-                  <mat-icon>image</mat-icon>
-                  <span>{{ 'exampleDialog.noTaskImage' | translate }}</span>
-                </div>
-              </div>
-
-              <div class="image-width-card">
-                <div class="image-width-head">
-                  <div>
-                    <div class="panel-title small-title">{{ 'exampleDialog.imageWidth' | translate }}</div>
-                  </div>
-                </div>
-
-                <mat-slider min="30" max="360" step="10" discrete>
-                  <input matSliderThumb [(ngModel)]="example.imageWidth" name="imageWidth" (valueChange)="markDirty()" />
-                </mat-slider>
-              </div>
-
-            </div>
+            <app-construction-image-card
+              kind="preview"
+              titleKey="exampleDialog.taskImage"
+              previewAltKey="exampleDialog.taskImagePreviewAlt"
+              emptyIcon="image"
+              emptyTextKey="exampleDialog.noTaskImage"
+              widthLabelKey="exampleDialog.imageWidth"
+              widthName="imageWidth"
+              [previewUrl]="constructionImagePreviewUrl"
+              [selectedFile]="selectedConstructionImageFile"
+              [width]="example.imageWidth || defaultImageWidth"
+              (imageSelected)="onImageSelected($event.event, $event.kind)"
+              (imageRemoved)="removeSelectedImage($event)"
+              (widthChange)="example.imageWidth = $event; markDirty()"
+            ></app-construction-image-card>
 
             <mat-divider></mat-divider>
 
-            <div class="panel-box image-upload image-upload-modern construction-card">
-              <div class="construction-card-header">
-                <div class="panel-title">{{ 'exampleDialog.solutionImage' | translate }}</div>
-              </div>
-
-              <input #solutionFileInput hidden type="file" accept="image/png,image/jpeg,image/webp" (change)="onImageSelected($event, 'solution')" />
-
-              <div class="panel-actions">
-                <button mat-stroked-button color="primary" type="button" (click)="solutionFileInput.click()">
-                  <mat-icon>upload</mat-icon>
-                  {{ constructionSolutionPreviewUrl ? ('exampleDialog.replaceImage' | translate) : ('exampleDialog.selectImage' | translate) }}
-                </button>
-
-                <button *ngIf="constructionSolutionPreviewUrl" mat-stroked-button color="warn" type="button" (click)="removeSelectedImage('solution')">
-                  {{ selectedConstructionSolutionFile ? ('exampleDialog.discardSelection' | translate) : ('exampleDialog.deleteImage' | translate) }}
-                </button>
-              </div>
-
-              <div class="construction-stage-preview">
-                <img *ngIf="constructionSolutionPreviewUrl" [src]="constructionSolutionPreviewUrl" [alt]="'exampleDialog.solutionImagePreviewAlt' | translate" class="image-preview construction-preview-image" [style.width.px]="example.solutionImageWidth || 320" />
-                <div *ngIf="!constructionSolutionPreviewUrl" class="construction-empty-state">
-                  <mat-icon>imagesmode</mat-icon>
-                  <span>{{ 'exampleDialog.noSolutionImage' | translate }}</span>
-                </div>
-              </div>
-
-              <div class="image-width-card">
-                <div class="image-width-head">
-                  <div>
-                    <div class="panel-title small-title">{{ 'exampleDialog.solutionImageWidth' | translate }}</div>
-                  </div>
-                </div>
-
-                <mat-slider min="30" max="360" step="10" discrete>
-                  <input matSliderThumb [(ngModel)]="example.solutionImageWidth" name="solutionImageWidth" (valueChange)="markDirty()" />
-                </mat-slider>
-              </div>
-            </div>
+            <app-construction-image-card
+              kind="solution"
+              titleKey="exampleDialog.solutionImage"
+              previewAltKey="exampleDialog.solutionImagePreviewAlt"
+              emptyIcon="imagesmode"
+              emptyTextKey="exampleDialog.noSolutionImage"
+              widthLabelKey="exampleDialog.solutionImageWidth"
+              widthName="solutionImageWidth"
+              [previewUrl]="constructionSolutionPreviewUrl"
+              [selectedFile]="selectedConstructionSolutionFile"
+              [width]="example.solutionImageWidth || defaultImageWidth"
+              (imageSelected)="onImageSelected($event.event, $event.kind)"
+              (imageRemoved)="removeSelectedImage($event)"
+              (widthChange)="example.solutionImageWidth = $event; markDirty()"
+            ></app-construction-image-card>
           </ng-container>
 
           <ng-container *ngIf="example.type === ExampleTypes.ASSIGN">
@@ -480,91 +360,12 @@
     </div>
 
     <div class="create-example-layout">
-      <div class="preview-panel">
-        <div>
-          <p style="white-space: pre-line;">{{ getResolvedTextWithDefaults(example.instruction) }}</p>
-        </div>
-        <p><strong>{{ 'school.question' | translate }}:</strong></p>
-        <div class="question-preview">
-          <p *ngIf="example.type !== ExampleTypes.GAP_FILL" style="white-space: pre-line;">{{ getQuestionWithGapLabels()}}</p>
-          <div *ngIf="example.type === ExampleTypes.GAP_FILL" class="question-preview-rich" [innerHTML]="getQuestionPreviewHtml()"></div>
-        </div>
-
-        @if(example.type === ExampleTypes.HALF_OPEN){
-          <div class="half-open-preview">
-            @for (ans of example.answers; track ans){
-              <p>{{ ans[0] }} = ___________________</p>
-            }
-          </div>
-        }
-
-        @if(example.type === ExampleTypes.CONSTRUCTION){
-          <div class="construction-preview">
-            <div>
-              <p><strong>{{ 'exampleDialog.taskImage' | translate }}</strong></p>
-              <img *ngIf="constructionImagePreviewUrl" [src]="constructionImagePreviewUrl" [alt]="'exampleDialog.taskImagePreviewAlt' | translate" class="image-preview" [style.width.px]="example.imageWidth || 320" />
-            </div>
-          </div>
-        }
-
-        @if(example.type === ExampleTypes.MULTIPLE_CHOICE){
-          <div class="multiple-choice-preview">
-            <table>
-              @for (option of example.options; track option){
-                <tr>
-                  <td>{{ option.text }}</td>
-                  <td class="small">
-                    <mat-pseudo-checkbox></mat-pseudo-checkbox>
-                  </td>
-                </tr>
-              }
-            </table>
-          </div>
-        }
-
-        @if(example.type === ExampleTypes.GAP_FILL){
-          @if(example.gapFillType === 'SELECT'){
-            <div class="gap-fill-preview">
-              @for (gap of example.gaps; track gap){
-                <table>
-                  <tr>
-                    <th>{{ getGapNumber($index) }}</th>
-                  </tr>
-
-                  @for(opt of gap.options; track opt){
-                    <tr>
-                      <td>{{ opt.text }}</td>
-                      <td class="small">
-                        <mat-pseudo-checkbox></mat-pseudo-checkbox>
-                      </td>
-                    </tr>
-                  }
-                </table>
-              }
-            </div>
-          }
-        }
-
-        @if(example.type === ExampleTypes.ASSIGN){
-          <div class="assign-preview">
-            <table class="leftSide">
-              @for(assign of example.assigns; track assign){
-                <tr>
-                  <td>{{ assign.left }}</td>
-                  <td class="fill"></td>
-                </tr>
-              }
-            </table>
-
-            <table class="rightSide">
-              <tr *ngFor="let right of example.assignRightItems; let i = index">
-                <td class="fill">{{ getLetter(i) }}</td>
-                <td>{{ right }}</td>
-              </tr>
-            </table>
-          </div>
-        }
-      </div>
+      <app-example-preview
+        [example]="example"
+        [constructionImagePreviewUrl]="constructionImagePreviewUrl"
+        [constructionSolutionPreviewUrl]="constructionSolutionPreviewUrl"
+        [showHeader]="false"
+      ></app-example-preview>
 
       <mat-dialog-actions>
         <button
