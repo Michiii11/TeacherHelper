@@ -199,6 +199,11 @@
   opacity: 0.58;
   cursor: not-allowed;
 }
+.picker-row.selected {
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  border-color: color-mix(in srgb, var(--primary) 38%, var(--border));
+}
+
 
 .picker-row-copy {
   min-width: 0;

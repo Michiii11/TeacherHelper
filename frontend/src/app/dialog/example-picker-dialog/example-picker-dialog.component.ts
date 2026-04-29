@@ -8,8 +8,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { ExampleDTO, ExampleTypeLabels, ExampleTypes } from '../../model/Example';
-import { MatFormField, MatLabel } from '@angular/material/input';
-import { MatOption, MatSelect } from '@angular/material/select';
 
 type ExplorerFolder = {
   id: string;
@@ -137,7 +135,7 @@ export class ExamplePickerDialogComponent implements OnInit {
 
     return [...(this.data.examples ?? [])]
       .filter(example => {
-        if (this.selectedFolderId !== null && (example.folder.id ?? null) !== this.selectedFolderId) {
+        if (this.selectedFolderId !== null && this.getExampleFolderId(example) !== this.selectedFolderId) {
           return false;
         }
 
@@ -196,6 +194,14 @@ export class ExamplePickerDialogComponent implements OnInit {
     }
   }
 
+  toggleExampleRow(exampleId: string): void {
+    if (this.isAlreadySelected(exampleId)) {
+      return;
+    }
+
+    this.toggleExample(exampleId, !this.isWorkingSelected(exampleId));
+  }
+
   toggleType(type: string): void {
     this.selectedTypes = this.selectedTypes.includes(type)
       ? this.selectedTypes.filter(t => t !== type)
@@ -232,6 +238,14 @@ export class ExamplePickerDialogComponent implements OnInit {
       : this.prettyEnumLabel(String(type));
   }
 
+  getExampleFolderPathLabel(example: ExampleDTO): string {
+    return this.getFolderPathLabel(this.getExampleFolderId(example));
+  }
+
+  private getExampleFolderId(example: ExampleDTO): string | null {
+    return example.folder?.id ?? null;
+  }
+
   getFolderPathLabel(folderId: string | null): string {
     const rootLabel = this.translate.instant('school.root');
 
@@ -262,8 +276,8 @@ export class ExamplePickerDialogComponent implements OnInit {
   private compareExamples(a: ExampleDTO, b: ExampleDTO): number {
     const titleA = this.getExampleTitle(a);
     const titleB = this.getExampleTitle(b);
-    const folderA = this.getFolderPathLabel(a.folder.id ?? null);
-    const folderB = this.getFolderPathLabel(b.folder.id ?? null);
+    const folderA = this.getExampleFolderPathLabel(a);
+    const folderB = this.getExampleFolderPathLabel(b);
     const typeA = this.getTypeLabel(a.type);
     const typeB = this.getTypeLabel(b.type);
 
@@ -330,7 +344,7 @@ export class ExamplePickerDialogComponent implements OnInit {
         String(example.id),
         this.getTypeLabel(example.type),
         focusLabels,
-        this.getFolderPathLabel(example.folder.id ?? null),
+        this.getExampleFolderPathLabel(example),
       ].join(' ')
     );
 
