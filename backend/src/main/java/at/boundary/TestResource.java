@@ -38,8 +38,6 @@ public class TestResource {
     @Path("{testId}")
     public Response getTest(@PathParam("testId") UUID testId,
                             @HeaderParam("Authorization") String auth) {
-        System.out.println(testId);
-        System.out.println(auth);
         Response authResponse = userRepository.generateResponseOfAuth(auth);
         if (authResponse != null) {
             return authResponse;

@@ -113,7 +113,7 @@ public class TestRepository {
         if (!schoolRepository.isUserPartOfCollection(school.getId(), userId)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        
+
         Folder folder = null;
         if (dto.folderId() != null) {
             folder = folderRepository.findById(dto.folderId());
