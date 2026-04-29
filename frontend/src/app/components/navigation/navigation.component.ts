@@ -219,6 +219,14 @@ export class NavigationComponent implements OnInit, OnDestroy {
     });
   }
 
+  handleNavbarAction(action: NavbarAction): void {
+    if (action.disabled) {
+      return;
+    }
+
+    action.action();
+  }
+
   private connectNotificationSocket(): void {
     const socketUrl = this.service.getNotificationSocketUrl();
 

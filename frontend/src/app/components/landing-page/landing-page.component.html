@@ -53,7 +53,7 @@
         </div>
 
         <div class="hero-points">
-          <div class="hero-point" *ngFor="let point of heroPoints">
+          <div class="hero-point" *ngFor="let point of heroPoints; trackBy: trackByValue">
             <mat-icon>check_circle</mat-icon>
             <span>{{ point | translate }}</span>
           </div>
@@ -84,7 +84,7 @@
     </section>
 
     <section class="trust-strip">
-      <div class="trust-item" *ngFor="let item of trustItems">
+      <div class="trust-item" *ngFor="let item of trustItems; trackBy: trackByTrustItem">
         <mat-icon>{{ item.icon }}</mat-icon>
         <span>{{ item.label | translate }}</span>
       </div>
@@ -98,7 +98,7 @@
       </div>
 
       <div class="feature-grid">
-        <article class="feature-card" *ngFor="let feature of features">
+        <article class="feature-card" *ngFor="let feature of features; trackBy: trackByFeature">
           <div class="feature-icon">
             <mat-icon>{{ feature.icon }}</mat-icon>
           </div>
@@ -117,7 +117,7 @@
       </div>
 
       <div class="plan-grid">
-        <article class="plan-card" *ngFor="let plan of plans" [class.highlight]="plan.highlight">
+        <article class="plan-card" *ngFor="let plan of plans; trackBy: trackByPlan" [class.highlight]="plan.highlight">
           <div class="plan-badge" *ngIf="plan.badge">{{ plan.badge | translate }}</div>
 
           <div class="plan-head">
@@ -131,7 +131,7 @@
           </div>
 
           <div class="plan-list">
-            <div class="plan-item" *ngFor="let item of plan.features">
+            <div class="plan-item" *ngFor="let item of plan.features; trackBy: trackByValue">
               <mat-icon>check</mat-icon>
               <span>{{ item | translate }}</span>
             </div>

@@ -22,11 +22,6 @@ type Plan = {
   cta: string;
 };
 
-type Stat = {
-  value: string;
-  label: string;
-};
-
 type TrustItem = {
   icon: string;
   label: string;
@@ -162,8 +157,24 @@ export class LandingPageComponent {
     return isDark ? '/darkmode.png' : '/lightmode.png';
   }
 
-  getImage() {
+  getImage(): string {
     const isDark = document.body.classList.contains('dark-mode');
     return isDark ? '/screen_dark.png' : '/screen_light.png';
+  }
+
+  trackByValue(_: number, value: string): string {
+    return value;
+  }
+
+  trackByTrustItem(_: number, item: TrustItem): string {
+    return item.label;
+  }
+
+  trackByFeature(_: number, feature: Feature): string {
+    return feature.title;
+  }
+
+  trackByPlan(_: number, plan: Plan): string {
+    return plan.name;
   }
 }

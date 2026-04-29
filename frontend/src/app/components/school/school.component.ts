@@ -1,7 +1,7 @@
 import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { catchError, forkJoin, of } from 'rxjs';
+import { catchError, forkJoin, of, Subject, takeUntil } from 'rxjs';
 
 import { HttpService } from '../../service/http.service';
 import { SchoolDTO } from '../../model/School';
@@ -86,6 +86,7 @@ export class SchoolComponent implements OnInit, OnDestroy {
   translate = inject(TranslateService);
   snack = inject(MatSnackBar);
   navbarActions = inject(NavbarActionsService);
+  private readonly destroy$ = new Subject<void>();
 
   school: SchoolDTO = {} as SchoolDTO;
   schoolId: string | null = null;
@@ -115,7 +116,7 @@ export class SchoolComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router
   ) {
-    this.route.paramMap.subscribe(params => {
+    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.schoolId = params.get('id');
 
       if (this.schoolId) {
@@ -126,12 +127,14 @@ export class SchoolComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.service.getUserId().subscribe(id => {
+    this.service.getUserId().pipe(takeUntil(this.destroy$)).subscribe(id => {
       this.currentUserId = id;
     });
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
     this.navbarActions.clearAll();
   }
 
@@ -578,7 +581,7 @@ export class SchoolComponent implements OnInit, OnDestroy {
   moveExampleToFolder(example: ExampleOverviewDTO, folderId: string | null): void {
     this.service.moveExampleToFolder(example.id, folderId)
       .pipe(catchError(() => of(null)))
-      .subscribe(result => {
+      .subscribe(() => {
         this.examples = this.examples.map(item =>
           item.id === example.id ? { ...item, folderId } : item
         );
@@ -588,7 +591,7 @@ export class SchoolComponent implements OnInit, OnDestroy {
   moveTestToFolder(test: TestOverviewDTO, folderId: string | null): void {
     this.service.moveTestToFolder(test.id, folderId)
       .pipe(catchError(() => of(null)))
-      .subscribe(result => {
+      .subscribe(() => {
         this.tests = this.tests.map(item =>
           item.id === test.id ? { ...item, folderId } : item
         );

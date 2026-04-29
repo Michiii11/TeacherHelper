@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatError, MatFormField, MatInput, MatLabel } from '@angular/material/input';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import * as CryptoJS from 'crypto-js';
 import { HttpService } from '../../service/http.service';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
@@ -358,6 +358,22 @@ export class LoginComponent implements OnInit {
         this.snackBar.open(message, '', { duration: 3500, panelClass: 'snack-error' });
       }
     });
+  }
+
+  toggleLoginPassword(): void {
+    this.hideLoginPassword = !this.hideLoginPassword;
+  }
+
+  toggleRegisterPassword(): void {
+    this.hideRegisterPassword = !this.hideRegisterPassword;
+  }
+
+  toggleResetPassword(): void {
+    this.hideResetPassword = !this.hideResetPassword;
+  }
+
+  toggleResetConfirmPassword(): void {
+    this.hideResetConfirmPassword = !this.hideResetConfirmPassword;
   }
 
   private handleVerifyEmail(token: string): void {

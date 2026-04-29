@@ -1046,5 +1046,10 @@
       "PASSWORD_RESET_TOKEN_EXPIRED": "Der Reset-Link ist abgelaufen.",
       "AUTH_SUCCESS": "Login erfolgreich"
     }
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "text": "Die angeforderte Seite existiert leider nicht oder wurde verschoben.",
+    "backHome": "Zur Startseite"
   }
 }

@@ -16,14 +16,15 @@ import { User, UserSettings } from '../../model/User';
 import { ConfirmDialogComponent } from '../../dialog/confirm-dialog/confirm-dialog.component';
 import { ThemeService } from '../../service/theme.service';
 import { LanguageService } from '../../service/language.service';
-import {NavbarActionsService} from '../navigation/navbar-actions.service'
-import {AddSchoolDialogComponent} from '../../dialog/add-school-dialog/add-school-dialog.component'
+import { NavbarActionsService } from '../navigation/navbar-actions.service';
+
+type ProfileLanguage = 'de' | 'en';
 
 type ProfileSettings = {
   darkMode: boolean;
-  language: 'de' | 'en';
+  language: ProfileLanguage;
   allowInvitations: boolean;
-}
+};
 
 @Component({
   selector: 'app-profile',
@@ -50,7 +51,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private readonly languageService = inject(LanguageService);
   private readonly translate = inject(TranslateService);
 
-  navbarActions = inject(NavbarActionsService)
+  private readonly navbarActions = inject(NavbarActionsService);
 
   user: User | null = null;
   loading = true;
@@ -63,7 +64,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
   savingEmail = false;
   savingPassword = false;
   savingAvatar = false;
-  savingSubscription = false;
   savingSettings = false;
   cancelingPendingEmail = false;
   deletingAccount = false;
@@ -103,27 +103,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     currentPassword: ['', [Validators.required]]
   });
 
-  plans = [
-    {
-      key: 'FREE' as const,
-      name: 'FREE',
-      subtitle: 'Für den Einstieg',
-      features: ['Profil und Grundfunktionen', 'Schulzugriff', 'Basisverwaltung']
-    },
-    {
-      key: 'PRO' as const,
-      name: 'PRO',
-      subtitle: 'Für regelmäßige Nutzung',
-      features: ['Alles aus FREE', 'Mehr Komfort', 'Besser für aktive Lehrkräfte']
-    },
-    {
-      key: 'ENTERPRISE' as const,
-      name: 'ENTERPRISE',
-      subtitle: 'Für größere Organisationen',
-      features: ['Alles aus PRO', 'Erweiterbare Prozesse', 'Ideal für umfangreiche Nutzung']
-    }
-  ];
-
   ngOnInit(): void {
     this.setupSettingsAutoSave();
     this.loadUser();
@@ -143,7 +122,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         labelKey: 'profile.title',
         route: '/profile'
       }
-    ])
+    ]);
 
     this.navbarActions.setActions([
       {
@@ -159,7 +138,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.loading = true;
 
     this.http.getUser()
-      .pipe(finalize(() => this.loading = false))
+      .pipe(takeUntil(this.destroy$), finalize(() => this.loading = false))
       .subscribe({
         next: (user: User) => {
           this.user = user;
@@ -241,7 +220,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       language: settings.language,
       allowInvitations: settings.allowInvitations
     })
-      .pipe(finalize(() => {
+      .pipe(takeUntil(this.destroy$), finalize(() => {
         this.savingSettings = false;
 
         if (this.queuedSettings) {
@@ -296,7 +275,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     this.savingUsername = true;
     this.http.updateUsername(username)
-      .pipe(finalize(() => this.savingUsername = false))
+      .pipe(takeUntil(this.destroy$), finalize(() => this.savingUsername = false))
       .subscribe({
         next: () => {
           if (this.user) {
@@ -325,7 +304,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     this.savingEmail = true;
     this.http.requestEmailChange(email)
-      .pipe(finalize(() => this.savingEmail = false))
+      .pipe(takeUntil(this.destroy$), finalize(() => this.savingEmail = false))
       .subscribe({
         next: (message: string) => {
           if (this.user) {
@@ -350,11 +329,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     this.cancelingPendingEmail = true;
     this.http.cancelPendingEmailChange()
-      .pipe(finalize(() => this.cancelingPendingEmail = false))
+      .pipe(takeUntil(this.destroy$), finalize(() => this.cancelingPendingEmail = false))
       .subscribe({
         next: (message) => {
           if (this.user) {
-            this.user.pendingEmail = null as any;
+            this.user.pendingEmail = null;
           }
           this.emailForm.patchValue({ email: this.user?.email ?? '' });
           this.snack.open(message, 'OK', { duration: 3200 });
@@ -394,7 +373,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     this.savingPassword = true;
     this.http.changePassword({ currentPassword, newPassword })
-      .pipe(finalize(() => this.savingPassword = false))
+      .pipe(takeUntil(this.destroy$), finalize(() => this.savingPassword = false))
       .subscribe({
         next: () => {
           this.passwordForm.reset();
@@ -430,7 +409,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       }
     });
 
-    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((confirmed: boolean) => {
       if (confirmed) {
         this.deleteAccount();
       }
@@ -448,7 +427,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     this.deletingAccount = true;
     this.http.deleteAccount(currentPassword)
-      .pipe(finalize(() => this.deletingAccount = false))
+      .pipe(takeUntil(this.destroy$), finalize(() => this.deletingAccount = false))
       .subscribe({
         next: (message: string) => {
           localStorage.removeItem('teacher_authToken');
@@ -503,7 +482,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     this.savingAvatar = true;
     this.http.uploadProfileImage(this.selectedAvatarFile)
-      .pipe(finalize(() => this.savingAvatar = false))
+      .pipe(takeUntil(this.destroy$), finalize(() => this.savingAvatar = false))
       .subscribe({
         next: (imageUrl: string) => {
           this.avatarPreviewUrl = null;
@@ -615,10 +594,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
       }
     });
 
-    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((confirmed: boolean) => {
       if (!confirmed) return;
 
       this.http.deleteProfileImage()
+        .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (msg: string) => {
             if (this.user) {
