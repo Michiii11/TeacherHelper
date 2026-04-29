@@ -485,8 +485,6 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
   getNotificationIcon(n: NotificationDTO): string {
     switch (n.type) {
-      case NotificationType.JOIN_REQUEST:
-        return 'person_add';
       case NotificationType.SCHOOL_INVITATION:
         return 'mail';
       case NotificationType.INVITATION_ACCEPTED:

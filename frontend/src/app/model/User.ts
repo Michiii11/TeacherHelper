@@ -1,43 +1,45 @@
-export interface UserSettings {
-  darkMode: boolean | null;
-  language: 'de' | 'en' | null;
-  allowInvitations?: boolean | null;
-}
-
 export interface User {
   id: string;
   username: string;
   email: string;
+  password: string;
+  subscriptionModel: 'FREE' | 'PRO' | 'SCHOOL' | 'ADMIN';
+  profileImageUrl: string | null;
   emailVerified: boolean;
-  pendingEmail?: string | null;
-  subscriptionModel: 'FREE' | 'PRO' | 'ENTERPRISE' | 'ADMIN';
-  profileImageUrl?: string | null;
-  createdAt?: string | null;
-  lastActivityAt?: string | null;
-  active?: boolean;
-  locked?: boolean;
+  pendingEmail: string | null;
+  darkMode: boolean;
+  language: string;
+  createdAt: string;
+  lastActivityAt: string;
+  locked: boolean;
   settings: UserSettings;
 }
 
 export interface UserDTO {
   id: string;
   username: string;
-  email: string;
-  password: string;
   profileImageUrl: string;
 }
 
 export interface LoginDTO {
   email: string;
   password: string;
+  language: string;
+  darkMode: boolean;
 }
 
 export interface AuthResult {
   success: boolean;
   code: string;
   message: string;
-  userId: string | null;
-  token: string | null;
+  userId: string;
+  token: string;
+}
+
+export interface UserSettings {
+  darkMode: boolean;
+  language: 'de' | 'en';
+  allowInvitations: boolean;
 }
 
 

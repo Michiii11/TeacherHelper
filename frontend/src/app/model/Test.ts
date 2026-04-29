@@ -1,6 +1,7 @@
 import {User} from './User'
 import {Example} from './Example'
 import {School} from './School'
+import {Folder} from './Folder'
 
 export type TestGradingMode = 'auto' | 'manual';
 
@@ -9,26 +10,28 @@ export interface GradingLevel {
   label: string;
   shortLabel: string;
   order: number;
-  percentageFrom?: number;
-  minimumPoints?: number;
+  percentageFrom: number;
+  minimumPoints: number;
 }
 
 export interface Test {
   id: string;
   admin: User;
+  school: School;
+  folder: Folder;
   name: string;
   note: string;
   duration: number;
   exampleList: TestExample[];
-  school: School;
-  defaultTaskSpacing?: number;
-  taskSpacingMap?: Record<number, number>;
-  gradingMode?: TestGradingMode;
-  gradingSystemName?: string;
-  gradingSchema?: GradingLevel[];
-  gradePercentages?: Record<number, number>;
-  manualGradeMinimums?: Record<number, number>;
-  folderId?: string | null;
+  defaultTaskSpacing: number;
+  gradingMode: TestGradingMode;
+  gradingSystemName: string;
+  taskSpacingMap: Record<number, number>;
+  gradingSchema: GradingLevel[];
+  gradePercentages: Record<number, number>;
+  manualGradeMinimums: Record<number, number>;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface TestExampleVariableValues {
@@ -37,18 +40,18 @@ export interface TestExampleVariableValues {
 
 export interface TestExample{
   id: string;
-  example: Example;
   test: Test;
+  example: Example;
   points: number;
   title: string;
-  variableValues?: TestExampleVariableValues;
+  variableValues: TestExampleVariableValues;
 }
 
 export interface TestExampleDTO{
   example: Example;
   points: number;
   title: string;
-  variableValues?: TestExampleVariableValues;
+  variableValues: TestExampleVariableValues;
 }
 
 export interface TestOverviewDTO {
@@ -60,8 +63,8 @@ export interface TestOverviewDTO {
   adminId: string;
   folderId: string | null;
 
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateTestDTO {
@@ -70,12 +73,12 @@ export interface CreateTestDTO {
   note: string;
   exampleList: TestExampleDTO[];
   duration: number;
-  defaultTaskSpacing?: number;
-  taskSpacingMap?: Record<string, number>;
-  gradingMode?: TestGradingMode;
-  gradingSystemName?: string;
-  gradingSchema?: GradingLevel[];
-  gradePercentages?: Record<number, number>;
-  manualGradeMinimums?: Record<number, number>;
-  folderId?: string | null;
+  defaultTaskSpacing: number;
+  taskSpacingMap: Record<string, number>;
+  gradingMode: TestGradingMode;
+  gradingSystemName: string;
+  gradingSchema: GradingLevel[];
+  gradePercentages: Record<number, number>;
+  manualGradeMinimums: Record<number, number>;
+  folderId: string | null;
 }

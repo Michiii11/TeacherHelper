@@ -1,12 +1,8 @@
 package at.enums;
 
 public enum NotificationType {
-    JOIN_REQUEST,
     SCHOOL_INVITATION,
-    JOIN_REQUEST_ACCEPTED,
-    JOIN_REQUEST_DECLINED,
     INVITATION_ACCEPTED,
     INVITATION_DECLINED,
-    SCHOOL_NEWS,
     SYSTEM_INFO
 }

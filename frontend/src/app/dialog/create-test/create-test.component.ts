@@ -112,7 +112,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     gradingSystemName: this.translate.instant('createTest.grading.presets.atName'),
     gradingSchema: [],
     gradePercentages: {},
-    manualGradeMinimums: {}
+    manualGradeMinimums: {},
+    folderId: null
   };
 
   hasUnsavedChanges = false;

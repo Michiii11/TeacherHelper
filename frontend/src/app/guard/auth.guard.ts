@@ -16,7 +16,6 @@ export class AuthGuard implements CanActivate {
       return of(false);
     }
 
-    // Token beim Backend validieren
     return this.httpService.validateToken().pipe(
       map(isValid => {
         if (isValid) {

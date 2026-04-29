@@ -92,7 +92,7 @@ public class ExampleRepository {
                 new ExampleDTO(
                         example.getId(),
                         example.getAdmin().toUserDTO(),
-                        example.getFolder().toDto(),
+                        example.getFolder() != null ? example.getFolder().toDto() : null,
                         example.getType(),
                         example.getInstruction(),
                         example.getQuestion(),
