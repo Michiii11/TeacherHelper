@@ -379,6 +379,10 @@ button{
 // endregion
 
 // region Dialog form
+.form-actions {
+  display: flex;
+  align-items: center;
+}
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
@@ -397,7 +401,6 @@ button{
   width: 100%;
 }
 // endregion
-
 
 
 

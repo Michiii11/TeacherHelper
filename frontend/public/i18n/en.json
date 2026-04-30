@@ -50,7 +50,10 @@
     "saveImage": "Save profile picture",
     "deleteImage": "Delete profile picture",
     "plan": "Plan",
-    "pendingEmailConfirmation": "Pending email confirmation:"
+    "pendingEmailConfirmation": "Pending email confirmation:",
+    "publicInfoUsername": "Username is publicly visible",
+    "publicInfoAvatar": "Profile picture is publicly visible",
+    "allowInvitationsDesc": "Other users can invite you to collections"
   },
   "languages": {
     "de": "Deutsch",

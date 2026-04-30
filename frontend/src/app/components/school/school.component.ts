@@ -1,7 +1,7 @@
 import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import {catchError, finalize, forkJoin, of, Subject, Subscription, takeUntil} from 'rxjs';
+import {catchError, finalize, firstValueFrom, forkJoin, of, Subject, Subscription, takeUntil} from 'rxjs';
 
 import { HttpService } from '../../service/http.service';
 import { SchoolDTO } from '../../model/School';
@@ -30,6 +30,7 @@ import {
 } from '../../dialog/folder-picker-dialog/folder-picker-dialog.component';
 import { FolderNameDialogComponent } from '../../dialog/folder-name-dialog/folder-name-dialog.component';
 import { NavbarActionsService } from '../navigation/navbar-actions.service';
+import {NgIf} from '@angular/common'
 
 type ExplorerItemType = 'examples' | 'tests';
 type SortOption = 'nameAsc' | 'nameDesc' | 'createdDesc' | 'createdAsc' | 'authorAsc';
@@ -77,7 +78,8 @@ interface FilterChip {
     MatSelect,
     MatOption,
     MatFormFieldModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    NgIf
   ],
   templateUrl: './school.component.html',
   styleUrl: './school.component.scss'
@@ -97,6 +99,8 @@ export class SchoolComponent implements OnInit, OnDestroy {
   examples: ExampleOverviewDTO[] = [];
   tests: TestOverviewDTO[] = [];
   folders: ExplorerFolder[] = [];
+
+  logoUrl: string | null = null;
 
   selectedFolderId: string | null = null;
   search = '';
@@ -142,6 +146,15 @@ export class SchoolComponent implements OnInit, OnDestroy {
       this.currentUserId = id;
     });
 
+    this.service.getCollectionLogo(this.schoolId).subscribe({
+      next: (blob) => {
+        this.logoUrl = URL.createObjectURL(blob);
+      },
+      error: () => {
+        this.logoUrl = null;
+      }
+    });
+
     this.connectCollectionSocket()
   }
 
@@ -168,6 +181,15 @@ export class SchoolComponent implements OnInit, OnDestroy {
     this.examples = [];
     this.tests = [];
     this.folders = [];
+
+    this.service.getCollectionLogo(this.schoolId).subscribe({
+      next: (blob) => {
+        this.logoUrl = URL.createObjectURL(blob);
+      },
+      error: () => {
+        this.logoUrl = null;
+      }
+    });
 
     forkJoin({
       school: this.service.getCollectionById(this.schoolId).pipe(catchError(() => of(null))),
@@ -656,43 +678,27 @@ export class SchoolComponent implements OnInit, OnDestroy {
     });
   }
 
-  deleteFolder(folder: ExplorerFolder, event?: Event): void {
+  async deleteFolder(folder: ExplorerFolder, event?: Event): Promise<void> {
     event?.stopPropagation();
     if (this.isDeletingFolder(folder.id)) return;
 
-    const hasChildren = this.folders.some(item => item.parentId === folder.id);
-    const hasItems = [...this.examples, ...this.tests].some(item => (item.folderId ?? null) === folder.id);
-    if (hasChildren || hasItems) {
-      this.snack.open(this.t('school.folderNotEmpty'), this.t('common.close'), { duration: 3500 });
-      return;
-    }
-
+    const impact = await this.buildFolderDeleteImpact(folder);
     const ref = this.dialog.open(ConfirmDialogComponent, {
-      width: '420px',
+      width: '650px',
+      maxWidth: '92vw',
       data: {
-        title: this.t('school.deleteFolderTitle'),
-        message: this.t('school.deleteFolderMessage', { name: folder.name }),
+        title: `Ordner „${folder.name}“ löschen?`,
+        message: this.buildFolderDeleteMessage(folder, impact),
         confirmText: this.t('common.delete'),
-        cancelText: this.t('common.cancel')
+        cancelText: this.t('common.cancel'),
+        requireConfirmation: true,
+        confirmationText: 'Ich bestätige, dass der Ordner inklusive Inhalt gelöscht werden soll.'
       }
     });
 
     ref.afterClosed().subscribe(confirmed => {
       if (!confirmed) return;
-
-      this.deletingFolderIds.add(folder.id);
-      this.service.deleteFolder(folder.id)
-        .pipe(finalize(() => this.deletingFolderIds.delete(folder.id)))
-        .subscribe({
-          next: () => {
-            this.folders = this.folders.filter(item => item.id !== folder.id);
-            if (this.selectedFolderId === folder.id) {
-              this.selectedFolderId = folder.parentId ?? null;
-            }
-            this.setNavbarActions();
-          },
-          error: err => this.showErrorSnack(err)
-        });
+      this.deleteFolderWithContent(folder, impact);
     });
   }
 
@@ -1141,14 +1147,16 @@ export class SchoolComponent implements OnInit, OnDestroy {
     if (this.deletingTestIds.has(test.id)) return;
 
     const title = test.name || String(test.id) || this.t('school.test');
-
     const ref = this.dialog.open(ConfirmDialogComponent, {
-      width: '420px',
+      width: 'min(92vw, 520px)',
+      maxWidth: '92vw',
       data: {
-        title: this.t('school.deleteTestTitle'),
-        message: this.t('school.deleteTestMessage', { name: title }),
+        title: `Test „${title}“ löschen?`,
+        message: `Willst du den Test „${title}“ wirklich löschen?`,
         confirmText: this.t('common.delete'),
-        cancelText: this.t('common.cancel')
+        cancelText: this.t('common.cancel'),
+        requireConfirmation: true,
+        confirmationText: 'Ich bestätige, dass dieser Test gelöscht werden soll.'
       }
     });
 
@@ -1159,26 +1167,27 @@ export class SchoolComponent implements OnInit, OnDestroy {
       this.service.deleteTest(test.id)
         .pipe(finalize(() => this.deletingTestIds.delete(test.id)))
         .subscribe({
-          next: () => {
-            this.loadTests();
-          },
+          next: () => this.loadTests(),
           error: err => this.showErrorSnack(err)
         });
     });
   }
 
-  deleteExample(example: ExampleOverviewDTO): void {
+  async deleteExample(example: ExampleOverviewDTO): Promise<void> {
     if (this.deletingExampleIds.has(String(example.id))) return;
 
-    const title = example.question || String(example.id) || this.t('school.example');
-
+    const title = this.getExampleDeleteTitle(example);
+    const usedInTests = await this.findTestsUsingExample(example.id);
     const ref = this.dialog.open(ConfirmDialogComponent, {
-      width: '420px',
+      width: 'min(92vw, 560px)',
+      maxWidth: '92vw',
       data: {
-        title: this.t('school.deleteExampleTitle'),
-        message: this.t('school.deleteExampleMessage', { name: title }),
+        title: `Beispiel „${title}“ löschen?`,
+        message: this.buildExampleDeleteMessage(title, usedInTests),
         confirmText: this.t('common.delete'),
-        cancelText: this.t('common.cancel')
+        cancelText: this.t('common.cancel'),
+        requireConfirmation: true,
+        confirmationText: 'Ich bestätige, dass dieses Beispiel gelöscht werden soll.'
       }
     });
 
@@ -1191,10 +1200,195 @@ export class SchoolComponent implements OnInit, OnDestroy {
         .subscribe({
           next: () => {
             this.loadExamples();
+            this.loadTests();
           },
           error: err => this.showErrorSnack(err)
         });
     });
+  }
+
+  private async buildFolderDeleteImpact(folder: ExplorerFolder): Promise<{
+    folders: ExplorerFolder[];
+    examples: ExampleOverviewDTO[];
+    tests: TestOverviewDTO[];
+    externalTestsUsingContainedExamples: TestOverviewDTO[];
+  }> {
+    const folderIds = this.getFolderTreeIds(folder.id);
+    const folderIdSet = new Set(folderIds);
+    const folders = this.folders.filter(item => folderIdSet.has(item.id));
+    const examples = this.examples.filter(item => folderIdSet.has(item.folderId ?? ''));
+    const tests = this.tests.filter(item => folderIdSet.has(item.folderId ?? ''));
+    const containedTestIds = new Set(tests.map(test => String(test.id)));
+    const usedInTests = await this.findTestsUsingAnyExample(examples.map(example => example.id));
+    const externalTestsUsingContainedExamples = usedInTests.filter(test => !containedTestIds.has(String(test.id)));
+
+    return { folders, examples, tests, externalTestsUsingContainedExamples };
+  }
+
+  private buildFolderDeleteMessage(folder: ExplorerFolder, impact: {
+    folders: ExplorerFolder[];
+    examples: ExampleOverviewDTO[];
+    tests: TestOverviewDTO[];
+    externalTestsUsingContainedExamples: TestOverviewDTO[];
+  }): string {
+    const childFolderCount = Math.max(impact.folders.length - 1, 0);
+    const parts: string[] = [
+      `Willst du den Ordner „${folder.name}“ wirklich löschen?`,
+      '',
+      `Dabei werden ${childFolderCount} Unterordner, ${impact.examples.length} Beispiele und ${impact.tests.length} Tests gelöscht.`
+    ];
+
+    const folderNames = impact.folders
+      .filter(item => item.id !== folder.id)
+      .map(item => `• Ordner: ${this.getFolderPathLabel(item.id) || item.name}`);
+    const exampleNames = impact.examples.map(item => `• Beispiel: ${this.getExampleDeleteTitle(item)}`);
+    const testNames = impact.tests.map(item => `• Test: ${item.name || item.id}`);
+    const preview = [...folderNames, ...exampleNames, ...testNames];
+
+    if (preview.length) {
+      parts.push('', 'Inhalt:', ...preview.slice(0, 12));
+      if (preview.length > 12) parts.push(`• … und ${preview.length - 12} weitere Einträge`);
+    }
+
+    if (impact.externalTestsUsingContainedExamples.length) {
+      parts.push('', 'Achtung: Enthaltene Beispiele werden zusätzlich in diesen Tests verwendet:',
+        ...impact.externalTestsUsingContainedExamples.slice(0, 8).map(test => `• ${test.name || test.id}`));
+      if (impact.externalTestsUsingContainedExamples.length > 8) {
+        parts.push(`• … und ${impact.externalTestsUsingContainedExamples.length - 8} weitere Tests`);
+      }
+    }
+
+    return parts.join('\n');
+  }
+
+  private deleteFolderWithContent(folder: ExplorerFolder, impact: {
+    folders: ExplorerFolder[];
+    examples: ExampleOverviewDTO[];
+    tests: TestOverviewDTO[];
+  }): void {
+    const folderIds = impact.folders.map(item => item.id);
+    const folderIdSet = new Set(folderIds);
+
+    folderIds.forEach(id => this.deletingFolderIds.add(id));
+    impact.examples.forEach(example => this.deletingExampleIds.add(String(example.id)));
+    impact.tests.forEach(test => this.deletingTestIds.add(test.id));
+
+    const deleteTests$ = impact.tests.map(test => this.service.deleteTest(test.id).pipe(catchError(error => of({ error }))));
+    const deleteExamples$ = impact.examples.map(example => this.service.deleteExample(example.id).pipe(catchError(error => of({ error }))));
+    const deleteFolders$ = this.sortFoldersDeepestFirst(impact.folders).map(item => this.service.deleteFolder(item.id).pipe(catchError(error => of({ error }))));
+
+    const request$ = forkJoin([
+      ...(deleteTests$.length ? deleteTests$ : [of(null)]),
+      ...(deleteExamples$.length ? deleteExamples$ : [of(null)]),
+      ...(deleteFolders$.length ? deleteFolders$ : [of(null)])
+    ]);
+
+    request$
+      .pipe(finalize(() => {
+        folderIds.forEach(id => this.deletingFolderIds.delete(id));
+        impact.examples.forEach(example => this.deletingExampleIds.delete(String(example.id)));
+        impact.tests.forEach(test => this.deletingTestIds.delete(test.id));
+      }))
+      .subscribe({
+        next: results => {
+          console.log(results)
+          const failed = results.some(result => result && typeof result === 'object' && 'error' in result);
+          if (failed) {
+            this.snack.open('Ein Teil konnte nicht gelöscht werden. Bitte neu laden und erneut versuchen.', this.t('common.close'), { duration: 5000 });
+          }
+
+          this.folders = this.folders.filter(item => !folderIdSet.has(item.id));
+          this.examples = this.examples.filter(item => !folderIdSet.has(item.folderId ?? ''));
+          this.tests = this.tests.filter(item => !folderIdSet.has(item.folderId ?? ''));
+
+          if (this.selectedFolderId && folderIdSet.has(this.selectedFolderId)) {
+            this.selectedFolderId = folder.parentId ?? null;
+          }
+
+          this.setNavbarActions();
+          this.reloadAll();
+        },
+        error: err => this.showErrorSnack(err)
+      });
+  }
+
+  private getFolderTreeIds(rootFolderId: string): string[] {
+    const result = new Set<string>([rootFolderId]);
+    let changed = true;
+
+    while (changed) {
+      changed = false;
+      for (const folder of this.folders) {
+        if (folder.parentId && result.has(folder.parentId) && !result.has(folder.id)) {
+          result.add(folder.id);
+          changed = true;
+        }
+      }
+    }
+
+    return [...result];
+  }
+
+  private sortFoldersDeepestFirst(folders: ExplorerFolder[]): ExplorerFolder[] {
+    return [...folders].sort((a, b) => this.getFolderDepth(b.id) - this.getFolderDepth(a.id));
+  }
+
+  private getFolderDepth(folderId: string): number {
+    let depth = 0;
+    let current = this.folders.find(folder => folder.id === folderId) ?? null;
+
+    while (current?.parentId) {
+      depth++;
+      current = this.folders.find(folder => folder.id === current?.parentId) ?? null;
+    }
+
+    return depth;
+  }
+
+  private getExampleDeleteTitle(example: ExampleOverviewDTO): string {
+    return (example.instruction || example.question || String(example.id) || this.t('school.example')).trim();
+  }
+
+  private buildExampleDeleteMessage(title: string, usedInTests: TestOverviewDTO[]): string {
+    const parts = [`Willst du das Beispiel „${title}“ wirklich löschen?`];
+
+    if (usedInTests.length) {
+      parts.push('', 'Dieses Beispiel ist in folgenden Tests enthalten:', ...usedInTests.slice(0, 10).map(test => `• ${test.name || test.id}`));
+      if (usedInTests.length > 10) parts.push(`• … und ${usedInTests.length - 10} weitere Tests`);
+    }
+
+    return parts.join('\n');
+  }
+
+  private async findTestsUsingAnyExample(exampleIds: Array<string | number>): Promise<TestOverviewDTO[]> {
+    const wantedIds = new Set(exampleIds.map(id => String(id)));
+    if (!wantedIds.size) return [];
+
+    const hydratedTests = await Promise.all(this.tests.map(test => this.getHydratedTestForDeleteCheck(test)));
+    return this.tests.filter((test, index) => {
+      const entries = this.extractExampleEntriesFromTest(hydratedTests[index]);
+      return entries.some(entry => wantedIds.has(String(entry?.example?.id ?? entry?.id ?? entry?.exampleId ?? entry)));
+    });
+  }
+
+  private async findTestsUsingExample(exampleId: string | number): Promise<TestOverviewDTO[]> {
+    return this.findTestsUsingAnyExample([exampleId]);
+  }
+
+  private async getHydratedTestForDeleteCheck(test: TestOverviewDTO): Promise<any> {
+    try {
+      return await firstValueFrom(this.service.getTest(test.id).pipe(catchError(() => of(test))));
+    } catch {
+      return test;
+    }
+  }
+
+  private extractExampleEntriesFromTest(test: any): any[] {
+    if (!test) return [];
+    if (Array.isArray(test.exampleList)) return test.exampleList;
+    if (Array.isArray(test.examples)) return test.examples;
+    if (Array.isArray(test.items)) return test.items;
+    return [];
   }
 
   private showErrorSnack(err: any): void {

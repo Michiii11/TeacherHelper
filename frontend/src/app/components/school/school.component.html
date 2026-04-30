@@ -212,8 +212,15 @@
           <div class="explorer-main">
             <div class="content-header">
               <div class="content-header-text">
-                <div class="content-header-kicker">{{ 'school.folders' | translate }}</div>
-                <h2 class="content-title">{{ headerTitle }}</h2>
+                <div class="logo-name">
+                  <img
+                    *ngIf="logoUrl"
+                    [src]="logoUrl"
+                    alt="{{ school.name }} Logo"
+                    class="school-avatar"
+                  />
+                  <h2 class="content-title">{{ school.name }}</h2>
+                </div>
                 <p class="content-subtitle">
                   @if (headerSubtitle) {
                     <span>{{ headerSubtitle }}</span>

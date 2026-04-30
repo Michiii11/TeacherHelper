@@ -196,7 +196,6 @@
 .control input:focus,
 .control select:focus {
   border-color: color-mix(in srgb, var(--primary) 28%, transparent);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 10%, transparent);
 }
 
 .user-list,
@@ -219,7 +218,6 @@
   text-align: left;
   color: inherit;
   cursor: pointer;
-  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
 }
 
 .user-card:hover,

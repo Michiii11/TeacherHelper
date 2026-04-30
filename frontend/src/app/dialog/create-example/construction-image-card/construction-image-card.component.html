@@ -8,7 +8,7 @@
     hidden
     type="file"
     accept="image/png,image/jpeg,image/webp"
-    (change)="imageSelected.emit({ event: $event, kind })"
+    (change)="onFileSelected($event)"
   />
 
   <div class="panel-actions">

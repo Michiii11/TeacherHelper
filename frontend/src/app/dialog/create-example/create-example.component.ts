@@ -91,6 +91,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   hasUnsavedChanges = false;
   isEditMode = false;
   isSaving = false;
+  isExampleLoading = true;
 
   selectedConstructionImageFile: File | null = null;
   selectedConstructionSolutionFile: File | null = null;
@@ -137,7 +138,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   constructor(
     private dialogRef: MatDialogRef<CreateExampleComponent>,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    protected snackBar: MatSnackBar
   ) {
     this.dialogRef.disableClose = true;
 
@@ -208,9 +209,14 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.isExampleLoading = true;
+
     this.http.getAllFocus(this.data.schoolId)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(focuses => this.focusSubject.next(focuses));
+      .subscribe({
+        next: focuses => this.focusSubject.next(focuses),
+        error: () => this.focusSubject.next([])
+      });
 
     if (this.data.exampleId) {
       this.http.getExample(this.data.exampleId)
@@ -242,12 +248,18 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
             this.normalizeLoadedGapState();
             this.syncVariablesFromContent();
             this.emitSelectedFocus();
+            this.isExampleLoading = false;
+          },
+          error: () => {
+            this.isExampleLoading = false;
+            this.openTranslatedSnack('common.error');
           }
         });
     } else {
       this.normalizeLoadedGapState();
       this.syncVariablesFromContent();
       this.emitSelectedFocus();
+      this.isExampleLoading = false;
     }
   }
 

@@ -443,7 +443,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     }
 
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '460px',
+      width: '600px',
       maxWidth: 'calc(100vw - 24px)',
       disableClose: true,
       data: {

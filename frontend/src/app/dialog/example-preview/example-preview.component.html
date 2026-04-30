@@ -1,4 +1,12 @@
-@if(example){
+@if (isLoading) {
+  <main class="create-example-shell loading-dashboard" aria-label="Example Loading">
+    <section class="school-loading-card">
+      <mat-icon>post_add</mat-icon>
+      <h2>{{ 'common.loading' | translate }}</h2>
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    </section>
+  </main>
+} @else if (example) {
   <div class="preview-dialog">
     @if(showHeader){
       <div class="preview-header">
@@ -30,12 +38,13 @@
           <div>
             <p><strong>{{ 'exampleDialog.taskImage' | translate }}</strong></p>
 
-            <img
-              *ngIf="getPreviewImageUrl()"
-              [src]="getPreviewImageUrl()"
-              [alt]="'exampleDialog.taskImagePreviewAlt' | translate"
-              class="image-preview"
-              [style.width.px]="getImageWidth(example)" />
+            <div *ngIf="getPreviewImageUrl()" class="image-preview-frame">
+              <img
+                [src]="getPreviewImageUrl()"
+                [alt]="'exampleDialog.taskImagePreviewAlt' | translate"
+                class="image-preview"
+                [style.width.px]="getImageWidth(example)" />
+            </div>
 
             <p *ngIf="!getPreviewImageUrl()">
               {{ 'exampleDialog.noTaskImage' | translate }}
@@ -49,9 +58,7 @@
           <table>
             @for (option of example.options; track option){
               <tr>
-                <td>
-                  {{ option.text }}
-                </td>
+                <td>{{ option.text }}</td>
                 <td class="small">
                   <mat-pseudo-checkbox></mat-pseudo-checkbox>
                 </td>

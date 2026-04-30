@@ -30,6 +30,34 @@
   gap: 1rem;
 }
 
+.logo-name{
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.school-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--primary-deep);
+  background: linear-gradient(135deg, var(--primary-surface), var(--primary-surface-2));
+  box-shadow: inset 0 1px 0 var(--border);
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    object-position: center;
+  }
+}
+
 .panel {
   background: var(--bg-soft);
   border: 1px solid var(--theme-border, var(--border));

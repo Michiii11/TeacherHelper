@@ -61,7 +61,7 @@ export class HttpService {
       headers: { Authorization: this.authToken() }});
   }
 
-  getCollectionLogo(collectionId: string) {
+    getCollectionLogo(collectionId: string | null) {
     return this.http.get(`${Config.API_URL}/school/${collectionId}/logo`, {
       headers: { Authorization: this.authToken() },
       responseType: 'blob'

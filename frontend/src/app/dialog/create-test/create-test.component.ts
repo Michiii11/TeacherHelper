@@ -94,6 +94,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   isExportingPdf = false;
   isExportingWord = false;
   isSaving = false;
+  isLoading = true;
 
   previewHtml: SafeHtml = '';
   labels: TestPrintLabels = this.buildPrintLabels();
@@ -222,8 +223,11 @@ export class CreateTestComponent implements OnInit, OnDestroy {
             this.initializeTaskSpacing();
             this.refreshPreviewHtml();
             this.hasUnsavedChanges = false;
+            this.isLoading = false;
           },
         });
+    } else {
+      this.isLoading = false;
     }
 
     this.service.getFullExamples(this.data.schoolId)

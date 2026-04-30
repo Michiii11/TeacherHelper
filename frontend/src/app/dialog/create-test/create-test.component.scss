@@ -995,3 +995,30 @@
     grid-template-columns: 1fr;
   }
 }
+
+.loading-dashboard {
+  min-height: calc(100vh - 96px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.school-loading-card {
+  width: min(420px, 100%);
+  padding: 2rem;
+  border-radius: 24px;
+  background: var(--bg-soft);
+  border: 1px solid color-mix(in srgb, var(--border-strong) 16%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.school-loading-card mat-icon {
+  font-size: 52px;
+  width: 52px;
+  height: 52px;
+  color: var(--primary);
+}

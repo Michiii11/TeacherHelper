@@ -17,6 +17,8 @@ export type ConstructionImageKind = 'preview' | 'solution';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConstructionImageCardComponent {
+  private static readonly MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024;
+
   @Input({ required: true }) kind!: ConstructionImageKind;
   @Input({ required: true }) titleKey!: string;
   @Input({ required: true }) previewAltKey!: string;
@@ -31,6 +33,24 @@ export class ConstructionImageCardComponent {
   @Output() imageSelected = new EventEmitter<{ event: Event; kind: ConstructionImageKind }>();
   @Output() imageRemoved = new EventEmitter<ConstructionImageKind>();
   @Output() widthChange = new EventEmitter<number>();
+  @Output() fileTooLarge = new EventEmitter<{ kind: ConstructionImageKind; maxSizeMb: number }>();
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (file.size > ConstructionImageCardComponent.MAX_FILE_SIZE_BYTES) {
+      input.value = '';
+      this.fileTooLarge.emit({ kind: this.kind, maxSizeMb: 2 });
+      return;
+    }
+
+    this.imageSelected.emit({ event, kind: this.kind });
+  }
 
   onWidthChange(value: number): void {
     this.width = value;

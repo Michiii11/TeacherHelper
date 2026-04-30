@@ -225,16 +225,24 @@ public class ExampleRepository {
                     .build();
         }
 
+        List<TestExample> testExamples = em.createQuery(
+                "SELECT te FROM TestExample te WHERE te.example.id = :exampleId",
+                TestExample.class
+        ).setParameter("exampleId", exampleId).getResultList();
+
+        testExamples.forEach(te -> {
+            em.remove(te);
+        });
+
         List<Test> tests = em.createQuery(
                 "SELECT t FROM Test t JOIN t.exampleList e WHERE e.example.id = :exampleId",
                 Test.class
         ).setParameter("exampleId", exampleId).getResultList();
 
-        if (!tests.isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Example is part of a Test and cannot be deleted.")
-                    .build();
-        }
+        tests.forEach(t -> {
+            t.getExampleList().removeIf(e -> e.getExample().getId().equals(exampleId));
+            em.merge(t);
+        });
 
         if (example.getImageUrl() != null) {
             mediaStorageService.delete(example.getImageUrl());

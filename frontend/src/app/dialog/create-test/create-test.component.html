@@ -1,118 +1,128 @@
-<main class="create-test-shell">
-  <div class="editor-pane">
-    <form class="example-form">
-      <div class="row">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ 'createTest.titleLabel' | translate }}</mat-label>
-          <textarea
-            matInput
-            [(ngModel)]="test.name"
-            name="testName"
-            (input)="markDirty()"
-            [placeholder]="'createTest.titlePlaceholder' | translate"
-            cdkTextareaAutosize
-            cdkAutosizeMinRows="2"
-            cdkAutosizeMaxRows="8"
-          ></textarea>
-        </mat-form-field>
-      </div>
-
-      <div class="row meta-row">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ 'createTest.descriptionLabel' | translate }}</mat-label>
-          <textarea
-            matInput
-            [(ngModel)]="test.note"
-            name="testNote"
-            (input)="markDirty()"
-            [placeholder]="'createTest.descriptionPlaceholder' | translate"
-            cdkTextareaAutosize
-            cdkAutosizeMinRows="4"
-            cdkAutosizeMaxRows="8"
-          ></textarea>
-        </mat-form-field>
-      </div>
-
-      <div class="selection-toolbar settings-card">
-        <div class="selection-toolbar-copy">
-          <h3>{{ 'school.examples' | translate }}</h3>
+@if (isLoading) {
+  <main class="create-test-shell loading-dashboard">
+    <section class="school-loading-card">
+      <mat-icon>assignment</mat-icon>
+      <h2>{{ 'common.loading' | translate }}</h2>
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    </section>
+  </main>
+} @else {
+  <main class="create-test-shell">
+    <div class="editor-pane">
+      <form class="example-form">
+        <div class="row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'createTest.titleLabel' | translate }}</mat-label>
+            <textarea
+              matInput
+              [(ngModel)]="test.name"
+              name="testName"
+              (input)="markDirty()"
+              [placeholder]="'createTest.titlePlaceholder' | translate"
+              cdkTextareaAutosize
+              cdkAutosizeMinRows="2"
+              cdkAutosizeMaxRows="8"
+            ></textarea>
+          </mat-form-field>
         </div>
 
-        <div class="selection-toolbar-actions">
-          <div class="selection-count-badge">
-            {{ selectedExamples.length }} {{ 'createTest.selectedCount' | translate }}
+        <div class="row meta-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'createTest.descriptionLabel' | translate }}</mat-label>
+            <textarea
+              matInput
+              [(ngModel)]="test.note"
+              name="testNote"
+              (input)="markDirty()"
+              [placeholder]="'createTest.descriptionPlaceholder' | translate"
+              cdkTextareaAutosize
+              cdkAutosizeMinRows="4"
+              cdkAutosizeMaxRows="8"
+            ></textarea>
+          </mat-form-field>
+        </div>
+
+        <div class="selection-toolbar settings-card">
+          <div class="selection-toolbar-copy">
+            <h3>{{ 'school.examples' | translate }}</h3>
           </div>
 
-          <button mat-flat-button type="button" (click)="openAddExampleDialog()">
-            <mat-icon>playlist_add</mat-icon>
-            {{ 'createTest.addExamples' | translate }}
-          </button>
+          <div class="selection-toolbar-actions">
+            <div class="selection-count-badge">
+              {{ selectedExamples.length }} {{ 'createTest.selectedCount' | translate }}
+            </div>
+
+            <button mat-flat-button type="button" (click)="openAddExampleDialog()">
+              <mat-icon>playlist_add</mat-icon>
+              {{ 'createTest.addExamples' | translate }}
+            </button>
+          </div>
         </div>
-      </div>
 
-      @if (selectedExamples.length > 0) {
-        <app-test-selected-examples
-          [selectedExamples]="selectedExamples"
-          [getResolvedExampleHeading]="getResolvedExampleHeadingFn"
-          [getExampleMeta]="getExampleMetaFn"
-          [getTaskSpacing]="getTaskSpacingFn"
-          [hasVariables]="hasVariablesFn"
-          [getExampleVariables]="getExampleVariablesFn"
-          [getVariableValue]="getVariableValueFn"
-          [getResolvedEntryTitle]="getResolvedEntryTitleFn"
-          (moveExample)="moveSelectedExample($event.index, $event.direction)"
-          (removeExample)="removeSelectedExample($event)"
-          (pointsInput)="onPointsInput($event.entry, $event.value)"
-          (pointsBlur)="onPointsBlur($event)"
-          (spacingChange)="onTaskSpacingChange($event.exampleId, $event.value)"
-          (variableValueChange)="onVariableValueChange($event.entry, $event.key, $event.value)"
-          (dirty)="markDirty()"
-        ></app-test-selected-examples>
+        @if (selectedExamples.length > 0) {
+          <app-test-selected-examples
+            [selectedExamples]="selectedExamples"
+            [getResolvedExampleHeading]="getResolvedExampleHeadingFn"
+            [getExampleMeta]="getExampleMetaFn"
+            [getTaskSpacing]="getTaskSpacingFn"
+            [hasVariables]="hasVariablesFn"
+            [getExampleVariables]="getExampleVariablesFn"
+            [getVariableValue]="getVariableValueFn"
+            [getResolvedEntryTitle]="getResolvedEntryTitleFn"
+            (moveExample)="moveSelectedExample($event.index, $event.direction)"
+            (removeExample)="removeSelectedExample($event)"
+            (pointsInput)="onPointsInput($event.entry, $event.value)"
+            (pointsBlur)="onPointsBlur($event)"
+            (spacingChange)="onTaskSpacingChange($event.exampleId, $event.value)"
+            (variableValueChange)="onVariableValueChange($event.entry, $event.key, $event.value)"
+            (dirty)="markDirty()"
+          ></app-test-selected-examples>
 
-        <button mat-stroked-button type="button" class="advanced-toggle" (click)="toggleAdvancedSettings()">
-          <mat-icon>{{ showAdvancedSettings ? 'expand_less' : 'tune' }}</mat-icon>
-          {{ showAdvancedSettings ? ('createTest.hideLayoutAndGrading' | translate) : ('createTest.editLayoutAndGrading' | translate) }}
-        </button>
+          <button mat-stroked-button type="button" class="advanced-toggle" (click)="toggleAdvancedSettings()">
+            <mat-icon>{{ showAdvancedSettings ? 'expand_less' : 'tune' }}</mat-icon>
+            {{ showAdvancedSettings ? ('createTest.hideLayoutAndGrading' | translate) : ('createTest.editLayoutAndGrading' | translate) }}
+          </button>
 
-        @if (showAdvancedSettings) {
-          <app-test-advanced-settings
-            [defaultTaskSpacing]="defaultTaskSpacing"
-            [gradingModeSelection]="gradingModeSelection"
-            [useAutomaticGrading]="useAutomaticGrading"
-            [gradingSchema]="gradingSchema"
-            [totalPoints]="totalPoints"
-            [gradeTableHeading]="gradeTableHeading"
-            [getGradeRangeLabelByIndex]="getGradeRangeLabelByIndexFn"
-            [trackByGradingLevel]="trackByGradingLevel"
-            (defaultSpacingChanged)="onDefaultSpacingChanged($event)"
-            (applySpacingToEveryTask)="applySpacingToAll()"
-            (gradingModeChanged)="onGradingModeChange($event)"
-            (resetGradingRequested)="resetGrading()"
-            (gradingPresetSelected)="applyGradingPreset($event)"
-            (automaticThresholdInput)="onAutomaticThresholdInput($event.level, $event.value)"
-            (manualThresholdInput)="onManualThresholdInput($event.level, $event.value)"
-            (levelBlur)="onLevelBlur()"
-            (levelDirty)="markDirty()"
-            (levelMoved)="moveGradingLevel($event.index, $event.direction)"
-            (levelRemoved)="removeGradingLevel($event)"
-            (levelAdded)="addGradingLevel()"
-          ></app-test-advanced-settings>
+          @if (showAdvancedSettings) {
+            <app-test-advanced-settings
+              [defaultTaskSpacing]="defaultTaskSpacing"
+              [gradingModeSelection]="gradingModeSelection"
+              [useAutomaticGrading]="useAutomaticGrading"
+              [gradingSchema]="gradingSchema"
+              [totalPoints]="totalPoints"
+              [gradeTableHeading]="gradeTableHeading"
+              [getGradeRangeLabelByIndex]="getGradeRangeLabelByIndexFn"
+              [trackByGradingLevel]="trackByGradingLevel"
+              (defaultSpacingChanged)="onDefaultSpacingChanged($event)"
+              (applySpacingToEveryTask)="applySpacingToAll()"
+              (gradingModeChanged)="onGradingModeChange($event)"
+              (resetGradingRequested)="resetGrading()"
+              (gradingPresetSelected)="applyGradingPreset($event)"
+              (automaticThresholdInput)="onAutomaticThresholdInput($event.level, $event.value)"
+              (manualThresholdInput)="onManualThresholdInput($event.level, $event.value)"
+              (levelBlur)="onLevelBlur()"
+              (levelDirty)="markDirty()"
+              (levelMoved)="moveGradingLevel($event.index, $event.direction)"
+              (levelRemoved)="removeGradingLevel($event)"
+              (levelAdded)="addGradingLevel()"
+            ></app-test-advanced-settings>
+          }
         }
-      }
-    </form>
-  </div>
+      </form>
+    </div>
 
-  <app-test-print-preview-pane
-    [previewHtml]="previewHtml"
-    [printCopies]="printCopies"
-    [includeSolutionSheet]="includeSolutionSheet"
-    [isSaving]="isSaving"
-    (printCopiesChange)="onPrintCopiesChange($event)"
-    (includeSolutionSheetChange)="setIncludeSolutionSheet($event)"
-    (increaseCopies)="increaseCount()"
-    (decreaseCopies)="decreaseCount()"
-    (printRequested)="printPreview()"
-    (closeRequested)="closeDialog()"
-    (saveRequested)="saveTest()"
-  ></app-test-print-preview-pane>
-</main>
+    <app-test-print-preview-pane
+      [previewHtml]="previewHtml"
+      [printCopies]="printCopies"
+      [includeSolutionSheet]="includeSolutionSheet"
+      [isSaving]="isSaving"
+      (printCopiesChange)="onPrintCopiesChange($event)"
+      (includeSolutionSheetChange)="setIncludeSolutionSheet($event)"
+      (increaseCopies)="increaseCount()"
+      (decreaseCopies)="decreaseCount()"
+      (printRequested)="printPreview()"
+      (closeRequested)="closeDialog()"
+      (saveRequested)="saveTest()"
+    ></app-test-print-preview-pane>
+  </main>
+}

@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { MAT_DIALOG_DATA, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
-import {MatButton, MatIconButton} from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
@@ -12,8 +12,10 @@ import { Example, ExampleTypes } from '../../model/Example';
 import { CreateTestDTO, GradingLevel, TestExampleDTO } from '../../model/Test';
 import { HttpService } from '../../service/http.service';
 import { PersistedTestSettings, TestBranding, TestPrintLabels, TestPrintService } from '../../service/test-print.service';
-import {MatButtonToggle, MatButtonToggleGroup} from '@angular/material/button-toggle'
-import {MatIcon} from '@angular/material/icon'
+import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
+import { MatIcon } from '@angular/material/icon';
+import { firstValueFrom } from 'rxjs';
+import {MatProgressBar} from '@angular/material/progress-bar'
 
 @Component({
   selector: 'app-test-preview',
@@ -28,6 +30,7 @@ import {MatIcon} from '@angular/material/icon'
     MatIcon,
     MatIconButton,
     TranslateModule,
+    MatProgressBar,
   ],
   templateUrl: './test-preview.component.html',
   styleUrl: './test-preview.component.scss',
@@ -42,6 +45,7 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
   private sanitizer = inject(DomSanitizer);
   private readonly exampleImageObjectUrls = new Set<string>();
   private readonly exampleImageObjectUrlCache = new Map<string, string>();
+  private schoolLogoObjectUrl = '';
 
   readonly ExampleTypes = ExampleTypes;
   readonly defaultImageWidth = 320;
@@ -50,6 +54,8 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
   includeSolutionSheet = false;
   previewHtml: SafeHtml = '';
   labels: TestPrintLabels = this.buildPrintLabels();
+
+  isLoading = true;
 
   test: CreateTestDTO & PersistedTestSettings = {
     schoolId: this.data.schoolId,
@@ -91,6 +97,7 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
         this.test.exampleList = await this.hydrateConstructionImagesForEntries(this.test.exampleList ?? []);
         this.refreshPreviewHtml();
         this.loadSchoolBranding();
+        this.isLoading = false;
       },
     });
   }
@@ -99,36 +106,59 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
     this.exampleImageObjectUrls.forEach(url => URL.revokeObjectURL(url));
     this.exampleImageObjectUrls.clear();
     this.exampleImageObjectUrlCache.clear();
+
+    if (this.schoolLogoObjectUrl) {
+      URL.revokeObjectURL(this.schoolLogoObjectUrl);
+      this.schoolLogoObjectUrl = '';
+    }
   }
 
   private loadSchoolBranding(): void {
-    const serviceAny = this.service as any;
-    const request = serviceAny?.getSchool?.(this.data.schoolId) ?? serviceAny?.getSchoolById?.(this.data.schoolId);
+    const schoolId = String((this.test as any)?.schoolId || this.data.schoolId || '').trim();
 
-    if (!request?.subscribe) {
+    if (!schoolId) {
       this.refreshPreviewHtml();
       return;
     }
 
-    request.subscribe({
-      next: (school: any) => {
-        if (!school) {
-          this.refreshPreviewHtml();
-          return;
-        }
-
-        (this.test as any).schoolName = (this.test as any).schoolName || school?.name || '';
-        (this.test as any).schoolLogoUrl = (this.test as any).schoolLogoUrl || (this.service as any)?.getSchoolLogo?.(school, this.data.schoolId) || school?.logoUrl || school?.logo || '';
+    this.service.getCollectionById(schoolId).subscribe({
+      next: async (school: any) => {
+        (this.test as any).schoolName = school?.name || (this.test as any).schoolName || '';
         (this.test as any).school = {
           ...(this.test as any).school,
           ...school,
         };
+
+        const logoUrl = await this.loadSchoolLogoObjectUrl(schoolId);
+        (this.test as any).schoolLogoUrl = logoUrl || school?.logoUrl || school?.logo || (this.test as any).schoolLogoUrl || '';
+
         this.refreshPreviewHtml();
       },
-      error: () => {
+      error: async () => {
+        const logoUrl = await this.loadSchoolLogoObjectUrl(schoolId);
+        (this.test as any).schoolLogoUrl = logoUrl || (this.test as any).schoolLogoUrl || '';
         this.refreshPreviewHtml();
       }
     });
+  }
+
+  private async loadSchoolLogoObjectUrl(schoolId: string): Promise<string> {
+    if (this.schoolLogoObjectUrl) {
+      return this.schoolLogoObjectUrl;
+    }
+
+    try {
+      const blob = await firstValueFrom(this.service.getCollectionLogo(schoolId));
+
+      if (!blob || blob.size === 0) {
+        return '';
+      }
+
+      this.schoolLogoObjectUrl = URL.createObjectURL(blob);
+      return this.schoolLogoObjectUrl;
+    } catch {
+      return '';
+    }
   }
 
   get selectedExamples(): TestExampleDTO[] {
@@ -205,12 +235,10 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
   private resolveBranding(): TestBranding {
     const school = (this.test as any)?.school ?? null;
     const dialogData = this.data as any;
-    const schoolId = Number((this.test as any)?.schoolId || dialogData?.schoolId || this.data.schoolId);
-    const logoFromService = (this.service as any)?.getSchoolLogo?.(school, schoolId);
 
     return {
       schoolName: (this.test as any)?.schoolName || school?.name || dialogData?.schoolName || '',
-      schoolLogoUrl: logoFromService || (this.test as any)?.schoolLogoUrl || school?.logoUrl || school?.logo || dialogData?.schoolLogoUrl || dialogData?.schoolLogo || '',
+      schoolLogoUrl: (this.test as any)?.schoolLogoUrl || school?.logoUrl || school?.logo || dialogData?.schoolLogoUrl || dialogData?.schoolLogo || '',
       showNameWhenLogoExists: true,
     };
   }
@@ -308,20 +336,19 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
       return example;
     }
 
-    const hasTaskImage = !!((example as any).imageUrl || (example as any).image);
-    const hasSolutionImage = !!((example as any).solutionUrl);
-    const taskImageUrl = hasTaskImage
-      ? await this.getAuthorizedExampleImageObjectUrl(example.id, false)
-      : '';
-    const solutionImageUrl = hasSolutionImage
-      ? await this.getAuthorizedExampleImageObjectUrl(example.id, true)
-      : '';
+    const [taskImageUrl, solutionImageUrl] = await Promise.all([
+      this.getAuthorizedExampleImageObjectUrl(example.id, false),
+      this.getAuthorizedExampleImageObjectUrl(example.id, true),
+    ]);
+
+    const fallbackTaskImage = (example as any).imageUrl || (example as any).image || '';
+    const fallbackSolutionImage = (example as any).solutionUrl || '';
 
     return {
       ...example,
-      imageUrl: taskImageUrl,
-      image: taskImageUrl,
-      solutionUrl: solutionImageUrl
+      imageUrl: taskImageUrl || fallbackTaskImage,
+      image: taskImageUrl || fallbackTaskImage,
+      solutionUrl: solutionImageUrl || fallbackSolutionImage
     } as Example & { image?: string };
   }
 

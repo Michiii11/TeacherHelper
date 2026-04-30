@@ -50,7 +50,10 @@
     "saveImage": "Profilbild speichern",
     "deleteImage": "Profilbild löschen",
     "plan": "Plan",
-    "pendingEmailConfirmation": "Offene E-Mail-Bestätigung:"
+    "pendingEmailConfirmation": "Offene E-Mail-Bestätigung:",
+    "publicInfoUsername": "Benutzername ist öffentlich sichtbar",
+    "publicInfoAvatar": "Profilbild ist öffentlich sichtbar",
+    "allowInvitationsDesc": "Andere Nutzer können dich zu Sammlungen einladen"
   },
   "languages": {
     "de": "Deutsch",

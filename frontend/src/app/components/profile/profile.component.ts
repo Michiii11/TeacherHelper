@@ -17,6 +17,7 @@ import { ConfirmDialogComponent } from '../../dialog/confirm-dialog/confirm-dial
 import { ThemeService } from '../../service/theme.service';
 import { LanguageService } from '../../service/language.service';
 import { NavbarActionsService } from '../navigation/navbar-actions.service';
+import {MatProgressBar} from '@angular/material/progress-bar'
 
 type ProfileLanguage = 'de' | 'en';
 
@@ -35,7 +36,8 @@ type ProfileSettings = {
     MatButton,
     MatFormFieldModule,
     MatInput,
-    TranslatePipe
+    TranslatePipe,
+    MatProgressBar
   ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss'

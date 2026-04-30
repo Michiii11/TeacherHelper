@@ -1,14 +1,14 @@
-import {Component, inject, OnDestroy, OnInit} from '@angular/core';
-import { MatButton } from '@angular/material/button';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { AddSchoolDialogComponent } from '../../dialog/add-school-dialog/add-school-dialog.component';
 import { SchoolDTO } from '../../model/School';
 import { HttpService } from '../../service/http.service';
 import { MatCard } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
-import {NgClass, NgForOf, NgIf} from '@angular/common';
+import { NgClass, NgForOf, NgIf } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
+import { MatProgressBar } from '@angular/material/progress-bar';
 import { TranslatePipe } from '@ngx-translate/core';
 import { NavbarActionsService } from '../navigation/navbar-actions.service';
 
@@ -21,7 +21,8 @@ import { NavbarActionsService } from '../navigation/navbar-actions.service';
     MatIcon,
     NgIf,
     TranslatePipe,
-    NgClass
+    NgClass,
+    MatProgressBar
   ],
   templateUrl: './home.component.html',
   standalone: true,
@@ -30,7 +31,10 @@ import { NavbarActionsService } from '../navigation/navbar-actions.service';
 export class HomeComponent implements OnInit, OnDestroy {
   schools: SchoolDTO[] = [];
   userId = '';
-  navbarService = inject(NavbarActionsService)
+  isSchoolsLoading = true;
+  logoUrls: Record<string, string> = {};
+
+  navbarService = inject(NavbarActionsService);
 
   constructor(
     private dialog: MatDialog,
@@ -72,23 +76,39 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   loadSchools(): void {
-    this.http.getYourCollections().subscribe((schools: SchoolDTO[]) => {
-      this.http.getUserId().subscribe((id: string) => {
-        this.userId = id;
+    this.isSchoolsLoading = true;
 
-        this.schools = [...schools].sort((a, b) => {
-          const aIsAdmin = this.isAdminSchool(a, this.userId);
-          const bIsAdmin = this.isAdminSchool(b, this.userId);
+    this.http.getYourCollections().subscribe({
+      next: (schools: SchoolDTO[]) => {
+        this.http.getUserId().subscribe({
+          next: (id: string) => {
+            this.userId = id;
 
-          if (aIsAdmin !== bIsAdmin) {
-            return aIsAdmin ? -1 : 1;
+            this.schools = [...schools].sort((a, b) => {
+              const aIsAdmin = this.isAdminSchool(a, this.userId);
+              const bIsAdmin = this.isAdminSchool(b, this.userId);
+
+              if (aIsAdmin !== bIsAdmin) {
+                return aIsAdmin ? -1 : 1;
+              }
+
+              return a.name.localeCompare(b.name);
+            });
+
+            this.clearLogoUrls();
+            this.schools.forEach(school => this.loadLogo(school));
+            this.isSchoolsLoading = false;
+          },
+          error: () => {
+            this.schools = [];
+            this.isSchoolsLoading = false;
           }
-
-          return a.name.localeCompare(b.name);
         });
-
-        this.schools.forEach(s => this.loadLogo(s));
-      });
+      },
+      error: () => {
+        this.schools = [];
+        this.isSchoolsLoading = false;
+      }
     });
   }
 
@@ -150,18 +170,21 @@ export class HomeComponent implements OnInit, OnDestroy {
     return school.admin.id === userId;
   }
 
-  logoUrls: Record<string, string> = {};
-  loadLogo(school: SchoolDTO) {
+  private loadLogo(school: SchoolDTO): void {
     if (!school.logoUrl) return;
 
     this.http.getCollectionLogo(school.id).subscribe({
       next: (blob) => {
-        console.log(blob)
         this.logoUrls[school.id] = URL.createObjectURL(blob);
       },
       error: () => {
         this.logoUrls[school.id] = '';
       }
     });
+  }
+
+  private clearLogoUrls(): void {
+    Object.values(this.logoUrls).forEach(url => URL.revokeObjectURL(url));
+    this.logoUrls = {};
   }
 }
