@@ -177,7 +177,7 @@
                   (click)="sendTeacherInvite()"
                   [disabled]="invitingTeacher"
                 >
-                  <mat-icon>send</mat-icon>
+                  <mat-icon>{{ invitingTeacher ? 'hourglass_top' : 'send' }}</mat-icon>
                   {{ 'schoolSettings.sendInvite' | translate }}
                 </button>
 
@@ -268,10 +268,10 @@
     <ng-template #memberItem let-user="user" let-admin="admin">
       <div class="member-item">
         <div class="avatar">
-          @if (getAvatarUrl(user)) {
+          @if (getAvatarUrl(user); as avatarUrl) {
             <img
               class="avatar-image"
-              [src]="getAvatarUrl(user)!"
+              [src]="avatarUrl"
               [alt]="'schoolSettings.avatarAlt' | translate"
             >
           } @else {

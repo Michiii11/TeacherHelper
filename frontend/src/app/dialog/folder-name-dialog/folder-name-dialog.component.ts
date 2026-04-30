@@ -132,10 +132,6 @@ export interface FolderNameDialogData {
       border-radius: 999px;
       overflow: hidden;
     }
-
-    mat-icon {
-      margin-right: .35rem;
-    }
   `]
 })
 export class FolderNameDialogComponent {

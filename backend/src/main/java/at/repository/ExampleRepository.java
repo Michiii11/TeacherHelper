@@ -10,6 +10,7 @@ import at.model.helper.ExampleVariable;
 import at.model.helper.Gap;
 import at.security.TokenService;
 import at.service.MediaStorageService;
+import at.websocket.CollectionSocket;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -207,6 +208,8 @@ public class ExampleRepository {
         em.persist(example);
         em.flush();
 
+        CollectionSocket.broadcast(dto.schoolId());
+
         return Response.ok(example.getId()).build();
     }
 
@@ -240,6 +243,9 @@ public class ExampleRepository {
             mediaStorageService.delete(example.getSolutionUrl());
         }
         em.remove(example);
+
+        CollectionSocket.broadcast(example.getSchool().getId());
+
         return Response.ok().build();
     }
 
@@ -301,6 +307,7 @@ public class ExampleRepository {
         }
 
         em.merge(example);
+        CollectionSocket.broadcast(example.getSchool().getId());
         return Response.ok(example.getId()).build();
     }
 
@@ -326,6 +333,7 @@ public class ExampleRepository {
 
         example.setFolder(folder);
         em.merge(example);
+        CollectionSocket.broadcast(example.getSchool().getId());
         return Response.ok().build();
     }
 
@@ -398,6 +406,7 @@ public class ExampleRepository {
             }
 
             em.merge(example);
+            CollectionSocket.broadcast(example.getSchool().getId());
             return Response.ok(objectKey).build();
         } catch (IOException e) {
             return Response.serverError().entity("Failed to upload image.").build();
@@ -427,6 +436,7 @@ public class ExampleRepository {
         }
 
         em.merge(example);
+        CollectionSocket.broadcast(example.getSchool().getId());
         return Response.ok().build();
     }
 

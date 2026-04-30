@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { finalize } from 'rxjs/operators';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatError, MatFormField, MatInput, MatLabel } from '@angular/material/input';
 import { MatButton, MatIconButton } from '@angular/material/button';
@@ -16,6 +17,7 @@ import { AppLanguage, LanguageService } from '../../service/language.service';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatIcon } from '@angular/material/icon';
+import { MatProgressBar } from '@angular/material/progress-bar';
 
 @Component({
   selector: 'app-login',
@@ -38,7 +40,9 @@ import { MatIcon } from '@angular/material/icon';
     MatButtonToggle,
     MatButtonToggleGroup,
     TranslatePipe,
-    MatIcon
+    MatIcon,
+    MatProgressBar,
+    MatIconButton
   ],
   styleUrl: './login.component.scss'
 })
@@ -61,6 +65,7 @@ export class LoginComponent implements OnInit {
   resetToken: string | null = null;
   verifying = false;
   showForgotPassword = false;
+  isLoggingIn = false;
 
   hideLoginPassword = true;
   hideRegisterPassword = true;
@@ -174,10 +179,17 @@ export class LoginComponent implements OnInit {
   }
 
   onLogin(): void {
+    if (this.isLoggingIn) {
+      return;
+    }
+
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       return;
     }
+
+    this.isLoggingIn = true;
+    this.loginMessage = '';
 
     const value = this.loginForm.value;
     const hashedPassword = CryptoJS.SHA256(value.password).toString();
@@ -188,33 +200,48 @@ export class LoginComponent implements OnInit {
       darkMode: this.selectedTheme === 'dark'
     };
 
-    this.http.login(payload).subscribe((result: AuthResult) => {
-      this.loginSuccess = result.success;
-      this.loginMessage = this.translate.instant('auth.backend.AUTH_SUCCESS');
+    this.http.login(payload).subscribe({
+      next: (result: AuthResult) => {
+        this.loginSuccess = result.success;
+        this.loginMessage = this.translate.instant('auth.backend.AUTH_SUCCESS');
 
-      if(!result.success) {
-        this.loginMessage = this.translate.instant('auth.backend.' + result.code);
-      }
+        if (!result.success) {
+          this.isLoggingIn = false;
+          this.loginMessage = this.translate.instant('auth.backend.' + result.code);
+        }
 
-
-      this.snackBar.open(this.loginMessage, '', {
-        duration: 3000,
-        panelClass: result.success ? 'snack-success' : 'snack-error'
-      });
-
-      if (result.success && result.token && result.userId !== null) {
-        this.authService.setLogin(result.token, result.userId);
-
-        this.http.getUser().subscribe({
-          next: user => {
-            this.applyResolvedPreferences(user);
-            this.syncGuestPreferencesToBackendIfMissing(user);
-            this.router.navigate(['/home']);
-          },
-          error: () => {
-            this.router.navigate(['/home']);
-          }
+        this.snackBar.open(this.loginMessage, '', {
+          duration: 3000,
+          panelClass: result.success ? 'snack-success' : 'snack-error'
         });
+
+        if (result.success && result.token && result.userId !== null) {
+          this.authService.setLogin(result.token, result.userId);
+
+          this.http.getUser()
+            .pipe(finalize(() => this.isLoggingIn = false))
+            .subscribe({
+              next: user => {
+                this.applyResolvedPreferences(user);
+                this.syncGuestPreferencesToBackendIfMissing(user);
+                this.router.navigate(['/home']);
+              },
+              error: () => {
+                this.router.navigate(['/home']);
+              }
+            });
+
+          return;
+        }
+
+        this.isLoggingIn = false;
+      },
+      error: (err) => {
+        const message = this.translateHttpError(err, 'auth.messages.error');
+        this.isLoggingIn = false;
+        this.loginSuccess = false;
+        this.loginMessage = message;
+        this.snackBar.open(message, '', { duration: 3000, panelClass: 'snack-error' });
       }
     });
   }

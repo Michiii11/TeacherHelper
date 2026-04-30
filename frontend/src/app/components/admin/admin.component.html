@@ -1,14 +1,12 @@
 <main class="admin-dashboard">
-  <section class="hero-grid">
+  <section class="summary-grid">
     @for (card of userStatCards; track card.key) {
       <mat-card class="hero-card stat-card" [ngClass]="card.toneClass">
         <div class="stat-kicker">{{ card.label }}</div>
         <div class="stat-value">{{ getStatValue(card.key) }}</div>
       </mat-card>
     }
-  </section>
 
-  <section class="hero-grid">
     @for (card of aboStatCards; track card.key) {
       <mat-card class="hero-card stat-card" [ngClass]="card.toneClass">
         <div class="stat-kicker">{{ card.label }}</div>
@@ -39,11 +37,16 @@
     </div>
   </section>
 
-  <section class="section layout-grid single-panel">
+  <section class="section layout-grid">
     <article class="panel user-list-panel">
       <div class="panel-header sticky-header">
+        <div>
+          <h2>User</h2>
+          <p>{{ visibleUsers.length }} angezeigt</p>
+        </div>
+
         <div class="toolbar-grid">
-          <label class="control search-control search-control-wide">
+          <label class="control search-control">
             <input type="text" [(ngModel)]="search" placeholder="Suche nach Name oder ID">
           </label>
 
@@ -59,7 +62,11 @@
 
       <div class="user-list">
         @for (user of visibleUsers; track user.id) {
-          <button type="button" class="user-card">
+          <button
+            type="button"
+            class="user-card"
+            [class.selected]="selectedUserId === user.id"
+            (click)="selectUser(user)">
             <div class="user-card-top">
               <div class="avatar-tile">{{ getUserInitials(user.username) }}</div>
 
@@ -100,5 +107,67 @@
         }
       </div>
     </article>
+
+    <aside class="panel detail-panel">
+      @if (selectedUser; as user) {
+        <div class="detail-header">
+          <div class="detail-title-row">
+            <div class="avatar-lg">{{ getUserInitials(user.username) }}</div>
+
+            <div>
+              <h2>{{ user.username }}</h2>
+              <p>#{{ user.id }}</p>
+            </div>
+          </div>
+
+          <button mat-icon-button type="button" (click)="copyUserId(user, $event)" title="ID kopieren">
+            <mat-icon>content_copy</mat-icon>
+          </button>
+        </div>
+
+        <section class="collections-section">
+          <div class="section-title-row">
+            <h3>Collections</h3>
+            <span>{{ selectedUserDTO.schools.length }}</span>
+          </div>
+
+          <div class="collection-list">
+            @for (collection of selectedUserDTO.schools; track trackByCollection($index, collection)) {
+              <div class="collection-card">
+                <div class="collection-title">{{ getCollectionName(collection) }}</div>
+
+                <div class="collection-meta-grid">
+                  <div>
+                    <span>Mitglieder</span>
+                    <strong>{{ getCollectionMemberCount(collection) }}</strong>
+                  </div>
+                  <div>
+                    <span>Beispiele</span>
+                    <strong>{{ getCollectionExampleCount(collection) }}</strong>
+                  </div>
+                  <div>
+                    <span>Tests</span>
+                    <strong>{{ getCollectionTestCount(collection) }}</strong>
+                  </div>
+                </div>
+              </div>
+            }
+
+            @if (!selectedUserDTO.schools.length) {
+              <div class="empty-state compact">
+                <mat-icon>folder_off</mat-icon>
+                <h3>Keine Collections vorhanden</h3>
+              </div>
+            }
+          </div>
+        </section>
+      } @else {
+        <div class="empty-state detail-empty">
+          <mat-icon>touch_app</mat-icon>
+          <h3>User auswählen</h3>
+          <p>Klicke links auf einen User, um seine Collections zu sehen.</p>
+        </div>
+      }
+    </aside>
   </section>
 </main>

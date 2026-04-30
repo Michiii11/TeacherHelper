@@ -587,6 +587,7 @@
       "confirm": "Schließen"
     },
     "preview": {
+      "previewTitle": "Vorschau",
       "name": "Name",
       "class": "Klasse",
       "date": "Datum",
@@ -960,7 +961,7 @@
   },
   "exampleTypeDescriptions": {
     "open": "Antwort ohne Vorgaben.",
-    "halfOpen": "Antwort in vorgegebene Struktur eintragen.",
+    "halfOpen": "Antwort in Struktur eintragen.",
     "construction": "Aufgabe mit Bild oder Grafik.",
     "multipleChoice": "Eine oder mehrere Optionen auswählen.",
     "gapFill": "Lücken durch Auswahl oder Eingabe füllen.",
@@ -1003,6 +1004,7 @@
       "submit": "Passwort setzen"
     },
     "verify": {
+      "login": "Du wirst eingeloggt...",
       "loading": "E-Mail wird bestätigt...",
       "resend": "Bestätigungs-Mail erneut senden"
     },

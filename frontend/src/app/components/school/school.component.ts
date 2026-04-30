@@ -1,7 +1,7 @@
 import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { catchError, forkJoin, of, Subject, takeUntil } from 'rxjs';
+import {catchError, finalize, forkJoin, of, Subject, Subscription, takeUntil} from 'rxjs';
 
 import { HttpService } from '../../service/http.service';
 import { SchoolDTO } from '../../model/School';
@@ -14,6 +14,7 @@ import { MatButton, MatButtonModule, MatIconButton } from '@angular/material/but
 import { MatIcon } from '@angular/material/icon';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatOption, MatSelect } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
@@ -75,7 +76,8 @@ interface FilterChip {
     TranslatePipe,
     MatSelect,
     MatOption,
-    MatFormFieldModule
+    MatFormFieldModule,
+    MatProgressBarModule
   ],
   templateUrl: './school.component.html',
   styleUrl: './school.component.scss'
@@ -112,6 +114,12 @@ export class SchoolComponent implements OnInit, OnDestroy {
   draggedFolder: DraggedExplorerFolder | null = null;
   dropTarget: string | null = null;
 
+  deletingFolderIds = new Set<string>();
+  deletingExampleIds = new Set<string>();
+  deletingTestIds = new Set<number | string>();
+
+  isSchoolLoading = true;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router
@@ -119,10 +127,13 @@ export class SchoolComponent implements OnInit, OnDestroy {
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.schoolId = params.get('id');
 
-      if (this.schoolId) {
-        localStorage.setItem('lastViewedSchoolId', this.schoolId);
-        this.reloadAll();
+      if (!this.schoolId) {
+        this.redirectToNotFound();
+        return;
       }
+
+      localStorage.setItem('lastViewedSchoolId', this.schoolId);
+      this.reloadAll();
     });
   }
 
@@ -130,6 +141,8 @@ export class SchoolComponent implements OnInit, OnDestroy {
     this.service.getUserId().pipe(takeUntil(this.destroy$)).subscribe(id => {
       this.currentUserId = id;
     });
+
+    this.connectCollectionSocket()
   }
 
   ngOnDestroy(): void {
@@ -144,10 +157,41 @@ export class SchoolComponent implements OnInit, OnDestroy {
   }
 
   private reloadAll(): void {
-    this.loadSchool();
-    this.loadFolders();
-    this.loadExamples();
-    this.loadTests();
+    if (!this.schoolId) {
+      this.redirectToNotFound();
+      return;
+    }
+
+    this.isSchoolLoading = true;
+    this.navbarActions.clearAll();
+    this.school = {} as SchoolDTO;
+    this.examples = [];
+    this.tests = [];
+    this.folders = [];
+
+    forkJoin({
+      school: this.service.getCollectionById(this.schoolId).pipe(catchError(() => of(null))),
+      folders: this.service.getFolders(this.schoolId).pipe(catchError(() => of([] as FolderDTO[]))),
+      examples: this.service.getExamples(this.schoolId).pipe(catchError(() => of([] as ExampleOverviewDTO[]))),
+      tests: this.service.getTests(this.schoolId).pipe(catchError(() => of([] as TestOverviewDTO[])))
+    })
+      .pipe(
+        finalize(() => this.isSchoolLoading = false),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(({ school, folders, examples, tests }) => {
+        if (!school) {
+          this.redirectToNotFound();
+          return;
+        }
+
+        this.school = school;
+        this.folders = this.normalizeFolders(folders as FolderDTO[]);
+        this.examples = (examples as ExampleOverviewDTO[]).map(example => ({ ...example, folderId: example.folderId ?? null }));
+        this.tests = (tests as TestOverviewDTO[]).map(test => ({ ...test, folderId: test.folderId ?? null }));
+        this.ensureSelectedFolderStillExists();
+        this.setNavbarActions();
+      });
   }
 
   private setNavbarActions(): void {
@@ -181,6 +225,65 @@ export class SchoolComponent implements OnInit, OnDestroy {
         action: () => this.openSettings()
       }
     ]);
+  }
+
+  private socket?: WebSocket;
+  private reconnectTimer?: ReturnType<typeof setTimeout>;
+  private socketDestroyed = false;
+  private connectCollectionSocket(): void {
+    const socketUrl = this.service.getCollectionSocketUrl(this.schoolId);
+
+    if (!socketUrl || typeof WebSocket === 'undefined') {
+      return;
+    }
+
+    if (this.socket && (
+      this.socket.readyState === WebSocket.OPEN ||
+      this.socket.readyState === WebSocket.CONNECTING
+    )) {
+      return;
+    }
+
+    try {
+      this.socket = new WebSocket(socketUrl);
+
+      this.socket.onopen = () => {
+        console.log('Collection socket verbunden');
+        if (this.reconnectTimer) {
+          clearTimeout(this.reconnectTimer);
+          this.reconnectTimer = undefined;
+        }
+      };
+
+      this.socket.onmessage = (event: MessageEvent<string>) => {
+        if (event.data == 'update' && !this.isAuthPage()) {
+          this.reloadAll();
+        }
+      };
+
+      this.socket.onerror = (error) => {
+        console.error('Collection socket Fehler:', error);
+      };
+
+      this.socket.onclose = (event) => {
+        console.warn('Collection socket geschlossen:', event.code, event.reason);
+        this.socket = undefined;
+
+        if (this.socketDestroyed) {
+          return;
+        }
+
+        this.reconnectTimer = setTimeout(() => {
+          this.connectCollectionSocket();
+        }, 3000);
+      };
+    } catch (error) {
+      console.error('Collection socket konnte nicht aufgebaut werden:', error);
+    }
+  }
+
+  isAuthPage(): boolean {
+    return this.router.url.startsWith('/login');
   }
 
   private t(key: string, params?: Record<string, any>): string {
@@ -364,35 +467,56 @@ export class SchoolComponent implements OnInit, OnDestroy {
 
   private loadSchool(): void {
     if (!this.schoolId) return;
-    this.service.getCollectionById(this.schoolId).subscribe(school => {
-      this.school = school;
-      this.setNavbarActions();
-    });
+    this.service.getCollectionById(this.schoolId)
+      .pipe(
+        takeUntil(this.destroy$),
+        catchError(() => {
+          this.redirectToNotFound();
+          return of(null);
+        })
+      )
+      .subscribe(school => {
+        if (!school) return;
+        this.school = school;
+        this.setNavbarActions();
+      });
   }
 
   private loadExamples(): void {
     if (!this.schoolId) return;
-    this.service.getExamples(this.schoolId).subscribe(examples => {
-      this.examples = (examples).map(example => ({ ...example, folderId: example.folderId ?? null }));
-    });
+    this.service.getExamples(this.schoolId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(examples => {
+        this.examples = (examples).map(example => ({ ...example, folderId: example.folderId ?? null }));
+      });
   }
 
   private loadTests(): void {
     if (!this.schoolId) return;
-    this.service.getTests(this.schoolId).subscribe(tests => {
-      this.tests = (tests as TestOverviewDTO[]).map(test => ({ ...test, folderId: test.folderId ?? null }));
-    });
+    this.service.getTests(this.schoolId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(tests => {
+        this.tests = (tests as TestOverviewDTO[]).map(test => ({ ...test, folderId: test.folderId ?? null }));
+      });
   }
 
   private loadFolders(): void {
     if (!this.schoolId) return;
     this.service.getFolders(this.schoolId)
-      .pipe(catchError(() => of([])))
+      .pipe(
+        takeUntil(this.destroy$),
+        catchError(() => of([]))
+      )
       .subscribe(folders => {
         this.folders = this.normalizeFolders(folders as FolderDTO[]);
         this.ensureSelectedFolderStillExists();
         this.setNavbarActions();
       });
+  }
+
+  private redirectToNotFound(): void {
+    this.navbarActions.clearAll();
+    this.router.navigate(['/404']);
   }
 
   private normalizeFolders(folders: FolderDTO[]): ExplorerFolder[] {
@@ -456,9 +580,19 @@ export class SchoolComponent implements OnInit, OnDestroy {
     return result;
   }
 
+  isDeletingFolder(folderId: string): boolean {
+    return this.deletingFolderIds.has(folderId);
+  }
+
+  isDeletingItem(item: ExplorerItem): boolean {
+    return item.type === 'examples'
+      ? this.deletingExampleIds.has(String(item.id))
+      : this.deletingTestIds.has(item.id);
+  }
+
   createFolder(parentId: string | null = this.selectedFolderId): void {
     if (!this.schoolId) return;
-    
+
     const ref = this.dialog.open(FolderNameDialogComponent, {
       width: 'min(92vw, 500px)',
       maxWidth: '92vw',
@@ -524,6 +658,7 @@ export class SchoolComponent implements OnInit, OnDestroy {
 
   deleteFolder(folder: ExplorerFolder, event?: Event): void {
     event?.stopPropagation();
+    if (this.isDeletingFolder(folder.id)) return;
 
     const hasChildren = this.folders.some(item => item.parentId === folder.id);
     const hasItems = [...this.examples, ...this.tests].some(item => (item.folderId ?? null) === folder.id);
@@ -545,16 +680,19 @@ export class SchoolComponent implements OnInit, OnDestroy {
     ref.afterClosed().subscribe(confirmed => {
       if (!confirmed) return;
 
-      this.service.deleteFolder(folder.id).subscribe({
-        next: () => {
-          this.folders = this.folders.filter(item => item.id !== folder.id);
-          if (this.selectedFolderId === folder.id) {
-            this.selectedFolderId = folder.parentId ?? null;
-          }
-          this.setNavbarActions();
-        },
-        error: err => this.showErrorSnack(err)
-      });
+      this.deletingFolderIds.add(folder.id);
+      this.service.deleteFolder(folder.id)
+        .pipe(finalize(() => this.deletingFolderIds.delete(folder.id)))
+        .subscribe({
+          next: () => {
+            this.folders = this.folders.filter(item => item.id !== folder.id);
+            if (this.selectedFolderId === folder.id) {
+              this.selectedFolderId = folder.parentId ?? null;
+            }
+            this.setNavbarActions();
+          },
+          error: err => this.showErrorSnack(err)
+        });
     });
   }
 
@@ -843,7 +981,7 @@ export class SchoolComponent implements OnInit, OnDestroy {
   }
 
   getItemIcon(item: ExplorerItem): string {
-    return item.type === 'examples' ? 'description' : 'assignment';
+    return item.type === 'examples' ? 'article' : 'quiz';
   }
 
   canManageItem(item: ExplorerItem): boolean {
@@ -892,7 +1030,7 @@ export class SchoolComponent implements OnInit, OnDestroy {
 
     this.dialog.open(ExamplePreviewComponent, {
       width: isMobile ? '100vw' : '40vw',
-      height: isMobile ? '100dvh' : '40vh',
+      minHeight: isMobile ? '100dvh' : '40vh',
       maxHeight: isMobile ? '100dvh' : '70vh',
       panelClass: isMobile ? 'mobile-fullscreen-dialog' : undefined,
       data: { schoolId: this.schoolId, exampleId: example.id }
@@ -1000,6 +1138,8 @@ export class SchoolComponent implements OnInit, OnDestroy {
   }
 
   deleteTest(test: TestOverviewDTO): void {
+    if (this.deletingTestIds.has(test.id)) return;
+
     const title = test.name || String(test.id) || this.t('school.test');
 
     const ref = this.dialog.open(ConfirmDialogComponent, {
@@ -1015,16 +1155,21 @@ export class SchoolComponent implements OnInit, OnDestroy {
     ref.afterClosed().subscribe(confirmed => {
       if (!confirmed) return;
 
-      this.service.deleteTest(test.id).subscribe({
-        next: () => {
-          this.loadTests();
-        },
-        error: err => this.showErrorSnack(err)
-      });
+      this.deletingTestIds.add(test.id);
+      this.service.deleteTest(test.id)
+        .pipe(finalize(() => this.deletingTestIds.delete(test.id)))
+        .subscribe({
+          next: () => {
+            this.loadTests();
+          },
+          error: err => this.showErrorSnack(err)
+        });
     });
   }
 
   deleteExample(example: ExampleOverviewDTO): void {
+    if (this.deletingExampleIds.has(String(example.id))) return;
+
     const title = example.question || String(example.id) || this.t('school.example');
 
     const ref = this.dialog.open(ConfirmDialogComponent, {
@@ -1040,12 +1185,15 @@ export class SchoolComponent implements OnInit, OnDestroy {
     ref.afterClosed().subscribe(confirmed => {
       if (!confirmed) return;
 
-      this.service.deleteExample(example.id).subscribe({
-        next: () => {
-          this.loadExamples();
-        },
-        error: err => this.showErrorSnack(err)
-      });
+      this.deletingExampleIds.add(String(example.id));
+      this.service.deleteExample(example.id)
+        .pipe(finalize(() => this.deletingExampleIds.delete(String(example.id))))
+        .subscribe({
+          next: () => {
+            this.loadExamples();
+          },
+          error: err => this.showErrorSnack(err)
+        });
     });
   }
 

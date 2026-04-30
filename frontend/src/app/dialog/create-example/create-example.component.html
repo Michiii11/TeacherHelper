@@ -10,17 +10,6 @@
   <div class="grid">
     <div class="create-example-dialog">
       <form class="example-form">
-        <app-example-focus-selector
-          [focuses]="example.focusList"
-          [inputCtrl]="inputCtrl"
-          [filteredFocusList]="filteredFocusList"
-          [showCreateOption]="showCreateOption.bind(this)"
-          (focusRemoved)="remove($event)"
-          (focusDeleted)="deleteFocus($event.focus, $event.event)"
-          (focusSelected)="selected($event)"
-          (focusInputTokenEnd)="addFromInput($event)"
-        ></app-example-focus-selector>
-
         <div class="variable-toolbar">
           <button mat-stroked-button type="button" (click)="insertVariableAtCursor()">
             <mat-icon>code</mat-icon>
@@ -356,6 +345,19 @@
             </div>
           </ng-container>
         </section>
+
+        <mat-divider></mat-divider>
+
+        <app-example-focus-selector
+          [focuses]="example.focusList"
+          [inputCtrl]="inputCtrl"
+          [filteredFocusList]="filteredFocusList"
+          [showCreateOption]="showCreateOption.bind(this)"
+          (focusRemoved)="remove($event)"
+          (focusDeleted)="deleteFocus($event.focus, $event.event)"
+          (focusSelected)="selected($event)"
+          (focusInputTokenEnd)="addFromInput($event)"
+        ></app-example-focus-selector>
       </form>
     </div>
 

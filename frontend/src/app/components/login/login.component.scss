@@ -56,6 +56,16 @@ button[type="submit"][mat-raised-button] {
   margin-top: 0.4rem;
   border-radius: 14px;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+mat-progress-bar {
+  margin-top: 0.75rem;
+  border-radius: 999px;
+  overflow: hidden;
 }
 
 .action-row {

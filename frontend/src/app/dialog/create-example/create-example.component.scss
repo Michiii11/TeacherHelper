@@ -1010,34 +1010,6 @@ mat-divider{
   gap: 1rem;
 }
 
-.example-type-toggle-group{
-  border-radius: 14px;
-  overflow: hidden;
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  width: 100%;
-  border: 1px solid var(--border-soft);
-
-  .example-type-toggle{
-    display: flex;
-    flex-direction: column;
-    border-radius: 0;
-    border: 1px solid var(--border-soft);
-    cursor: pointer;
-    padding-block: .5rem 1rem;
-
-    &:hover{
-      background: var(--bg);
-    }
-  }
-
-  .example-type-toggle.active {
-    background: var(--primary-soft);
-    border: 2px solid var(--primary-soft);
-    color: white;
-  }
-}
-
 .type-card-head{
   display: flex;
   flex-direction: row;

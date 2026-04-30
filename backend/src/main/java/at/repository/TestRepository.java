@@ -13,6 +13,7 @@ import at.model.School;
 import at.model.helper.ExampleVariable;
 import at.model.helper.GradingLevel;
 import at.security.TokenService;
+import at.websocket.CollectionSocket;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -128,7 +129,7 @@ public class TestRepository {
         em.persist(test);
 
         addExamplesToTest(test, dto.exampleList());
-
+        CollectionSocket.broadcast(test.getSchool().getId());
         return Response.ok().build();
     }
 
@@ -167,7 +168,7 @@ public class TestRepository {
         test.getExampleList().clear();
 
         addExamplesToTest(test, dto.exampleList());
-
+        CollectionSocket.broadcast(test.getSchool().getId());
         return Response.ok().build();
     }
 
@@ -184,6 +185,7 @@ public class TestRepository {
         }
 
         em.remove(test);
+        CollectionSocket.broadcast(test.getSchool().getId());
         return Response.ok().build();
     }
 
@@ -209,6 +211,7 @@ public class TestRepository {
 
         test.setFolder(folder);
         em.merge(test);
+        CollectionSocket.broadcast(test.getSchool().getId());
         return Response.ok().build();
     }
 

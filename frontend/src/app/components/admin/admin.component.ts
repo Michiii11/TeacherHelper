@@ -8,6 +8,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { NavbarActionsService } from '../navigation/navbar-actions.service';
 import { HttpService } from '../../service/http.service';
 import { AdminCountPeriodDTO, AdminDashboardDTO, AdminUserDashboardDTO } from '../../model/User';
+import {SchoolDTO} from '../../model/School'
 
 type AdminSortKey = 'newest' | 'oldest' | 'lastActive' | 'nameAsc' | 'nameDesc';
 type AdminDashboardKey = keyof Pick<
@@ -51,6 +52,27 @@ interface UserMetricConfig {
   key: AdminUserMetricKey;
 }
 
+interface AdminCollectionOverviewDTO {
+  id?: string;
+  name?: string;
+  title?: string;
+  members?: unknown[] | number;
+  memberCount?: number;
+  users?: unknown[] | number;
+  userCount?: number;
+  examples?: unknown[] | number;
+  exampleCount?: number;
+  tests?: unknown[] | number;
+  testCount?: number;
+}
+
+type AdminUserWithCollections = AdminUserDashboardDTO & {
+  collectionList?: AdminCollectionOverviewDTO[];
+  collectionOverviews?: AdminCollectionOverviewDTO[];
+  collectionsOverview?: AdminCollectionOverviewDTO[];
+  ownedCollections?: AdminCollectionOverviewDTO[];
+};
+
 @Component({
   selector: 'app-admin',
   standalone: true,
@@ -72,17 +94,17 @@ export class AdminComponent implements OnInit, OnDestroy {
   private readonly service = inject(HttpService);
 
   readonly userStatCards: StatCardConfig[] = [
-    { label: 'Amount Users', key: 'amountUsers', toneClass: 'primary-tone' },
-    { label: 'Active Users (Month)', key: 'activeUsersMonth', toneClass: 'success-tone' },
-    { label: 'Active Users (Week)', key: 'activeUsersWeek', toneClass: 'warning-tone pending-card' },
-    { label: 'New Users (Month)', key: 'newUsersMonth', toneClass: 'dark-tone' }
+    { label: 'User gesamt', key: 'amountUsers', toneClass: 'tone-users' },
+    { label: 'Aktiv im Monat', key: 'activeUsersMonth', toneClass: 'tone-active-month' },
+    { label: 'Aktiv in der Woche', key: 'activeUsersWeek', toneClass: 'tone-active-week' },
+    { label: 'Neue User im Monat', key: 'newUsersMonth', toneClass: 'tone-new-users' }
   ];
 
   readonly aboStatCards: StatCardConfig[] = [
-    { label: 'Free Abos', key: 'freeAbos', toneClass: 'primary-tone' },
-    { label: 'Pro Abos', key: 'proAbos', toneClass: 'success-tone' },
-    { label: 'School Abos', key: 'schoolAbos', toneClass: 'warning-tone pending-card' },
-    { label: 'Estimated Money / Month', key: 'cashflow', toneClass: 'dark-tone' }
+    { label: 'Free Abos', key: 'freeAbos', toneClass: 'tone-free' },
+    { label: 'Pro Abos', key: 'proAbos', toneClass: 'tone-pro' },
+    { label: 'School Abos', key: 'schoolAbos', toneClass: 'tone-school' },
+    { label: 'Geschätzter Umsatz / Monat', key: 'cashflow', toneClass: 'tone-revenue' }
   ];
 
   readonly metricPanels: MetricPanelConfig[] = [
@@ -108,13 +130,15 @@ export class AdminComponent implements OnInit, OnDestroy {
   ];
 
   readonly userMetrics: UserMetricConfig[] = [
-    { label: 'Sammlungen', key: 'collections' },
+    { label: 'Collections', key: 'collections' },
     { label: 'Examples', key: 'examples' },
     { label: 'Tests', key: 'tests' }
   ];
 
   search = '';
   sort: AdminSortKey = 'lastActive';
+  selectedUserId: string | null = null;
+  selectedUserDTO: { id: string; schools: SchoolDTO[] } = { id: '', schools: [] };
   dash: AdminDashboardDTO = this.createEmptyDashboard();
 
   ngOnInit(): void {
@@ -134,11 +158,36 @@ export class AdminComponent implements OnInit, OnDestroy {
       .sort((a, b) => this.compareUsers(a, b));
   }
 
+  get selectedUser(): AdminUserDashboardDTO | null {
+    if (!this.selectedUserId) {
+      return null;
+    }
+
+    return this.dash.users.find((user) => user.id === this.selectedUserId) ?? null;
+  }
+
   loadDashboard(): void {
     this.service.getAdminDashboard().subscribe({
-      next: (data) => this.dash = this.normalizeDashboard(data),
+      next: (data) => {
+        this.dash = this.normalizeDashboard(data);
+
+        if (this.selectedUserId && !this.dash.users.some((user) => user.id === this.selectedUserId)) {
+          this.selectedUserId = null;
+        }
+      },
       error: () => this.showMessage('Admin Dashboard konnte nicht geladen werden.', 3000)
     });
+  }
+
+  selectUser(user: AdminUserDashboardDTO): void {
+    this.selectedUserId = user.id;
+
+    this.service.getUserAdminDashboard(user.id).subscribe({
+      next: (data) => {
+        this.selectedUserDTO = data as { id: string; schools: SchoolDTO[] }
+        console.log(this.selectedUserDTO)
+      }
+    })
   }
 
   copyUserId(user: AdminUserDashboardDTO, event?: MouseEvent): void {
@@ -192,16 +241,45 @@ export class AdminComponent implements OnInit, OnDestroy {
     return `vor ${Math.floor(diffDays / 30)} Monaten`;
   }
 
+  getUserCollections(user: AdminUserDashboardDTO | null): AdminCollectionOverviewDTO[] {
+    if (!user) {
+      return [];
+    }
+
+    const userWithCollections = user as AdminUserWithCollections;
+    const possibleCollections = [
+      userWithCollections.collectionList,
+      userWithCollections.collectionOverviews,
+      userWithCollections.collectionsOverview,
+      userWithCollections.ownedCollections,
+      (userWithCollections as any).collections
+    ];
+
+    return possibleCollections.find(Array.isArray) ?? [];
+  }
+
+  getCollectionName(collection: AdminCollectionOverviewDTO): string {
+    return collection.name || collection.title || 'Unbenannte Collection';
+  }
+
+  getCollectionMemberCount(collection: AdminCollectionOverviewDTO): number {
+    return this.readCount(collection.members, collection.memberCount, collection.users, collection.userCount);
+  }
+
+  getCollectionExampleCount(collection: AdminCollectionOverviewDTO): number {
+    return this.readCount(collection.examples, collection.exampleCount);
+  }
+
+  getCollectionTestCount(collection: AdminCollectionOverviewDTO): number {
+    return this.readCount(collection.tests, collection.testCount);
+  }
+
   trackByUserId(_: number, user: AdminUserDashboardDTO): string {
     return user.id;
   }
 
-  trackByKey<T extends { key: string }>(_: number, item: T): string {
-    return item.key;
-  }
-
-  trackByValue<T extends { value: string }>(_: number, item: T): string {
-    return item.value;
+  trackByCollection(index: number, collection: AdminCollectionOverviewDTO): string {
+    return collection.id ?? `${this.getCollectionName(collection)}-${index}`;
   }
 
   private get normalizedSearch(): string {
@@ -278,6 +356,20 @@ export class AdminComponent implements OnInit, OnDestroy {
       month: 0,
       year: 0
     };
+  }
+
+  private readCount(...values: Array<unknown[] | number | undefined>): number {
+    for (const value of values) {
+      if (Array.isArray(value)) {
+        return value.length;
+      }
+
+      if (typeof value === 'number') {
+        return value;
+      }
+    }
+
+    return 0;
   }
 
   private dateTime(value: string): number {

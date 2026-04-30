@@ -36,9 +36,14 @@
             {{ loginMessage }}
           </div>
 
-          <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid">
-            {{ 'auth.tabs.login' | translate }}
+          <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid || isLoggingIn">
+            <mat-icon>{{ isLoggingIn ? 'hourglass_top' : 'login' }}</mat-icon>
+            {{ isLoggingIn ? ('auth.verify.login' | translate) : ('auth.tabs.login' | translate) }}
           </button>
+
+          @if (isLoggingIn) {
+            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+          }
         </mat-card-content>
 
         <mat-card-actions class="action-row action-row-single">

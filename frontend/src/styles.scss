@@ -578,11 +578,6 @@ textarea::placeholder {
   color: var(--text) !important;
 }
 
-.mat-mdc-card {
-  background: var(--surface) !important;
-  color: var(--text) !important;
-}
-
 .mat-mdc-dialog-title {
   color: var(--text) !important;
 }
@@ -719,7 +714,6 @@ textarea::placeholder {
   color: var(--text-subtle);
 }
 
-.mat-mdc-card,
 .mat-mdc-dialog-surface,
 .mat-mdc-menu-panel,
 .mat-toolbar,

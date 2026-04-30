@@ -77,7 +77,8 @@
   background: var(--bg-soft);
   padding: 36px 44px;
   overflow-y: auto;
-  height: 100%;
+  height: 60vh;
+  border-radius: 14px;
 }
 
 mat-dialog-actions {

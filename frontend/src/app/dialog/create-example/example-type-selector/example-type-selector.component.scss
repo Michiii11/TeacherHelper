@@ -3,15 +3,14 @@
   width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
-  padding-bottom: 6px;
+  padding-bottom: .25rem;
 }
 
 .example-type-toggle-group {
   display: grid;
   grid-template-columns: repeat(6, minmax(150px, 1fr));
-  gap: 12px;
-  min-width: 960px;
-  margin-bottom: 20px;
+  gap: .25rem;
+  padding-top: .25rem;
 }
 
 .example-type-toggle {
@@ -20,16 +19,18 @@
   padding: 14px 16px;
   border: 1px solid rgba(15, 23, 42, 0.1);
   border-radius: 18px;
-  background: #fff;
+  background: var(--bg-soft);
   text-align: left;
   cursor: pointer;
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
-.example-type-toggle:hover,
-.example-type-toggle.active {
-  border-color: rgba(63, 81, 181, 0.45);
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+.example-type-toggle:hover, {
+  border-color: var(--border);
+  transform: translateY(-1px);
+}
+.example-type-toggle.active{
+  border-color: var(--primary-strong);
   transform: translateY(-1px);
 }
 

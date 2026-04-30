@@ -6,6 +6,7 @@ import { Subject } from 'rxjs';
 
 import { HttpService } from '../../service/http.service';
 import { CreateExampleDTO, ExampleTypes } from '../../model/Example';
+import {TranslatePipe} from '@ngx-translate/core'
 
 type ExamplePreviewDialogData = {
   example?: CreateExampleDTO;
@@ -16,7 +17,7 @@ type ExamplePreviewDialogData = {
 @Component({
   selector: 'app-example-preview',
   standalone: true,
-  imports: [NgIf, NgForOf, MatPseudoCheckbox],
+  imports: [NgIf, NgForOf, MatPseudoCheckbox, TranslatePipe],
   templateUrl: './example-preview.component.html',
   styleUrl: './example-preview.component.scss',
 })

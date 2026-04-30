@@ -9,6 +9,7 @@ import at.model.*;
 import at.model.helper.Focus;
 import at.security.TokenService;
 import at.service.MediaStorageService;
+import at.websocket.CollectionSocket;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -156,6 +157,8 @@ public class SchoolRepository {
         school.setLogoUrl(logoUrl);
         em.merge(school);
 
+        CollectionSocket.broadcast(collectionId);
+
         return Response.ok(school.toSchoolDTO()).build();
     }
 
@@ -181,6 +184,8 @@ public class SchoolRepository {
         school.setLogoUrl(null);
         em.merge(school);
 
+        CollectionSocket.broadcast(collectionId);
+
         return Response.ok(school.toSchoolDTO()).build();
     }
 
@@ -202,11 +207,13 @@ public class SchoolRepository {
 
         em.merge(collection);
 
+        CollectionSocket.broadcast(collectionId);
+
         return Response.ok().build();
     }
 
-    public Response removeTeacher(UUID id, UUID userId, UUID teacherId) {
-        School school = em.find(School.class, id);
+    public Response removeTeacher(UUID collectionId, UUID userId, UUID teacherId) {
+        School school = em.find(School.class, collectionId);
         User user = em.find(User.class, userId);
         User teacher = em.find(User.class, teacherId);
 
@@ -226,11 +233,13 @@ public class SchoolRepository {
 
         em.merge(school);
 
+        CollectionSocket.broadcast(collectionId);
+
         return Response.ok().build();
     }
 
-    public Response inviteTeacher(UUID schoolId, UUID userId, String email) {
-        School school = em.find(School.class, schoolId);
+    public Response inviteTeacher(UUID collectionId, UUID userId, String email) {
+        School school = em.find(School.class, collectionId);
         User sender = em.find(User.class, userId);
         User teacher = em.createQuery("SELECT t FROM User t WHERE t.email = :email", User.class)
                 .setParameter("email", email)
@@ -259,7 +268,7 @@ public class SchoolRepository {
                   AND i.type = :type
                   AND i.status = :status
                 """, Long.class)
-                .setParameter("schoolId", schoolId)
+                .setParameter("schoolId", collectionId)
                 .setParameter("recipientId", teacher.getId())
                 .setParameter("type", SchoolInviteType.TEACHER_INVITATION)
                 .setParameter("status", SchoolInviteStatus.PENDING)
@@ -360,8 +369,8 @@ public class SchoolRepository {
         return Response.ok(toSchoolInviteDTO(invite)).build();
     }
 
-    public Response updateSchoolSettings(UUID schoolId, UUID userId, String newName) {
-        School school = em.find(School.class, schoolId);
+    public Response updateSchoolSettings(UUID collectionId, UUID userId, String newName) {
+        School school = em.find(School.class, collectionId);
 
         if (school == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("School not found").build();
@@ -384,7 +393,7 @@ public class SchoolRepository {
                   AND s.id <> :schoolId
                 """, Long.class)
                 .setParameter("name", cleanedName)
-                .setParameter("schoolId", schoolId)
+                .setParameter("schoolId", collectionId)
                 .getSingleResult();
 
         if (existing > 0) {
@@ -393,6 +402,8 @@ public class SchoolRepository {
 
         school.setName(cleanedName);
         em.merge(school);
+
+        CollectionSocket.broadcast(collectionId);
 
         return Response.ok(school.toSchoolDTO()).build();
     }
@@ -426,11 +437,13 @@ public class SchoolRepository {
         collection.getFocusList().add(focus);
         em.merge(collection);
 
+        CollectionSocket.broadcast(collectionId);
+
         return Response.ok(focus).build();
     }
 
-    public Response deleteFocus(UUID id, UUID focusId, UUID userId) {
-        School collection = em.find(School.class, id);
+    public Response deleteFocus(UUID collectionId, UUID focusId, UUID userId) {
+        School collection = em.find(School.class, collectionId);
 
         if(!collection.getAdmin().getId().equals(userId) &&
                 collection.getUsers().stream().noneMatch(u -> u.getId().equals(userId))) {
@@ -451,6 +464,8 @@ public class SchoolRepository {
         }
 
         em.remove(focus);
+
+        CollectionSocket.broadcast(collectionId);
 
         return Response.ok().build();
     }

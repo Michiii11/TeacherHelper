@@ -595,6 +595,7 @@
       "oldest": "Oldest first"
     },
     "preview": {
+      "previewTitle": "Preview",
       "name": "Name",
       "class": "Class",
       "date": "Date",
@@ -1011,6 +1012,7 @@
       "submit": "Set password"
     },
     "verify": {
+      "login": "Logging in...",
       "loading": "Verifying email...",
       "resend": "Resend verification email"
     },

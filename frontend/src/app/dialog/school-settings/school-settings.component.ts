@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -46,6 +46,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private service = inject(HttpService);
   private translate = inject(TranslateService);
+  private cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
   private dialog = inject(MatDialog);
@@ -348,34 +349,50 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   }
 
   sendTeacherInvite(): void {
-    if (!this.isAdmin || this.inviteForm.invalid) {
+    this.inviteSuccessMessage = null;
+    this.inviteErrorMessage = null;
+
+    if (!this.isAdmin || this.invitingTeacher) {
+      return;
+    }
+
+    if (this.inviteForm.invalid) {
       this.inviteForm.markAllAsTouched();
       return;
     }
 
     const email = (this.inviteForm.value.email ?? '').trim().toLowerCase();
+
     if (!email) {
+      this.inviteForm.markAllAsTouched();
       return;
     }
 
     this.invitingTeacher = true;
-    this.inviteSuccessMessage = null;
-    this.inviteErrorMessage = null;
 
     this.service.inviteTeacher(this.data.schoolId, email)
       .pipe(takeUntil(this.destroy$), finalize(() => (this.invitingTeacher = false)))
       .subscribe({
         next: () => {
-          this.inviteForm.reset();
           this.inviteSuccessMessage = this.translate.instant('schoolSettings.snackbar.inviteSent');
+
+          this.inviteForm.reset({ email: '' }, { emitEvent: false });
+          this.inviteEmailControl.setErrors(null);
+          this.inviteForm.markAsPristine();
+          this.inviteForm.markAsUntouched();
+
           if (this.inviteSuccessMessage != null) {
-            this.snack.open(this.inviteSuccessMessage, 'OK', { duration: 4000 });
+            this.snack.open(this.inviteSuccessMessage, 'OK', {duration: 2000});
           }
         },
         error: error => {
-          this.inviteErrorMessage = error.error;
+          this.inviteErrorMessage =
+            typeof error?.error === 'string'
+              ? error.error
+              : error?.error?.message ?? this.translate.instant('common.error');
+
           if (this.inviteErrorMessage != null) {
-            this.snack.open(this.inviteErrorMessage, 'OK', { duration: 5000 });
+            this.snack.open(this.inviteErrorMessage, 'OK', {duration: 3000});
           }
         }
       });
@@ -498,17 +515,11 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   }
 
   getAvatarUrl(user: UserDTO): string | null {
-    if (!user?.id || !user?.profileImageUrl) {
+    if (!user?.id || !user.profileImageUrl) {
       return null;
     }
 
-    const cachedUrl = this.avatarUrls.get(user.id);
-    if (cachedUrl) {
-      return cachedUrl;
-    }
-
-    this.loadAvatar(user);
-    return null;
+    return this.avatarUrls.get(user.id) ?? null;
   }
 
   private loadMemberAvatars(): void {
@@ -517,7 +528,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   }
 
   private loadAvatar(user: UserDTO | null | undefined): void {
-    if (!user?.id || !user?.profileImageUrl || this.avatarUrls.has(user.id) || this.loadingAvatarIds.has(user.id)) {
+    if (!user?.id || !user.profileImageUrl || this.loadingAvatarIds.has(user.id)) {
       return;
     }
 
@@ -530,9 +541,12 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
           this.revokeAvatarUrl(user.id);
           this.avatarUrls.set(user.id, URL.createObjectURL(blob));
           this.loadingAvatarIds.delete(user.id);
+          this.cdr.markForCheck();
         },
         error: () => {
+          this.revokeAvatarUrl(user.id);
           this.loadingAvatarIds.delete(user.id);
+          this.cdr.markForCheck();
         }
       });
   }

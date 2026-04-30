@@ -2,7 +2,7 @@
   <div class="preview-dialog">
     @if(showHeader){
       <div class="preview-header">
-        <h1>Vorschau</h1>
+        <h1>{{ 'createTest.preview.previewTitle' | translate }}</h1>
       </div>
     }
 
@@ -11,7 +11,7 @@
         <p class="multiline-text">{{ example.instruction }}</p>
       </div>
 
-      <p><strong>Aufgabenstellung:</strong></p>
+      <p><strong>{{ 'school.question' | translate }}:</strong></p>
 
       <div>
         <p class="multiline-text">{{ getQuestionWithGapLabels() }}</p>
@@ -28,25 +28,18 @@
       @if(example.type === ExampleTypes.CONSTRUCTION){
         <div class="construction-preview">
           <div>
-            <p><strong>Aufgabenbild</strong></p>
+            <p><strong>{{ 'exampleDialog.taskImage' | translate }}</strong></p>
+
             <img
               *ngIf="getPreviewImageUrl()"
               [src]="getPreviewImageUrl()"
-              alt="Aufgabenbild Vorschau"
+              [alt]="'exampleDialog.taskImagePreviewAlt' | translate"
               class="image-preview"
               [style.width.px]="getImageWidth(example)" />
-            <p *ngIf="!getPreviewImageUrl()">Kein Bild ausgewählt.</p>
-          </div>
 
-          <div class="construction-section">
-            <p><strong>Lösungsbild</strong></p>
-            <img
-              *ngIf="getPreviewSolutionImageUrl()"
-              [src]="getPreviewSolutionImageUrl()"
-              alt="Lösungsbild Vorschau"
-              class="image-preview"
-              [style.width.px]="getSolutionImageWidth(example)" />
-            <p *ngIf="!getPreviewSolutionImageUrl()">Kein Lösungsbild ausgewählt.</p>
+            <p *ngIf="!getPreviewImageUrl()">
+              {{ 'exampleDialog.noTaskImage' | translate }}
+            </p>
           </div>
         </div>
       }

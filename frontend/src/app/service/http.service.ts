@@ -30,6 +30,11 @@ export class HttpService {
     const token = this.authToken();
     return `${Config.SOCKET_URL}/notification?token=${encodeURIComponent(token)}`;
   }
+
+  getCollectionSocketUrl(collectionId: string | null): string {
+    const token = this.authToken();
+    return `${Config.SOCKET_URL}/collection/${collectionId}?token=${encodeURIComponent(token)}`;
+  }
   // endregion
 
   // region Collection
@@ -165,7 +170,8 @@ export class HttpService {
   }
 
   updateFolder(folderId: string, dto: CreateFolderDTO) {
-    return this.http.put<FolderDTO>(`${Config.API_URL}/folder/${folderId}`, dto);
+    return this.http.put<FolderDTO>(`${Config.API_URL}/folder/${folderId}`, dto,
+      { headers: { Authorization: this.authToken() }});
   }
 
   deleteFolder(folderId: string) {
@@ -390,6 +396,11 @@ export class HttpService {
 
   getAdminDashboard(){
     return this.http.get<AdminDashboardDTO>(`${Config.API_URL}/user/admin`,
+      { headers: { Authorization: this.authToken() }});
+  }
+
+  getUserAdminDashboard(userId: string) {
+    return this.http.get(`${Config.API_URL}/user/admin/${userId}`,
       { headers: { Authorization: this.authToken() }});
   }
 

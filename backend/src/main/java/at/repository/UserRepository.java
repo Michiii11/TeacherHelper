@@ -437,11 +437,8 @@ public class UserRepository {
     }
 
     public Response getProfileImage(UUID userId) {
-        if (userId == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-
         User user = findById(userId);
+
         if (user == null || user.getProfileImageUrl() == null || user.getProfileImageUrl().isBlank()) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -556,6 +553,21 @@ public class UserRepository {
         return Response.ok(dashboardData).build();
     }
 
+    public Response getUserAdminDashboard(UUID id) {
+        User user = em.find(User.class, id);
+        if (user == null) return Response.status(Response.Status.NOT_FOUND).entity("User not found.").build();
+
+        List<School> schools = em.createQuery(
+                "SELECT s FROM School s WHERE s.admin.id = :userId",
+                School.class).setParameter("userId", id).getResultList();
+
+        AdminUserDetailDTO dto = new AdminUserDetailDTO(
+                user.getId(),
+                schools.stream().map(School::toSchoolDTO).collect(java.util.stream.Collectors.toList())
+        );
+
+        return Response.ok(dto).build();
+    }
 
 
 

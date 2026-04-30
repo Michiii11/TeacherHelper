@@ -3,6 +3,7 @@ package at.repository;
 import at.dtos.Folder.CreateFolderDTO;
 import at.model.School;
 import at.model.Folder;
+import at.websocket.CollectionSocket;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -65,7 +66,7 @@ public class FolderRepository {
         Folder folder = new Folder(name, collection, parent);
         em.persist(folder);
         em.flush();
-
+        CollectionSocket.broadcast(folder.getSchool().getId());
         return Response.ok(folder.toDto()).build();
     }
 
@@ -110,7 +111,7 @@ public class FolderRepository {
 
         em.merge(folder);
         em.flush();
-
+        CollectionSocket.broadcast(folder.getSchool().getId());
         return Response.ok(folder.toDto()).build();
     }
 
@@ -152,6 +153,7 @@ public class FolderRepository {
         }
 
         em.remove(folder);
+        CollectionSocket.broadcast(folder.getSchool().getId());
         return Response.ok().build();
     }
 
