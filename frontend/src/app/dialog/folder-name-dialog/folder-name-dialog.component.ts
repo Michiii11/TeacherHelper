@@ -6,7 +6,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { TranslatePipe } from '@ngx-translate/core';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 export interface FolderNameDialogData {
   title: string;
@@ -28,8 +29,17 @@ export interface FolderNameDialogData {
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
+    MatProgressBarModule,
+    MatProgressSpinnerModule,
   ],
   template: `
+    <div class="dialog-content" [class.saving]="isSaving">
+      @if (isSaving) {
+        <div class="loading-overlay">
+          <mat-spinner diameter="42"></mat-spinner>
+        </div>
+      }
+
       <div class="dialog-header">
         <div class="title-icon">
           <mat-icon>create_new_folder</mat-icon>
@@ -50,11 +60,12 @@ export interface FolderNameDialogData {
           (keydown.enter)="confirm()"
           maxlength="120"
           cdkFocusInitial
+          [disabled]="isSaving"
         >
       </mat-form-field>
 
       <div class="dialog-actions">
-        <button mat-stroked-button type="button" (click)="close()">
+        <button mat-stroked-button type="button" (click)="close()" [disabled]="isSaving">
           {{ data.cancelText }}
         </button>
 
@@ -63,16 +74,27 @@ export interface FolderNameDialogData {
           color="primary"
           type="button"
           (click)="confirm()"
-          [disabled]="!value.trim()"
+          [disabled]="isSaving || !value.trim()"
         >
+          <mat-icon>{{ isSaving ? 'hourglass_top' : 'save' }}</mat-icon>
           {{ data.confirmText }}
         </button>
       </div>
+
+      @if (isSaving) {
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+      }
+    </div>
   `,
   styles: [`
     :host {
       display: block;
       padding: 1.4rem 1.5rem 1.6rem;
+      position: relative;
+    }
+
+    .dialog-content {
+      position: relative;
     }
 
     .full-width {
@@ -92,10 +114,33 @@ export interface FolderNameDialogData {
       font-weight: 600;
       border-radius: 10px;
     }
+
+    .loading-overlay {
+      position: absolute;
+      inset: -1.4rem -1.5rem -1.6rem;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, .72);
+      border-radius: 14px;
+      backdrop-filter: blur(2px);
+    }
+
+    mat-progress-bar {
+      margin-top: 1rem;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    mat-icon {
+      margin-right: .35rem;
+    }
   `]
 })
 export class FolderNameDialogComponent {
   value = '';
+  isSaving = false;
 
   constructor(
     public dialogRef: MatDialogRef<FolderNameDialogComponent>,
@@ -105,12 +150,17 @@ export class FolderNameDialogComponent {
   }
 
   close(): void {
+    if (this.isSaving) return;
     this.dialogRef.close(undefined);
   }
 
   confirm(): void {
     const trimmed = this.value.trim();
-    if (!trimmed) return;
+    if (!trimmed || this.isSaving) return;
+
+    this.isSaving = true;
+    this.dialogRef.disableClose = true;
+
     this.dialogRef.close(trimmed);
   }
 }

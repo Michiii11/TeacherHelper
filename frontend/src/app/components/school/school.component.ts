@@ -458,7 +458,7 @@ export class SchoolComponent implements OnInit, OnDestroy {
 
   createFolder(parentId: string | null = this.selectedFolderId): void {
     if (!this.schoolId) return;
-
+    
     const ref = this.dialog.open(FolderNameDialogComponent, {
       width: 'min(92vw, 500px)',
       maxWidth: '92vw',

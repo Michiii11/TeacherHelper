@@ -81,7 +81,7 @@ type VariableTarget =
   styleUrls: ['./create-example.component.scss']
 })
 export class CreateExampleComponent implements OnInit, OnDestroy {
-  data = inject<{ schoolId: string; exampleId: string }>(MAT_DIALOG_DATA);
+  data = inject<{ schoolId: string; exampleId: string, folderId: string }>(MAT_DIALOG_DATA);
   private readonly destroy$ = new Subject<void>();
 
   private readonly http = inject(HttpService);
@@ -125,7 +125,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     variables: [],
     imageWidth: this.defaultImageWidth,
     solutionImageWidth: this.defaultImageWidth,
-    folderId: ''
+    folderId: this.data.folderId
   };
 
   readonly ExampleTypes = ExampleTypes;
