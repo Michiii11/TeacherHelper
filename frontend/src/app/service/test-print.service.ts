@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 
 import { Example, ExampleTypes, Gap, Option } from '../model/Example';
 import { CreateTestDTO, GradingLevel, TestExampleDTO } from '../model/Test';
-import { Config } from '../config';
 
 export type GradeMode = 'auto' | 'manual';
 
@@ -286,13 +285,10 @@ export class TestPrintService {
           flex: 1;
         }
         .brand-logo {
-          width: 64px;
-          height: 64px;
+          width: 50px;
+          height: 50px;
           object-fit: contain;
           border-radius: 10px;
-          border: 1px solid #d8dde6;
-          padding: 6px;
-          background: #fff;
           flex: 0 0 auto;
         }
         .brand-name {
@@ -396,9 +392,24 @@ export class TestPrintService {
         .student-list > div, .solution-list > div { margin-bottom: 8px; }
         .solution-box { border: 1px solid #222; padding: 10px; min-height: 48px; white-space: pre-line; }
         .muted { color: #777; }
-        .construction-preview { margin-top: 8px; }
-        .image-preview { max-width: 100%; max-height: none; display: block; margin-bottom: 10px; object-fit: contain; }
-        .construction-preview { overflow: visible; }
+        .construction-preview {
+          display: flex;
+          align-items: flex-start;
+          width: 100%;
+          max-width: 100%;
+          margin-top: 8px;
+          overflow: hidden;
+        }
+        .image-preview {
+          display: block;
+          max-width: 100%;
+          max-height: 680px;
+          height: auto;
+          margin-bottom: 10px;
+          object-fit: contain;
+          object-position: center;
+          border-radius: 14px;
+        }
         .construction-space { min-height: 180px; border: 1px dashed #b6bcc7; }
         .answer-table-wrap, .assign-preview, .gap-grid { margin-top: 8px; }
         .checkbox-cell, .small, .letter-cell { width: 42px; text-align: center; }
@@ -494,6 +505,7 @@ export class TestPrintService {
 
   private buildSolutionPagesHtml(test: PrintableTest, selectedExamples: TestExampleDTO[], options: TestPrintOptions): string {
     const labels = options.labels;
+    const branding = this.resolveBranding(test, options.branding);
     const tasks = selectedExamples
       .map((entry, i) => this.buildTaskHtml(entry, i, true, options))
       .join('');
@@ -501,6 +513,7 @@ export class TestPrintService {
     return `
       <section class="print-doc solution-doc page-break-before">
         <div class="test-header solution-header">
+          ${this.buildBrandingHtml(branding)}
           <h2 class="test-title">${this.escapeHtml(test.name || labels.untitled)} ${this.escapeHtml(labels.solutionSuffix)}</h2>
           <p class="solution-note">${this.escapeHtml(labels.solutionNote)}</p>
           <hr class="header-divider" />
@@ -649,7 +662,7 @@ export class TestPrintService {
 
         return `
           <div class="construction-preview">
-            ${image ? `<img src="${this.escapeHtml(image)}" alt="${this.escapeHtml(labels.imagePreviewAlt)}" class="image-preview" style="width:${width}px;max-width:${width}px;height:auto;" />` : ''}
+            ${image ? `<img src="${this.escapeHtml(image)}" alt="${this.escapeHtml(labels.imagePreviewAlt)}" class="image-preview" style="width:${width}px;max-width:100%;height:auto;" />` : ''}
           </div>
         `;
       }
@@ -760,27 +773,11 @@ export class TestPrintService {
   }
 
   private getConstructionTaskImage(example: Example): string | null {
-    if (!example?.id) {
-      return (example as any).imageUrl || (example as any).image || null;
-    }
-
-    if ((example as any).imageUrl || (example as any).image) {
-      return `${Config.API_URL}/example/${example.id}/construction-image`;
-    }
-
-    return null;
+    return (example as any)?.imageUrl || (example as any)?.image || null;
   }
 
   private getConstructionSolutionImage(example: Example): string | null {
-    if (!example?.id) {
-      return (example as any).solutionUrl || null;
-    }
-
-    if ((example as any).solutionUrl) {
-      return `${Config.API_URL}/example/${example.id}/construction-solution-image`;
-    }
-
-    return this.getConstructionTaskImage(example);
+    return (example as any)?.solutionUrl || this.getConstructionTaskImage(example);
   }
 
   private normalizeImageWidth(value: number | null | undefined): number {

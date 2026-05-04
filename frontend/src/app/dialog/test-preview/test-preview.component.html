@@ -1,3 +1,12 @@
+@if (isLoading) {
+  <main class="create-test-shell loading-dashboard">
+    <section class="school-loading-card">
+      <mat-icon>assignment</mat-icon>
+      <h2>{{ 'common.loading' | translate }}</h2>
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    </section>
+  </main>
+} @else {
 <main class="test-preview-shell">
   <mat-dialog-content class="test-preview-layout">
     <div class="preview-toolbar no-print">
@@ -48,3 +57,4 @@
     </div>
   </mat-dialog-content>
 </main>
+}

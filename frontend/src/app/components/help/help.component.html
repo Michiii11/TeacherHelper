@@ -1,13 +1,15 @@
 <main class="dashboard help-dashboard">
   <section class="content-area">
-
-    <mat-button-toggle-group [(ngModel)]="activeTab" [hideSingleSelectionIndicator]="true">
-      <mat-button-toggle value="changelog"
-                         (click)="onTabChange(1)">
+    <mat-button-toggle-group
+      class="help-tabs"
+      [value]="activeTab()"
+      [hideSingleSelectionIndicator]="true"
+      (change)="onTabChange($event)"
+      aria-label="Help navigation">
+      <mat-button-toggle value="changelog">
         {{ 'help.actions.openChangelog' | translate }}
       </mat-button-toggle>
-      <mat-button-toggle value="docs"
-                         (click)="onTabChange(0)">
+      <mat-button-toggle value="docs">
         {{ 'help.actions.openOverview' | translate }}
       </mat-button-toggle>
     </mat-button-toggle-group>
@@ -35,17 +37,17 @@
           <div class="changelog-list">
             @for (entry of changelog; track entry.version) {
               <article class="changelog-card" [class.is-latest]="entry.isLatest">
-                <div class="changelog-head">
-                  <div class="changelog-head-main">
-                    <div class="changelog-topline">
-                      <span class="changelog-version">{{ entry.version }}</span>
+                <header class="changelog-head">
+                  <div class="changelog-topline">
+                    <span class="changelog-version">{{ entry.version }}</span>
 
-                      @if (entry.isLatest) {
-                        <span class="changelog-chip latest">{{ 'help.changelog.latest' | translate }}</span>
-                      }
-                    </div>
+                    @if (entry.isLatest) {
+                      <span class="changelog-chip latest">
+                        {{ 'help.changelog.latest' | translate }}
+                      </span>
+                    }
                   </div>
-                </div>
+                </header>
 
                 <ul class="changelog-items">
                   @for (change of entry.changes; track change) {

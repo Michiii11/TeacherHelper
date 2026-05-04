@@ -1,0 +1,130 @@
+.advanced-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.settings-card {
+  padding: 1rem;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text-soft) 16%, transparent);
+}
+
+.settings-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.settings-head h3 {
+  margin: 0;
+  font-size: 1.06rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.compact-grid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.compact-grid.four-cols {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.layout-toolbar {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 0.65rem;
+}
+
+.stacked-actions {
+  flex-direction: column;
+}
+
+.layout-helper-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.preset-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-bottom: 0.9rem;
+}
+
+.grading-level-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.grading-level-card {
+  padding: 0.95rem;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+}
+
+.grading-level-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.85rem;
+}
+
+.level-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.grading-footer-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 0.9rem;
+}
+
+.mat-mdc-icon-button {
+  font-size: .8rem;
+  padding-inline: .25rem;
+  background: var(--primary) !important;
+  color: white !important;
+
+  &:hover {
+    background: var(--primary-2) !important;
+  }
+
+  &:disabled {
+    color: var(--primary-soft) !important;
+    background: var(--primary-surface) !important;
+  }
+}
+
+@media (max-width: 1100px) {
+  .compact-grid.four-cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 780px) {
+  .compact-grid.four-cols,
+  .layout-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .grading-level-header,
+  .settings-head {
+    align-items: stretch;
+  }
+}

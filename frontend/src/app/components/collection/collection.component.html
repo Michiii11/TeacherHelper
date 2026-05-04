@@ -1,0 +1,428 @@
+@if (isSchoolLoading) {
+  <main class="dashboard loading-dashboard" [attr.aria-label]="'collection.dashboardAria' | translate">
+    <section class="school-loading-card">
+      <mat-icon>school</mat-icon>
+      <h2>{{ 'common.loading' | translate }}</h2>
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    </section>
+  </main>
+} @else {
+  <main class="dashboard" [attr.aria-label]="'collection.dashboardAria' | translate">
+    <section class="content-area">
+      <article class="panel explorer-panel">
+        <div class="panel-header panel-header-stack">
+          <div class="toolbar">
+            <div class="toolbar-grid filter-panel">
+              <label class="control search-control search-control-wide">
+                <input
+                  type="text"
+                  [(ngModel)]="search"
+                  [placeholder]="'collection.searchExamplesPlaceholder' | translate"
+                >
+              </label>
+
+              <div class="filter-popup-wrap" (click)="stopClick($event)">
+                <button type="button" class="ghost-btn reset-btn" (click)="toggleFilterPopup($event)">
+                  <mat-icon>filter_list</mat-icon>
+                  {{ 'common.filter' | translate }}
+                  @if (activeFilterCount > 0) {
+                    <span class="filter-badge">{{ activeFilterCount }}</span>
+                  }
+                </button>
+
+                @if (isFilterPopupOpen) {
+                  <div class="filter-popup-panel">
+                    <div class="filter-popup-section">
+                      <div class="filter-popup-title">{{ 'common.type' | translate }}</div>
+                      <div class="filter-select-panel static-panel">
+                        <button type="button" class="filter-option" [class.checked]="isItemTypeSelected('examples')" (click)="toggleItemType('examples')">
+                          <span class="filter-checkbox" [class.checked]="isItemTypeSelected('examples')"><mat-icon>check</mat-icon></span>
+                          <span class="filter-option-label">{{ 'collection.examples' | translate }}</span>
+                        </button>
+                        <button type="button" class="filter-option" [class.checked]="isItemTypeSelected('tests')" (click)="toggleItemType('tests')">
+                          <span class="filter-checkbox" [class.checked]="isItemTypeSelected('tests')"><mat-icon>check</mat-icon></span>
+                          <span class="filter-option-label">{{ 'collection.tests' | translate }}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="filter-popup-section">
+                      <div class="filter-popup-title">{{ 'collection.examples' | translate }}</div>
+                      <div class="filter-select-panel static-panel">
+                        @for (item of availableExampleTypes; track item.value) {
+                          <button type="button" class="filter-option" [class.checked]="isExampleTypeSelected(item.value)" (click)="toggleExampleType(item.value)">
+                            <span class="filter-checkbox" [class.checked]="isExampleTypeSelected(item.value)"><mat-icon>check</mat-icon></span>
+                            <span class="filter-option-label">{{ item.label }}</span>
+                          </button>
+                        }
+                      </div>
+                    </div>
+
+                    @if (availableExampleFocuses.length) {
+                      <div class="filter-popup-section">
+                        <div class="filter-popup-title">{{ 'collection.focuses' | translate }}</div>
+                        <div class="filter-select-panel static-panel">
+                          @for (focus of availableExampleFocuses; track focus) {
+                            <button type="button" class="filter-option" [class.checked]="isExampleFocusSelected(focus)" (click)="toggleExampleFocus(focus)">
+                              <span class="filter-checkbox" [class.checked]="isExampleFocusSelected(focus)"><mat-icon>check</mat-icon></span>
+                              <span class="filter-option-label">{{ focus }}</span>
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    @if (availableAuthors.length) {
+                      <div class="filter-popup-section">
+                        <div class="filter-popup-title">{{ 'collection.author' | translate }}</div>
+                        <div class="filter-select-panel static-panel">
+                          @for (author of availableAuthors; track author) {
+                            <button type="button" class="filter-option" [class.checked]="isAuthorSelected(author)" (click)="toggleAuthor(author)">
+                              <span class="filter-checkbox" [class.checked]="isAuthorSelected(author)"><mat-icon>check</mat-icon></span>
+                              <span class="filter-option-label">{{ author }}</span>
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    <div class="filter-popup-actions">
+                      <button type="button" class="ghost-btn reset-btn" (click)="resetFilters()">
+                        <mat-icon>restart_alt</mat-icon>
+                        {{ 'common.reset' | translate }}
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="toolbar-meta">
+              <div class="selected-chip-row selected-chip-row-box">
+                @for (chip of activeFilterChips; track chip.key) {
+                  <button type="button" class="selected-chip" (click)="chip.action()">
+                    <span>{{ chip.label }}</span>
+                    <mat-icon>close</mat-icon>
+                  </button>
+                }
+              </div>
+
+              <div class="view-toggle" role="tablist" [attr.aria-label]="'collection.viewAria' | translate">
+                <button type="button" class="view-toggle-btn" [class.active]="currentViewMode === 'grid'" (click)="setCurrentViewMode('grid')">
+                  <mat-icon>grid_view</mat-icon>
+                  {{ 'collection.grid' | translate }}
+                </button>
+
+                <button type="button" class="view-toggle-btn" [class.active]="currentViewMode === 'compact'" (click)="setCurrentViewMode('compact')">
+                  <mat-icon>table_rows</mat-icon>
+                  {{ 'collection.compact' | translate }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="explorer-layout">
+          <aside class="sidebar">
+            <div class="sidebar-head">
+              <div class="sidebar-title">
+                <mat-icon>folder_open</mat-icon>
+                <span>{{ 'collection.folders' | translate }}</span>
+              </div>
+
+              <button mat-icon-button (click)="createFolder()">
+                <mat-icon>create_new_folder</mat-icon>
+              </button>
+            </div>
+
+            @if (!isSearching && currentFolder) {
+              <div class="sidebar-path">
+                <span class="sidebar-path-label">{{ getFolderPathLabel(currentFolder.id) }}</span>
+                <div class="sidebar-path-line">
+                  @for (crumb of currentBreadcrumbs; track crumb.id; let last = $last) {
+                    <button type="button" class="path-link" (click)="navigateToBreadcrumb(crumb.id)">{{ crumb.name }}</button>
+                    @if (!last) {
+                      <span class="path-separator">/</span>
+                    }
+                  }
+                </div>
+
+                <button type="button" class="ghost-inline-btn" (click)="goToParentFolder()">
+                  <mat-icon>arrow_upward</mat-icon>
+                  {{ 'collection.goUp' | translate }}
+                </button>
+              </div>
+            }
+
+            <div class="sidebar-section-label">
+              @if (isSearching) {
+                {{ 'collection.searchResultsInAllFolders' | translate }}
+              } @else if (currentFolder) {
+                {{ 'collection.subfoldersOf' | translate:{ name: currentFolder.name } }}
+              } @else {
+                {{ 'collection.foldersOnRoot' | translate }}
+              }
+            </div>
+
+            <div class="folder-tree">
+              @for (folder of visibleFolders; track folder.id) {
+                <button
+                  type="button"
+                  class="folder-node"
+                  [class.active]="selectedFolderId === folder.id && !isSearching"
+                  [class.drop-active]="dropTarget === 'folder-' + folder.id"
+                  [class.drop-source]="draggedFolder?.folderId === folder.id"
+                  [class.deleting]="isDeletingFolder(folder.id)"
+                  [attr.draggable]="!isDeletingFolder(folder.id)"
+                  (click)="openFolder(folder)"
+                  (dragstart)="!isDeletingFolder(folder.id) && onFolderDragStart(folder, $event)"
+                  (dragend)="onFolderDragEnd()"
+                  (dragover)="allowDrop($event, 'folder-' + folder.id)"
+                  (dragleave)="onDropLeave($event, 'folder-' + folder.id)"
+                  (drop)="onDropToFolder($event, folder.id)"
+                >
+                  <div class="folder-node-main">
+                    <mat-icon>folder</mat-icon>
+                    <div class="folder-node-text">
+                      <span class="folder-name">{{ folder.name }}</span>
+                      <span class="folder-meta">
+                      {{ getFolderChildrenCount(folder) }} {{ 'collection.subfolders' | translate }} · {{ getFolderItemCount(folder) }} {{ 'collection.items' | translate }}
+                    </span>
+                      @if (isSearching && getFolderPathLabel(folder.id)) {
+                        <span class="folder-meta soft">{{ getFolderPathLabel(folder.id) }}</span>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="folder-node-actions" (click)="$event.stopPropagation()">
+                    <button mat-icon-button (click)="renameFolder(folder, $event)" [disabled]="isDeletingFolder(folder.id)"><mat-icon>edit</mat-icon></button>
+                    <button mat-icon-button (click)="moveFolderWithPicker(folder, $event)" [disabled]="isDeletingFolder(folder.id)" [title]="'collection.moveToOtherFolder' | translate"><mat-icon>drive_file_move</mat-icon></button>
+                    <button mat-icon-button color="warn" (click)="deleteFolder(folder, $event)" [disabled]="isDeletingFolder(folder.id)">
+                      <mat-icon>{{ isDeletingFolder(folder.id) ? 'hourglass_top' : 'delete' }}</mat-icon>
+                    </button>
+                  </div>
+                  @if (isDeletingFolder(folder.id)) {
+                    <mat-progress-bar class="delete-progress" mode="indeterminate"></mat-progress-bar>
+                  }
+                </button>
+              }
+            </div>
+          </aside>
+
+          <div class="explorer-main">
+            <div class="content-header">
+              <div class="content-header-text">
+                <div class="logo-name">
+                  <img
+                    *ngIf="logoUrl"
+                    [src]="logoUrl"
+                    alt="{{ school.name }} Logo"
+                    class="school-avatar"
+                  />
+                  <h2 class="content-title">{{ school.name }}</h2>
+                </div>
+                <p class="content-subtitle">
+                  @if (headerSubtitle) {
+                    <span>{{ headerSubtitle }}</span>
+                    <span> · </span>
+                  }
+                  <span>{{ totalVisibleFolderCount }} {{ 'collection.folders' | translate }} · {{ totalVisibleItemCount }} {{ 'collection.items' | translate }}</span>
+                </p>
+              </div>
+
+              <div class="content-header-actions">
+                <mat-form-field>
+                  <mat-select [(ngModel)]="sort">
+                    <mat-option value="nameAsc">{{ 'collection.sort.nameAsc' | translate }}</mat-option>
+                    <mat-option value="nameDesc">{{ 'collection.sort.nameDesc' | translate }}</mat-option>
+                    <mat-option value="createdDesc">{{ 'collection.sort.updatedDesc' | translate }}</mat-option>
+                    <mat-option value="createdAsc">{{ 'collection.sort.updatedAsc' | translate }}</mat-option>
+                    <mat-option value="authorAsc">{{ 'collection.sort.authorAsc' | translate }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <button mat-stroked-button color="primary" (click)="createFolder()">
+                  <mat-icon>create_new_folder</mat-icon>
+                  {{ 'collection.newFolder' | translate }}
+                </button>
+
+                <button mat-flat-button color="primary" (click)="openCreateExample()">
+                  <mat-icon>post_add</mat-icon>
+                  {{ 'collection.example' | translate }}
+                </button>
+
+                <button mat-flat-button color="primary" (click)="createTest()">
+                  <mat-icon>assignment</mat-icon>
+                  {{ 'collection.test' | translate }}
+                </button>
+              </div>
+            </div>
+
+            @if (currentViewMode === 'grid') {
+              <div class="content-grid">
+                @for (folder of visibleFolders; track folder.id) {
+                  <div
+                    class="content-card folder-card"
+                    [class.drop-active]="dropTarget === 'folder-' + folder.id"
+                    [class.drop-source]="draggedFolder?.folderId === folder.id"
+                    [class.deleting]="isDeletingFolder(folder.id)"
+                    [attr.draggable]="!isDeletingFolder(folder.id)"
+                    (click)="openFolder(folder)"
+                    (dragstart)="!isDeletingFolder(folder.id) && onFolderDragStart(folder, $event)"
+                    (dragend)="onFolderDragEnd()"
+                    (dragover)="allowDrop($event, 'folder-' + folder.id)"
+                    (dragleave)="onDropLeave($event, 'folder-' + folder.id)"
+                    (drop)="onDropToFolder($event, folder.id)"
+                  >
+                    <div class="content-card-icon folder-icon"><mat-icon>folder</mat-icon></div>
+                    <div class="content-card-body">
+                      <div class="content-card-title">{{ folder.name }}</div>
+                      <div class="content-card-meta">{{ getFolderChildrenCount(folder) }} {{ 'collection.subfolders' | translate }} · {{ getFolderItemCount(folder) }} {{ 'collection.items' | translate }}</div>
+                    </div>
+                    <div class="content-card-actions" (click)="$event.stopPropagation()">
+                      <button mat-icon-button (click)="renameFolder(folder, $event)" [disabled]="isDeletingFolder(folder.id)"><mat-icon>edit</mat-icon></button>
+                      <button mat-icon-button (click)="moveFolderWithPicker(folder, $event)" [disabled]="isDeletingFolder(folder.id)" [title]="'collection.moveToOtherFolder' | translate"><mat-icon>drive_file_move</mat-icon></button>
+                      <button mat-icon-button color="warn" (click)="deleteFolder(folder, $event)" [disabled]="isDeletingFolder(folder.id)">
+                        <mat-icon>{{ isDeletingFolder(folder.id) ? 'hourglass_top' : 'delete' }}</mat-icon>
+                      </button>
+                    </div>
+                    @if (isDeletingFolder(folder.id)) {
+                      <mat-progress-bar class="delete-progress" mode="indeterminate"></mat-progress-bar>
+                    }
+                  </div>
+                }
+
+                @for (item of visibleItems; track item.type + '-' + item.id) {
+                  <div
+                    class="content-card item-card"
+                    [class.example-card]="item.type === 'examples'"
+                    [class.test-card]="item.type === 'tests'"
+                    [class.draggable]="canManageItem(item)"
+                    [class.drop-source]="draggedItem?.type === item.type && draggedItem?.itemId === item.id"
+                    [class.deleting]="isDeletingItem(item)"
+                    [attr.draggable]="canManageItem(item) && !isDeletingItem(item)"
+                    (dragstart)="canManageItem(item) && !isDeletingItem(item) && onItemDragStart(item.type, item.id)"
+                    (dragend)="onItemDragEnd()"
+                  >
+                    <div class="content-card-icon item-icon" [class.example-icon]="item.type === 'examples'" [class.test-icon]="item.type === 'tests'">
+                      <mat-icon>{{ getItemIcon(item) }}</mat-icon>
+                    </div>
+                    <div class="content-card-body">
+                      <div class="content-card-title">{{ item.title }}</div>
+                      <div class="content-card-meta">{{ getItemMeta(item) }}</div>
+                    </div>
+                    <div class="content-card-actions">
+                      <button mat-icon-button (click)="openItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>visibility</mat-icon></button>
+                      @if (canManageItem(item)) {
+                        <button mat-icon-button (click)="editItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>edit</mat-icon></button>
+                        <button mat-icon-button (click)="moveItemWithPicker(item)" [disabled]="isDeletingItem(item)"><mat-icon>drive_file_move</mat-icon></button>
+                        <button mat-icon-button color="warn" (click)="deleteItem(item)" [disabled]="isDeletingItem(item)">
+                          <mat-icon>{{ isDeletingItem(item) ? 'hourglass_top' : 'delete' }}</mat-icon>
+                        </button>
+                      }
+                    </div>
+                    @if (isDeletingItem(item)) {
+                      <mat-progress-bar class="delete-progress" mode="indeterminate"></mat-progress-bar>
+                    }
+                  </div>
+                }
+
+                @if (!visibleFolders.length && !visibleItems.length) {
+                  <div class="empty-state">
+                    <mat-icon>folder_off</mat-icon>
+                    <h3>{{ 'collection.emptyExamplesTitle' | translate }}</h3>
+                    <p>{{ 'collection.emptyExamplesText' | translate }}</p>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="compact-list">
+                @for (folder of visibleFolders; track folder.id) {
+                  <div
+                    class="compact-row folder-row"
+                    [class.drop-active]="dropTarget === 'folder-' + folder.id"
+                    [class.drop-source]="draggedFolder?.folderId === folder.id"
+                    [class.deleting]="isDeletingFolder(folder.id)"
+                    [attr.draggable]="!isDeletingFolder(folder.id)"
+                    (click)="openFolder(folder)"
+                    (dragstart)="!isDeletingFolder(folder.id) && onFolderDragStart(folder, $event)"
+                    (dragend)="onFolderDragEnd()"
+                    (dragover)="allowDrop($event, 'folder-' + folder.id)"
+                    (dragleave)="onDropLeave($event, 'folder-' + folder.id)"
+                    (drop)="onDropToFolder($event, folder.id)"
+                  >
+                    <div class="compact-main">
+                      <div class="compact-title-wrap">
+                        <mat-icon class="compact-icon folder">folder</mat-icon>
+                        <div class="compact-title-block">
+                          <div class="compact-title">{{ folder.name }}</div>
+                          <div class="compact-subtitle">{{ getFolderChildrenCount(folder) }} {{ 'collection.subfolders' | translate }} · {{ getFolderItemCount(folder) }} {{ 'collection.items' | translate }} @if (getFolderPathLabel(folder.id)) { · {{ getFolderPathLabel(folder.id) }} }</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="compact-actions" (click)="$event.stopPropagation()">
+                      <button mat-icon-button (click)="renameFolder(folder, $event)" [disabled]="isDeletingFolder(folder.id)"><mat-icon>edit</mat-icon></button>
+                      <button mat-icon-button (click)="moveFolderWithPicker(folder, $event)" [disabled]="isDeletingFolder(folder.id)"><mat-icon>drive_file_move</mat-icon></button>
+                      <button mat-icon-button color="warn" (click)="deleteFolder(folder, $event)" [disabled]="isDeletingFolder(folder.id)">
+                        <mat-icon>{{ isDeletingFolder(folder.id) ? 'hourglass_top' : 'delete' }}</mat-icon>
+                      </button>
+                    </div>
+                    @if (isDeletingFolder(folder.id)) {
+                      <mat-progress-bar class="delete-progress" mode="indeterminate"></mat-progress-bar>
+                    }
+                  </div>
+                }
+
+                @for (item of visibleItems; track item.type + '-' + item.id) {
+                  <div
+                    class="compact-row"
+                    [class.example-row]="item.type === 'examples'"
+                    [class.test-row]="item.type === 'tests'"
+                    [class.draggable]="canManageItem(item)"
+                    [class.drop-source]="draggedItem?.type === item.type && draggedItem?.itemId === item.id"
+                    [class.deleting]="isDeletingItem(item)"
+                    [attr.draggable]="canManageItem(item) && !isDeletingItem(item)"
+                    (dragstart)="canManageItem(item) && !isDeletingItem(item) && onItemDragStart(item.type, item.id)"
+                    (dragend)="onItemDragEnd()"
+                  >
+                    <div class="compact-main">
+                      <div class="compact-title-wrap">
+                        <mat-icon class="compact-icon item" [class.example]="item.type === 'examples'" [class.test]="item.type === 'tests'">{{ getItemIcon(item) }}</mat-icon>
+                        <div class="compact-title-block">
+                          <div class="compact-title">{{ item.title }}</div>
+                          <div class="compact-subtitle">{{ getItemMeta(item) }}</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="compact-actions">
+                      <button mat-icon-button (click)="openItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>visibility</mat-icon></button>
+                      @if (canManageItem(item)) {
+                        <button mat-icon-button (click)="editItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>edit</mat-icon></button>
+                        <button mat-icon-button (click)="moveItemWithPicker(item)" [disabled]="isDeletingItem(item)"><mat-icon>drive_file_move</mat-icon></button>
+                        <button mat-icon-button color="warn" (click)="deleteItem(item)" [disabled]="isDeletingItem(item)">
+                          <mat-icon>{{ isDeletingItem(item) ? 'hourglass_top' : 'delete' }}</mat-icon>
+                        </button>
+                      }
+                    </div>
+                    @if (isDeletingItem(item)) {
+                      <mat-progress-bar class="delete-progress" mode="indeterminate"></mat-progress-bar>
+                    }
+                  </div>
+                }
+
+                @if (!visibleFolders.length && !visibleItems.length) {
+                  <div class="empty-state">
+                    <mat-icon>folder_off</mat-icon>
+                    <h3>{{ 'collection.emptyExamplesTitle' | translate }}</h3>
+                    <p>{{ 'collection.emptyExamplesText' | translate }}</p>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+}

@@ -1,6 +1,6 @@
 import {User} from './User'
 import {Example} from './Example'
-import {School} from './School'
+import {Collection} from './Collection'
 import {Folder} from './Folder'
 
 export type TestGradingMode = 'auto' | 'manual';
@@ -17,7 +17,7 @@ export interface GradingLevel {
 export interface Test {
   id: string;
   admin: User;
-  school: School;
+  collection: Collection;
   folder: Folder;
   name: string;
   note: string;
@@ -68,7 +68,7 @@ export interface TestOverviewDTO {
 }
 
 export interface CreateTestDTO {
-  schoolId: string;
+  collectionId: string;
   name: string;
   note: string;
   exampleList: TestExampleDTO[];

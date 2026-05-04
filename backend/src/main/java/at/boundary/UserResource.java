@@ -33,6 +33,17 @@ public class UserResource {
         return Response.ok().build();
     }
 
+    @GET
+    @Path("list")
+    public Response getUsernames(@HeaderParam("Authorization") String auth) {
+        Response authResponse = repository.generateResponseOfAuth(auth);
+        if (authResponse != null) {
+            return authResponse;
+        }
+
+        return repository.getUsernames();
+    }
+
     @POST
     @Path("register")
     public AuthResult register(FullUserDTO dto) {
@@ -196,8 +207,7 @@ public class UserResource {
             return authResponse;
         }
 
-        UUID uId = tokenService.validateTokenAndGetUserId(auth);
-        return repository.getProfileImage(uId);
+        return repository.getProfileImage(userId);
     }
 
     @DELETE
@@ -231,6 +241,28 @@ public class UserResource {
 
         return repository.getAdminDashboard();
     }
+
+    @GET
+    @Path("admin/{id}")
+    public Response getUserAdminDashboard(@HeaderParam("Authorization") String auth,
+                                     @PathParam("id") UUID id) {
+        UUID userId = tokenFromDto(auth);
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
+        }
+
+        User user = repository.findById(userId);
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("User not found").build();
+        }
+
+        if(!user.isAdmin()){
+            return Response.status(Response.Status.FORBIDDEN).entity("Access denied: Admins only").build();
+        }
+
+        return repository.getUserAdminDashboard(id);
+    }
+
 
     @GET
     @Path("isAdmin")

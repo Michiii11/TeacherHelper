@@ -1,14 +1,14 @@
-import {Component, inject, OnDestroy, OnInit} from '@angular/core';
-import { MatButton } from '@angular/material/button';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { AddSchoolDialogComponent } from '../../dialog/add-school-dialog/add-school-dialog.component';
-import { SchoolDTO } from '../../model/School';
+import { AddCollectionDialogComponent } from '../../dialog/add-collection-dialog/add-collection-dialog.component';
+import { CollectionDTO } from '../../model/Collection';
 import { HttpService } from '../../service/http.service';
 import { MatCard } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
-import {NgClass, NgForOf, NgIf} from '@angular/common';
+import { NgClass, NgForOf, NgIf } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
+import { MatProgressBar } from '@angular/material/progress-bar';
 import { TranslatePipe } from '@ngx-translate/core';
 import { NavbarActionsService } from '../navigation/navbar-actions.service';
 
@@ -21,16 +21,20 @@ import { NavbarActionsService } from '../navigation/navbar-actions.service';
     MatIcon,
     NgIf,
     TranslatePipe,
-    NgClass
+    NgClass,
+    MatProgressBar,
   ],
   templateUrl: './home.component.html',
   standalone: true,
   styleUrl: './home.component.scss'
 })
 export class HomeComponent implements OnInit, OnDestroy {
-  schools: SchoolDTO[] = [];
+  schools: CollectionDTO[] = [];
   userId = '';
-  navbarService = inject(NavbarActionsService)
+  isSchoolsLoading = true;
+  logoUrls: Record<string, string> = {};
+
+  navbarService = inject(NavbarActionsService);
 
   constructor(
     private dialog: MatDialog,
@@ -72,28 +76,44 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   loadSchools(): void {
-    this.http.getYourCollections().subscribe((schools: SchoolDTO[]) => {
-      this.http.getUserId().subscribe((id: string) => {
-        this.userId = id;
+    this.isSchoolsLoading = true;
 
-        this.schools = [...schools].sort((a, b) => {
-          const aIsAdmin = this.isAdminSchool(a, this.userId);
-          const bIsAdmin = this.isAdminSchool(b, this.userId);
+    this.http.getYourCollections().subscribe({
+      next: (schools: CollectionDTO[]) => {
+        this.http.getUserId().subscribe({
+          next: (id: string) => {
+            this.userId = id;
 
-          if (aIsAdmin !== bIsAdmin) {
-            return aIsAdmin ? -1 : 1;
+            this.schools = [...schools].sort((a, b) => {
+              const aIsAdmin = this.isAdminSchool(a, this.userId);
+              const bIsAdmin = this.isAdminSchool(b, this.userId);
+
+              if (aIsAdmin !== bIsAdmin) {
+                return aIsAdmin ? -1 : 1;
+              }
+
+              return a.name.localeCompare(b.name);
+            });
+
+            this.clearLogoUrls();
+            this.schools.forEach(school => this.loadLogo(school));
+            this.isSchoolsLoading = false;
+          },
+          error: () => {
+            this.schools = [];
+            this.isSchoolsLoading = false;
           }
-
-          return a.name.localeCompare(b.name);
         });
-
-        this.schools.forEach(s => this.loadLogo(s));
-      });
+      },
+      error: () => {
+        this.schools = [];
+        this.isSchoolsLoading = false;
+      }
     });
   }
 
   openCreateDialog(): void {
-    const dialogRef = this.dialog.open(AddSchoolDialogComponent, {
+    const dialogRef = this.dialog.open(AddCollectionDialogComponent, {
       width: 'min(92vw, 500px)',
       maxWidth: '92vw',
     });
@@ -112,7 +132,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
-  openSchool(school: SchoolDTO): void {
+  openSchool(school: CollectionDTO): void {
     this.router.navigate(['/collection', school.id]);
   }
 
@@ -127,41 +147,44 @@ export class HomeComponent implements OnInit, OnDestroy {
       .join('');
   }
 
-  getSchoolRoleLabel(school: SchoolDTO): string {
+  getSchoolRoleLabel(school: CollectionDTO): string {
     return this.isAdminSchool(school, this.userId) ? 'Admin' : 'Mitglied';
   }
 
-  getRoleBadgeClass(school: SchoolDTO): string {
+  getRoleBadgeClass(school: CollectionDTO): string {
     return this.isAdminSchool(school, this.userId) ? 'admin-badge' : 'member-badge';
   }
 
-  getAvatarClass(school: SchoolDTO): string {
+  getAvatarClass(school: CollectionDTO): string {
     return this.isAdminSchool(school, this.userId) ? 'school-avatar' : 'school-avatar member-avatar';
   }
 
-  getCardClass(school: SchoolDTO): string {
+  getCardClass(school: CollectionDTO): string {
     return this.isAdminSchool(school, this.userId) ? 'school-card admin-card' : 'school-card member-card';
   }
 
-  private isAdminSchool(school: SchoolDTO, userId: string): boolean {
+  private isAdminSchool(school: CollectionDTO, userId: string): boolean {
     if (!school?.admin) return false;
     if (!userId) return false;
 
     return school.admin.id === userId;
   }
 
-  logoUrls: Record<string, string> = {};
-  loadLogo(school: SchoolDTO) {
+  private loadLogo(school: CollectionDTO): void {
     if (!school.logoUrl) return;
 
     this.http.getCollectionLogo(school.id).subscribe({
       next: (blob) => {
-        console.log(blob)
         this.logoUrls[school.id] = URL.createObjectURL(blob);
       },
       error: () => {
         this.logoUrls[school.id] = '';
       }
     });
+  }
+
+  private clearLogoUrls(): void {
+    Object.values(this.logoUrls).forEach(url => URL.revokeObjectURL(url));
+    this.logoUrls = {};
   }
 }

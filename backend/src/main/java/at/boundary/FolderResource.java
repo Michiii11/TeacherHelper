@@ -23,7 +23,7 @@ public class FolderResource {
     TokenService tokenService;
 
     @GET
-    @Path("/school/{collectionId}")
+    @Path("/collection/{collectionId}")
     public Response getFolders(@PathParam("collectionId") UUID collectionId,
                                @HeaderParam("Authorization") String auth) {
         Response authResponse = userRepository.generateResponseOfAuth(auth);
@@ -36,7 +36,7 @@ public class FolderResource {
     }
 
     @POST
-    @Path("/school/{collectionId}")
+    @Path("/collection/{collectionId}")
     public Response createFolder(@PathParam("collectionId") UUID collectionId,
                                  @HeaderParam("Authorization") String auth,
                                  CreateFolderDTO dto) {

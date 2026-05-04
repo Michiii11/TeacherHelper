@@ -1,19 +1,17 @@
 <footer class="app-footer">
   <div class="footer-inner">
-    <div class="footer-left">
-      <span class="brand">TeacherHelper</span>
-      <span class="divider">•</span>
-      <span class="version">{{ version }}</span>
-      <span class="divider">•</span>
+    <div class="footer-left" aria-label="Application information">
+      <span class="brand">{{ brandName }}</span>
+      <span class="divider" aria-hidden="true">•</span>
+      <span class="version">{{ appVersion }}</span>
+      <span class="divider" aria-hidden="true">•</span>
       <span class="copyright">© {{ currentYear }}</span>
     </div>
 
-    <div class="footer-links">
-      <a routerLink="/privacy" class="link">Privacy</a>
-      <a routerLink="/terms" class="link">Terms</a>
-      <a routerLink="/legal" class="link">Legal Notice</a>
-      <a routerLink="/cookies" class="link">Cookies</a>
-      <a routerLink="/support" class="link">Support</a>
-    </div>
+    <nav class="footer-links" aria-label="Footer navigation">
+      @for (link of links; track link.route) {
+        <a [routerLink]="link.route" class="link">{{ link.label }}</a>
+      }
+    </nav>
   </div>
 </footer>

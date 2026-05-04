@@ -6,5 +6,5 @@ export abstract class Config {
   static readonly SOCKET_URL = environment.SOCKET_URL;
   static readonly TYPE = environment.TYPE;
 
-  static readonly APP_VERSION = 'v1.1.2';
+  static readonly APP_VERSION = 'v1.1.3';
 }

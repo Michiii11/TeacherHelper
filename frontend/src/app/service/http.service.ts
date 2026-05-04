@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {firstValueFrom, Observable, of} from 'rxjs';
 import { Config } from '../config';
-import { SchoolDTO } from '../model/School';
+import { CollectionDTO } from '../model/Collection';
 import {
   CreateExampleDTO, ExampleDTO, ExampleOverviewDTO,
   Focus,
@@ -30,34 +30,39 @@ export class HttpService {
     const token = this.authToken();
     return `${Config.SOCKET_URL}/notification?token=${encodeURIComponent(token)}`;
   }
+
+  getCollectionSocketUrl(collectionId: string | null): string {
+    const token = this.authToken();
+    return `${Config.SOCKET_URL}/collection/${collectionId}?token=${encodeURIComponent(token)}`;
+  }
   // endregion
 
   // region Collection
   /** Collection **/
   getYourCollections() {
-    return this.http.get<SchoolDTO[]>(`${Config.API_URL}/school/your-collections`,
+    return this.http.get<CollectionDTO[]>(`${Config.API_URL}/collection/your-collections`,
       { headers: { Authorization: this.authToken() }});
   }
 
   getCollectionById(collectionId: string) {
-    return this.http.get<SchoolDTO>(`${Config.API_URL}/school/${collectionId}`,
+    return this.http.get<CollectionDTO>(`${Config.API_URL}/collection/${collectionId}`,
       { headers: { Authorization: this.authToken() }});
   }
 
   addCollection(collectionName: string) {
     return this.http.post<string>(
-      `${Config.API_URL}/school/add`, collectionName,
+      `${Config.API_URL}/collection/add`, collectionName,
       { headers: { Authorization: this.authToken() }}
     );
   }
 
   deleteCollection(collectionId: string) {
-    return this.http.delete(`${Config.API_URL}/school/${collectionId}`, {
+    return this.http.delete(`${Config.API_URL}/collection/${collectionId}`, {
       headers: { Authorization: this.authToken() }});
   }
 
-  getCollectionLogo(collectionId: string) {
-    return this.http.get(`${Config.API_URL}/school/${collectionId}/logo`, {
+  getCollectionLogo(collectionId: string | null) {
+    return this.http.get(`${Config.API_URL}/collection/${collectionId}/logo`, {
       headers: { Authorization: this.authToken() },
       responseType: 'blob'
     });
@@ -66,53 +71,53 @@ export class HttpService {
     const formData = new FormData();
     formData.append('file', file);
 
-    return this.http.post<SchoolDTO>(`${Config.API_URL}/school/${collectionId}/logo`, formData,
+    return this.http.post<CollectionDTO>(`${Config.API_URL}/collection/${collectionId}/logo`, formData,
       { headers: { Authorization: this.authToken() }} );
   }
 
   deleteCollectionLogo(collectionId: string) {
-    return this.http.delete(`${Config.API_URL}/school/${collectionId}/logo`, {
+    return this.http.delete(`${Config.API_URL}/collection/${collectionId}/logo`, {
       headers: { Authorization: this.authToken() }});
   }
 
   leaveCollection (collectionId: string) {
-    return this.http.delete(`${Config.API_URL}/school/${collectionId}/leave`, {
+    return this.http.delete(`${Config.API_URL}/collection/${collectionId}/leave`, {
       headers: { Authorization: this.authToken() }
     })
   }
 
   removeTeacher(collectionId: string, teacherId: string) {
-    return this.http.delete(`${Config.API_URL}/school/${collectionId}/remove-teacher/${teacherId}`, {
+    return this.http.delete(`${Config.API_URL}/collection/${collectionId}/remove-teacher/${teacherId}`, {
       headers: { Authorization: this.authToken() }});
   }
 
-  inviteTeacher(collectionId: string | null, email: string) {
-    return this.http.post(`${Config.API_URL}/school/${collectionId}/invite`, email,
+  inviteTeacher(collectionId: string | null, username: string) {
+    return this.http.post(`${Config.API_URL}/collection/${collectionId}/invite`, username,
       {headers: { Authorization: this.authToken() }});
   }
 
   respondToInvite(inviteId: string, accept: boolean) {
-    return this.http.post(`${Config.API_URL}/school/invite/${inviteId}/respond`, accept,
+    return this.http.post(`${Config.API_URL}/collection/invite/${inviteId}/respond`, accept,
       {headers: { Authorization: this.authToken() }});
   }
 
   updateCollectionSettings(collectionId: string, name: string | undefined) {
-    return this.http.put<SchoolDTO>(`${Config.API_URL}/school/${collectionId}/settings`, name,
+    return this.http.put<CollectionDTO>(`${Config.API_URL}/collection/${collectionId}/settings`, name,
       { headers: { Authorization: this.authToken() }});
   }
 
-  getAllFocus(schoolId: string) {
-    return this.http.get<Focus[]>(`${Config.API_URL}/school/${schoolId}/focus`,
+  getAllFocus(collectionId: string) {
+    return this.http.get<Focus[]>(`${Config.API_URL}/collection/${collectionId}/focus`,
       { headers: { Authorization: this.authToken() }});
   }
 
-  createFocus(schoolId: string, focus: Focus) {
-    return this.http.post<Focus>(`${Config.API_URL}/school/${schoolId}/focus`, focus,
+  createFocus(collectionId: string, focus: Focus) {
+    return this.http.post<Focus>(`${Config.API_URL}/collection/${collectionId}/focus`, focus,
       { headers: { Authorization: this.authToken() }});
   }
 
-  deleteFocus(schoolId: string, focusId: string) {
-    return this.http.delete(`${Config.API_URL}/school/${schoolId}/focus/${focusId}`, {
+  deleteFocus(collectionId: string, focusId: string) {
+    return this.http.delete(`${Config.API_URL}/collection/${collectionId}/focus/${focusId}`, {
       headers: { Authorization: this.authToken() }});
   }
   // endregion
@@ -139,8 +144,8 @@ export class HttpService {
       headers: { Authorization: this.authToken() }});
   }
 
-  sendSystemInfoToSchool(schoolId: string, payload: { title: string; message: string; link?: string | null }) {
-    return this.http.post(`${Config.API_URL}/notification/system-info/school/${schoolId}`, payload, {
+  sendSystemInfoToSchool(collectionId: string, payload: { title: string; message: string; link?: string | null }) {
+    return this.http.post(`${Config.API_URL}/notification/system-info/collection/${collectionId}`, payload, {
       headers: { Authorization: this.authToken()},
       responseType: 'text'});
   }
@@ -154,35 +159,36 @@ export class HttpService {
 
   // region Folder
   /** Folder **/
-  getFolders(schoolId: string) {
-    return this.http.get<FolderDTO[]>(`${Config.API_URL}/folder/school/${schoolId}`,
+  getFolders(collectionId: string) {
+    return this.http.get<FolderDTO[]>(`${Config.API_URL}/folder/collection/${collectionId}`,
       { headers: { Authorization: this.authToken() }});
   }
 
-  createFolder(schoolId: string, dto: CreateFolderDTO) {
-    return this.http.post<FolderDTO>(`${Config.API_URL}/folder/school/${schoolId}`, dto,
+  createFolder(collectionId: string, dto: CreateFolderDTO) {
+    return this.http.post<FolderDTO>(`${Config.API_URL}/folder/collection/${collectionId}`, dto,
       { headers: {Authorization: this.authToken() }});
   }
 
   updateFolder(folderId: string, dto: CreateFolderDTO) {
-    return this.http.put<FolderDTO>(`${Config.API_URL}/folder/${folderId}`, dto);
+    return this.http.put<FolderDTO>(`${Config.API_URL}/folder/${folderId}`, dto,
+      { headers: { Authorization: this.authToken() }});
   }
 
   deleteFolder(folderId: string) {
     return this.http.delete(`${Config.API_URL}/folder/${folderId}`,
-      { headers: { Authorization: this.authToken() }});
+      { headers: { Authorization: this.authToken() }, responseType: 'text' });
   }
   // endregion
 
   // region Example
   /** Example **/
-  getExamples(schoolId: string | null) {
-    return this.http.get<ExampleOverviewDTO[]>(`${Config.API_URL}/example/school/${schoolId}`,
+  getExamples(collectionId: string | null) {
+    return this.http.get<ExampleOverviewDTO[]>(`${Config.API_URL}/example/collection/${collectionId}`,
       { headers: { Authorization: this.authToken() }});
   }
 
-  getFullExamples(schoolId: string) {
-    return this.http.get<ExampleDTO[]>(`${Config.API_URL}/example/school/${schoolId}/full`,
+  getFullExamples(collectionId: string) {
+    return this.http.get<ExampleDTO[]>(`${Config.API_URL}/example/collection/${collectionId}/full`,
       { headers: { Authorization: this.authToken() }});
   }
 
@@ -241,7 +247,7 @@ export class HttpService {
   // region Test
   /** Test **/
   getTests(collectionId: string | null) {
-    return this.http.get(`${Config.API_URL}/test/school/${collectionId}`,
+    return this.http.get(`${Config.API_URL}/test/collection/${collectionId}`,
       { headers: { Authorization: this.authToken() }});
   }
 
@@ -274,6 +280,11 @@ export class HttpService {
 
   // region User
   /** User **/
+  getUsernames(){
+    return this.http.get<string[]>(`${Config.API_URL}/user/list`,
+      { headers: { Authorization: this.authToken() }});
+  }
+
   register(payload: {
     username: string;
     email: string;
@@ -390,6 +401,11 @@ export class HttpService {
 
   getAdminDashboard(){
     return this.http.get<AdminDashboardDTO>(`${Config.API_URL}/user/admin`,
+      { headers: { Authorization: this.authToken() }});
+  }
+
+  getUserAdminDashboard(userId: string) {
+    return this.http.get(`${Config.API_URL}/user/admin/${userId}`,
       { headers: { Authorization: this.authToken() }});
   }
 

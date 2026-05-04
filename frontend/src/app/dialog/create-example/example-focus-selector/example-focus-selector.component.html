@@ -1,0 +1,66 @@
+<div class="row">
+  <mat-form-field appearance="outline" class="full-width focus-field">
+    <mat-label>{{ 'exampleDialog.tags' | translate }}</mat-label>
+
+    <mat-chip-grid
+      #chipGrid
+      aria-label="Selection"
+      class="focus-chip-grid"
+      [class.hidden-chip-grid]="!focuses.length"
+    >
+      @for (focus of focuses; track focus.id || focus.label) {
+        <mat-chip-row (removed)="focusRemoved.emit(focus)">
+          {{ focus.label }}
+          <button matChipRemove type="button" [attr.aria-label]="'exampleDialog.removeTag' | translate">✕</button>
+        </mat-chip-row>
+      }
+    </mat-chip-grid>
+
+    <input
+      #inputEl
+      matInput
+      class="focus-input"
+      [placeholder]="'exampleDialog.tagsPlaceholder' | translate"
+      [matChipInputFor]="chipGrid"
+      [matAutocomplete]="auto"
+      [formControl]="inputCtrl"
+      (matChipInputTokenEnd)="focusInputTokenEnd.emit($event)"
+    />
+
+    <mat-autocomplete
+      #auto="matAutocomplete"
+      autoActiveFirstOption
+      class="focus-autocomplete"
+      (optionSelected)="focusSelected.emit($event)"
+    >
+      @for (focus of filteredFocusList | async; track focus.id || focus.label) {
+        <mat-option [value]="focus">
+          <div class="focus-option-row">
+            <span class="focus-option-label">{{ focus.label }}</span>
+
+            <button
+              mat-icon-button
+              class="focus-option-delete"
+              tabindex="-1"
+              type="button"
+              (click)="focusDeleted.emit({ focus, event: $event })"
+              [attr.aria-label]="'exampleDialog.deleteTag' | translate"
+            >
+              <mat-icon fontIcon="delete"></mat-icon>
+            </button>
+          </div>
+        </mat-option>
+      }
+
+      @if (showCreateOption(inputCtrl.value)) {
+        <mat-option [value]="inputCtrl.value" class="focus-create-option">
+          <div class="focus-option-row">
+            <span class="focus-option-label">
+              "{{ inputCtrl.value }}" {{ 'exampleDialog.addTag' | translate }}
+            </span>
+          </div>
+        </mat-option>
+      }
+    </mat-autocomplete>
+  </mat-form-field>
+</div>

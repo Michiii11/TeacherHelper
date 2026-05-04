@@ -8,7 +8,7 @@
 
 .auth-card {
   width: min(100%, 560px);
-  border-radius: 28px !important;
+  border-radius: 14px !important;
   background: var(--bg) !important;
   border: 1px solid var(--border);
   box-shadow: 0 24px 60px var(--bg-soft) !important;
@@ -56,6 +56,16 @@ button[type="submit"][mat-raised-button] {
   margin-top: 0.4rem;
   border-radius: 14px;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+mat-progress-bar {
+  margin-top: 0.75rem;
+  border-radius: 999px;
+  overflow: hidden;
 }
 
 .action-row {
@@ -99,7 +109,7 @@ button[type="submit"][mat-raised-button] {
 .forgot-panel {
   margin: 0 1.25rem 1.25rem;
   padding: 1.1rem;
-  border-radius: 22px;
+  border-radius: 14px;
   background: var(--bg-base);
   border: 1px solid var(--border);
 }
@@ -142,7 +152,7 @@ button[type="submit"][mat-raised-button] {
 
 ::ng-deep .mat-mdc-text-field-wrapper {
   background: transparent !important;
-  border-radius: 18px !important;
+  border-radius: 14px !important;
 }
 
 ::ng-deep .mdc-notched-outline__leading,

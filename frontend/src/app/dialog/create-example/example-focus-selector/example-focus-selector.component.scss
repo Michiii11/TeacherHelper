@@ -1,0 +1,25 @@
+:host {
+  display: block;
+}
+
+.row,
+.full-width {
+  width: 100%;
+}
+
+.focus-option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.focus-option-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.focus-option-delete {
+  flex: 0 0 auto;
+}

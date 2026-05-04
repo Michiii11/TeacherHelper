@@ -6,7 +6,7 @@ import java.util.UUID;
 public record FolderDTO(
         UUID id,
         String name,
-        UUID schoolId,
+        UUID collectionId,
         UUID parentId,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

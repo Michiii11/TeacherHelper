@@ -1,7 +1,7 @@
 package at.dtos.Example;
 
 import at.dtos.Folder.FolderDTO;
-import at.dtos.School.SchoolDTO;
+import at.dtos.Collection.CollectionDTO;
 import at.dtos.User.UserDTO;
 import at.enums.ExampleTypes;
 import at.enums.GapFillType;
@@ -26,7 +26,7 @@ public record ExampleDTO(
         Integer solutionImageWidth,
         List<Focus> focusList,
         List<ExampleVariableDTO> variables,
-        SchoolDTO school,
+        CollectionDTO collection,
         List<String[]> answers,
         List<Option> options,
         GapFillType gapFillType,

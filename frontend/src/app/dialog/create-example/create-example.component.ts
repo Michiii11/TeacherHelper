@@ -36,6 +36,10 @@ import { HttpService } from '../../service/http.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatProgressBar } from '@angular/material/progress-bar';
+import { ExampleTypeSelectorComponent } from './example-type-selector/example-type-selector.component';
+import { ExamplePreviewComponent } from '../example-preview/example-preview.component';
+import { ExampleFocusSelectorComponent } from './example-focus-selector/example-focus-selector.component';
+import { ConstructionImageCardComponent } from './construction-image-card/construction-image-card.component';
 
 type VariableTarget =
   | { type: 'instruction' | 'question' | 'solution' }
@@ -62,21 +66,22 @@ type VariableTarget =
     MatButtonToggleModule,
     MatDialogActions,
     MatTooltip,
-    MatPseudoCheckbox,
     MatDivider,
     MatSliderModule,
     ReactiveFormsModule,
     MatChipsModule,
-    MatAutocompleteTrigger,
-    MatAutocomplete,
     TranslateModule,
     MatProgressBar,
+    ExampleTypeSelectorComponent,
+    ExamplePreviewComponent,
+    ExampleFocusSelectorComponent,
+    ConstructionImageCardComponent,
   ],
   templateUrl: './create-example.component.html',
   styleUrls: ['./create-example.component.scss']
 })
 export class CreateExampleComponent implements OnInit, OnDestroy {
-  data = inject<{ schoolId: string; exampleId: string }>(MAT_DIALOG_DATA);
+  data = inject<{ schoolId: string; exampleId: string, folderId: string }>(MAT_DIALOG_DATA);
   private readonly destroy$ = new Subject<void>();
 
   private readonly http = inject(HttpService);
@@ -86,6 +91,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   hasUnsavedChanges = false;
   isEditMode = false;
   isSaving = false;
+  isExampleLoading = true;
 
   selectedConstructionImageFile: File | null = null;
   selectedConstructionSolutionFile: File | null = null;
@@ -103,7 +109,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   activeVariableTarget: VariableTarget = null;
 
   example: CreateExampleDTO = {
-    schoolId: this.data.schoolId,
+    collectionId: this.data.schoolId,
     type: ExampleTypes.OPEN,
     instruction: '',
     question: '',
@@ -120,7 +126,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     variables: [],
     imageWidth: this.defaultImageWidth,
     solutionImageWidth: this.defaultImageWidth,
-    folderId: ''
+    folderId: this.data.folderId
   };
 
   readonly ExampleTypes = ExampleTypes;
@@ -132,7 +138,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   constructor(
     private dialogRef: MatDialogRef<CreateExampleComponent>,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    protected snackBar: MatSnackBar
   ) {
     this.dialogRef.disableClose = true;
 
@@ -203,9 +209,14 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.isExampleLoading = true;
+
     this.http.getAllFocus(this.data.schoolId)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(focuses => this.focusSubject.next(focuses));
+      .subscribe({
+        next: focuses => this.focusSubject.next(focuses),
+        error: () => this.focusSubject.next([])
+      });
 
     if (this.data.exampleId) {
       this.http.getExample(this.data.exampleId)
@@ -237,12 +248,18 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
             this.normalizeLoadedGapState();
             this.syncVariablesFromContent();
             this.emitSelectedFocus();
+            this.isExampleLoading = false;
+          },
+          error: () => {
+            this.isExampleLoading = false;
+            this.openTranslatedSnack('common.error');
           }
         });
     } else {
       this.normalizeLoadedGapState();
       this.syncVariablesFromContent();
       this.emitSelectedFocus();
+      this.isExampleLoading = false;
     }
   }
 
@@ -868,7 +885,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   private buildExamplePayload(): CreateExampleDTO {
     return {
       ...this.example,
-      schoolId: this.example.schoolId || this.data.schoolId,
+      collectionId: this.example.collectionId || this.data.schoolId,
       image: this.isEditMode ? (this.example.image || '') : '',
       solutionUrl: this.isEditMode ? (this.example.solutionUrl || '') : '',
       variables: (this.example.variables ?? []).map(variable => ({

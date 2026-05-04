@@ -22,11 +22,6 @@ type Plan = {
   cta: string;
 };
 
-type Stat = {
-  value: string;
-  label: string;
-};
-
 type TrustItem = {
   icon: string;
   label: string;
@@ -125,17 +120,17 @@ export class LandingPageComponent {
       cta: 'landing.plans.pro.cta'
     },
     {
-      name: 'School',
-      chip: 'landing.plans.school.chip',
+      name: 'Collection',
+      chip: 'landing.plans.collection.chip',
       price: '20€ / Monat',
-      subtitle: 'landing.plans.school.subtitle',
+      subtitle: 'landing.plans.collection.subtitle',
       features: [
-        'landing.plans.school.f1',
-        'landing.plans.school.f2',
-        'landing.plans.school.f3',
-        'landing.plans.school.f4'
+        'landing.plans.collection.f1',
+        'landing.plans.collection.f2',
+        'landing.plans.collection.f3',
+        'landing.plans.collection.f4'
       ],
-      cta: 'landing.plans.school.cta'
+      cta: 'landing.plans.collection.cta'
     }
   ];
 
@@ -162,8 +157,24 @@ export class LandingPageComponent {
     return isDark ? '/darkmode.png' : '/lightmode.png';
   }
 
-  getImage() {
+  getImage(): string {
     const isDark = document.body.classList.contains('dark-mode');
     return isDark ? '/screen_dark.png' : '/screen_light.png';
+  }
+
+  trackByValue(_: number, value: string): string {
+    return value;
+  }
+
+  trackByTrustItem(_: number, item: TrustItem): string {
+    return item.label;
+  }
+
+  trackByFeature(_: number, feature: Feature): string {
+    return feature.title;
+  }
+
+  trackByPlan(_: number, plan: Plan): string {
+    return plan.name;
   }
 }

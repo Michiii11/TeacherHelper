@@ -21,7 +21,7 @@ public class Notification {
     private User actor;
 
     @ManyToOne
-    private School school;
+    private Collection collection;
 
     @Enumerated(EnumType.STRING)
     private NotificationType type;
@@ -50,7 +50,7 @@ public class Notification {
 
     public Notification(User recipient,
                         User actor,
-                        School school,
+                        Collection collection,
                         NotificationType type,
                         String title,
                         String message,
@@ -62,7 +62,7 @@ public class Notification {
                         LocalDateTime createdAt) {
         this.recipient = recipient;
         this.actor = actor;
-        this.school = school;
+        this.collection = collection;
         this.type = type;
         this.title = title;
         this.message = message;
@@ -80,7 +80,7 @@ public class Notification {
                 "id=" + id +
                 ", recipient=" + recipient +
                 ", actor=" + actor +
-                ", school=" + school +
+                ", collection=" + collection +
                 ", type=" + type +
                 ", title='" + title + '\'' +
                 ", message='" + message + '\'' +
@@ -97,7 +97,7 @@ public class Notification {
         return new NotificationDTO(
                 this.getId(),
                 this.getActor() != null ? this.getActor().toUserDTO() : null,
-                this.school.toSchoolDTO(),
+                this.getCollection().toDTO(),
                 this.getType(),
                 this.getTitle(),
                 this.getMessage(),
@@ -134,12 +134,12 @@ public class Notification {
         this.actor = actor;
     }
 
-    public School getSchool() {
-        return school;
+    public Collection getCollection() {
+        return collection;
     }
 
-    public void setSchool(School school) {
-        this.school = school;
+    public void setCollection(Collection collection) {
+        this.collection = collection;
     }
 
     public NotificationType getType() {

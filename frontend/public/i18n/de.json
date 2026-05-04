@@ -12,7 +12,8 @@
     "ok": "OK",
     "create": "Erstellen",
     "filter": "Filter",
-    "type": "Typ"
+    "type": "Typ",
+    "sort": "Sortieren"
   },
   "profile": {
     "title": "Profil",
@@ -49,7 +50,10 @@
     "saveImage": "Profilbild speichern",
     "deleteImage": "Profilbild löschen",
     "plan": "Plan",
-    "pendingEmailConfirmation": "Offene E-Mail-Bestätigung:"
+    "pendingEmailConfirmation": "Offene E-Mail-Bestätigung:",
+    "publicInfoUsername": "Benutzername ist öffentlich sichtbar",
+    "publicInfoAvatar": "Profilbild ist öffentlich sichtbar",
+    "allowInvitationsDesc": "Andere Nutzer können dich zu Sammlungen einladen"
   },
   "languages": {
     "de": "Deutsch",
@@ -83,11 +87,41 @@
     "createSchoolSubtitle": "Lege eine neue Sammlung in deinem System an",
     "schoolName": "Sammlungsname",
     "schoolPlaceholder": "z.B. HTL 1 - Deutsch",
-    "confirmAction": "Ich bestätige diese Aktion"
+    "confirmAction": "Ich bestätige diese Aktion",
+    "moreItems": "+ {{count}} weitere",
+    "moreTests": "• … und {{count}} weitere Tests",
+    "backend": {
+      "actionFailed": "Aktion fehlgeschlagen.",
+      "unreachable": "Backend ist nicht erreichbar. Bitte Verbindung prüfen.",
+      "forbidden": "Du hast keine Berechtigung für diese Aktion.",
+      "notFound": "Der Eintrag wurde nicht gefunden. Bitte Seite neu laden."
+    },
+    "folderDelete": {
+      "title": "Ordner „{{name}}“ löschen?",
+      "emptyMessage": "Der Ordner „{{name}}“ ist leer und kann gelöscht werden.",
+      "contentMessage": "Beim Löschen von „{{name}}“ werden auch die enthaltenen Inhalte entfernt.",
+      "confirmationText": "Ich bestätige, dass der Ordner inklusive Inhalt gelöscht werden soll.",
+      "externalUsageTitle": "Hinweis zu verwendeten Beispielen",
+      "externalUsageText": "Einige Beispiele aus diesem Ordner werden auch in anderen Tests verwendet. Diese Test-Verknüpfungen werden beim Löschen entfernt.",
+      "externalLinks": "Verknüpfungen in anderen Tests",
+      "deleted": "Ordner „{{name}}“ wurde gelöscht.",
+      "deleteError": "Ordner konnte nicht gelöscht werden."
+    },
+    "testDelete": {
+      "title": "Test „{{name}}“ löschen?",
+      "message": "Willst du den Test „{{name}}“ wirklich löschen?",
+      "confirmationText": "Ich bestätige, dass dieser Test gelöscht werden soll."
+    },
+    "exampleDelete": {
+      "title": "Beispiel „{{name}}“ löschen?",
+      "message": "Willst du das Beispiel „{{name}}“ wirklich löschen?",
+      "usedInTests": "Dieses Beispiel ist in folgenden Tests enthalten:",
+      "confirmationText": "Ich bestätige, dass dieses Beispiel gelöscht werden soll."
+    }
   },
   "navbar": {
     "home": "Sammlungen",
-    "school": "Sammlung",
+    "collection": "Sammlung",
     "help": "Hilfe"
   },
   "notifications": {
@@ -194,7 +228,7 @@
     },
     "visual": {
       "live": "Live Preview",
-      "school": "Sammlung",
+      "collection": "Sammlung",
       "team": "Team • Admin",
       "examples": "Beispiele",
       "tests": "Tests",
@@ -279,7 +313,7 @@
         "f4": "5€ pro Monat",
         "cta": "Pro starten"
       },
-      "school": {
+      "collection": {
         "chip": "Für Teams",
         "subtitle": "Für Schulen, Fachgruppen und gemeinsame Verwaltung im Kollegium.",
         "f1": "∞ Sammlungen (∞ Mitglieder)",
@@ -295,7 +329,7 @@
       "text": "Starte kostenlos und schau dir an, wie viel schneller Unterrichtsvorbereitung mit einer klaren Oberfläche wirklich werden kann."
     }
   },
-  "school": {
+  "collection": {
     "dashboardAria": "Sammlungsübersicht",
     "logoAlt": "Schullogo",
     "admin": "Admin",
@@ -359,7 +393,7 @@
     "moveConfirm": "Verschieben",
     "deleteExampleTitle": "Beispiel löschen",
     "deleteFolderTitle": "Ordner löschen",
-    "deleteFolderMessage": "Der Ordner \"{{name}}\" wird dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
+    "deleteFolderMessage": "Der Ordner \"{{name}}\" wird dauerhaft gelöscht.",
     "confirmDeleteFolder": "Ordner wirklich löschen",
     "deleteExampleMessage": "Beispiel \"{{name}}\" wirklich löschen?",
     "deleteTestTitle": "Test löschen",
@@ -392,7 +426,16 @@
       "templates": "Templates",
       "more": "Weitere Einstellungen"
     },
-    "schoolName": "Schulname",
+    "searchUsername": "Benutzername suchen",
+    "searchUsernamePlaceholder": "Benutzername eingeben...",
+    "usernameRequired": "Benutzername ist erforderlich",
+    "usernameMinLength": "Mindestens 2 Zeichen eingeben",
+    "selectUserFromList": "Bitte einen Benutzer aus der Liste auswählen",
+    "noUsernameResults": "Keine Benutzer gefunden",
+    "usernameResultHint": "Benutzer auswählen",
+    "alreadyMember": "Bereits Mitglied",
+    "readyToInvite": "Bereit zum Einladen",
+    "schoolName": "Sammlungsname",
     "logoPreviewAlt": "Logo Vorschau",
     "noLogo": "Kein Logo vorhanden",
     "selectLogo": "Logo auswählen",
@@ -449,9 +492,17 @@
       "teacherKicked": "Lehrer wurde entfernt",
       "teacherKickError": "Lehrer konnte nicht entfernt werden",
       "schoolDeleted": "Schule wurde gelöscht",
-      "schoolDeleteError": "Schule konnte nicht gelöscht werden"
+      "schoolDeleteError": "Schule konnte nicht gelöscht werden",
+      "schoolLeft": "Du hast die Collection verlassen.",
+      "schoolLeaveError": "Collection konnte nicht verlassen werden"
     },
-    "logoUploadHint": "JPG, PNG oder WEBP · max. 2 MB · Wird erst beim Speichern hochgeladen"
+    "logoUploadHint": "JPG, PNG oder WEBP · max. 2 MB · Wird erst beim Speichern hochgeladen",
+    "leaveSchool": "Collection verlassen",
+    "leavingSchool": "Collection wird verlassen...",
+    "leaveSchoolText": "Du verlässt diese Collection und hast danach keinen Zugriff mehr auf die Inhalte. Inhalte, die du erstellt hast, bleiben in der Collection erhalten.",
+    "leaveSchoolTitle": "Collection verlassen?",
+    "leaveSchoolMessage": "Möchtest du die Collection „{{name}}“ wirklich verlassen? Danach hast du keinen Zugriff mehr auf diese Collection.",
+    "leaveSchoolConfirm": "Collection verlassen"
   },
   "exampleDialog": {
     "tags": "Tags",
@@ -529,7 +580,7 @@
     "solutionImagePreviewAlt": "Lösungsbild Vorschau",
     "closeDialog": {
       "title": "Dialog schließen?",
-      "message": "Nicht gespeicherte Änderungen gehen verloren. Möchtest du den Dialog wirklich schließen?",
+      "message": "Nicht gespeicherte Änderungen gehen verloren.",
       "cancel": "Weiter bearbeiten",
       "confirm": "Schließen"
     },
@@ -586,6 +637,7 @@
       "confirm": "Schließen"
     },
     "preview": {
+      "previewTitle": "Vorschau",
       "name": "Name",
       "class": "Klasse",
       "date": "Datum",
@@ -671,7 +723,9 @@
       "chosen": "Ausgewählt",
       "emptyTitle": "Keine Beispiele gefunden",
       "emptyText": "Probier andere Filter, eine andere Suche oder einen anderen Ordner.",
-      "done": "Fertig"
+      "done": "Fertig",
+      "allFolders": "Alle Ordner",
+      "noFoldersFound": "Keine Ordner gefunden"
     },
     "variables": {
       "title": "Text-Variablen",
@@ -959,7 +1013,7 @@
   },
   "exampleTypeDescriptions": {
     "open": "Antwort ohne Vorgaben.",
-    "halfOpen": "Antwort in vorgegebene Struktur eintragen.",
+    "halfOpen": "Antwort in Struktur eintragen.",
     "construction": "Aufgabe mit Bild oder Grafik.",
     "multipleChoice": "Eine oder mehrere Optionen auswählen.",
     "gapFill": "Lücken durch Auswahl oder Eingabe füllen.",
@@ -1002,6 +1056,7 @@
       "submit": "Passwort setzen"
     },
     "verify": {
+      "login": "Du wirst eingeloggt...",
       "loading": "E-Mail wird bestätigt...",
       "resend": "Bestätigungs-Mail erneut senden"
     },
@@ -1045,5 +1100,10 @@
       "PASSWORD_RESET_TOKEN_EXPIRED": "Der Reset-Link ist abgelaufen.",
       "AUTH_SUCCESS": "Login erfolgreich"
     }
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "text": "Die angeforderte Seite existiert leider nicht oder wurde verschoben.",
+    "backHome": "Zur Startseite"
   }
 }

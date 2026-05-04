@@ -25,12 +25,15 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
 import { ExamplePickerDialogComponent, ExamplePickerDialogResult } from '../example-picker-dialog/example-picker-dialog.component';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { TestSelectedExamplesComponent } from './test-selected-examples/test-selected-examples.component';
+import { TestAdvancedSettingsComponent } from './test-advanced-settings/test-advanced-settings.component';
+import { TestPrintPreviewPaneComponent } from './test-print-preview-pane/test-print-preview-pane.component';
 
 type GradeMode = 'auto' | 'manual';
 type GradePresetKey = 'AT' | 'DE' | 'US' | 'MITARBEIT' | 'CUSTOM';
 type ExplorerFolder = {
   id: string;
-  schoolId: string;
+  collectionId: string;
   type: 'examples' | 'tests';
   name: string;
   parentId: string | null;
@@ -56,24 +59,23 @@ type PersistedTestSettings = {
     FormsModule,
     ReactiveFormsModule,
     MatButtonModule,
-    MatDialogActions,
     CdkTextareaAutosize,
     MatFormField,
     MatInput,
     MatLabel,
     MatIconModule,
     MatDividerModule,
-    MatIconButton,
-    MatButtonToggle,
-    MatButtonToggleGroup,
     MatProgressBarModule,
     TranslateModule,
+    TestSelectedExamplesComponent,
+    TestAdvancedSettingsComponent,
+    TestPrintPreviewPaneComponent,
   ],
   templateUrl: './create-test.component.html',
   styleUrl: './create-test.component.scss',
 })
 export class CreateTestComponent implements OnInit, OnDestroy {
-  data = inject<{ schoolId: string; testId?: string; folderId?: string | null }>(MAT_DIALOG_DATA);
+  data = inject<{ schoolId: string; testId?: string; folderId: string | null }>(MAT_DIALOG_DATA);
   private dialogRef = inject(MatDialogRef<CreateTestComponent>);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
@@ -92,6 +94,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   isExportingPdf = false;
   isExportingWord = false;
   isSaving = false;
+  isLoading = true;
 
   previewHtml: SafeHtml = '';
   labels: TestPrintLabels = this.buildPrintLabels();
@@ -101,7 +104,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   selectedExamplesInternal: TestExampleDTO[] = [];
 
   test: CreateTestDTO & PersistedTestSettings = {
-    schoolId: this.data.schoolId,
+    collectionId: this.data.schoolId,
     name: '',
     note: '',
     exampleList: [] as TestExample[],
@@ -113,7 +116,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     gradingSchema: [],
     gradePercentages: {},
     manualGradeMinimums: {},
-    folderId: null
+    folderId: this.data.folderId
   };
 
   hasUnsavedChanges = false;
@@ -220,8 +223,11 @@ export class CreateTestComponent implements OnInit, OnDestroy {
             this.initializeTaskSpacing();
             this.refreshPreviewHtml();
             this.hasUnsavedChanges = false;
+            this.isLoading = false;
           },
         });
+    } else {
+      this.isLoading = false;
     }
 
     this.service.getFullExamples(this.data.schoolId)
@@ -372,6 +378,30 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   trackByGradingLevel = (_: number, level: GradingLevel): string =>
     String(level.key ?? level.order ?? _);
 
+  readonly getResolvedExampleHeadingFn = (example: Example | ExampleDTO, variableValues?: TestExampleVariableValues): string =>
+    this.getResolvedExampleHeading(example, variableValues);
+
+  readonly getExampleMetaFn = (entry: TestExampleDTO): string =>
+    this.getExampleMeta(entry);
+
+  readonly getTaskSpacingFn = (exampleId: string): number =>
+    this.getTaskSpacing(exampleId);
+
+  readonly hasVariablesFn = (entry: TestExampleDTO): boolean =>
+    this.hasVariables(entry);
+
+  readonly getExampleVariablesFn = (entry: TestExampleDTO) =>
+    this.getExampleVariables(entry);
+
+  readonly getVariableValueFn = (entry: TestExampleDTO, key: string): string =>
+    this.getVariableValue(entry, key);
+
+  readonly getResolvedEntryTitleFn = (entry: TestExampleDTO): string =>
+    this.getResolvedEntryTitle(entry);
+
+  readonly getGradeRangeLabelByIndexFn = (index: number): string =>
+    this.getGradeRangeLabelByIndex(index);
+
   get selectedExamples(): TestExampleDTO[] {
     return this.selectedExamplesInternal;
   }
@@ -411,7 +441,6 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
     const parts = [
       this.getExampleTypeLabel(entry.example.type),
-      this.getFolderPathLabel(entry.example.folder?.id ?? null),
       focusLabels || ''
     ].filter(Boolean);
 
@@ -475,11 +504,12 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   getExampleTypeLabel(type: ExampleTypes | string): string {
     if (type == null) return '—';
 
-    return ExampleTypeLabels[type as ExampleTypes] ?? String(type);
+    let label = ExampleTypeLabels[type as ExampleTypes] ?? String(type)
+    return this.translate.instant(label)
   }
 
   getFolderPathLabel(folderId: string | null): string {
-    if (folderId === null) return this.translate.instant('school.root');
+    if (folderId === null) return this.translate.instant('collection.root');
 
     const crumbs: string[] = [];
     let current = this.exampleFolders.find(folder => folder.id === folderId) ?? null;
@@ -489,12 +519,12 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       current = this.exampleFolders.find(folder => folder.id === current?.parentId) ?? null;
     }
 
-    const rootLabel = this.translate.instant('school.root');
+    const rootLabel = this.translate.instant('collection.root');
     return crumbs.length ? [rootLabel, ...crumbs].join(' / ') : rootLabel;
   }
 
   saveTest(): void {
-    this.test.schoolId = this.test.schoolId || this.data.schoolId;
+    this.test.collectionId = this.test.collectionId || this.data.schoolId;
     this.test.exampleList = this.selectedExamplesInternal;
     (this.test as any).folderId = this.data.folderId ?? (this.test as any).folderId ?? null;
 
@@ -951,7 +981,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       imagePreviewAlt: this.translateOrFallback('createTest.preview.imagePreviewAlt', 'Preview image'),
       previewTitle: this.translateOrFallback('createTest.preview.title', 'Test preview'),
       previewSubtitle: this.translateOrFallback('createTest.preview.subtitle', 'Preview and print layout'),
-      question: this.translateOrFallback('school.question', 'Question'),
+      question: this.translateOrFallback('collection.question', 'Question'),
     };
   }
 

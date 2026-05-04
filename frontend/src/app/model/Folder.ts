@@ -1,9 +1,9 @@
-import {School} from './School'
+import {Collection} from './Collection'
 
 export interface Folder {
   id: string;
   name: string;
-  school: School;
+  collection: Collection;
   parent: Folder;
   createdAt: string;
   updatedAt: string;
@@ -12,7 +12,7 @@ export interface Folder {
 export interface FolderDTO {
   id: string;
   name: string;
-  schoolId: string;
+  collectionId: string;
   parentId: string | null;
   createdAt: string;
   updatedAt: string;

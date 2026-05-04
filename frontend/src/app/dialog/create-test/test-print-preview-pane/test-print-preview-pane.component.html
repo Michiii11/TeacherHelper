@@ -1,0 +1,58 @@
+<div class="preview-pane">
+  <div class="print-controls settings-card">
+    <div class="print-controls-grid">
+      <div class="section">
+        <div class="stepper">
+          <button mat-icon-button type="button" (click)="decreaseCopies.emit()">
+            <mat-icon>remove</mat-icon>
+          </button>
+          <input
+            type="number"
+            min="1"
+            max="100"
+            [ngModel]="printCopies"
+            (ngModelChange)="printCopiesChange.emit($event)"
+          />
+          <button mat-icon-button type="button" (click)="increaseCopies.emit()">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="section">
+        <mat-button-toggle-group [ngModel]="includeSolutionSheet" [hideSingleSelectionIndicator]="true">
+          <mat-button-toggle [value]="false" (click)="includeSolutionSheetChange.emit(false)">
+            {{ 'createTest.print.onlyTest' | translate }}
+          </mat-button-toggle>
+          <mat-button-toggle [value]="true" (click)="includeSolutionSheetChange.emit(true)">
+            {{ 'createTest.print.includeSolutions' | translate }}
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+
+      <div class="section">
+        <button mat-flat-button color="primary" type="button" (click)="printRequested.emit()">
+          {{ 'createTest.print.print' | translate }}
+          <mat-icon>print</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="print-area preview-surface">
+    <div class="print-page shared-preview-page" [innerHTML]="previewHtml"></div>
+  </div>
+
+  <mat-dialog-actions>
+    <button mat-stroked-button type="button" (click)="closeRequested.emit()" [disabled]="isSaving">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button mat-flat-button color="primary" type="submit" [disabled]="isSaving" (click)="saveRequested.emit()">
+      <mat-icon>{{ isSaving ? 'hourglass_top' : 'save' }}</mat-icon>
+      {{ isSaving ? ('common.saving' | translate) : ('common.save' | translate) }}
+    </button>
+    @if (isSaving) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    }
+  </mat-dialog-actions>
+</div>

@@ -22,7 +22,7 @@ public class TestResource {
     UserRepository userRepository;
 
     @GET
-    @Path("/school/{collectionId}")
+    @Path("/collection/{collectionId}")
     public Response getTests(@PathParam("collectionId") UUID collectionId,
                              @HeaderParam("Authorization") String auth) {
         Response authResponse = userRepository.generateResponseOfAuth(auth);

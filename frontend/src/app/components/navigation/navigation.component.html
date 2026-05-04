@@ -28,7 +28,7 @@
                 type="button"
                 class="navbar-action-btn"
                 [disabled]="!!action.disabled"
-                (click)="action.action()"
+                (click)="handleNavbarAction(action)"
               >
                 <mat-icon>{{ action.icon }}</mat-icon>
               </button>
@@ -38,7 +38,7 @@
                 type="button"
                 class="navbar-action-btn"
                 [disabled]="!!action.disabled"
-                (click)="action.action()"
+                (click)="handleNavbarAction(action)"
               >
                 @if (action.icon) {
                   <mat-icon>{{ action.icon }}</mat-icon>
@@ -52,7 +52,7 @@
                 type="button"
                 class="navbar-action-btn"
                 [disabled]="!!action.disabled"
-                (click)="action.action()"
+                (click)="handleNavbarAction(action)"
               >
                 @if (action.icon) {
                   <mat-icon>{{ action.icon }}</mat-icon>
@@ -119,13 +119,14 @@
         </div>
 
         <div class="notif-tabs">
-          <mat-button-toggle-group [(ngModel)]="selectedTab" [hideSingleSelectionIndicator]="true">
-            <mat-button-toggle value="open"
-                               (click)="setTab('open', $event)">
+          <mat-button-toggle-group
+            [value]="selectedTab"
+            [hideSingleSelectionIndicator]="true"
+            (valueChange)="setTab($event)">
+            <mat-button-toggle value="open">
               {{ 'notifications.tabs.open' | translate }}
             </mat-button-toggle>
-            <mat-button-toggle value="history"
-                               (click)="setTab('history', $event)">
+            <mat-button-toggle value="history">
               {{ 'notifications.tabs.history' | translate }}
             </mat-button-toggle>
           </mat-button-toggle-group>
