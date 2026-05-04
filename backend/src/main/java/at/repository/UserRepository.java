@@ -21,6 +21,7 @@ import org.mindrot.jbcrypt.BCrypt;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -33,6 +34,7 @@ public class UserRepository {
     private static final long MAX_PROFILE_IMAGE_SIZE = 2L * 1024L * 1024L;
     private static final Set<String> SUPPORTED_LANGUAGES = Set.of("de", "en");
     private static final SecureRandom CODE_RANDOM = new SecureRandom();
+    private static final ZoneId APP_ZONE = ZoneId.of("Europe/Vienna");
 
     @Inject
     EntityManager em;
@@ -113,7 +115,7 @@ public class UserRepository {
 
             existingByUsername.setEmail(email);
             existingByUsername.setEmailVerificationToken(generateSixDigitCode());
-            existingByUsername.setEmailVerificationExpiresAt(LocalDateTime.now().plusMinutes(15));
+            existingByUsername.setEmailVerificationExpiresAt(now().plusMinutes(15));
             existingByUsername.setDarkMode(dto.darkMode());
             existingByUsername.setLanguage(dto.language());
 
@@ -144,7 +146,7 @@ public class UserRepository {
         user.setSubscriptionModel(SubscriptionModel.FREE);
         user.setEmailVerified(false);
         user.setEmailVerificationToken(generateSixDigitCode());
-        user.setEmailVerificationExpiresAt(LocalDateTime.now().plusMinutes(15));
+        user.setEmailVerificationExpiresAt(now().plusMinutes(15));
         user.setAllowInvitations(true);
         user.setDarkMode(dto.darkMode());
         user.setLanguage(dto.language());
@@ -218,7 +220,7 @@ public class UserRepository {
         }
 
         if (user.getEmailVerificationExpiresAt() == null
-                || user.getEmailVerificationExpiresAt().isBefore(LocalDateTime.now())) {
+                || user.getEmailVerificationExpiresAt().isBefore(now())) {
             return Response.status(Response.Status.BAD_REQUEST).entity("CODE_EXPIRED").build();
         }
 
@@ -246,7 +248,7 @@ public class UserRepository {
         }
 
         if (user.getEmailVerificationExpiresAt() == null
-                || user.getEmailVerificationExpiresAt().isBefore(LocalDateTime.now())) {
+                || user.getEmailVerificationExpiresAt().isBefore(now())) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Verification token expired.").build();
         }
 
@@ -278,7 +280,7 @@ public class UserRepository {
         }
 
         user.setEmailVerificationToken(generateSixDigitCode());
-        user.setEmailVerificationExpiresAt(LocalDateTime.now().plusMinutes(15));
+        user.setEmailVerificationExpiresAt(now().plusMinutes(15));
         em.merge(user);
 
         mailService.sendRegistrationVerification(user.getEmail(), user.getEmailVerificationToken(), language);
@@ -364,7 +366,7 @@ public class UserRepository {
         }
 
         user.setPasswordResetToken(UUID.randomUUID().toString());
-        user.setPasswordResetExpiresAt(LocalDateTime.now().plusHours(2));
+        user.setPasswordResetExpiresAt(now().plusHours(2));
         em.merge(user);
 
         mailService.sendPasswordReset(user.getEmail(), user.getPasswordResetToken(), user.getLanguage());
@@ -380,7 +382,7 @@ public class UserRepository {
         if (user == null) return Response.status(Response.Status.BAD_REQUEST).entity("Invalid password reset token.").build();
 
         if (user.getPasswordResetExpiresAt() == null
-                || user.getPasswordResetExpiresAt().isBefore(LocalDateTime.now())) {
+                || user.getPasswordResetExpiresAt().isBefore(now())) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Password reset token expired.").build();
         }
 
@@ -438,7 +440,7 @@ public class UserRepository {
 
         user.setPendingEmail(normalized);
         user.setEmailVerificationToken(UUID.randomUUID().toString());
-        user.setEmailVerificationExpiresAt(LocalDateTime.now().plusHours(24));
+        user.setEmailVerificationExpiresAt(now().plusHours(24));
         em.merge(user);
 
         mailService.sendEmailChangeVerification(normalized, user.getEmailVerificationToken(), user.getLanguage());
@@ -551,7 +553,7 @@ public class UserRepository {
     }
 
     public Response getAdminDashboard() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = now();
 
         LocalDateTime oneHourAgo = now.minusHours(1);
         LocalDateTime oneDayAgo = now.minusDays(1);
@@ -724,6 +726,10 @@ public class UserRepository {
                         user.isAllowInvitations()
                 )
         );
+    }
+
+    private LocalDateTime now() {
+        return LocalDateTime.now(APP_ZONE);
     }
 
     private String generateSixDigitCode() {
