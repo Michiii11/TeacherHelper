@@ -304,6 +304,10 @@ export class HttpService {
     return this.http.post<AuthResult>(`${Config.API_URL}/user/login`, payload);
   }
 
+  verifyRegistrationCode(payload: { email: string; code: string }) {
+    return this.http.post(`${Config.API_URL}/user/verify-code`, payload, { responseType: 'text' });
+  }
+
   verifyEmail(token: string) {
     return this.http.get(`${Config.API_URL}/user/verify-email?token=${encodeURIComponent(token)}`,
       { responseType: 'text' });

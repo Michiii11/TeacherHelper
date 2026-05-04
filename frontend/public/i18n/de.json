@@ -1076,7 +1076,10 @@
       "forgotSuccess": "Falls die E-Mail existiert, wurde ein Reset-Link gesendet.",
       "resetSuccess": "Passwort wurde erfolgreich zurückgesetzt.",
       "resendSuccess": "Bestätigungs-Mail wurde erneut gesendet.",
-      "verifySuccess": "E-Mail wurde erfolgreich bestätigt."
+      "verifySuccess": "E-Mail wurde erfolgreich bestätigt.",
+      "verifyCodeSuccess": "E-Mail wurde erfolgreich bestätigt.",
+      "verifyCodeError": "Code konnte nicht bestätigt werden.",
+      "resendCodeSuccess": "Ein neuer Code wurde gesendet."
     },
     "backend": {
       "INVALID_DATA": "Bitte fülle alle erforderlichen Felder aus.",
@@ -1098,7 +1101,21 @@
       "NEW_PASSWORD_REQUIRED": "Neues Passwort ist erforderlich.",
       "PASSWORD_RESET_TOKEN_INVALID": "Der Reset-Link ist ungültig.",
       "PASSWORD_RESET_TOKEN_EXPIRED": "Der Reset-Link ist abgelaufen.",
-      "AUTH_SUCCESS": "Login erfolgreich"
+      "AUTH_SUCCESS": "Login erfolgreich",
+      "INVALID_CODE": "Der eingegebene Code ist ungültig.",
+      "CODE_EXPIRED": "Der Code ist abgelaufen. Bitte fordere einen neuen Code an."
+    },
+    "registerFlow": {
+      "verifyTitle": "Code bestätigen",
+      "verifySubtitle": "Wir haben einen 6-stelligen Code an {{email}} gesendet.",
+      "codeLabel": "Bestätigungscode",
+      "codePlaceholder": "123456",
+      "codeError": "Bitte gib den 6-stelligen Code ein.",
+      "submitCode": "Code bestätigen",
+      "resend": "Code erneut senden",
+      "changeEmail": "E-Mail ändern",
+      "continue": "Ich habe schon einen Code",
+      "resendHint": "Der Code ist 15 Minuten gültig. Nach dem erneuten Senden gilt nur der neue Code."
     }
   },
   "notFound": {

@@ -210,3 +210,134 @@ mat-progress-bar {
     width: 100%;
   }
 }
+
+.flow-intro,
+.verify-hero {
+  margin: 0 0 1.1rem;
+  text-align: center;
+}
+
+.flow-intro span,
+.verify-hero span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: var(--theme-primary-soft);
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.flow-intro h2,
+.verify-hero h2 {
+  margin: 0.75rem 0 0.35rem;
+  color: var(--text);
+  font-size: clamp(1.35rem, 3vw, 1.8rem);
+  font-weight: 850;
+  line-height: 1.1;
+}
+
+.flow-intro p,
+.verify-hero p,
+.verify-hint {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+
+.verify-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 0.9rem;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  background: linear-gradient(135deg, var(--primary), #60a5fa);
+  color: #fff;
+  box-shadow: 0 16px 32px var(--theme-primary-soft);
+}
+
+.verify-icon mat-icon {
+  width: 34px;
+  height: 34px;
+  font-size: 34px;
+}
+
+.code-field input {
+  text-align: center;
+  font-size: 1.45rem;
+  letter-spacing: 0.35rem;
+  font-weight: 800;
+}
+
+.code-preview {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0.15rem 0 1rem;
+}
+
+.code-preview span {
+  min-height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--bg-base);
+  color: var(--text-soft);
+  font-size: 1.2rem;
+  font-weight: 850;
+  transition: 160ms ease;
+}
+
+.code-preview span.filled {
+  border-color: rgba(37, 99, 235, 0.45);
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.verify-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.85rem;
+}
+
+.verify-hint {
+  margin-top: 0.7rem;
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 420px) {
+  .code-preview {
+    gap: 0.35rem;
+  }
+
+  .code-preview span {
+    min-height: 42px;
+    border-radius: 13px;
+  }
+}
+
+
+.register-continue {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+
+  button {
+    border-radius: 999px;
+    font-weight: 700;
+  }
+
+  mat-icon {
+    margin-right: 6px;
+  }
+}

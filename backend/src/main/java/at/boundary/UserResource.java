@@ -71,8 +71,13 @@ public class UserResource {
     @GET
     @Path("verify-email")
     public Response verifyEmail(@QueryParam("token") String token) {
-        System.out.println(token);
         return repository.verifyEmail(token);
+    }
+
+    @POST
+    @Path("verify-code")
+    public Response verifyRegistrationCode(VerifyCodeDTO dto) {
+        return repository.verifyRegistrationCode(dto == null ? null : dto.email(), dto == null ? null : dto.code());
     }
 
     @POST
@@ -245,7 +250,7 @@ public class UserResource {
     @GET
     @Path("admin/{id}")
     public Response getUserAdminDashboard(@HeaderParam("Authorization") String auth,
-                                     @PathParam("id") UUID id) {
+                                          @PathParam("id") UUID id) {
         UUID userId = tokenFromDto(auth);
         if (userId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
@@ -292,4 +297,7 @@ public class UserResource {
         }
         return tokenService.validateTokenAndGetUserId(authToken);
     }
+
+
+    public record VerifyCodeDTO(String email, String code) {}
 }

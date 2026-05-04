@@ -52,9 +52,8 @@ public class MailService {
         );
 
         MailMessage message = baseMessage(email, content.subject());
-        message.setText(buildTextVersion(content, link, lang));
-        message.setHtml(buildHtmlMail(content, link, lang));
-
+        message.setText(buildTextVersion(content, link, lang, token));
+        message.setHtml(buildHtmlMail(content, link, lang, token));
         sendMail(message);
     }
 
@@ -70,150 +69,93 @@ public class MailService {
         return message;
     }
 
-    private String buildTextVersion(MailContent content, String link, String language) {
+    private String buildTextVersion(MailContent content, String link, String language, String token) {
         return """
-                %s
+        %s
 
-                %s
-                %s
+        %s
 
-                %s:
-                %s
+        Code: %s
 
-                %s
+        Link:
+        %s
 
-                %s
-                """.formatted(
+        %s
+        """.formatted(
                 APP_NAME,
                 content.title(),
-                content.intro(),
-                content.buttonText(),
+                token,
                 link,
-                content.hint(),
-                t(language, "mail.footer.auto")
+                content.hint()
         );
     }
 
-    private String buildHtmlMail(MailContent content, String link, String language) {
+    private String buildHtmlMail(MailContent content, String link, String language, String token) {
         return """
-                <!DOCTYPE html>
-                <html lang="%s">
-                <head>
-                  <meta charset="UTF-8">
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                  <title>%s</title>
-                </head>
-                <body style="margin:0; padding:0; background:%s; font-family:Arial, Helvetica, sans-serif; color:%s;">
-                  <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">
-                    %s
-                  </div>
+        <!DOCTYPE html>
+        <html lang="%s">
+        <body style="margin:0; padding:0; background:%s; font-family:Arial;">
 
-                  <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" border="0" style="background:%s; margin:0; padding:18px 12px;">
-                    <tr>
-                      <td align="center">
-                        <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" border="0" style="max-width:640px; margin:0 auto;">
-                          <tr>
-                            <td style="padding:0 0 10px 0; text-align:center;">
-                              <div style="display:inline-block; padding:7px 14px; border-radius:999px; background:#dbeafe; color:%s; font-weight:700; font-size:12px; letter-spacing:0.2px;">
-                                %s
-                              </div>
-                            </td>
-                          </tr>
+          <div style="max-width:600px; margin:40px auto; background:white; padding:30px; border-radius:16px;">
 
-                          <tr>
-                            <td style="background:%s; border:1px solid %s; border-radius:24px; overflow:hidden; box-shadow:0 10px 30px rgba(15,23,42,0.08);">
-                              <div style="background:linear-gradient(135deg, #1d4ed8 0%%, #2563eb 55%%, #3b82f6 100%%); padding:22px 28px 20px; text-align:center;">
-                                <div style="font-size:24px; line-height:1.15; font-weight:800; color:#ffffff;">
-                                  %s
-                                </div>
-                                <div style="margin-top:6px; font-size:13px; line-height:1.5; color:#dbeafe;">
-                                  %s
-                                </div>
-                              </div>
+            <h2 style="text-align:center;">%s</h2>
 
-                              <div style="padding:28px 30px 24px 30px;">
-                                <div style="font-size:26px; line-height:1.15; font-weight:800; color:%s; margin:0 0 14px 0; text-align:center;">
-                                  %s
-                                </div>
+            <p style="text-align:center;">%s</p>
 
-                                <div style="font-size:15px; line-height:1.65; color:%s; margin:0 0 22px 0; text-align:center;">
-                                  %s
-                                </div>
+            <!-- 🔥 CODE -->
+            <div style="
+              font-size:36px;
+              font-weight:800;
+              letter-spacing:8px;
+              text-align:center;
+              margin:30px 0;
+            ">
+              %s
+            </div>
 
-                                <div style="text-align:center; margin:0 0 24px 0;">
-                                  <a href="%s"
-                                     style="display:inline-block; background:%s; color:#ffffff; text-decoration:none; font-size:15px; font-weight:700; padding:14px 24px; border-radius:12px;">
-                                     %s
-                                  </a>
-                                </div>
+            <p style="text-align:center; color:#666;">
+              Code gültig für 15 Minuten
+            </p>
 
-                                <div style="background:#f8fafc; border:1px solid %s; border-radius:16px; padding:14px 16px; margin:0 0 20px 0;">
-                                  <div style="font-size:12px; font-weight:700; color:%s; margin:0 0 6px 0;">
-                                    %s
-                                  </div>
-                                  <div style="font-size:12px; line-height:1.6; color:%s; word-break:break-all;">
-                                    %s
-                                  </div>
-                                </div>
+            <hr style="margin:30px 0;">
 
-                                <div style="font-size:13px; line-height:1.65; color:%s; margin:0 0 18px 0;">
-                                  %s
-                                </div>
+            <!-- BUTTON -->
+            <div style="text-align:center;">
+              <a href="%s"
+                style="
+                  display:inline-block;
+                  padding:12px 24px;
+                  background:#2563eb;
+                  color:white;
+                  border-radius:10px;
+                  text-decoration:none;
+                  font-weight:600;
+                ">
+                %s
+              </a>
+            </div>
 
-                                <div style="height:1px; background:%s; margin:0 0 16px 0;"></div>
+            <!-- FALLBACK -->
+            <p style="margin-top:20px; font-size:12px; text-align:center;">
+              Falls der Button nicht funktioniert:
+            </p>
 
-                                <div style="font-size:12px; line-height:1.65; color:%s; text-align:center;">
-                                  %s<br>
-                                  %s
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
+            <p style="font-size:12px; word-break:break-all; text-align:center;">
+              %s
+            </p>
 
-                          <tr>
-                            <td style="padding:12px 8px 0 8px; text-align:center; font-size:12px; line-height:1.6; color:%s;">
-                              © %s – TeacherHelper
-                            </td>
-                          </tr>
-                        </table>
-                      </td>
-                    </tr>
-                  </table>
-                </body>
-                </html>
-                """.formatted(
-                escapeHtml(language),
-                escapeHtml(content.title()),
+          </div>
+        </body>
+        </html>
+        """.formatted(
+                language,
                 BACKGROUND_COLOR,
-                TEXT_COLOR,
-                escapeHtml(content.preheader()),
-                BACKGROUND_COLOR,
-                PRIMARY_COLOR,
-                escapeHtml(content.badgeText()),
-                CARD_COLOR,
-                BORDER_COLOR,
-                APP_NAME,
-                escapeHtml(t(language, "mail.hero.subtitle")),
-                TEXT_COLOR,
-                escapeHtml(content.title()),
-                MUTED_COLOR,
-                escapeHtml(content.intro()),
-                escapeHtml(link),
-                PRIMARY_COLOR,
-                escapeHtml(content.buttonText()),
-                BORDER_COLOR,
-                TEXT_COLOR,
-                escapeHtml(t(language, "mail.buttonFallback")),
-                MUTED_COLOR,
-                escapeHtml(link),
-                MUTED_COLOR,
-                escapeHtml(content.hint()),
-                BORDER_COLOR,
-                MUTED_COLOR,
-                escapeHtml(t(language, "mail.footer.auto")),
-                escapeHtml(t(language, "mail.footer.noReply")),
-                MUTED_COLOR,
-                APP_NAME
+                content.title(),
+                content.intro(),
+                token,
+                link,
+                content.buttonText(),
+                link
         );
     }
 

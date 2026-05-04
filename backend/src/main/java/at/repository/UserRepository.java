@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.security.SecureRandom;
 
 @ApplicationScoped
 @Transactional
@@ -31,6 +32,7 @@ public class UserRepository {
     private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
     private static final long MAX_PROFILE_IMAGE_SIZE = 2L * 1024L * 1024L;
     private static final Set<String> SUPPORTED_LANGUAGES = Set.of("de", "en");
+    private static final SecureRandom CODE_RANDOM = new SecureRandom();
 
     @Inject
     EntityManager em;
@@ -94,11 +96,45 @@ public class UserRepository {
             return AuthResult.failure("INVALID_PASSWORD");
         }
 
-        if (findByUsername(username) != null) {
-            return AuthResult.failure("USERNAME_TAKEN");
+        User existingByUsername = findByUsername(username);
+        if (existingByUsername != null) {
+            if (existingByUsername.isEmailVerified()) {
+                return AuthResult.failure("USERNAME_TAKEN");
+            }
+
+            if (!BCrypt.checkpw(dto.password(), existingByUsername.getPassword())) {
+                return AuthResult.failure("USERNAME_TAKEN");
+            }
+
+            User existingByEmail = findByEmail(email);
+            if (existingByEmail != null && !existingByEmail.getId().equals(existingByUsername.getId())) {
+                return AuthResult.failure("EMAIL_TAKEN");
+            }
+
+            existingByUsername.setEmail(email);
+            existingByUsername.setEmailVerificationToken(generateSixDigitCode());
+            existingByUsername.setEmailVerificationExpiresAt(LocalDateTime.now().plusMinutes(15));
+            existingByUsername.setDarkMode(dto.darkMode());
+            existingByUsername.setLanguage(dto.language());
+
+            em.merge(existingByUsername);
+            mailService.sendRegistrationVerification(
+                    existingByUsername.getEmail(),
+                    existingByUsername.getEmailVerificationToken(),
+                    dto.language()
+            );
+
+            return new AuthResult(
+                    true,
+                    "EMAIL_CONFIRMATION_REQUIRED",
+                    "Please enter the 6-digit code we sent to your email address.",
+                    null,
+                    null
+            );
         }
 
-        if (findByEmail(email) != null) {
+        User existingByEmail = findByEmail(email);
+        if (existingByEmail != null) {
             return AuthResult.failure("EMAIL_TAKEN");
         }
 
@@ -107,8 +143,8 @@ public class UserRepository {
         User user = new User(username, email, hashed);
         user.setSubscriptionModel(SubscriptionModel.FREE);
         user.setEmailVerified(false);
-        user.setEmailVerificationToken(UUID.randomUUID().toString());
-        user.setEmailVerificationExpiresAt(LocalDateTime.now().plusHours(24));
+        user.setEmailVerificationToken(generateSixDigitCode());
+        user.setEmailVerificationExpiresAt(LocalDateTime.now().plusMinutes(15));
         user.setAllowInvitations(true);
         user.setDarkMode(dto.darkMode());
         user.setLanguage(dto.language());
@@ -119,7 +155,7 @@ public class UserRepository {
         return new AuthResult(
                 true,
                 "EMAIL_CONFIRMATION_REQUIRED",
-                "Please confirm your email address to complete registration.",
+                "Please enter the 6-digit code we sent to your email address.",
                 null,
                 null
         );
@@ -161,6 +197,42 @@ public class UserRepository {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public Response verifyRegistrationCode(String email, String code) {
+        if (email == null || email.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("EMAIL_REQUIRED").build();
+        }
+
+        if (code == null || !code.trim().matches("\\d{6}")) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("INVALID_CODE").build();
+        }
+
+        User user = findByEmail(email);
+        if (user == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("EMAIL_NOT_FOUND").build();
+        }
+
+        if (user.isEmailVerified()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("EMAIL_ALREADY_VERIFIED").build();
+        }
+
+        if (user.getEmailVerificationExpiresAt() == null
+                || user.getEmailVerificationExpiresAt().isBefore(LocalDateTime.now())) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("CODE_EXPIRED").build();
+        }
+
+        if (user.getEmailVerificationToken() == null
+                || !user.getEmailVerificationToken().equals(code.trim())) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("INVALID_CODE").build();
+        }
+
+        user.setEmailVerified(true);
+        user.setEmailVerificationToken(null);
+        user.setEmailVerificationExpiresAt(null);
+        em.merge(user);
+
+        return Response.ok().build();
     }
 
     public Response verifyEmail(String token) {
@@ -205,8 +277,8 @@ public class UserRepository {
             return Response.status(Response.Status.BAD_REQUEST).entity("Email is already verified.").build();
         }
 
-        user.setEmailVerificationToken(UUID.randomUUID().toString());
-        user.setEmailVerificationExpiresAt(LocalDateTime.now().plusHours(24));
+        user.setEmailVerificationToken(generateSixDigitCode());
+        user.setEmailVerificationExpiresAt(LocalDateTime.now().plusMinutes(15));
         em.merge(user);
 
         mailService.sendRegistrationVerification(user.getEmail(), user.getEmailVerificationToken(), language);
@@ -652,6 +724,10 @@ public class UserRepository {
                         user.isAllowInvitations()
                 )
         );
+    }
+
+    private String generateSixDigitCode() {
+        return String.valueOf(100000 + CODE_RANDOM.nextInt(900000));
     }
 
     private boolean isValidEmail(String email) {

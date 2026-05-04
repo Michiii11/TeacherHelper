@@ -1084,7 +1084,10 @@
       "forgotSuccess": "If the email exists, a reset link has been sent.",
       "resetSuccess": "Password was reset successfully.",
       "resendSuccess": "Verification email was sent again.",
-      "verifySuccess": "Email was verified successfully."
+      "verifySuccess": "Email was verified successfully.",
+      "verifyCodeSuccess": "Email verified successfully.",
+      "verifyCodeError": "Code could not be verified.",
+      "resendCodeSuccess": "A new code has been sent."
     },
     "backend": {
       "INVALID_DATA": "Please fill in all required fields.",
@@ -1106,7 +1109,21 @@
       "NEW_PASSWORD_REQUIRED": "New password is required.",
       "PASSWORD_RESET_TOKEN_INVALID": "The reset link is invalid.",
       "PASSWORD_RESET_TOKEN_EXPIRED": "The reset link has expired.",
-      "AUTH_SUCCESS": "Login successful"
+      "AUTH_SUCCESS": "Login successful",
+      "INVALID_CODE": "The code you entered is invalid.",
+      "CODE_EXPIRED": "The code has expired. Please request a new code."
+    },
+    "registerFlow": {
+      "verifyTitle": "Confirm code",
+      "verifySubtitle": "We sent a 6-digit code to {{email}}.",
+      "codeLabel": "Verification code",
+      "codePlaceholder": "123456",
+      "codeError": "Please enter the 6-digit code.",
+      "submitCode": "Confirm code",
+      "resend": "Send code again",
+      "changeEmail": "Change email",
+      "continue": "I already have a code",
+      "resendHint": "The code is valid for 15 minutes. After resending, only the new code works."
     }
   },
   "notFound": {
