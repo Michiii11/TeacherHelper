@@ -16,19 +16,16 @@
       <div class="school-grid">
         <mat-card
           *ngFor="let school of schools"
-          class="school-card"
-          [ngClass]="getCardClass(school)"
+          [class]="getCardClass(school)"
           (click)="openSchool(school)"
         >
           <div class="card-top-row">
             @if (school.logoUrl) {
               <div [class]="getAvatarClass(school)">
-                <img
-                  *ngIf="logoUrls[school.id]"
-                  [src]="logoUrls[school.id]"
-                  alt="{{ school.name }}"
-                  class="avatar-image"
-                />
+                <img *ngIf="logoUrls[school.id]"
+                     [src]="logoUrls[school.id]"
+                     alt="{{ school.name }} Logo"
+                     class="avatar-image" />
               </div>
             } @else {
               <div [class]="getAvatarClass(school)">
@@ -46,18 +43,11 @@
           <div class="school-info-list">
             <div class="info-row">
               <mat-icon>person</mat-icon>
-              <span>
-              {{ 'home.labels.admin' | translate }}:
-                {{ school.admin.username }}
-            </span>
+              <span>{{ 'home.labels.admin' | translate }}: {{ school.admin.username }}</span>
             </div>
-
             <div class="info-row">
               <mat-icon>auto_stories</mat-icon>
-              <span>
-              {{ 'home.labels.examples' | translate }}:
-                {{ school.exampleCount }}
-            </span>
+              <span>{{ 'home.labels.examples' | translate }}: {{ school.exampleCount }}</span>
             </div>
           </div>
 
@@ -65,6 +55,11 @@
             <span>{{ 'home.actions.openSchool' | translate }}</span>
             <mat-icon>arrow_forward</mat-icon>
           </div>
+        </mat-card>
+
+        <mat-card *ngIf="!schools?.length" class="empty-card">
+          <mat-icon>school</mat-icon>
+          <p>{{ 'home.memberSection.empty' | translate }}</p>
         </mat-card>
       </div>
     </section>
