@@ -1,5 +1,5 @@
 import {User, UserDTO} from './User'
-import {SchoolDTO} from './School'
+import {CollectionDTO} from './Collection'
 import {Folder, FolderDTO} from './Folder'
 
 export enum ExampleTypes {
@@ -58,7 +58,7 @@ export interface ExampleDTO {
   solutionImageWidth: number;
   focusList: Focus[];
   variables: ExampleVariable[];
-  school: SchoolDTO;
+  collection: CollectionDTO;
   answers: string[][];
   options: Option[];
   gapFillType: 'INPUT' | 'SELECT';
@@ -68,7 +68,7 @@ export interface ExampleDTO {
 }
 
 export interface CreateExampleDTO {
-  schoolId: string;
+  collectionId: string;
   type: ExampleTypes;
   instruction: string;
   question: string;

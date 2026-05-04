@@ -58,7 +58,7 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
   isLoading = true;
 
   test: CreateTestDTO & PersistedTestSettings = {
-    schoolId: this.data.schoolId,
+    collectionId: this.data.schoolId,
     folderId: null,
     name: '',
     note: '',
@@ -228,7 +228,7 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
       imagePreviewAlt: this.translateOrFallback('createTest.preview.imagePreviewAlt', 'Preview image'),
       previewTitle: this.translateOrFallback('createTest.preview.title', 'Test preview'),
       previewSubtitle: this.translateOrFallback('createTest.preview.subtitle', 'Preview and print layout'),
-      question: this.translateOrFallback('school.question', 'Question')
+      question: this.translateOrFallback('collection.question', 'Question')
     };
   }
 

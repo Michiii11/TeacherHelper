@@ -10,7 +10,7 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
-  selector: 'app-add-school-dialog',
+  selector: 'app-add-collection-dialog',
   standalone: true,
   imports: [
     FormsModule,
@@ -125,8 +125,8 @@ import { TranslatePipe } from '@ngx-translate/core';
     }
   `]
 })
-export class AddSchoolDialogComponent {
-  private readonly dialogRef = inject(MatDialogRef<AddSchoolDialogComponent, string | undefined>);
+export class AddCollectionDialogComponent {
+  private readonly dialogRef = inject(MatDialogRef<AddCollectionDialogComponent, string | undefined>);
 
   schoolName = '';
   isSaving = false;

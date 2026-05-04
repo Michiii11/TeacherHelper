@@ -17,7 +17,7 @@
     matInput
     [ngModel]="search()"
     (ngModelChange)="updateSearch($event)"
-    [placeholder]="'school.folderPickerSearch' | translate" />
+    [placeholder]="'collection.folderPickerSearch' | translate" />
 </mat-form-field>
 
 <div class="folder-list">
@@ -63,7 +63,7 @@
   } @empty {
     <div class="folder-empty">
       <mat-icon>search_off</mat-icon>
-      <span>{{ 'school.noFoldersFound' | translate }}</span>
+      <span>{{ 'collection.noFoldersFound' | translate }}</span>
     </div>
   }
 </div>
@@ -74,6 +74,6 @@
   </button>
 
   <button mat-flat-button color="primary" type="button" (click)="confirm()">
-    {{ 'school.moveConfirm' | translate }}
+    {{ 'collection.moveConfirm' | translate }}
   </button>
 </div>

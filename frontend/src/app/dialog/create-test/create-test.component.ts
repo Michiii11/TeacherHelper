@@ -33,7 +33,7 @@ type GradeMode = 'auto' | 'manual';
 type GradePresetKey = 'AT' | 'DE' | 'US' | 'MITARBEIT' | 'CUSTOM';
 type ExplorerFolder = {
   id: string;
-  schoolId: string;
+  collectionId: string;
   type: 'examples' | 'tests';
   name: string;
   parentId: string | null;
@@ -104,7 +104,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   selectedExamplesInternal: TestExampleDTO[] = [];
 
   test: CreateTestDTO & PersistedTestSettings = {
-    schoolId: this.data.schoolId,
+    collectionId: this.data.schoolId,
     name: '',
     note: '',
     exampleList: [] as TestExample[],
@@ -509,7 +509,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   getFolderPathLabel(folderId: string | null): string {
-    if (folderId === null) return this.translate.instant('school.root');
+    if (folderId === null) return this.translate.instant('collection.root');
 
     const crumbs: string[] = [];
     let current = this.exampleFolders.find(folder => folder.id === folderId) ?? null;
@@ -519,12 +519,12 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       current = this.exampleFolders.find(folder => folder.id === current?.parentId) ?? null;
     }
 
-    const rootLabel = this.translate.instant('school.root');
+    const rootLabel = this.translate.instant('collection.root');
     return crumbs.length ? [rootLabel, ...crumbs].join(' / ') : rootLabel;
   }
 
   saveTest(): void {
-    this.test.schoolId = this.test.schoolId || this.data.schoolId;
+    this.test.collectionId = this.test.collectionId || this.data.schoolId;
     this.test.exampleList = this.selectedExamplesInternal;
     (this.test as any).folderId = this.data.folderId ?? (this.test as any).folderId ?? null;
 
@@ -981,7 +981,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       imagePreviewAlt: this.translateOrFallback('createTest.preview.imagePreviewAlt', 'Preview image'),
       previewTitle: this.translateOrFallback('createTest.preview.title', 'Test preview'),
       previewSubtitle: this.translateOrFallback('createTest.preview.subtitle', 'Preview and print layout'),
-      question: this.translateOrFallback('school.question', 'Question'),
+      question: this.translateOrFallback('collection.question', 'Question'),
     };
   }
 

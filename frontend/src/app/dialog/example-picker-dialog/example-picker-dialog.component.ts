@@ -38,6 +38,12 @@ type PickerOption = {
   label: string;
 };
 
+type FolderOption = ExplorerFolder & {
+  path: string;
+  depth: number;
+  count: number;
+};
+
 type SortOption = {
   value: ExampleSortKey;
   labelKey: string;
@@ -67,6 +73,8 @@ export class ExamplePickerDialogComponent implements OnInit {
   selectedTypes: string[] = [];
   selectedFocuses: string[] = [];
   sortBy: ExampleSortKey = 'folder_title';
+  folderSearch = '';
+  isSortMenuOpen = false;
 
   readonly sortOptions: SortOption[] = [
     { value: 'folder_title', labelKey: 'createTest.sort.folderTitle' },
@@ -87,14 +95,38 @@ export class ExamplePickerDialogComponent implements OnInit {
 
   ngOnInit(): void {
     this.initiallySelected.clear();
+    this.workingSelection.clear();
 
     for (const id of this.data.selectedIds ?? []) {
       this.initiallySelected.add(id);
+      this.workingSelection.add(id);
     }
   }
 
   get orderedFolders(): ExplorerFolder[] {
     return this.exampleFolders.sort((a, b) => this.compareText(this.getFolderPathLabel(a.id), this.getFolderPathLabel(b.id)));
+  }
+
+  get visibleFolderOptions(): FolderOption[] {
+    const query = this.normalize(this.folderSearch);
+
+    return this.orderedFolders
+      .map(folder => ({
+        ...folder,
+        path: this.getFolderPathLabel(folder.id),
+        depth: this.getFolderDepth(folder.id),
+        count: this.getDirectExampleCount(folder.id),
+      }))
+      .filter(folder => !query || this.normalize(`${folder.name} ${folder.path}`).includes(query));
+  }
+
+  get rootExampleCount(): number {
+    return this.examples.length;
+  }
+
+  get folderResultCountLabel(): string {
+    const count = this.visibleFolderOptions.length;
+    return `${count} ${this.translate.instant('collection.folders')}`;
   }
 
   get availableTypes(): PickerOption[] {
@@ -158,6 +190,20 @@ export class ExamplePickerDialogComponent implements OnInit {
     this.selectedFocuses = [];
   }
 
+  toggleSortMenu(): void {
+    this.isSortMenuOpen = !this.isSortMenuOpen;
+  }
+
+  setSort(value: ExampleSortKey): void {
+    this.sortBy = value;
+    this.isSortMenuOpen = false;
+  }
+
+  getSortLabel(value: ExampleSortKey): string {
+    const option = this.sortOptions.find(current => current.value === value);
+    return option ? this.translate.instant(option.labelKey) : '—';
+  }
+
   toggleType(type: string): void {
     this.selectedTypes = this.toggleSelectionValue(this.selectedTypes, type);
   }
@@ -167,10 +213,6 @@ export class ExamplePickerDialogComponent implements OnInit {
   }
 
   toggleExample(exampleId: string, checked: boolean): void {
-    if (this.isAlreadySelected(exampleId)) {
-      return;
-    }
-
     if (checked) {
       this.workingSelection.add(exampleId);
       return;
@@ -180,9 +222,7 @@ export class ExamplePickerDialogComponent implements OnInit {
   }
 
   toggleExampleRow(exampleId: string): void {
-    if (!this.isAlreadySelected(exampleId)) {
-      this.toggleExample(exampleId, !this.isWorkingSelected(exampleId));
-    }
+    this.toggleExample(exampleId, !this.isWorkingSelected(exampleId));
   }
 
   isAlreadySelected(exampleId: string): boolean {
@@ -228,7 +268,7 @@ export class ExamplePickerDialogComponent implements OnInit {
       return this.folderPathCache.get(folderId)!;
     }
 
-    const rootLabel = this.translate.instant('school.root');
+    const rootLabel = this.translate.instant('collection.root');
 
     if (folderId === null) {
       this.folderPathCache.set(folderId, rootLabel);
@@ -263,6 +303,24 @@ export class ExamplePickerDialogComponent implements OnInit {
 
   private getExampleFolderId(example: ExampleDTO): string | null {
     return example.folder?.id ?? null;
+  }
+
+  private getDirectExampleCount(folderId: string): number {
+    return this.examples.filter(example => this.getExampleFolderId(example) === folderId).length;
+  }
+
+  private getFolderDepth(folderId: string): number {
+    let depth = 0;
+    const visitedFolderIds = new Set<string>();
+    let current = this.folders.find(folder => folder.id === folderId) ?? null;
+
+    while (current?.parentId && !visitedFolderIds.has(current.id)) {
+      visitedFolderIds.add(current.id);
+      depth += 1;
+      current = this.folders.find(folder => folder.id === current?.parentId) ?? null;
+    }
+
+    return depth;
   }
 
   private matchesFolderFilter(example: ExampleDTO): boolean {

@@ -120,17 +120,17 @@ export class LandingPageComponent {
       cta: 'landing.plans.pro.cta'
     },
     {
-      name: 'School',
-      chip: 'landing.plans.school.chip',
+      name: 'Collection',
+      chip: 'landing.plans.collection.chip',
       price: '20€ / Monat',
-      subtitle: 'landing.plans.school.subtitle',
+      subtitle: 'landing.plans.collection.subtitle',
       features: [
-        'landing.plans.school.f1',
-        'landing.plans.school.f2',
-        'landing.plans.school.f3',
-        'landing.plans.school.f4'
+        'landing.plans.collection.f1',
+        'landing.plans.collection.f2',
+        'landing.plans.collection.f3',
+        'landing.plans.collection.f4'
       ],
-      cta: 'landing.plans.school.cta'
+      cta: 'landing.plans.collection.cta'
     }
   ];
 

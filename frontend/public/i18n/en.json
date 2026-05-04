@@ -87,11 +87,41 @@
     "createSchoolSubtitle": "Create a new collection in your system",
     "schoolName": "Collection name",
     "schoolPlaceholder": "e.g. HTL 1 - German",
-    "confirmAction": "I confirm this action"
+    "confirmAction": "I confirm this action",
+    "moreItems": "+ {{count}} more",
+    "moreTests": "• … and {{count}} more tests",
+    "backend": {
+      "actionFailed": "Action failed.",
+      "unreachable": "Backend is not reachable. Please check your connection.",
+      "forbidden": "You do not have permission for this action.",
+      "notFound": "The item was not found. Please reload the page."
+    },
+    "folderDelete": {
+      "title": "Delete folder “{{name}}”?",
+      "emptyMessage": "The folder “{{name}}” is empty and can be deleted.",
+      "contentMessage": "Deleting “{{name}}” will also permanently remove the content inside it.",
+      "confirmationText": "I confirm that the folder and its content should be deleted.",
+      "externalUsageTitle": "Examples used in other tests",
+      "externalUsageText": "Some examples from this folder are also used in other tests. Those test links will be removed during deletion.",
+      "externalLinks": "Links in other tests",
+      "deleted": "Folder “{{name}}” was deleted.",
+      "deleteError": "Folder could not be deleted."
+    },
+    "testDelete": {
+      "title": "Delete test “{{name}}”?",
+      "message": "Do you really want to delete the test “{{name}}”?",
+      "confirmationText": "I confirm that this test should be deleted."
+    },
+    "exampleDelete": {
+      "title": "Delete example “{{name}}”?",
+      "message": "Do you really want to delete the example “{{name}}”?",
+      "usedInTests": "This example is used in the following tests:",
+      "confirmationText": "I confirm that this example should be deleted."
+    }
   },
   "navbar": {
     "home": "Collections",
-    "school": "Collection",
+    "collection": "Collection",
     "help": "Help"
   },
   "notifications": {
@@ -206,7 +236,7 @@
     },
     "visual": {
       "live": "Live Preview",
-      "school": "School",
+      "collection": "School",
       "team": "Team • Admin",
       "examples": "Examples",
       "tests": "Tests",
@@ -291,7 +321,7 @@
         "f4": "€5 per month",
         "cta": "Start Pro"
       },
-      "school": {
+      "collection": {
         "chip": "For teams",
         "subtitle": "For schools, departments and shared management across the whole staff.",
         "f1": "∞ schools (∞ members)",
@@ -307,7 +337,7 @@
       "text": "Start for free and see how much faster lesson preparation can become with a clear interface."
     }
   },
-  "school": {
+  "collection": {
     "dashboardAria": "School dashboard",
     "logoAlt": "School logo",
     "admin": "Admin",
@@ -404,6 +434,15 @@
       "templates": "Templates",
       "more": "More settings"
     },
+    "searchUsername": "Search username",
+    "searchUsernamePlaceholder": "Enter username...",
+    "usernameRequired": "Username is required",
+    "usernameMinLength": "Enter at least 2 characters",
+    "selectUserFromList": "Please select a user from the list",
+    "noUsernameResults": "No users found",
+    "usernameResultHint": "Select user",
+    "alreadyMember": "Already a member",
+    "readyToInvite": "Ready to invite",
     "schoolName": "School name",
     "logoPreviewAlt": "Logo preview",
     "noLogo": "No logo available",
@@ -461,9 +500,17 @@
       "teacherKicked": "Teacher was removed",
       "teacherKickError": "Teacher could not be removed",
       "schoolDeleted": "School was deleted",
-      "schoolDeleteError": "School could not be deleted"
+      "schoolDeleteError": "School could not be deleted",
+      "schoolLeft": "You left the collection.",
+      "schoolLeaveError": "Collection could not be left"
     },
-    "logoUploadHint": "JPG, PNG or WEBP · max. 2 MB · Upload starts when you save"
+    "logoUploadHint": "JPG, PNG or WEBP · max. 2 MB · Upload starts when you save",
+    "leaveSchool": "Leave collection",
+    "leavingSchool": "Leaving collection...",
+    "leaveSchoolText": "You will leave this collection and will no longer have access to its content. Content you created will remain in the collection.",
+    "leaveSchoolTitle": "Leave collection?",
+    "leaveSchoolMessage": "Do you really want to leave the collection “{{name}}”? You will no longer have access to this collection afterwards.",
+    "leaveSchoolConfirm": "Leave collection"
   },
   "exampleDialog": {
     "tags": "Tags",
@@ -684,7 +731,9 @@
       "chosen": "Selected",
       "emptyTitle": "No examples found",
       "emptyText": "Try other filters, another search or a different folder.",
-      "done": "Done"
+      "done": "Done",
+      "allFolders": "All folders",
+      "noFoldersFound": "No folders found"
     },
     "variables": {
       "title": "Text variables",

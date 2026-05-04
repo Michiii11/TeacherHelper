@@ -55,7 +55,7 @@
 
           <div class="row">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{ 'school.instruction' | translate }}</mat-label>
+              <mat-label>{{ 'collection.instruction' | translate }}</mat-label>
               <textarea
                 matInput
                 [(ngModel)]="example.instruction"
@@ -73,7 +73,7 @@
           <section class="example-panel">
             <ng-container *ngIf="example.type === ExampleTypes.OPEN">
               <mat-form-field appearance="outline" class="full-width">
-                <mat-label>{{ 'school.question' | translate }}</mat-label>
+                <mat-label>{{ 'collection.question' | translate }}</mat-label>
                 <textarea
                   matInput
                   [(ngModel)]="example.question"
@@ -105,7 +105,7 @@
 
             <ng-container *ngIf="example.type === ExampleTypes.HALF_OPEN">
               <mat-form-field appearance="outline" class="full-width">
-                <mat-label>{{ 'school.question' | translate }}</mat-label>
+                <mat-label>{{ 'collection.question' | translate }}</mat-label>
                 <textarea matInput [(ngModel)]="example.question" name="question" (input)="syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.halfOpenQuestionPlaceholder' | translate }}"
                           cdkTextareaAutosize
                           cdkAutosizeMinRows="2"
@@ -131,7 +131,7 @@
 
             <ng-container *ngIf="example.type === ExampleTypes.MULTIPLE_CHOICE">
               <mat-form-field appearance="outline" class="full-width">
-                <mat-label>{{ 'school.question' | translate }}</mat-label>
+                <mat-label>{{ 'collection.question' | translate }}</mat-label>
                 <textarea matInput [(ngModel)]="example.question" name="question" (input)="syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.multipleChoicePlaceholder' | translate }}"
                           cdkTextareaAutosize
                           cdkAutosizeMinRows="2"
@@ -163,7 +163,7 @@
 
             <ng-container *ngIf="example.type === ExampleTypes.GAP_FILL">
               <mat-form-field appearance="outline" class="full-width">
-                <mat-label>{{ 'school.question' | translate }}</mat-label>
+                <mat-label>{{ 'collection.question' | translate }}</mat-label>
                 <textarea matInput [(ngModel)]="example.question" name="question" (input)="syncVariablesFromContent(); updateGapsFromText(); markDirty()" placeholder="{{ 'exampleDialog.gapFillPlaceholder' | translate }}"
                           cdkTextareaAutosize
                           cdkAutosizeMinRows="2"
@@ -260,7 +260,7 @@
 
             <ng-container *ngIf="example.type === ExampleTypes.CONSTRUCTION">
               <mat-form-field appearance="outline" class="full-width">
-                <mat-label>{{ 'school.question' | translate }}</mat-label>
+                <mat-label>{{ 'collection.question' | translate }}</mat-label>
                 <textarea matInput [(ngModel)]="example.question" name="question" (input)="syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.constructionPlaceholder' | translate }}"
                           cdkTextareaAutosize
                           cdkAutosizeMinRows="2"
@@ -305,7 +305,7 @@
 
             <ng-container *ngIf="example.type === ExampleTypes.ASSIGN">
               <mat-form-field appearance="outline" class="full-width">
-                <mat-label>{{ 'school.question' | translate }}</mat-label>
+                <mat-label>{{ 'collection.question' | translate }}</mat-label>
                 <textarea matInput [(ngModel)]="example.question" name="question" (input)="syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.assignPlaceholder' | translate }}"
                           cdkTextareaAutosize
                           cdkAutosizeMinRows="2"

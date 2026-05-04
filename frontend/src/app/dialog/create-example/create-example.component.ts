@@ -109,7 +109,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   activeVariableTarget: VariableTarget = null;
 
   example: CreateExampleDTO = {
-    schoolId: this.data.schoolId,
+    collectionId: this.data.schoolId,
     type: ExampleTypes.OPEN,
     instruction: '',
     question: '',
@@ -885,7 +885,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   private buildExamplePayload(): CreateExampleDTO {
     return {
       ...this.example,
-      schoolId: this.example.schoolId || this.data.schoolId,
+      collectionId: this.example.collectionId || this.data.schoolId,
       image: this.isEditMode ? (this.example.image || '') : '',
       solutionUrl: this.isEditMode ? (this.example.solutionUrl || '') : '',
       variables: (this.example.variables ?? []).map(variable => ({

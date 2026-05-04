@@ -7,25 +7,26 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { HttpService } from '../../service/http.service';
-import { SchoolDTO } from '../../model/School';
+import { CollectionDTO } from '../../model/Collection';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { UserDTO } from '../../model/User';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { finalize, takeUntil } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, finalize, map, switchMap, takeUntil } from 'rxjs/operators';
 import { Router } from '@angular/router';
-import { Subject } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 
-export interface SchoolSettingsDialogData {
+export interface SettingsDialogData {
   schoolId: string;
-  school: SchoolDTO;
+  school: CollectionDTO;
   currentUserId: number;
 }
 
 @Component({
-  selector: 'app-school-settings',
+  selector: 'app-collection-settings',
   standalone: true,
   imports: [
     CommonModule,
@@ -36,13 +37,14 @@ export interface SchoolSettingsDialogData {
     MatTabsModule,
     MatFormFieldModule,
     MatInputModule,
+    MatAutocompleteModule,
     MatProgressBarModule,
     TranslatePipe
   ],
-  templateUrl: './school-settings.component.html',
-  styleUrl: './school-settings.component.scss'
+  templateUrl: './collection-settings.component.html',
+  styleUrl: './collection-settings.component.scss'
 })
-export class SchoolSettingsComponent implements OnInit, OnDestroy {
+export class CollectionSettingsComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private service = inject(HttpService);
   private translate = inject(TranslateService);
@@ -57,12 +59,17 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   uploadingLogo = false;
   deletingLogo = false;
   invitingTeacher = false;
+  searchingTeachers = false;
   deletingSchool = false;
+  leavingSchool = false;
 
   selectedLogoFile: File | null = null;
 
   inviteSuccessMessage: string | null = null;
   inviteErrorMessage: string | null = null;
+  fullUsernameList: string[] = [];
+  userSearchResults: UserDTO[] = [];
+  selectedInviteUser: UserDTO | null = null;
 
   readonly maxLogoBytes = 2 * 1024 * 1024;
   readonly allowedLogoTypes = ['image/jpeg', 'image/png', 'image/webp'];
@@ -90,7 +97,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   });
 
   inviteForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email, Validators.maxLength(255)]]
+    username: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]]
   });
 
   deleteSchoolForm = this.fb.group({
@@ -98,8 +105,8 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   });
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: SchoolSettingsDialogData,
-    private dialogRef: MatDialogRef<SchoolSettingsComponent>
+    @Inject(MAT_DIALOG_DATA) public data: SettingsDialogData,
+    private dialogRef: MatDialogRef<CollectionSettingsComponent>
   ) {}
 
   ngOnInit(): void {
@@ -107,8 +114,15 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       name: this.data.school?.name ?? ''
     });
 
+    this.service.getUsernames()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(users => {
+        this.fullUsernameList = users ?? [];
+      });
+
     this.loadLogo();
     this.loadMemberAvatars();
+    this.setupUserSearch();
   }
 
   ngOnDestroy(): void {
@@ -120,6 +134,11 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
 
   get isAdmin(): boolean {
     return this.data.currentUserId.toString() === this.data.school?.admin?.id;
+  }
+
+  get isMember(): boolean {
+    const currentUserId = this.data.currentUserId.toString();
+    return this.data.school?.members?.some(member => member.id === currentUserId) ?? false;
   }
 
   logoUrl?: string;
@@ -159,8 +178,12 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     return !!this.data.school?.admin || this.data.school.members.length > 0;
   }
 
-  get inviteEmailControl() {
-    return this.inviteForm.controls.email;
+  get inviteUsernameControl() {
+    return this.inviteForm.controls.username;
+  }
+
+  get inviteQuery(): string {
+    return (this.inviteUsernameControl.value ?? '').trim();
   }
 
   get isLogoBusy(): boolean {
@@ -244,7 +267,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
               this.selectedLogoFile = null;
               this.logoPreviewUrl = undefined;
               this.revokeLogoUrl();
-              this.data.school = { ...this.data.school, logoUrl: null } as SchoolDTO;
+              this.data.school = { ...this.data.school, logoUrl: null } as CollectionDTO;
 
               if (input) {
                 input.value = '';
@@ -356,30 +379,30 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.inviteForm.invalid) {
+    if (this.inviteForm.invalid || !this.selectedInviteUser) {
       this.inviteForm.markAllAsTouched();
-      return;
-    }
 
-    const email = (this.inviteForm.value.email ?? '').trim().toLowerCase();
+      if (!this.selectedInviteUser && this.inviteQuery.length >= 2) {
+        this.inviteUsernameControl.setErrors({ userNotSelected: true });
+      }
 
-    if (!email) {
-      this.inviteForm.markAllAsTouched();
       return;
     }
 
     this.invitingTeacher = true;
 
-    this.service.inviteTeacher(this.data.schoolId, email)
+    this.inviteTeacherByUsername(this.selectedInviteUser.username)
       .pipe(takeUntil(this.destroy$), finalize(() => (this.invitingTeacher = false)))
       .subscribe({
         next: () => {
           this.inviteSuccessMessage = this.translate.instant('schoolSettings.snackbar.inviteSent');
 
-          this.inviteForm.reset({ email: '' }, { emitEvent: false });
-          this.inviteEmailControl.setErrors(null);
+          this.inviteForm.reset({ username: '' }, { emitEvent: false });
+          this.inviteUsernameControl.setErrors(null);
           this.inviteForm.markAsPristine();
           this.inviteForm.markAsUntouched();
+          this.selectedInviteUser = null;
+          this.userSearchResults = [];
 
           if (this.inviteSuccessMessage != null) {
             this.snack.open(this.inviteSuccessMessage, 'OK', {duration: 2000});
@@ -396,6 +419,31 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
           }
         }
       });
+  }
+
+  selectInviteUser(user: UserDTO): void {
+    this.selectedInviteUser = user;
+    this.inviteUsernameControl.setValue(user.username, { emitEvent: false });
+    this.inviteUsernameControl.setErrors(null);
+  }
+
+  clearInviteUser(): void {
+    this.selectedInviteUser = null;
+    this.inviteForm.reset({ username: '' });
+    this.userSearchResults = [];
+  }
+
+  isUserAlreadyInSchool(user: UserDTO): boolean {
+    return user.id === this.data.school.admin?.id
+      || user.username === this.data.school.admin?.username
+      || this.data.school.members.some(member =>
+        member.id === user.id || member.username === user.username
+      );
+  }
+
+  getInviteUserSecondary(user: UserDTO): string {
+    const email = (user as UserDTO & { email?: string }).email;
+    return email || this.translate.instant('schoolSettings.usernameResultHint');
   }
 
   kickTeacher(teacher: UserDTO): void {
@@ -499,6 +547,60 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       });
   }
 
+  leaveCollection(): void {
+    if (!this.isMember || this.isAdmin || this.leavingSchool) {
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '600px',
+      maxWidth: 'calc(100vw - 24px)',
+      disableClose: true,
+      data: {
+        title: this.translate.instant('schoolSettings.leaveSchoolTitle'),
+        message: this.translate.instant('schoolSettings.leaveSchoolMessage', {
+          name: this.data.school.name
+        }),
+        confirmText: this.translate.instant('schoolSettings.leaveSchoolConfirm'),
+        cancelText: this.translate.instant('common.cancel')
+      }
+    });
+
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((confirmed: boolean) => {
+        if (!confirmed) {
+          return;
+        }
+
+        this.leavingSchool = true;
+
+        this.service.leaveCollection(this.data.schoolId)
+          .pipe(takeUntil(this.destroy$), finalize(() => (this.leavingSchool = false)))
+          .subscribe({
+            next: () => {
+              this.snack.open(
+                this.translate.instant('schoolSettings.snackbar.schoolLeft'),
+                'OK',
+                { duration: 3000 }
+              );
+
+              this.router.navigate(['/']);
+              this.dialogRef.close({ left: true });
+            },
+            error: error => {
+              this.snack.open(
+                typeof error?.error === 'string'
+                  ? error.error
+                  : error?.error?.message ?? this.translate.instant('schoolSettings.snackbar.schoolLeaveError'),
+                'OK',
+                { duration: 4000 }
+              );
+            }
+          });
+      });
+  }
+
   get memberCountLabel(): string {
     const count = this.data.school.members.length + 1;
     return count === 1
@@ -520,6 +622,61 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     }
 
     return this.avatarUrls.get(user.id) ?? null;
+  }
+
+
+  private setupUserSearch(): void {
+    this.inviteUsernameControl.valueChanges
+      .pipe(
+        takeUntil(this.destroy$),
+        map(value => (value ?? '').trim()),
+        debounceTime(250),
+        distinctUntilChanged(),
+        switchMap(query => {
+          this.selectedInviteUser = null;
+          this.inviteSuccessMessage = null;
+          this.inviteErrorMessage = null;
+
+          if (query.length < 2) {
+            this.searchingTeachers = false;
+            return of([] as UserDTO[]);
+          }
+
+          this.searchingTeachers = true;
+
+          return this.searchUsersByUsername(query).pipe(
+            catchError(() => of([] as UserDTO[])),
+            finalize(() => {
+              this.searchingTeachers = false;
+              this.cdr.markForCheck();
+            })
+          );
+        })
+      )
+      .subscribe(users => {
+        this.userSearchResults = users.filter(user => !!user?.username);
+      });
+  }
+
+  private searchUsersByUsername(query: string): Observable<UserDTO[]> {
+    const normalizedQuery = query.toLowerCase().trim();
+
+    return of(
+      this.fullUsernameList
+        .filter(username =>
+          username.toLowerCase().includes(normalizedQuery)
+        )
+        .slice(0, 10)
+        .map(username => ({
+          id: username,
+          username,
+          profileImageUrl: null
+        } as unknown as UserDTO))
+    );
+  }
+
+  private inviteTeacherByUsername(username: string): Observable<unknown> {
+    return this.service.inviteTeacher(this.data.schoolId, username);
   }
 
   private loadMemberAvatars(): void {

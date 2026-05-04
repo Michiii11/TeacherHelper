@@ -493,7 +493,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
   getNotificationIcon(n: NotificationDTO): string {
     switch (n.type) {
-      case NotificationType.SCHOOL_INVITATION:
+      case NotificationType.COLLECTION_INVITATION:
         return 'mail';
       case NotificationType.INVITATION_ACCEPTED:
         return 'check_circle';
@@ -514,8 +514,8 @@ export class NavigationComponent implements OnInit, OnDestroy {
       parts.push(n.actor.username);
     }
 
-    if (n.school?.name) {
-      parts.push(n.school.name);
+    if (n.collection?.name) {
+      parts.push(n.collection.name);
     }
 
     return parts.join(' • ');
@@ -642,9 +642,9 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
   getNotificationTitle(n: NotificationDTO): string {
     switch (n.type) {
-      case 'SCHOOL_INVITATION':
+      case 'COLLECTION_INVITATION':
         return this.translate.instant('notifications.schoolInvitation.title', {
-          school: n.school?.name ?? ''
+          school: n.collection?.name ?? ''
         });
 
       case 'INVITATION_ACCEPTED':
@@ -660,22 +660,22 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
   getNotificationMessage(n: NotificationDTO): string {
     switch (n.type) {
-      case 'SCHOOL_INVITATION':
+      case 'COLLECTION_INVITATION':
         return this.translate.instant('notifications.schoolInvitation.message', {
           actor: n.actor?.username ?? '',
-          school: n.school?.name ?? ''
+          school: n.collection?.name ?? ''
         });
 
       case 'INVITATION_ACCEPTED':
         return this.translate.instant('notifications.invitationAccepted.message', {
           actor: n.actor?.username ?? '',
-          school: n.school?.name ?? ''
+          school: n.collection?.name ?? ''
         });
 
       case 'INVITATION_DECLINED':
         return this.translate.instant('notifications.invitationDeclined.message', {
           actor: n.actor?.username ?? '',
-          school: n.school?.name ?? ''
+          school: n.collection?.name ?? ''
         });
 
       default:

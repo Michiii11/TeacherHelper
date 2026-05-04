@@ -1,18 +1,17 @@
 package at.model;
 
-import at.dtos.School.SchoolDTO;
+import at.dtos.Collection.CollectionDTO;
 import at.dtos.User.UserDTO;
 import at.model.helper.Focus;
 import jakarta.persistence.*;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
-public class School {
+public class Collection {
     @Id
     @GeneratedValue
     private UUID id;
@@ -29,8 +28,8 @@ public class School {
 
     @ManyToMany
     @JoinTable(
-            name = "school_members",
-            joinColumns = @JoinColumn(name = "school_id"),
+            name = "collection_members",
+            joinColumns = @JoinColumn(name = "collection_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private List<User> users = new ArrayList<>();
@@ -41,12 +40,12 @@ public class School {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public School() {
+    public Collection() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
 
-    public School(String name, User admin) {
+    public Collection(String name, User admin) {
         this.name = name;
         this.admin = admin;
     }
@@ -138,8 +137,8 @@ public class School {
         this.focusList = focusList;
     }
 
-    public SchoolDTO toSchoolDTO() {
-        return new SchoolDTO(
+    public CollectionDTO toDTO() {
+        return new CollectionDTO(
                 this.getId(),
                 this.getName(),
                 this.getLogoUrl(),

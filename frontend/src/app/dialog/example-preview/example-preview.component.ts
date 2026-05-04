@@ -31,6 +31,7 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
 
   readonly ExampleTypes = ExampleTypes;
   readonly defaultImageWidth = 320;
+  private readonly variablePattern = /\{([a-zA-Z_][a-zA-Z0-9_-]*)\}/g;
 
   @Input() example: CreateExampleDTO | null = null;
   @Input() constructionImagePreviewUrl: string | null = null;
@@ -49,8 +50,10 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
   async ngOnInit(): Promise<void> {
     this.isLoading = false;
 
+    // Embedded previews receive the example object directly from the create dialog.
+    // Do not clone or replace it here, otherwise later ngModel mutations in the parent
+    // no longer reach this preview immediately.
     if (this.example) {
-      await this.hydrateInputExample();
       return;
     }
 
@@ -62,31 +65,25 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    if (id) {this.isLoading = true;
+    if (id) {
+      this.isLoading = true;
       this.http.getExample(id).subscribe({
         next: async (example) => {
           const normalized = this.withNormalizedImageWidths(example);
           this.example = await this.withAuthorizedConstructionImages(normalized, id);
+          this.isLoading = false;
+        },
+        error: () => {
           this.isLoading = false;
         }
       });
     }
   }
 
-  async ngOnChanges(changes: SimpleChanges): Promise<void> {
-    if (changes['example'] && this.example) {
-      await this.hydrateInputExample();
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['example']) {
+      this.isLoading = false;
     }
-  }
-
-  private async hydrateInputExample(): Promise<void> {
-    if (!this.example) {
-      return;
-    }
-
-    const normalized = this.withNormalizedImageWidths(this.example);
-    const exampleId = this.getExampleId(normalized);
-    this.example = await this.withAuthorizedConstructionImages(normalized, exampleId);
   }
 
   ngOnDestroy(): void {
@@ -137,8 +134,16 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
     return this.constructionSolutionPreviewUrl || this.example?.solutionUrl || '';
   }
 
+
+  getResolvedText(value: string | null | undefined): string {
+    return (value ?? '').replace(this.variablePattern, (_match, key: string) => {
+      const variable = (this.example?.variables ?? []).find(entry => entry.key === key.trim());
+      return variable?.defaultValue ?? '';
+    });
+  }
+
   getQuestionWithGapLabels(): string {
-    const q = this.example?.question ?? '';
+    const q = this.getResolvedText(this.example?.question);
     if (this.example?.type !== ExampleTypes.GAP_FILL) return q;
 
     const gaps = this.example?.gaps ?? [];

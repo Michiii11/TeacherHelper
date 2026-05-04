@@ -378,11 +378,7 @@ button{
 }
 // endregion
 
-// region Dialog form
-.form-actions {
-  display: flex;
-  align-items: center;
-}
+// region Dialog Actions
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
@@ -396,11 +392,8 @@ button{
   font-weight: 600;
   border-radius: 10px;
 }
-
-.dialog-form mat-form-field{
-  width: 100%;
-}
 // endregion
+
 
 
 
@@ -418,6 +411,7 @@ button{
 .school-card,
 .empty-card,
 .test-card,
+.teacher-card,
 .kpi-card,
 .auth-card,
 .hero-card,
@@ -581,6 +575,11 @@ textarea::placeholder {
   color: var(--text) !important;
 }
 
+.mat-mdc-card {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+}
+
 .mat-mdc-dialog-title {
   color: var(--text) !important;
 }
@@ -717,6 +716,7 @@ textarea::placeholder {
   color: var(--text-subtle);
 }
 
+.mat-mdc-card,
 .mat-mdc-dialog-surface,
 .mat-mdc-menu-panel,
 .mat-toolbar,

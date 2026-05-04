@@ -10,8 +10,6 @@ import at.model.helper.Gap;
 import at.model.helper.Option;
 import jakarta.persistence.*;
 
-import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -28,7 +26,7 @@ public class Example {
     private User admin;
 
     @ManyToOne
-    private School school;
+    private Collection collection;
 
     @ManyToOne
     @JoinColumn(name = "folder_id")
@@ -90,13 +88,13 @@ public class Example {
         updatedAt = LocalDateTime.now();
     }
 
-    public Example(User admin, ExampleTypes type, String instruction, String question, String solution, School school) {
+    public Example(User admin, ExampleTypes type, String instruction, String question, String solution, Collection collection) {
         this.admin = admin;
         this.type = type;
         this.instruction = instruction;
         this.question = question;
         this.solution = solution;
-        this.school = school;
+        this.collection = collection;
     }
 
     @Override
@@ -104,7 +102,7 @@ public class Example {
         return "Example{" +
                 "id=" + id +
                 ", admin=" + admin +
-                ", school=" + school +
+                ", collection=" + collection +
                 ", folder=" + folder +
                 ", type=" + type +
                 ", instruction='" + instruction + '\'' +
@@ -184,8 +182,8 @@ public class Example {
     public void setAssigns(List<Assign> assigns) { this.assigns = assigns; }
     public List<String> getAssignRightItems() { return assignRightItems; }
     public void setAssignRightItems(List<String> assignRightItems) { this.assignRightItems = assignRightItems; }
-    public School getSchool() { return school; }
-    public void setSchool(School school) { this.school = school; }
+    public Collection getCollection() { return collection; }
+    public void setCollection(Collection collection) { this.collection = collection; }
     public Folder getFolder() { return folder; }
     public void setFolder(Folder folder) { this.folder = folder; }
 

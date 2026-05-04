@@ -1,7 +1,7 @@
 import {User, UserDTO} from './User'
 import {Focus} from './Example'
 
-export interface School {
+export interface Collection {
   id: string;
   name: string;
   logoUrl: string | null;
@@ -12,7 +12,7 @@ export interface School {
   updatedAt: string;
 }
 
-export interface SchoolDTO {
+export interface CollectionDTO {
   id: string;
   name: string;
   logoUrl: string | null;

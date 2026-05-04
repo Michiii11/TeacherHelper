@@ -1,5 +1,5 @@
 @if (isSchoolLoading) {
-  <main class="dashboard loading-dashboard" [attr.aria-label]="'school.dashboardAria' | translate">
+  <main class="dashboard loading-dashboard" [attr.aria-label]="'collection.dashboardAria' | translate">
     <section class="school-loading-card">
       <mat-icon>school</mat-icon>
       <h2>{{ 'common.loading' | translate }}</h2>
@@ -7,7 +7,7 @@
     </section>
   </main>
 } @else {
-  <main class="dashboard" [attr.aria-label]="'school.dashboardAria' | translate">
+  <main class="dashboard" [attr.aria-label]="'collection.dashboardAria' | translate">
     <section class="content-area">
       <article class="panel explorer-panel">
         <div class="panel-header panel-header-stack">
@@ -17,7 +17,7 @@
                 <input
                   type="text"
                   [(ngModel)]="search"
-                  [placeholder]="'school.searchExamplesPlaceholder' | translate"
+                  [placeholder]="'collection.searchExamplesPlaceholder' | translate"
                 >
               </label>
 
@@ -37,17 +37,17 @@
                       <div class="filter-select-panel static-panel">
                         <button type="button" class="filter-option" [class.checked]="isItemTypeSelected('examples')" (click)="toggleItemType('examples')">
                           <span class="filter-checkbox" [class.checked]="isItemTypeSelected('examples')"><mat-icon>check</mat-icon></span>
-                          <span class="filter-option-label">{{ 'school.examples' | translate }}</span>
+                          <span class="filter-option-label">{{ 'collection.examples' | translate }}</span>
                         </button>
                         <button type="button" class="filter-option" [class.checked]="isItemTypeSelected('tests')" (click)="toggleItemType('tests')">
                           <span class="filter-checkbox" [class.checked]="isItemTypeSelected('tests')"><mat-icon>check</mat-icon></span>
-                          <span class="filter-option-label">{{ 'school.tests' | translate }}</span>
+                          <span class="filter-option-label">{{ 'collection.tests' | translate }}</span>
                         </button>
                       </div>
                     </div>
 
                     <div class="filter-popup-section">
-                      <div class="filter-popup-title">{{ 'school.examples' | translate }}</div>
+                      <div class="filter-popup-title">{{ 'collection.examples' | translate }}</div>
                       <div class="filter-select-panel static-panel">
                         @for (item of availableExampleTypes; track item.value) {
                           <button type="button" class="filter-option" [class.checked]="isExampleTypeSelected(item.value)" (click)="toggleExampleType(item.value)">
@@ -60,7 +60,7 @@
 
                     @if (availableExampleFocuses.length) {
                       <div class="filter-popup-section">
-                        <div class="filter-popup-title">{{ 'school.focuses' | translate }}</div>
+                        <div class="filter-popup-title">{{ 'collection.focuses' | translate }}</div>
                         <div class="filter-select-panel static-panel">
                           @for (focus of availableExampleFocuses; track focus) {
                             <button type="button" class="filter-option" [class.checked]="isExampleFocusSelected(focus)" (click)="toggleExampleFocus(focus)">
@@ -74,7 +74,7 @@
 
                     @if (availableAuthors.length) {
                       <div class="filter-popup-section">
-                        <div class="filter-popup-title">{{ 'school.author' | translate }}</div>
+                        <div class="filter-popup-title">{{ 'collection.author' | translate }}</div>
                         <div class="filter-select-panel static-panel">
                           @for (author of availableAuthors; track author) {
                             <button type="button" class="filter-option" [class.checked]="isAuthorSelected(author)" (click)="toggleAuthor(author)">
@@ -107,15 +107,15 @@
                 }
               </div>
 
-              <div class="view-toggle" role="tablist" [attr.aria-label]="'school.viewAria' | translate">
+              <div class="view-toggle" role="tablist" [attr.aria-label]="'collection.viewAria' | translate">
                 <button type="button" class="view-toggle-btn" [class.active]="currentViewMode === 'grid'" (click)="setCurrentViewMode('grid')">
                   <mat-icon>grid_view</mat-icon>
-                  {{ 'school.grid' | translate }}
+                  {{ 'collection.grid' | translate }}
                 </button>
 
                 <button type="button" class="view-toggle-btn" [class.active]="currentViewMode === 'compact'" (click)="setCurrentViewMode('compact')">
                   <mat-icon>table_rows</mat-icon>
-                  {{ 'school.compact' | translate }}
+                  {{ 'collection.compact' | translate }}
                 </button>
               </div>
             </div>
@@ -127,7 +127,7 @@
             <div class="sidebar-head">
               <div class="sidebar-title">
                 <mat-icon>folder_open</mat-icon>
-                <span>{{ 'school.folders' | translate }}</span>
+                <span>{{ 'collection.folders' | translate }}</span>
               </div>
 
               <button mat-icon-button (click)="createFolder()">
@@ -149,18 +149,18 @@
 
                 <button type="button" class="ghost-inline-btn" (click)="goToParentFolder()">
                   <mat-icon>arrow_upward</mat-icon>
-                  {{ 'school.goUp' | translate }}
+                  {{ 'collection.goUp' | translate }}
                 </button>
               </div>
             }
 
             <div class="sidebar-section-label">
               @if (isSearching) {
-                {{ 'school.searchResultsInAllFolders' | translate }}
+                {{ 'collection.searchResultsInAllFolders' | translate }}
               } @else if (currentFolder) {
-                {{ 'school.subfoldersOf' | translate:{ name: currentFolder.name } }}
+                {{ 'collection.subfoldersOf' | translate:{ name: currentFolder.name } }}
               } @else {
-                {{ 'school.foldersOnRoot' | translate }}
+                {{ 'collection.foldersOnRoot' | translate }}
               }
             </div>
 
@@ -186,7 +186,7 @@
                     <div class="folder-node-text">
                       <span class="folder-name">{{ folder.name }}</span>
                       <span class="folder-meta">
-                      {{ getFolderChildrenCount(folder) }} {{ 'school.subfolders' | translate }} · {{ getFolderItemCount(folder) }} {{ 'school.items' | translate }}
+                      {{ getFolderChildrenCount(folder) }} {{ 'collection.subfolders' | translate }} · {{ getFolderItemCount(folder) }} {{ 'collection.items' | translate }}
                     </span>
                       @if (isSearching && getFolderPathLabel(folder.id)) {
                         <span class="folder-meta soft">{{ getFolderPathLabel(folder.id) }}</span>
@@ -196,7 +196,7 @@
 
                   <div class="folder-node-actions" (click)="$event.stopPropagation()">
                     <button mat-icon-button (click)="renameFolder(folder, $event)" [disabled]="isDeletingFolder(folder.id)"><mat-icon>edit</mat-icon></button>
-                    <button mat-icon-button (click)="moveFolderWithPicker(folder, $event)" [disabled]="isDeletingFolder(folder.id)" [title]="'school.moveToOtherFolder' | translate"><mat-icon>drive_file_move</mat-icon></button>
+                    <button mat-icon-button (click)="moveFolderWithPicker(folder, $event)" [disabled]="isDeletingFolder(folder.id)" [title]="'collection.moveToOtherFolder' | translate"><mat-icon>drive_file_move</mat-icon></button>
                     <button mat-icon-button color="warn" (click)="deleteFolder(folder, $event)" [disabled]="isDeletingFolder(folder.id)">
                       <mat-icon>{{ isDeletingFolder(folder.id) ? 'hourglass_top' : 'delete' }}</mat-icon>
                     </button>
@@ -226,34 +226,34 @@
                     <span>{{ headerSubtitle }}</span>
                     <span> · </span>
                   }
-                  <span>{{ totalVisibleFolderCount }} {{ 'school.folders' | translate }} · {{ totalVisibleItemCount }} {{ 'school.items' | translate }}</span>
+                  <span>{{ totalVisibleFolderCount }} {{ 'collection.folders' | translate }} · {{ totalVisibleItemCount }} {{ 'collection.items' | translate }}</span>
                 </p>
               </div>
 
               <div class="content-header-actions">
                 <mat-form-field>
                   <mat-select [(ngModel)]="sort">
-                    <mat-option value="nameAsc">{{ 'school.sort.nameAsc' | translate }}</mat-option>
-                    <mat-option value="nameDesc">{{ 'school.sort.nameDesc' | translate }}</mat-option>
-                    <mat-option value="createdDesc">{{ 'school.sort.updatedDesc' | translate }}</mat-option>
-                    <mat-option value="createdAsc">{{ 'school.sort.updatedAsc' | translate }}</mat-option>
-                    <mat-option value="authorAsc">{{ 'school.sort.authorAsc' | translate }}</mat-option>
+                    <mat-option value="nameAsc">{{ 'collection.sort.nameAsc' | translate }}</mat-option>
+                    <mat-option value="nameDesc">{{ 'collection.sort.nameDesc' | translate }}</mat-option>
+                    <mat-option value="createdDesc">{{ 'collection.sort.updatedDesc' | translate }}</mat-option>
+                    <mat-option value="createdAsc">{{ 'collection.sort.updatedAsc' | translate }}</mat-option>
+                    <mat-option value="authorAsc">{{ 'collection.sort.authorAsc' | translate }}</mat-option>
                   </mat-select>
                 </mat-form-field>
 
                 <button mat-stroked-button color="primary" (click)="createFolder()">
                   <mat-icon>create_new_folder</mat-icon>
-                  {{ 'school.newFolder' | translate }}
+                  {{ 'collection.newFolder' | translate }}
                 </button>
 
                 <button mat-flat-button color="primary" (click)="openCreateExample()">
                   <mat-icon>post_add</mat-icon>
-                  {{ 'school.example' | translate }}
+                  {{ 'collection.example' | translate }}
                 </button>
 
                 <button mat-flat-button color="primary" (click)="createTest()">
                   <mat-icon>assignment</mat-icon>
-                  {{ 'school.test' | translate }}
+                  {{ 'collection.test' | translate }}
                 </button>
               </div>
             </div>
@@ -277,11 +277,11 @@
                     <div class="content-card-icon folder-icon"><mat-icon>folder</mat-icon></div>
                     <div class="content-card-body">
                       <div class="content-card-title">{{ folder.name }}</div>
-                      <div class="content-card-meta">{{ getFolderChildrenCount(folder) }} {{ 'school.subfolders' | translate }} · {{ getFolderItemCount(folder) }} {{ 'school.items' | translate }}</div>
+                      <div class="content-card-meta">{{ getFolderChildrenCount(folder) }} {{ 'collection.subfolders' | translate }} · {{ getFolderItemCount(folder) }} {{ 'collection.items' | translate }}</div>
                     </div>
                     <div class="content-card-actions" (click)="$event.stopPropagation()">
                       <button mat-icon-button (click)="renameFolder(folder, $event)" [disabled]="isDeletingFolder(folder.id)"><mat-icon>edit</mat-icon></button>
-                      <button mat-icon-button (click)="moveFolderWithPicker(folder, $event)" [disabled]="isDeletingFolder(folder.id)" [title]="'school.moveToOtherFolder' | translate"><mat-icon>drive_file_move</mat-icon></button>
+                      <button mat-icon-button (click)="moveFolderWithPicker(folder, $event)" [disabled]="isDeletingFolder(folder.id)" [title]="'collection.moveToOtherFolder' | translate"><mat-icon>drive_file_move</mat-icon></button>
                       <button mat-icon-button color="warn" (click)="deleteFolder(folder, $event)" [disabled]="isDeletingFolder(folder.id)">
                         <mat-icon>{{ isDeletingFolder(folder.id) ? 'hourglass_top' : 'delete' }}</mat-icon>
                       </button>
@@ -330,8 +330,8 @@
                 @if (!visibleFolders.length && !visibleItems.length) {
                   <div class="empty-state">
                     <mat-icon>folder_off</mat-icon>
-                    <h3>{{ 'school.emptyExamplesTitle' | translate }}</h3>
-                    <p>{{ 'school.emptyExamplesText' | translate }}</p>
+                    <h3>{{ 'collection.emptyExamplesTitle' | translate }}</h3>
+                    <p>{{ 'collection.emptyExamplesText' | translate }}</p>
                   </div>
                 }
               </div>
@@ -356,7 +356,7 @@
                         <mat-icon class="compact-icon folder">folder</mat-icon>
                         <div class="compact-title-block">
                           <div class="compact-title">{{ folder.name }}</div>
-                          <div class="compact-subtitle">{{ getFolderChildrenCount(folder) }} {{ 'school.subfolders' | translate }} · {{ getFolderItemCount(folder) }} {{ 'school.items' | translate }} @if (getFolderPathLabel(folder.id)) { · {{ getFolderPathLabel(folder.id) }} }</div>
+                          <div class="compact-subtitle">{{ getFolderChildrenCount(folder) }} {{ 'collection.subfolders' | translate }} · {{ getFolderItemCount(folder) }} {{ 'collection.items' | translate }} @if (getFolderPathLabel(folder.id)) { · {{ getFolderPathLabel(folder.id) }} }</div>
                         </div>
                       </div>
                     </div>
@@ -413,8 +413,8 @@
                 @if (!visibleFolders.length && !visibleItems.length) {
                   <div class="empty-state">
                     <mat-icon>folder_off</mat-icon>
-                    <h3>{{ 'school.emptyExamplesTitle' | translate }}</h3>
-                    <p>{{ 'school.emptyExamplesText' | translate }}</p>
+                    <h3>{{ 'collection.emptyExamplesTitle' | translate }}</h3>
+                    <p>{{ 'collection.emptyExamplesText' | translate }}</p>
                   </div>
                 }
               </div>

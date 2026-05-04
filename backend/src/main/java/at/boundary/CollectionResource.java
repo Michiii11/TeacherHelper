@@ -1,38 +1,28 @@
 package at.boundary;
 
-import at.model.User;
 import at.model.helper.Focus;
-import at.repository.SchoolRepository;
+import at.repository.CollectionRepository;
 import at.repository.UserRepository;
 import at.security.TokenService;
-import at.service.MediaStorageService;
 import io.smallrye.common.annotation.Blocking;
 import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.microprofile.openapi.annotations.headers.Header;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.Set;
 import java.util.UUID;
 
-@Path("school")
-public class SchoolResource {
+@Path("collection")
+public class CollectionResource {
     @Inject
-    SchoolRepository repository;
+    CollectionRepository repository;
 
     @Inject
     TokenService tokenService;
 
     @Inject
     UserRepository userRepository;
-
-    @Inject
-    MediaStorageService mediaStorageService;
 
     @GET
     @Path("your-collections")
@@ -43,7 +33,7 @@ public class SchoolResource {
         }
 
         UUID userId = tokenService.validateTokenAndGetUserId(auth);
-        return repository.getYourSchools(userId);
+        return repository.getYourCollections(userId);
     }
 
     @GET
@@ -157,14 +147,14 @@ public class SchoolResource {
     @Path("{id}/invite")
     public Response inviteTeacher(@PathParam("id") UUID collectionId,
                                   @HeaderParam("Authorization")  String auth,
-                                  String email) {
+                                  String username) {
         Response authResponse = userRepository.generateResponseOfAuth(auth);
         if (authResponse != null) {
             return authResponse;
         }
 
         UUID userId = tokenService.validateTokenAndGetUserId(auth);
-        return repository.inviteTeacher(collectionId, userId, email);
+        return repository.inviteTeacher(collectionId, userId, username);
     }
 
     @POST
@@ -183,7 +173,7 @@ public class SchoolResource {
 
     @PUT
     @Path("{id}/settings")
-    public Response updateSchoolSettings(@PathParam("id") UUID collectionId,
+    public Response updateCollectionSettings(@PathParam("id") UUID collectionId,
                                          @HeaderParam("Authorization") String auth,
                                          String name) {
         Response authResponse = userRepository.generateResponseOfAuth(auth);
@@ -193,7 +183,7 @@ public class SchoolResource {
 
         UUID userId = tokenService.validateTokenAndGetUserId(auth);
 
-        return repository.updateSchoolSettings(collectionId, userId, name);
+        return repository.updateCollectionSettings(collectionId, userId, name);
     }
 
     @GET

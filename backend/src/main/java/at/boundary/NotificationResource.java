@@ -1,6 +1,5 @@
 package at.boundary;
 
-import at.dtos.Notification.NotificationDTO;
 import at.enums.NotificationActionType;
 import at.repository.NotificationRepository;
 import at.repository.UserRepository;
@@ -10,7 +9,6 @@ import jakarta.json.JsonObject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 
-import java.util.List;
 import java.util.UUID;
 
 @Path("notification")
@@ -77,10 +75,10 @@ public class NotificationResource {
     }
 
     @POST
-    @Path("system-info/school/{schoolId}")
-    public Response sendSystemInfoToSchool(@PathParam("schoolId") UUID schoolId,
-                                           @HeaderParam("Authorization") String auth,
-                                           JsonObject request) {
+    @Path("system-info/collection/{collectionId}")
+    public Response sendSystemInfoToCollection(@PathParam("collectionId") UUID collectionId,
+                                               @HeaderParam("Authorization") String auth,
+                                               JsonObject request) {
 
         String title = request.containsKey("title") ? request.getString("title", null) : null;
         String message = request.containsKey("message") ? request.getString("message", null) : null;
@@ -92,7 +90,7 @@ public class NotificationResource {
         }
 
         UUID userId = tokenService.validateTokenAndGetUserId(auth);
-        return notificationRepository.sendSystemInfo(userId, schoolId, title, message, link, false);
+        return notificationRepository.sendSystemInfo(userId, collectionId, title, message, link, false);
     }
 
     @POST

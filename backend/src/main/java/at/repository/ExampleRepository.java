@@ -8,7 +8,6 @@ import at.dtos.Example.GapDTO;
 import at.model.*;
 import at.model.helper.ExampleVariable;
 import at.model.helper.Gap;
-import at.security.TokenService;
 import at.service.MediaStorageService;
 import at.websocket.CollectionSocket;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -42,10 +41,10 @@ public class ExampleRepository {
     MediaStorageService mediaStorageService;
 
     @Inject
-    SchoolRepository schoolRepository;
+    CollectionRepository collectionRepository;
 
     public Response getAllExamples(UUID collectionId, UUID userId) {
-        if (!schoolRepository.isUserPartOfCollection(collectionId, userId)) {
+        if (!collectionRepository.isUserPartOfCollection(collectionId, userId)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
@@ -56,7 +55,7 @@ public class ExampleRepository {
                 LEFT JOIN FETCH e.focusList
                 LEFT JOIN FETCH e.admin
                 LEFT JOIN FETCH e.folder
-                WHERE e.school.id = :collectionId
+                WHERE e.collection.id = :collectionId
                 ORDER BY e.id
                 """,
                 Example.class
@@ -79,12 +78,12 @@ public class ExampleRepository {
     }
 
     public Response getFullExamples(UUID collectionId, UUID userId) {
-        if (!schoolRepository.isUserPartOfCollection(collectionId, userId)) {
+        if (!collectionRepository.isUserPartOfCollection(collectionId, userId)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
         List<Example> examples = em.createQuery(
-                        "SELECT DISTINCT e FROM Example e LEFT JOIN FETCH e.gaps WHERE e.school.id = :collectionId ORDER BY e.id",
+                        "SELECT DISTINCT e FROM Example e LEFT JOIN FETCH e.gaps WHERE e.collection.id = :collectionId ORDER BY e.id",
                         Example.class
                 ).setParameter("collectionId", collectionId)
                 .getResultList();
@@ -104,7 +103,7 @@ public class ExampleRepository {
                         example.getSolutionImageWidth(),
                         new LinkedList<>(example.getFocusList()),
                         mapVariables(example.getVariables()),
-                        example.getSchool().toSchoolDTO(),
+                        example.getCollection().toDTO(),
                         new LinkedList<>(example.getAnswers()),
                         new LinkedList<>(example.getOptions()),
                         example.getGapFillType(),
@@ -124,12 +123,12 @@ public class ExampleRepository {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        if (!schoolRepository.isUserPartOfCollection(e.getSchool().getId(), userId)) {
+        if (!collectionRepository.isUserPartOfCollection(e.getCollection().getId(), userId)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
         CreateExampleDTO dto = new CreateExampleDTO(
-                e.getSchool().getId(),
+                e.getCollection().getId(),
                 e.getType(),
                 e.getInstruction(),
                 e.getQuestion(),
@@ -153,26 +152,26 @@ public class ExampleRepository {
     }
 
     public Response createExample(CreateExampleDTO dto, UUID userId) {
-        if (!schoolRepository.isUserPartOfCollection(dto.schoolId(), userId)) {
+        if (!collectionRepository.isUserPartOfCollection(dto.collectionId(), userId)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
         User admin = em.find(User.class, userId);
-        School school = em.find(School.class, dto.schoolId());
+        Collection collection = em.find(Collection.class, dto.collectionId());
 
-        if (school == null) {
+        if (collection == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("Schule nicht gefunden.").build();
         }
 
         Folder folder = null;
         if (dto.folderId() != null) {
             folder = folderRepository.findById(dto.folderId());
-            if (folder == null || !folder.getSchool().getId().equals(school.getId())) {
+            if (folder == null || !folder.getCollection().getId().equals(collection.getId())) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Ordner.").build();
             }
         }
 
-        Example example = new Example(admin, dto.type(), dto.instruction(), dto.question(), dto.solution(), school);
+        Example example = new Example(admin, dto.type(), dto.instruction(), dto.question(), dto.solution(), collection);
         example.setFolder(folder);
         example.getFocusList().clear();
         example.getFocusList().addAll(dto.focusList());
@@ -208,7 +207,7 @@ public class ExampleRepository {
         em.persist(example);
         em.flush();
 
-        CollectionSocket.broadcast(dto.schoolId());
+        CollectionSocket.broadcast(dto.collectionId());
 
         return Response.ok(example.getId()).build();
     }
@@ -219,7 +218,7 @@ public class ExampleRepository {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        if (!example.getAdmin().getId().equals(userId) && !example.getSchool().getAdmin().getId().equals(userId)) {
+        if (!example.getAdmin().getId().equals(userId) && !example.getCollection().getAdmin().getId().equals(userId)) {
             return Response.status(403)
                     .entity("Not allowed to delete this Example.")
                     .build();
@@ -252,7 +251,7 @@ public class ExampleRepository {
         }
         em.remove(example);
 
-        CollectionSocket.broadcast(example.getSchool().getId());
+        CollectionSocket.broadcast(example.getCollection().getId());
 
         return Response.ok().build();
     }
@@ -263,7 +262,7 @@ public class ExampleRepository {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        if (!example.getAdmin().getId().equals(userId) && !example.getSchool().getAdmin().getId().equals(userId)) {
+        if (!example.getAdmin().getId().equals(userId) && !example.getCollection().getAdmin().getId().equals(userId)) {
             return Response.status(Response.Status.FORBIDDEN)
                     .entity("Not allowed to update this Example.")
                     .build();
@@ -272,7 +271,7 @@ public class ExampleRepository {
         Folder folder = null;
         if (dto.folderId() != null) {
             folder = folderRepository.findById(dto.folderId());
-            if (folder == null || !folder.getSchool().getId().equals(example.getSchool().getId())) {
+            if (folder == null || !folder.getCollection().getId().equals(example.getCollection().getId())) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Folder is invalid.").build();
             }
         }
@@ -315,7 +314,7 @@ public class ExampleRepository {
         }
 
         em.merge(example);
-        CollectionSocket.broadcast(example.getSchool().getId());
+        CollectionSocket.broadcast(example.getCollection().getId());
         return Response.ok(example.getId()).build();
     }
 
@@ -325,7 +324,7 @@ public class ExampleRepository {
             return Response.status(Response.Status.NOT_FOUND).entity("Example not found.").build();
         }
 
-        if (!example.getAdmin().getId().equals(userId) && !example.getSchool().getAdmin().getId().equals(userId)) {
+        if (!example.getAdmin().getId().equals(userId) && !example.getCollection().getAdmin().getId().equals(userId)) {
             return Response.status(Response.Status.FORBIDDEN)
                     .entity("Not allowed to move this Example.")
                     .build();
@@ -334,14 +333,14 @@ public class ExampleRepository {
         Folder folder = null;
         if (folderId != null) {
             folder = folderRepository.findById(folderId);
-            if (folder == null || !folder.getSchool().getId().equals(example.getSchool().getId())) {
+            if (folder == null || !folder.getCollection().getId().equals(example.getCollection().getId())) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Folder is invalid.").build();
             }
         }
 
         example.setFolder(folder);
         em.merge(example);
-        CollectionSocket.broadcast(example.getSchool().getId());
+        CollectionSocket.broadcast(example.getCollection().getId());
         return Response.ok().build();
     }
 
@@ -351,7 +350,7 @@ public class ExampleRepository {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        if (!schoolRepository.isUserPartOfCollection(example.getSchool().getId(), userId)) {
+        if (!collectionRepository.isUserPartOfCollection(example.getCollection().getId(), userId)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
@@ -375,7 +374,7 @@ public class ExampleRepository {
             return Response.status(Response.Status.NOT_FOUND).entity("Example not found.").build();
         }
 
-        if (!example.getAdmin().getId().equals(userId) && !example.getSchool().getAdmin().getId().equals(userId)) {
+        if (!example.getAdmin().getId().equals(userId) && !example.getCollection().getAdmin().getId().equals(userId)) {
             return Response.status(Response.Status.FORBIDDEN)
                     .entity("Not allowed to upload image for this Example.")
                     .build();
@@ -414,7 +413,7 @@ public class ExampleRepository {
             }
 
             em.merge(example);
-            CollectionSocket.broadcast(example.getSchool().getId());
+            CollectionSocket.broadcast(example.getCollection().getId());
             return Response.ok(objectKey).build();
         } catch (IOException e) {
             return Response.serverError().entity("Failed to upload image.").build();
@@ -427,7 +426,7 @@ public class ExampleRepository {
             return Response.status(Response.Status.NOT_FOUND).entity("Example not found.").build();
         }
 
-        if (!example.getAdmin().getId().equals(userId) && !example.getSchool().getAdmin().getId().equals(userId)) {
+        if (!example.getAdmin().getId().equals(userId) && !example.getCollection().getAdmin().getId().equals(userId)) {
             return Response.status(Response.Status.FORBIDDEN).entity("Not allowed to delete this Example.").build();
         }
 
@@ -444,7 +443,7 @@ public class ExampleRepository {
         }
 
         em.merge(example);
-        CollectionSocket.broadcast(example.getSchool().getId());
+        CollectionSocket.broadcast(example.getCollection().getId());
         return Response.ok().build();
     }
 

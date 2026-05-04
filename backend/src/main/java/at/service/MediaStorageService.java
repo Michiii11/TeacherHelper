@@ -34,8 +34,8 @@ public class MediaStorageService {
         return uploadResizedJpeg(file, objectName, DEFAULT_IMAGE_QUALITY);
     }
 
-    public String uploadSchoolLogo(UUID schoolId, Path file) throws IOException {
-        String objectName = "schools/%s/logo/current.jpg".formatted(schoolId);
+    public String uploadCollectionLogo(UUID collectionId, Path file) throws IOException {
+        String objectName = "collections/%s/logo/current.jpg".formatted(collectionId);
         return uploadResizedJpeg(file, objectName, DEFAULT_IMAGE_QUALITY);
     }
 

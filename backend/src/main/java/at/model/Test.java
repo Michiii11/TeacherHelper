@@ -3,8 +3,6 @@ package at.model;
 import at.model.helper.GradingLevel;
 import jakarta.persistence.*;
 
-import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -18,7 +16,7 @@ public class Test {
     private User admin;
 
     @ManyToOne
-    private School school;
+    private Collection collection;
 
     @ManyToOne
     @JoinColumn(name = "folder_id")
@@ -75,11 +73,11 @@ public class Test {
         updatedAt = LocalDateTime.now();
     }
 
-    public Test(String name, String note, User admin, School school, int duration) {
+    public Test(String name, String note, User admin, Collection collection, int duration) {
         super();
         this.name = name;
         this.note = note;
-        this.school = school;
+        this.collection = collection;
         this.admin = admin;
         this.duration = duration;
     }
@@ -103,7 +101,7 @@ public class Test {
         return "Test{" +
                 "id=" + id +
                 ", admin=" + admin +
-                ", school=" + school +
+                ", collection=" + collection +
                 ", folder=" + folder +
                 ", name='" + name + '\'' +
                 ", note='" + note + '\'' +
@@ -137,12 +135,12 @@ public class Test {
         this.admin = admin;
     }
 
-    public School getSchool() {
-        return school;
+    public Collection getCollection() {
+        return collection;
     }
 
-    public void setSchool(School school) {
-        this.school = school;
+    public void setCollection(Collection collection) {
+        this.collection = collection;
     }
 
     public UUID getId() {

@@ -18,7 +18,7 @@ public class Folder {
     private String name;
 
     @ManyToOne(optional = false)
-    private School school;
+    private Collection collection;
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
@@ -30,9 +30,9 @@ public class Folder {
     public Folder() {
     }
 
-    public Folder(String name, School school, Folder parent) {
+    public Folder(String name, Collection collection, Folder parent) {
         this.name = name;
-        this.school = school;
+        this.collection = collection;
         this.parent = parent;
     }
 
@@ -54,7 +54,7 @@ public class Folder {
         return new FolderDTO(
                 this.getId(),
                 this.getName(),
-                this.getSchool().getId(),
+                this.getCollection().getId(),
                 this.getParent() != null ? this.getParent().getId() : null,
                 this.getCreatedAt(),
                 this.getUpdatedAt()
@@ -77,12 +77,12 @@ public class Folder {
         this.name = name;
     }
 
-    public School getSchool() {
-        return school;
+    public Collection getCollection() {
+        return collection;
     }
 
-    public void setSchool(School school) {
-        this.school = school;
+    public void setCollection(Collection collection) {
+        this.collection = collection;
     }
 
     public Folder getParent() {

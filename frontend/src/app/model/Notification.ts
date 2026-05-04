@@ -1,8 +1,8 @@
 import {UserDTO} from './User'
-import {SchoolDTO} from './School'
+import {CollectionDTO} from './Collection'
 
 export enum NotificationType {
-  SCHOOL_INVITATION = 'SCHOOL_INVITATION',
+  COLLECTION_INVITATION = 'COLLECTION_INVITATION',
   INVITATION_ACCEPTED = 'INVITATION_ACCEPTED',
   INVITATION_DECLINED = 'INVITATION_DECLINED',
   SCHOOL_NEWS = 'SCHOOL_NEWS',
@@ -20,7 +20,7 @@ export enum NotificationActionType {
 export interface NotificationDTO {
   id: string;
   actor: UserDTO;
-  school: SchoolDTO;
+  collection: CollectionDTO;
   type: NotificationType;
   title: string;
   message: string;

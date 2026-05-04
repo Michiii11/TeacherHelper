@@ -1,5 +1,5 @@
 package at.enums;
 
-public enum SchoolInviteType {
+public enum InviteType {
     TEACHER_INVITATION
 }

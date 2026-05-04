@@ -1,7 +1,7 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { AddSchoolDialogComponent } from '../../dialog/add-school-dialog/add-school-dialog.component';
-import { SchoolDTO } from '../../model/School';
+import { AddCollectionDialogComponent } from '../../dialog/add-collection-dialog/add-collection-dialog.component';
+import { CollectionDTO } from '../../model/Collection';
 import { HttpService } from '../../service/http.service';
 import { MatCard } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
@@ -22,14 +22,14 @@ import { NavbarActionsService } from '../navigation/navbar-actions.service';
     NgIf,
     TranslatePipe,
     NgClass,
-    MatProgressBar
+    MatProgressBar,
   ],
   templateUrl: './home.component.html',
   standalone: true,
   styleUrl: './home.component.scss'
 })
 export class HomeComponent implements OnInit, OnDestroy {
-  schools: SchoolDTO[] = [];
+  schools: CollectionDTO[] = [];
   userId = '';
   isSchoolsLoading = true;
   logoUrls: Record<string, string> = {};
@@ -79,7 +79,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.isSchoolsLoading = true;
 
     this.http.getYourCollections().subscribe({
-      next: (schools: SchoolDTO[]) => {
+      next: (schools: CollectionDTO[]) => {
         this.http.getUserId().subscribe({
           next: (id: string) => {
             this.userId = id;
@@ -113,7 +113,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   openCreateDialog(): void {
-    const dialogRef = this.dialog.open(AddSchoolDialogComponent, {
+    const dialogRef = this.dialog.open(AddCollectionDialogComponent, {
       width: 'min(92vw, 500px)',
       maxWidth: '92vw',
     });
@@ -132,7 +132,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
-  openSchool(school: SchoolDTO): void {
+  openSchool(school: CollectionDTO): void {
     this.router.navigate(['/collection', school.id]);
   }
 
@@ -147,30 +147,30 @@ export class HomeComponent implements OnInit, OnDestroy {
       .join('');
   }
 
-  getSchoolRoleLabel(school: SchoolDTO): string {
+  getSchoolRoleLabel(school: CollectionDTO): string {
     return this.isAdminSchool(school, this.userId) ? 'Admin' : 'Mitglied';
   }
 
-  getRoleBadgeClass(school: SchoolDTO): string {
+  getRoleBadgeClass(school: CollectionDTO): string {
     return this.isAdminSchool(school, this.userId) ? 'admin-badge' : 'member-badge';
   }
 
-  getAvatarClass(school: SchoolDTO): string {
+  getAvatarClass(school: CollectionDTO): string {
     return this.isAdminSchool(school, this.userId) ? 'school-avatar' : 'school-avatar member-avatar';
   }
 
-  getCardClass(school: SchoolDTO): string {
+  getCardClass(school: CollectionDTO): string {
     return this.isAdminSchool(school, this.userId) ? 'school-card admin-card' : 'school-card member-card';
   }
 
-  private isAdminSchool(school: SchoolDTO, userId: string): boolean {
+  private isAdminSchool(school: CollectionDTO, userId: string): boolean {
     if (!school?.admin) return false;
     if (!userId) return false;
 
     return school.admin.id === userId;
   }
 
-  private loadLogo(school: SchoolDTO): void {
+  private loadLogo(school: CollectionDTO): void {
     if (!school.logoUrl) return;
 
     this.http.getCollectionLogo(school.id).subscribe({

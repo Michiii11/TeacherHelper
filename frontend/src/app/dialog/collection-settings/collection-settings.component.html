@@ -152,22 +152,93 @@
                 </div>
               </header>
 
-              <form [formGroup]="inviteForm" class="invite-form">
-                <mat-form-field appearance="outline">
-                  <mat-label>{{ 'schoolSettings.emailAddress' | translate }}</mat-label>
+              <form [formGroup]="inviteForm" class="invite-form username-invite-form">
+                <mat-form-field appearance="outline" class="username-search-field">
+                  <mat-label>{{ 'schoolSettings.searchUsername' | translate }}</mat-label>
+                  <mat-icon matPrefix>alternate_email</mat-icon>
                   <input
                     matInput
-                    type="email"
-                    formControlName="email"
-                    (keydown.enter)="sendTeacherInvite()"
+                    type="text"
+                    formControlName="username"
+                    [matAutocomplete]="teacherAuto"
+                    [placeholder]="'schoolSettings.searchUsernamePlaceholder' | translate"
+                    autocomplete="off"
+                    (keydown.enter)="$event.preventDefault()"
                   >
 
-                  @if (inviteEmailControl.hasError('required')) {
-                    <mat-error>{{ 'profile.emailRequired' | translate }}</mat-error>
-                  } @else if (inviteEmailControl.hasError('email')) {
-                    <mat-error>{{ 'profile.emailInvalid' | translate }}</mat-error>
+                  @if (selectedInviteUser) {
+                    <button mat-icon-button matSuffix type="button" (click)="clearInviteUser()">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  } @else if (searchingTeachers) {
+                    <mat-icon matSuffix class="spin-icon">progress_activity</mat-icon>
+                  }
+
+                  <mat-autocomplete #teacherAuto="matAutocomplete">
+                    @for (user of userSearchResults; track user.id) {
+                      <mat-option
+                        [value]="user.username"
+                        (onSelectionChange)="$event.isUserInput && selectInviteUser(user)"
+                        [disabled]="isUserAlreadyInSchool(user)"
+                      >
+                        <div class="user-option">
+                          <div class="avatar option-avatar">
+                            @if (getAvatarUrl(user); as avatarUrl) {
+                              <img
+                                class="avatar-image"
+                                [src]="avatarUrl"
+                                [alt]="'schoolSettings.avatarAlt' | translate"
+                              >
+                            } @else {
+                              <div class="avatar-circle">{{ getInitials(user) }}</div>
+                            }
+                          </div>
+
+                          <div class="user-option-copy">
+                            <strong>{{ user.username }}</strong>
+                            <small>{{ isUserAlreadyInSchool(user) ? ('schoolSettings.alreadyMember' | translate) : getInviteUserSecondary(user) }}</small>
+                          </div>
+                        </div>
+                      </mat-option>
+                    }
+                  </mat-autocomplete>
+
+                  @if (inviteUsernameControl.hasError('required')) {
+                    <mat-error>{{ 'schoolSettings.usernameRequired' | translate }}</mat-error>
+                  } @else if (inviteUsernameControl.hasError('minlength')) {
+                    <mat-error>{{ 'schoolSettings.usernameMinLength' | translate }}</mat-error>
+                  } @else if (inviteUsernameControl.hasError('userNotSelected')) {
+                    <mat-error>{{ 'schoolSettings.selectUserFromList' | translate }}</mat-error>
                   }
                 </mat-form-field>
+
+                @if (!searchingTeachers && inviteQuery.length >= 2 && userSearchResults.length === 0 && !selectedInviteUser) {
+                  <div class="search-empty-state">
+                    <mat-icon>manage_search</mat-icon>
+                    <span>{{ 'schoolSettings.noUsernameResults' | translate }}</span>
+                  </div>
+                }
+
+                @if (selectedInviteUser) {
+                  <div class="selected-user-card">
+                    <div class="avatar selected-avatar">
+                      @if (getAvatarUrl(selectedInviteUser); as avatarUrl) {
+                        <img
+                          class="avatar-image"
+                          [src]="avatarUrl"
+                          [alt]="'schoolSettings.avatarAlt' | translate"
+                        >
+                      } @else {
+                        <div class="avatar-circle">{{ getInitials(selectedInviteUser) }}</div>
+                      }
+                    </div>
+
+                    <div>
+                      <strong>{{ selectedInviteUser.username }}</strong>
+                      <p>{{ 'schoolSettings.readyToInvite' | translate }}</p>
+                    </div>
+                  </div>
+                }
 
                 <button
                   mat-flat-button
@@ -175,9 +246,9 @@
                   type="button"
                   class="invite-button"
                   (click)="sendTeacherInvite()"
-                  [disabled]="invitingTeacher"
+                  [disabled]="invitingTeacher || !selectedInviteUser"
                 >
-                  <mat-icon>{{ invitingTeacher ? 'hourglass_top' : 'send' }}</mat-icon>
+                  <mat-icon>{{ invitingTeacher ? 'hourglass_top' : 'person_add' }}</mat-icon>
                   {{ 'schoolSettings.sendInvite' | translate }}
                 </button>
 
@@ -283,7 +354,7 @@
           <div class="member-top-row">
             <strong>{{ user.username }}</strong>
             <span class="member-role" [class.role-admin]="admin">
-              {{ admin ? ('school.admin' | translate) : ('school.teacher' | translate) }}
+              {{ admin ? ('collection.admin' | translate) : ('collection.teacher' | translate) }}
             </span>
           </div>
         </div>
@@ -295,6 +366,39 @@
         }
       </div>
     </ng-template>
+  } @else if (isMember) {
+    <div class="tab-content">
+      <article class="danger-zone-card">
+        <header class="danger-zone-head">
+          <div class="danger-zone-icon">
+            <mat-icon>logout</mat-icon>
+          </div>
+
+          <div class="danger-zone-copy">
+            <h4>{{ 'schoolSettings.leaveSchool' | translate }}</h4>
+            <p>{{ 'schoolSettings.leaveSchoolText' | translate }}</p>
+          </div>
+        </header>
+
+        <div class="danger-zone-box">
+          <button
+            mat-flat-button
+            color="warn"
+            type="button"
+            class="danger-delete-button"
+            (click)="leaveCollection()"
+            [disabled]="leavingSchool"
+          >
+            <mat-icon>{{ leavingSchool ? 'hourglass_top' : 'logout' }}</mat-icon>
+            {{ leavingSchool ? ('schoolSettings.leavingSchool' | translate) : ('schoolSettings.leaveSchool' | translate) }}
+          </button>
+        </div>
+
+        @if (leavingSchool) {
+          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        }
+      </article>
+    </div>
   } @else {
     <div class="not-allowed">
       <mat-icon>lock</mat-icon>

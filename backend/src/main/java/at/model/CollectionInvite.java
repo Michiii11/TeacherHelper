@@ -1,20 +1,20 @@
 package at.model;
 
-import at.enums.SchoolInviteStatus;
-import at.enums.SchoolInviteType;
+import at.enums.InviteStatus;
+import at.enums.InviteType;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-public class SchoolInvite {
+public class CollectionInvite {
     @Id
     @GeneratedValue
     private UUID id;
 
     @ManyToOne(optional = false)
-    private School school;
+    private Collection collection;
 
     @ManyToOne(optional = false)
     private User sender;
@@ -23,10 +23,10 @@ public class SchoolInvite {
     private User recipient;
 
     @Enumerated(EnumType.STRING)
-    private SchoolInviteType type;
+    private InviteType type;
 
     @Enumerated(EnumType.STRING)
-    private SchoolInviteStatus status = SchoolInviteStatus.PENDING;
+    private InviteStatus status = InviteStatus.PENDING;
 
     @Column(length = 1000)
     private String message;
@@ -34,11 +34,11 @@ public class SchoolInvite {
     private LocalDateTime createdAt;
     private LocalDateTime decidedAt;
 
-    public SchoolInvite() {
+    public CollectionInvite() {
     }
 
-    public SchoolInvite(School school, User sender, User recipient, SchoolInviteType type, String message) {
-        this.school = school;
+    public CollectionInvite(Collection collection, User sender, User recipient, InviteType type, String message) {
+        this.collection = collection;
         this.sender = sender;
         this.recipient = recipient;
         this.type = type;
@@ -56,9 +56,9 @@ public class SchoolInvite {
 
     @Override
     public String toString() {
-        return "SchoolInvite{" +
+        return "CollectionInvite{" +
                 "id=" + id +
-                ", school=" + school +
+                ", collection=" + collection +
                 ", sender=" + sender +
                 ", recipient=" + recipient +
                 ", type=" + type +
@@ -73,12 +73,12 @@ public class SchoolInvite {
         return id;
     }
 
-    public School getSchool() {
-        return school;
+    public Collection getCollection() {
+        return collection;
     }
 
-    public void setSchool(School school) {
-        this.school = school;
+    public void setCollection(Collection collection) {
+        this.collection = collection;
     }
 
     public User getSender() {
@@ -97,19 +97,19 @@ public class SchoolInvite {
         this.recipient = recipient;
     }
 
-    public SchoolInviteType getType() {
+    public InviteType getType() {
         return type;
     }
 
-    public void setType(SchoolInviteType type) {
+    public void setType(InviteType type) {
         this.type = type;
     }
 
-    public SchoolInviteStatus getStatus() {
+    public InviteStatus getStatus() {
         return status;
     }
 
-    public void setStatus(SchoolInviteStatus status) {
+    public void setStatus(InviteStatus status) {
         this.status = status;
     }
 

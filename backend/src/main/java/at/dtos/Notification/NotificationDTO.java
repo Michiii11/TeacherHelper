@@ -1,6 +1,6 @@
 package at.dtos.Notification;
 
-import at.dtos.School.SchoolDTO;
+import at.dtos.Collection.CollectionDTO;
 import at.dtos.User.UserDTO;
 import at.enums.NotificationActionType;
 import at.enums.NotificationType;
@@ -11,7 +11,7 @@ import java.util.UUID;
 public record NotificationDTO(
         UUID id,
         UserDTO actor,
-        SchoolDTO school,
+        CollectionDTO collection,
         NotificationType type,
         String title,
         String message,

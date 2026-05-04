@@ -27,7 +27,7 @@ public class ExampleResource {
     TokenService tokenService;
 
     @GET
-    @Path("/school/{collectionId}")
+    @Path("/collection/{collectionId}")
     public Response getExamples(@PathParam("collectionId") UUID collectionId,
                                 @HeaderParam("Authorization") String auth) {
         Response authResponse = userRepository.generateResponseOfAuth(auth);
@@ -40,7 +40,7 @@ public class ExampleResource {
     }
 
     @GET
-    @Path("/school/{collectionId}/full")
+    @Path("/collection/{collectionId}/full")
     public Response getFullExamples(@PathParam("collectionId") UUID collectionId,
                                     @HeaderParam("Authorization") String auth) {
         Response authResponse = userRepository.generateResponseOfAuth(auth);

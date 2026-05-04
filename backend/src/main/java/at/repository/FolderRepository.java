@@ -1,10 +1,8 @@
 package at.repository;
 
 import at.dtos.Folder.CreateFolderDTO;
-import at.model.Example;
-import at.model.School;
+import at.model.Collection;
 import at.model.Folder;
-import at.model.Test;
 import at.websocket.CollectionSocket;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -12,10 +10,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
@@ -26,16 +21,16 @@ public class FolderRepository {
     EntityManager em;
 
     @Inject
-    SchoolRepository collectionRepository;
+    CollectionRepository collectionRepository;
 
     public Response getFolders(UUID collectionId, UUID userId) {
-        School collection = em.find(School.class, collectionId);
+        Collection collection = em.find(Collection.class, collectionId);
         if (collection == null || !collectionRepository.isUserPartOfCollection(collectionId, userId)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
         return Response.ok(em.createQuery(
-                        "SELECT f FROM Folder f WHERE f.school.id = :collectionId ORDER BY f.name ASC",
+                        "SELECT f FROM Folder f WHERE f.collection.id = :collectionId ORDER BY f.name ASC",
                         Folder.class
                 )
                 .setParameter("collectionId", collectionId)
@@ -46,7 +41,7 @@ public class FolderRepository {
     }
 
     public Response createFolder(UUID collectionId, UUID userId, CreateFolderDTO dto) {
-        School collection = em.find(School.class, collectionId);
+        Collection collection = em.find(Collection.class, collectionId);
         if (collection == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("Schule nicht gefunden.").build();
         }
@@ -63,7 +58,7 @@ public class FolderRepository {
         Folder parent = null;
         if (dto.parentId() != null) {
             parent = em.find(Folder.class, dto.parentId());
-            if (parent == null || !parent.getSchool().getId().equals(collectionId)) {
+            if (parent == null || !parent.getCollection().getId().equals(collectionId)) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Parent-Ordner.").build();
             }
         }
@@ -71,7 +66,7 @@ public class FolderRepository {
         Folder folder = new Folder(name, collection, parent);
         em.persist(folder);
         em.flush();
-        CollectionSocket.broadcast(folder.getSchool().getId());
+        CollectionSocket.broadcast(folder.getCollection().getId());
         return Response.ok(folder.toDto()).build();
     }
 
@@ -81,7 +76,7 @@ public class FolderRepository {
             return Response.status(Response.Status.NOT_FOUND).entity("Ordner nicht gefunden.").build();
         }
 
-        if (!collectionRepository.isUserPartOfCollection(folder.getSchool().getId(), userId)) {
+        if (!collectionRepository.isUserPartOfCollection(folder.getCollection().getId(), userId)) {
             return Response.status(Response.Status.FORBIDDEN).entity("Nicht berechtigt.").build();
         }
 
@@ -94,7 +89,7 @@ public class FolderRepository {
         if (dto.parentId() != null) {
             newParent = em.find(Folder.class, dto.parentId());
 
-            if (newParent == null || !newParent.getSchool().getId().equals(folder.getSchool().getId())) {
+            if (newParent == null || !newParent.getCollection().getId().equals(folder.getCollection().getId())) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiger Parent-Ordner.").build();
             }
 
@@ -116,7 +111,7 @@ public class FolderRepository {
 
         em.merge(folder);
         em.flush();
-        CollectionSocket.broadcast(folder.getSchool().getId());
+        CollectionSocket.broadcast(folder.getCollection().getId());
         return Response.ok(folder.toDto()).build();
     }
 
@@ -129,9 +124,9 @@ public class FolderRepository {
                     .build();
         }
 
-        UUID schoolId = folder.getSchool().getId();
+        UUID collectionId = folder.getCollection().getId();
 
-        if (!collectionRepository.isUserPartOfCollection(schoolId, userId)) {
+        if (!collectionRepository.isUserPartOfCollection(collectionId, userId)) {
             return Response.status(Response.Status.FORBIDDEN)
                     .entity("Nicht berechtigt.")
                     .build();
@@ -140,12 +135,18 @@ public class FolderRepository {
         List<UUID> folderIds = new ArrayList<>();
         collectFolderIds(folderId, folderIds);
 
+        long exampleCount = countExamplesInFolders(folderIds);
+        long testCount = countTestsInFolders(folderIds);
+        int childFolderCount = Math.max(folderIds.size() - 1, 0);
+
         deleteFolderTree(folderIds);
 
         em.clear();
-        CollectionSocket.broadcast(schoolId);
+        CollectionSocket.broadcast(collectionId);
 
-        return Response.ok().build();
+        return Response.ok(
+                "Ordner wurde gelöscht. Entfernt: " + childFolderCount + " Unterordner, " + exampleCount + " Beispiele, " + testCount + " Tests."
+        ).build();
     }
 
     private void collectFolderIds(UUID folderId, List<UUID> folderIds) {
@@ -181,20 +182,12 @@ public class FolderRepository {
                 .setParameter("folderIds", folderIds)
                 .getResultList();
 
-        List<UUID> testExampleIds = em.createQuery("""
-            SELECT te.id
-            FROM TestExample te
-            WHERE te.test.id IN :testIds
-               OR te.example.id IN :exampleIds
-            """, UUID.class)
-                .setParameter("testIds", testIds.isEmpty() ? List.of(UUID.randomUUID()) : testIds)
-                .setParameter("exampleIds", exampleIds.isEmpty() ? List.of(UUID.randomUUID()) : exampleIds)
-                .getResultList();
+        List<UUID> testExampleIds = collectTestExampleIds(testIds, exampleIds);
 
         if (!testExampleIds.isEmpty()) {
-            em.createQuery("""
-                DELETE FROM TestExampleVariableValue v
-                WHERE v.testExample.id IN :testExampleIds
+            em.createNativeQuery("""
+                DELETE FROM test_example_variable_values
+                WHERE test_example_id IN (:testExampleIds)
                 """)
                     .setParameter("testExampleIds", testExampleIds)
                     .executeUpdate();
@@ -208,6 +201,8 @@ public class FolderRepository {
         }
 
         if (!testIds.isEmpty()) {
+            deleteTestElementCollections(testIds);
+
             em.createQuery("""
                 DELETE FROM Test t
                 WHERE t.id IN :testIds
@@ -238,6 +233,70 @@ public class FolderRepository {
         }
 
         em.clear();
+    }
+
+    private long countExamplesInFolders(List<UUID> folderIds) {
+        return em.createQuery("""
+            SELECT COUNT(e)
+            FROM Example e
+            WHERE e.folder.id IN :folderIds
+            """, Long.class)
+                .setParameter("folderIds", folderIds)
+                .getSingleResult();
+    }
+
+    private long countTestsInFolders(List<UUID> folderIds) {
+        return em.createQuery("""
+            SELECT COUNT(t)
+            FROM Test t
+            WHERE t.folder.id IN :folderIds
+            """, Long.class)
+                .setParameter("folderIds", folderIds)
+                .getSingleResult();
+    }
+
+    private List<UUID> collectTestExampleIds(List<UUID> testIds, List<UUID> exampleIds) {
+        Set<UUID> ids = new java.util.LinkedHashSet<>();
+
+        if (!testIds.isEmpty()) {
+            ids.addAll(em.createQuery("""
+                SELECT te.id
+                FROM TestExample te
+                WHERE te.test.id IN :testIds
+                """, UUID.class)
+                    .setParameter("testIds", testIds)
+                    .getResultList());
+        }
+
+        if (!exampleIds.isEmpty()) {
+            ids.addAll(em.createQuery("""
+                SELECT te.id
+                FROM TestExample te
+                WHERE te.example.id IN :exampleIds
+                """, UUID.class)
+                    .setParameter("exampleIds", exampleIds)
+                    .getResultList());
+        }
+
+        return new ArrayList<>(ids);
+    }
+
+    private void deleteTestElementCollections(List<UUID> testIds) {
+        em.createNativeQuery("DELETE FROM test_task_spacing WHERE test_id IN (:testIds)")
+                .setParameter("testIds", testIds)
+                .executeUpdate();
+
+        em.createNativeQuery("DELETE FROM test_grading_levels WHERE test_id IN (:testIds)")
+                .setParameter("testIds", testIds)
+                .executeUpdate();
+
+        em.createNativeQuery("DELETE FROM test_grade_percentages WHERE test_id IN (:testIds)")
+                .setParameter("testIds", testIds)
+                .executeUpdate();
+
+        em.createNativeQuery("DELETE FROM test_manual_grade_minimums WHERE test_id IN (:testIds)")
+                .setParameter("testIds", testIds)
+                .executeUpdate();
     }
 
     public Folder findById(UUID folderId) {

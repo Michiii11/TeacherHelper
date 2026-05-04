@@ -33,6 +33,17 @@ public class UserResource {
         return Response.ok().build();
     }
 
+    @GET
+    @Path("list")
+    public Response getUsernames(@HeaderParam("Authorization") String auth) {
+        Response authResponse = repository.generateResponseOfAuth(auth);
+        if (authResponse != null) {
+            return authResponse;
+        }
+
+        return repository.getUsernames();
+    }
+
     @POST
     @Path("register")
     public AuthResult register(FullUserDTO dto) {

@@ -2,7 +2,7 @@ package at.repository;
 
 import at.dtos.User.*;
 import at.enums.SubscriptionModel;
-import at.model.School;
+import at.model.Collection;
 import at.model.Example;
 import at.model.Test;
 import at.model.User;
@@ -42,7 +42,7 @@ public class UserRepository {
     MailService mailService;
 
     @Inject
-    SchoolRepository schoolRepository;
+    CollectionRepository collectionRepository;
 
     @Inject
     MediaStorageService mediaStorageService;
@@ -60,6 +60,12 @@ public class UserRepository {
             findById(userId).newActivity();
         }
         return null;
+    }
+
+    public Response getUsernames() {
+        List<String> usernames = em.createQuery("SELECT u.username FROM User u", String.class)
+                .getResultList();
+        return Response.ok(usernames).build();
     }
 
     public AuthResult register(FullUserDTO dto) {
@@ -216,12 +222,12 @@ public class UserRepository {
             return Response.status(Response.Status.BAD_REQUEST).entity("Current password is incorrect.").build();
         }
 
-        List<School> schools = em.createQuery(
-                "SELECT s FROM School s WHERE s.admin.id = :userId",
-                School.class).setParameter("userId", userId).getResultList();
+        List<Collection> collections = em.createQuery(
+                "SELECT s FROM Collection s WHERE s.admin.id = :userId",
+                Collection.class).setParameter("userId", userId).getResultList();
 
-        for (School school : schools) {
-            schoolRepository.deleteCollection(school.getId(), userId);
+        for (Collection collection : collections) {
+            collectionRepository.deleteCollection(collection.getId(), userId);
         }
 
         List<Example> examples = em.createQuery(
@@ -229,7 +235,7 @@ public class UserRepository {
                 Example.class).setParameter("userId", userId).getResultList();
 
         for(Example example : examples) {
-            example.setAdmin(example.getSchool().getAdmin());
+            example.setAdmin(example.getCollection().getAdmin());
         }
 
         List<Test> tests = em.createQuery(
@@ -237,7 +243,7 @@ public class UserRepository {
                 Test.class).setParameter("userId", userId).getResultList();
 
         for (Test test : tests) {
-            test.setAdmin(test.getSchool().getAdmin());
+            test.setAdmin(test.getCollection().getAdmin());
         }
 
         if(user.getProfileImageUrl() != null) {
@@ -557,13 +563,13 @@ public class UserRepository {
         User user = em.find(User.class, id);
         if (user == null) return Response.status(Response.Status.NOT_FOUND).entity("User not found.").build();
 
-        List<School> schools = em.createQuery(
-                "SELECT s FROM School s WHERE s.admin.id = :userId",
-                School.class).setParameter("userId", id).getResultList();
+        List<Collection> collections = em.createQuery(
+                "SELECT s FROM Collection s WHERE s.admin.id = :userId",
+                Collection.class).setParameter("userId", id).getResultList();
 
         AdminUserDetailDTO dto = new AdminUserDetailDTO(
                 user.getId(),
-                schools.stream().map(School::toSchoolDTO).collect(java.util.stream.Collectors.toList())
+                collections.stream().map(Collection::toDTO).collect(java.util.stream.Collectors.toList())
         );
 
         return Response.ok(dto).build();
@@ -690,7 +696,7 @@ public class UserRepository {
     private long countCollectionsCreatedSince(LocalDateTime since) {
         return em.createQuery("""
             SELECT COUNT(f)
-            FROM School f
+            FROM Collection f
             WHERE f.createdAt >= :since
             """, Long.class)
                 .setParameter("since", since)
@@ -720,7 +726,7 @@ public class UserRepository {
     private long countCollectionsByUser(User user) {
         return em.createQuery("""
             SELECT COUNT(f)
-            FROM School f
+            FROM Collection f
             WHERE f.admin = :user
             """, Long.class)
                 .setParameter("user", user)

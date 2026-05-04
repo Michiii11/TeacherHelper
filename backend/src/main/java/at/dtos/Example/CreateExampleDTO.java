@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 public record CreateExampleDTO(
-        UUID schoolId,
+        UUID collectionId,
         ExampleTypes type,
         String instruction,
         String question,

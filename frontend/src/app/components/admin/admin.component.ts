@@ -8,7 +8,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { NavbarActionsService } from '../navigation/navbar-actions.service';
 import { HttpService } from '../../service/http.service';
 import { AdminCountPeriodDTO, AdminDashboardDTO, AdminUserDashboardDTO } from '../../model/User';
-import {SchoolDTO} from '../../model/School'
+import {CollectionDTO} from '../../model/Collection'
 
 type AdminSortKey = 'newest' | 'oldest' | 'lastActive' | 'nameAsc' | 'nameDesc';
 type AdminDashboardKey = keyof Pick<
@@ -103,7 +103,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   readonly aboStatCards: StatCardConfig[] = [
     { label: 'Free Abos', key: 'freeAbos', toneClass: 'tone-free' },
     { label: 'Pro Abos', key: 'proAbos', toneClass: 'tone-pro' },
-    { label: 'School Abos', key: 'schoolAbos', toneClass: 'tone-school' },
+    { label: 'Collection Abos', key: 'schoolAbos', toneClass: 'tone-collection' },
     { label: 'Geschätzter Umsatz / Monat', key: 'cashflow', toneClass: 'tone-revenue' }
   ];
 
@@ -138,7 +138,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   search = '';
   sort: AdminSortKey = 'lastActive';
   selectedUserId: string | null = null;
-  selectedUserDTO: { id: string; schools: SchoolDTO[] } = { id: '', schools: [] };
+  selectedUserDTO: { id: string; schools: CollectionDTO[] } = { id: '', schools: [] };
   dash: AdminDashboardDTO = this.createEmptyDashboard();
 
   ngOnInit(): void {
@@ -184,7 +184,7 @@ export class AdminComponent implements OnInit, OnDestroy {
 
     this.service.getUserAdminDashboard(user.id).subscribe({
       next: (data) => {
-        this.selectedUserDTO = data as { id: string; schools: SchoolDTO[] }
+        this.selectedUserDTO = data as { id: string; schools: CollectionDTO[] }
         console.log(this.selectedUserDTO)
       }
     })

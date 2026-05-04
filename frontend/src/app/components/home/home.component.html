@@ -1,5 +1,5 @@
 @if (isSchoolsLoading) {
-  <main class="schools-dashboard loading-dashboard" aria-label="School Overview">
+  <main class="dashboard loading-dashboard" [attr.aria-label]="'collection.dashboardAria' | translate">
     <section class="school-loading-card">
       <mat-icon>school</mat-icon>
       <h2>{{ 'common.loading' | translate }}</h2>
@@ -16,7 +16,8 @@
       <div class="school-grid">
         <mat-card
           *ngFor="let school of schools"
-          [class]="getCardClass(school)"
+          class="school-card"
+          [ngClass]="getCardClass(school)"
           (click)="openSchool(school)"
         >
           <div class="card-top-row">
@@ -25,7 +26,7 @@
                 <img
                   *ngIf="logoUrls[school.id]"
                   [src]="logoUrls[school.id]"
-                  alt="{{ school.name }} Logo"
+                  alt="{{ school.name }}"
                   class="avatar-image"
                 />
               </div>
@@ -36,8 +37,8 @@
             }
 
             <span class="role-badge" [ngClass]="getRoleBadgeClass(school)">
-              {{ getSchoolRoleLabel(school) }}
-            </span>
+            {{ getSchoolRoleLabel(school) }}
+          </span>
           </div>
 
           <h3 class="school-name">{{ school.name }}</h3>
@@ -45,12 +46,18 @@
           <div class="school-info-list">
             <div class="info-row">
               <mat-icon>person</mat-icon>
-              <span>{{ 'home.labels.admin' | translate }}: {{ school.admin.username }}</span>
+              <span>
+              {{ 'home.labels.admin' | translate }}:
+                {{ school.admin.username }}
+            </span>
             </div>
 
             <div class="info-row">
               <mat-icon>auto_stories</mat-icon>
-              <span>{{ 'home.labels.examples' | translate }}: {{ school.exampleCount }}</span>
+              <span>
+              {{ 'home.labels.examples' | translate }}:
+                {{ school.exampleCount }}
+            </span>
             </div>
           </div>
 
@@ -58,11 +65,6 @@
             <span>{{ 'home.actions.openSchool' | translate }}</span>
             <mat-icon>arrow_forward</mat-icon>
           </div>
-        </mat-card>
-
-        <mat-card *ngIf="!schools.length" class="empty-card">
-          <mat-icon>school</mat-icon>
-          <p>{{ 'home.memberSection.empty' | translate }}</p>
         </mat-card>
       </div>
     </section>

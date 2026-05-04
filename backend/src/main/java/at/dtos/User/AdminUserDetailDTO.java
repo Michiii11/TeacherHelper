@@ -1,13 +1,12 @@
 package at.dtos.User;
 
-import at.dtos.School.SchoolDTO;
+import at.dtos.Collection.CollectionDTO;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 public record AdminUserDetailDTO(
         UUID id,
-        List<SchoolDTO> schools
+        List<CollectionDTO> collections
 ) {
 }

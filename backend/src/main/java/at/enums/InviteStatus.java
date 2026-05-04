@@ -1,6 +1,6 @@
 package at.enums;
 
-public enum SchoolInviteStatus {
+public enum InviteStatus {
     PENDING,
     ACCEPTED,
     DECLINED

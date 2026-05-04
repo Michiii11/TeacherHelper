@@ -3,7 +3,7 @@ import { LoginComponent } from './components/login/login.component';
 import { AuthGuard } from './guard/auth.guard';
 import { adminGuard } from './guard/admin.guard';
 import { HomeComponent } from './components/home/home.component';
-import { SchoolComponent } from './components/school/school.component';
+import { CollectionComponent } from './components/collection/collection.component';
 import { NotFoundComponent } from './components/not-found/not-found.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { LegalPageComponent } from './components/legal-page/legal-page.component';
@@ -13,7 +13,7 @@ import { AdminComponent } from './components/admin/admin.component';
 
 export const routes: Routes = [
   { path: 'home', component: HomeComponent, canActivate: [AuthGuard] },
-  { path: 'collection/:id', component: SchoolComponent, canActivate: [AuthGuard] },
+  { path: 'collection/:id', component: CollectionComponent, canActivate: [AuthGuard] },
   { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
 
   { path: 'help', component: HelpComponent },

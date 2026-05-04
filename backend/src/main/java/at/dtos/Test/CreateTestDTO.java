@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public record CreateTestDTO(
-        UUID schoolId,
+        UUID collectionId,
         String name,
         String note,
         List<TestExampleDTO> exampleList,

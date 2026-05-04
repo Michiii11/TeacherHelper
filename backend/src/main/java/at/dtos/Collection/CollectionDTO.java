@@ -1,11 +1,11 @@
-package at.dtos.School;
+package at.dtos.Collection;
 
 import at.dtos.User.UserDTO;
 
 import java.util.List;
 import java.util.UUID;
 
-public record SchoolDTO(
+public record CollectionDTO(
         UUID id,
         String name,
         String logoUrl,

@@ -3,13 +3,13 @@ package at.repository;
 import at.dtos.Example.ExampleDTO;
 import at.dtos.Example.ExampleVariableDTO;
 import at.dtos.Example.GapDTO;
-import at.dtos.School.SchoolDTO;
+import at.dtos.Collection.CollectionDTO;
 import at.dtos.Test.CreateTestDTO;
 import at.dtos.Test.GradingLevelDTO;
 import at.dtos.Test.TestExampleDTO;
 import at.dtos.Test.TestOverviewDTO;
 import at.model.*;
-import at.model.School;
+import at.model.Collection;
 import at.model.helper.ExampleVariable;
 import at.model.helper.GradingLevel;
 import at.security.TokenService;
@@ -35,10 +35,10 @@ public class TestRepository {
     FolderRepository folderRepository;
 
     @Inject
-    SchoolRepository schoolRepository;
+    CollectionRepository collectionRepository;
 
     public Response getAllTest(UUID collectionId, UUID userId) {
-        if (!schoolRepository.isUserPartOfCollection(collectionId, userId)) {
+        if (!collectionRepository.isUserPartOfCollection(collectionId, userId)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
@@ -55,7 +55,7 @@ public class TestRepository {
                                 "t.folder.id" +
                                 ") " +
                                 "FROM Test t " +
-                                "WHERE t.school.id = :collectionId " +
+                                "WHERE t.collection.id = :collectionId " +
                                 "ORDER BY t.id",
                         TestOverviewDTO.class
                 )
@@ -71,7 +71,7 @@ public class TestRepository {
             return null;
         }
 
-        if (!schoolRepository.isUserPartOfCollection(t.getSchool().getId(), userId)) {
+        if (!collectionRepository.isUserPartOfCollection(t.getCollection().getId(), userId)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
@@ -85,7 +85,7 @@ public class TestRepository {
                 )));
 
         CreateTestDTO dto = new CreateTestDTO(
-                t.getSchool().getId(),
+                t.getCollection().getId(),
                 t.getName(),
                 t.getNote(),
                 exampleList,
@@ -105,31 +105,31 @@ public class TestRepository {
 
     public Response createTest(CreateTestDTO dto, UUID userId) {
         User admin = em.find(User.class, userId);
-        School school = em.find(School.class, dto.schoolId());
+        Collection collection = em.find(Collection.class, dto.collectionId());
 
-        if (school == null) {
+        if (collection == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("Collection not found.").build();
         }
 
-        if (!schoolRepository.isUserPartOfCollection(school.getId(), userId)) {
+        if (!collectionRepository.isUserPartOfCollection(collection.getId(), userId)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
         Folder folder = null;
         if (dto.folderId() != null) {
             folder = folderRepository.findById(dto.folderId());
-            if (folder == null || !folder.getSchool().getId().equals(school.getId())) {
+            if (folder == null || !folder.getCollection().getId().equals(collection.getId())) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Unvalid Folder.").build();
             }
         }
 
-        Test test = new Test(dto.name(), dto.note(), admin, school, dto.duration());
+        Test test = new Test(dto.name(), dto.note(), admin, collection, dto.duration());
         test.setFolder(folder);
         applySettings(test, dto);
         em.persist(test);
 
         addExamplesToTest(test, dto.exampleList());
-        CollectionSocket.broadcast(test.getSchool().getId());
+        CollectionSocket.broadcast(test.getCollection().getId());
         return Response.ok().build();
     }
 
@@ -139,7 +139,7 @@ public class TestRepository {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        if (!test.getAdmin().getId().equals(userId) && !test.getSchool().getAdmin().getId().equals(userId)) {
+        if (!test.getAdmin().getId().equals(userId) && !test.getCollection().getAdmin().getId().equals(userId)) {
             return Response.status(Response.Status.FORBIDDEN)
                     .entity("Not allowed to update this test.")
                     .build();
@@ -148,7 +148,7 @@ public class TestRepository {
         Folder folder = null;
         if (dto.folderId() != null) {
             folder = folderRepository.findById(dto.folderId());
-            if (folder == null || !folder.getSchool().getId().equals(test.getSchool().getId())) {
+            if (folder == null || !folder.getCollection().getId().equals(test.getCollection().getId())) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Unvalid Folder.").build();
             }
         }
@@ -159,16 +159,21 @@ public class TestRepository {
         test.setFolder(folder);
         applySettings(test, dto);
 
-        List<TestExample> existingEntries = em.createQuery(
-                        "SELECT te FROM TestExample te WHERE te.test.id = :testId", TestExample.class)
+        List<UUID> existingEntryIds = em.createQuery(
+                        "SELECT te.id FROM TestExample te WHERE te.test.id = :testId", UUID.class)
                 .setParameter("testId", testId)
                 .getResultList();
 
-        existingEntries.forEach(em::remove);
+        deleteTestExamples(existingEntryIds);
+
+        em.flush();
+        em.clear();
+        test = em.find(Test.class, testId);
+        applySettings(test, dto);
         test.getExampleList().clear();
 
         addExamplesToTest(test, dto.exampleList());
-        CollectionSocket.broadcast(test.getSchool().getId());
+        CollectionSocket.broadcast(test.getCollection().getId());
         return Response.ok().build();
     }
 
@@ -178,14 +183,14 @@ public class TestRepository {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        if (!test.getAdmin().getId().equals(userId) && !test.getSchool().getAdmin().getId().equals(userId)) {
+        if (!test.getAdmin().getId().equals(userId) && !test.getCollection().getAdmin().getId().equals(userId)) {
             return Response.status(Response.Status.FORBIDDEN)
                     .entity("Not allowed to delete this test.")
                     .build();
         }
 
         em.remove(test);
-        CollectionSocket.broadcast(test.getSchool().getId());
+        CollectionSocket.broadcast(test.getCollection().getId());
         return Response.ok().build();
     }
 
@@ -195,7 +200,7 @@ public class TestRepository {
             return Response.status(Response.Status.NOT_FOUND).entity("Test not found.").build();
         }
 
-        if (!test.getAdmin().getId().equals(userId) && !test.getSchool().getAdmin().getId().equals(userId)) {
+        if (!test.getAdmin().getId().equals(userId) && !test.getCollection().getAdmin().getId().equals(userId)) {
             return Response.status(Response.Status.FORBIDDEN)
                     .entity("Not allowed to move this test.")
                     .build();
@@ -204,20 +209,63 @@ public class TestRepository {
         Folder folder = null;
         if (folderId != null) {
             folder = folderRepository.findById(folderId);
-            if (folder == null || !folder.getSchool().getId().equals(test.getSchool().getId())) {
+            if (folder == null || !folder.getCollection().getId().equals(test.getCollection().getId())) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Unvalid folder.").build();
             }
         }
 
         test.setFolder(folder);
         em.merge(test);
-        CollectionSocket.broadcast(test.getSchool().getId());
+        CollectionSocket.broadcast(test.getCollection().getId());
         return Response.ok().build();
     }
 
 
 
 
+
+
+    private void deleteTestExamples(List<UUID> testExampleIds) {
+        if (testExampleIds == null || testExampleIds.isEmpty()) {
+            return;
+        }
+
+        em.createNativeQuery("""
+            DELETE FROM test_example_variable_values
+            WHERE test_example_id IN (:ids)
+            """)
+                .setParameter("ids", testExampleIds)
+                .executeUpdate();
+
+        em.createQuery("""
+            DELETE FROM TestExample te
+            WHERE te.id IN :ids
+            """)
+                .setParameter("ids", testExampleIds)
+                .executeUpdate();
+    }
+
+    private void deleteTestElementCollections(List<UUID> testIds) {
+        if (testIds == null || testIds.isEmpty()) {
+            return;
+        }
+
+        em.createNativeQuery("DELETE FROM test_task_spacing WHERE test_id IN (:testIds)")
+                .setParameter("testIds", testIds)
+                .executeUpdate();
+
+        em.createNativeQuery("DELETE FROM test_grading_levels WHERE test_id IN (:testIds)")
+                .setParameter("testIds", testIds)
+                .executeUpdate();
+
+        em.createNativeQuery("DELETE FROM test_grade_percentages WHERE test_id IN (:testIds)")
+                .setParameter("testIds", testIds)
+                .executeUpdate();
+
+        em.createNativeQuery("DELETE FROM test_manual_grade_minimums WHERE test_id IN (:testIds)")
+                .setParameter("testIds", testIds)
+                .executeUpdate();
+    }
 
     private ExampleDTO mapToExampleDTO(Example e) {
         return new ExampleDTO(
@@ -234,11 +282,11 @@ public class TestRepository {
                 e.getSolutionImageWidth(),
                 e.getFocusList() == null ? new LinkedList<>() : new LinkedList<>(e.getFocusList()),
                 mapVariables(e.getVariables()),
-                new SchoolDTO(
-                        e.getSchool().getId(),
-                        e.getSchool().getName(),
-                        e.getSchool().getLogoUrl(),
-                        e.getSchool().getAdminDTO(),
+                new CollectionDTO(
+                        e.getCollection().getId(),
+                        e.getCollection().getName(),
+                        e.getCollection().getLogoUrl(),
+                        e.getCollection().getAdminDTO(),
                         0,
                         null
                 ),

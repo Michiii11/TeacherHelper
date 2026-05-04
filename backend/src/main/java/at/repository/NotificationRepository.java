@@ -1,10 +1,9 @@
 package at.repository;
 
 import at.dtos.Notification.NotificationDTO;
-import at.dtos.School.SchoolDTO;
 import at.enums.NotificationActionType;
 import at.enums.NotificationType;
-import at.model.School;
+import at.model.Collection;
 import at.model.Notification;
 import at.model.User;
 import at.websocket.NotificationSocket;
@@ -16,7 +15,6 @@ import jakarta.ws.rs.core.Response;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -26,13 +24,13 @@ public class NotificationRepository {
     @Inject
     EntityManager em;
 
-    public Notification createNotification(User recipient, User actor, School school,
+    public Notification createNotification(User recipient, User actor, Collection collection,
                                            NotificationType type, String title, String message,
                                            String link, UUID relatedEntityId, NotificationActionType primaryAction,
                                            NotificationActionType secondaryAction) {
 
         Notification notification = new Notification(
-                recipient, actor, school, type, title, message, link, false,
+                recipient, actor, collection, type, title, message, link, false,
                 relatedEntityId, primaryAction, secondaryAction, LocalDateTime.now());
 
         em.persist(notification);
@@ -155,7 +153,7 @@ public class NotificationRepository {
                 .executeUpdate();
     }
 
-    public Response sendSystemInfo(UUID senderId, UUID schoolId, String title, String message, String link, boolean isForAll) {
+    public Response sendSystemInfo(UUID senderId, UUID collectionId, String title, String message, String link, boolean isForAll) {
         if (title == null || title.isBlank() || message == null || message.isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Title and message are required")
@@ -176,22 +174,22 @@ public class NotificationRepository {
         }
 
         List<User> recipients = null;
-        School school = null;
+        Collection collection = null;
         if(!isForAll){
-            school = em.find(School.class, schoolId);
-            if (school == null) {
+            collection = em.find(Collection.class, collectionId);
+            if (collection == null) {
                 return Response.status(Response.Status.NOT_FOUND)
-                        .entity("School not found")
+                        .entity("Collection not found")
                         .build();
             }
 
             recipients = em.createQuery("""
                 SELECT u
-                FROM School s
+                FROM Collection s
                 JOIN s.users u
-                WHERE s.id = :schoolId
+                WHERE s.id = :collectionId
                 """, User.class)
-                    .setParameter("schoolId", schoolId)
+                    .setParameter("collectionId", collectionId)
                     .getResultList();
         } else {
             recipients = em.createQuery("""
@@ -209,10 +207,10 @@ public class NotificationRepository {
             }
 
             createNotification(
-                    recipient, sender, school,
+                    recipient, sender, collection,
                     NotificationType.SYSTEM_INFO,
                     title.trim(), message.trim(),
-                    cleanLink, schoolId,
+                    cleanLink, collectionId,
                     null, null);
 
             sentCount++;
