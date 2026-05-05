@@ -1249,7 +1249,11 @@
       "insertAtCursor": "Insert text variable",
       "remove": "Remove variable",
       "defaultValue": "Default value",
-      "defaultValuePlaceholder": "e.g. 4 or Anna"
+      "defaultValuePlaceholder": "e.g. 4 or Anna",
+      "add": "Add variable",
+      "empty": "No variables yet. Add one here or on the left to insert it into the active field.",
+      "insertShort": "Insert",
+      "name": "Name"
     },
     "assignLeftColumn": "Left",
     "assignRightColumn": "Right",
@@ -1285,6 +1289,7 @@
       "created": "Exercise created successfully.",
       "saveError": "Exercise could not be saved.",
       "focusDeleted": "The focus \"{{label}}\" was deleted."
-    }
+    },
+    "preview": "Preview"
   }
 }

@@ -1980,3 +1980,563 @@ mat-divider{
   display: flex;
   justify-content: flex-start;
 }
+
+/* Layout cleanup: editor content left, meta/preview/actions right */
+.editor-toolbar {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.create-example-layout {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  height: 70vh;
+}
+
+.create-example-layout app-example-preview {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: auto;
+}
+
+.meta-panel {
+  flex: 0 0 auto;
+  padding: .65rem;
+}
+
+.compact-variable-table {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+}
+
+.compact-variable-table table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.compact-variable-table th,
+.compact-variable-table td {
+  border: 1px solid var(--border);
+  padding: .35rem .5rem;
+  vertical-align: middle;
+}
+
+.compact-variable-table th {
+  width: 36%;
+  color: var(--primary);
+  font-weight: 700;
+  text-align: left;
+  background: color-mix(in srgb, var(--primary) 7%, transparent);
+}
+
+.compact-variable-table input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+}
+
+mat-dialog-actions {
+  margin-top: auto;
+  padding: .75rem 0 0 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: flex-end !important;
+  gap: .5rem;
+}
+
+@media (max-width: 1180px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .create-example-layout {
+    height: auto;
+  }
+}
+
+/* Iteration 2: keep editor clean, move meta controls to the right column */
+.side-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+}
+
+.side-toolbar button {
+  min-height: 40px;
+  border-radius: 12px;
+}
+
+.side-toolbar .active-meta-toggle {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  border-color: var(--primary-strong);
+}
+
+.meta-stack {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  flex: 0 0 auto;
+}
+
+.meta-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .4rem;
+}
+
+.meta-panel {
+  padding: .55rem .65rem;
+  border-radius: 14px;
+}
+
+.compact-variable-table table {
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.compact-variable-table th,
+.compact-variable-table td {
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  padding: .32rem .5rem;
+  height: 34px;
+}
+
+.compact-variable-table thead th {
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.compact-variable-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.compact-variable-table .variable-name {
+  width: 34%;
+  color: var(--primary);
+  font-weight: 700;
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
+}
+
+.compact-variable-table input {
+  height: 28px;
+  padding: 0 .25rem;
+}
+
+.tag-meta-panel {
+  padding-bottom: .65rem;
+}
+
+.tag-meta-panel app-example-focus-selector {
+  display: block;
+}
+
+@media (max-width: 1180px) {
+  .side-toolbar {
+    justify-content: flex-start;
+  }
+}
+
+/* Iteration 3: right-column collapsibles for preview, variables and tags */
+.create-example-layout {
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+  min-height: 0;
+}
+
+.side-collapsible {
+  padding: 0;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+
+.preview-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-panel.collapsed {
+  flex: 0 0 auto;
+}
+
+.side-collapse-head {
+  width: 100%;
+  min-height: 40px;
+  padding: .45rem .65rem;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.side-collapse-head:hover {
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+.collapse-icon {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  color: var(--primary);
+  flex: 0 0 auto;
+}
+
+.side-collapse-body {
+  padding: 0 .65rem .65rem;
+  min-height: 0;
+}
+
+.preview-panel .side-collapse-body {
+  flex: 1 1 auto;
+  overflow: auto;
+}
+
+.preview-panel app-example-preview {
+  display: block;
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+}
+
+.compact-variable-table .side-collapse-body {
+  padding-top: .1rem;
+}
+
+.compact-variable-table .insert-col {
+  width: 74px;
+  text-align: right;
+}
+
+.table-insert-btn {
+  min-width: 58px !important;
+  height: 28px !important;
+  padding: 0 .55rem !important;
+  border-radius: 9px !important;
+  font-size: 12px !important;
+  line-height: 28px !important;
+}
+
+.tag-meta-panel .side-collapse-body {
+  padding-top: .15rem;
+}
+
+@media (max-width: 1180px) {
+  .preview-panel {
+    flex: 0 0 auto;
+  }
+}
+
+/* Iteration 4: stable collapsibles + left add-variable action */
+.left-editor-toolbar {
+  justify-content: flex-start;
+  padding-top: 1rem;
+}
+
+.left-editor-toolbar button {
+  width: auto !important;
+  min-height: 40px;
+  border-radius: 12px;
+}
+
+.side-collapsible.collapsed {
+  flex: 0 0 42px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+}
+
+.side-collapsible.collapsed .side-collapse-head {
+  min-height: 42px;
+  height: 42px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.preview-panel.collapsed {
+  flex-grow: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+.preview-panel:not(.collapsed) {
+  flex: 1 1 min(360px, 45vh);
+  min-height: 180px;
+}
+
+.create-example-layout app-example-preview {
+  flex: unset;
+}
+
+.empty-meta-state {
+  padding: .7rem .75rem;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  color: var(--text-subtle);
+  font-size: .85rem;
+  line-height: 1.4;
+  background: color-mix(in srgb, var(--surface-2) 65%, transparent);
+}
+
+.compact-variable-table table {
+  margin-top: .1rem;
+}
+
+.compact-variable-table .panel-title,
+.tag-meta-panel .panel-title,
+.preview-panel .panel-title {
+  line-height: 1;
+}
+
+/* Iteration 5: unified right-side collapsibles + translated compact meta sections */
+.create-example-layout {
+  display: flex;
+  flex-direction: column;
+  gap: .7rem;
+  height: 70vh;
+  min-height: 0;
+}
+
+.side-collapsible,
+.preview-panel,
+.compact-variable-table,
+.tag-meta-panel {
+  padding: 0 !important;
+  border-radius: 14px !important;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--surface-2) 92%, transparent) !important;
+  border: 1px solid var(--border) !important;
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+.preview-panel:not(.collapsed),
+.compact-variable-table:not(.collapsed),
+.tag-meta-panel:not(.collapsed) {
+  flex: 0 0 auto;
+  height: auto;
+  min-height: unset;
+  max-height: none;
+}
+
+.preview-panel:not(.collapsed) {
+  flex: 1 1 260px;
+  min-height: 180px;
+}
+
+.side-collapsible.collapsed,
+.preview-panel.collapsed,
+.compact-variable-table.collapsed,
+.tag-meta-panel.collapsed {
+  flex: 0 0 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+}
+
+.side-collapse-head {
+  width: 100%;
+  min-height: 44px;
+  height: 44px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  padding: 0 .75rem;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.side-collapse-head:hover {
+  background: color-mix(in srgb, var(--primary) 7%, transparent);
+}
+
+.side-collapse-head:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.collapse-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  color: var(--primary);
+  flex: 0 0 auto;
+}
+
+.collapse-head-spacer {
+  flex: 1 1 auto;
+}
+
+.collapse-head-action {
+  width: auto !important;
+  min-width: 0 !important;
+  height: 30px !important;
+  padding: 0 .65rem !important;
+  border-radius: 10px !important;
+  font-size: .78rem !important;
+  line-height: 30px !important;
+  flex: 0 0 auto;
+}
+
+.collapse-head-action mat-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  margin-right: .25rem;
+}
+
+.side-collapse-body {
+  padding: 0 .75rem .75rem !important;
+  min-height: 0;
+}
+
+.preview-panel .side-collapse-body {
+  height: calc(100% - 44px);
+  overflow: auto;
+}
+
+.preview-panel app-example-preview {
+  display: block;
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+}
+
+.compact-variable-table table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 !important;
+  table-layout: fixed;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.compact-variable-table th,
+.compact-variable-table td {
+  padding: .42rem .5rem !important;
+  border: 1px solid var(--border) !important;
+  font-size: .82rem !important;
+  vertical-align: middle;
+}
+
+.compact-variable-table th {
+  color: var(--text-subtle);
+  font-weight: 700;
+  background: color-mix(in srgb, var(--primary) 9%, transparent);
+}
+
+.compact-variable-table .variable-name {
+  color: var(--primary);
+  font-weight: 800;
+  width: 28%;
+  word-break: break-word;
+}
+
+.compact-variable-table .insert-col {
+  width: 82px;
+  text-align: right;
+}
+
+.compact-variable-table input {
+  width: 100%;
+  height: 30px;
+  box-sizing: border-box;
+  border: 0;
+  outline: 0;
+  border-radius: 8px;
+  padding: 0 .45rem;
+  color: var(--text);
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+}
+
+.table-insert-btn {
+  min-width: 64px !important;
+  height: 28px !important;
+  padding: 0 .5rem !important;
+  border-radius: 9px !important;
+  font-size: .75rem !important;
+  line-height: 28px !important;
+}
+
+.tag-meta-panel .row,
+.tag-meta-panel .focus-field {
+  margin: 0;
+  width: 100%;
+}
+
+.empty-meta-state {
+  padding: .75rem;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  color: var(--text-subtle);
+  font-size: .84rem;
+  line-height: 1.4;
+  background: color-mix(in srgb, var(--surface-2) 65%, transparent);
+}
+
+mat-dialog-actions {
+  margin-top: auto;
+  flex: 0 0 auto;
+}
+
+/* Iteration 6: clean right-column meta controls */
+.preview-panel .side-collapse-body,
+.preview-panel app-example-preview {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.preview-panel .side-collapse-body::-webkit-scrollbar,
+.preview-panel app-example-preview::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.compact-variable-table .insert-col {
+  width: 42px;
+  text-align: center;
+}
+
+.table-insert-btn {
+  width: 30px !important;
+  min-width: 30px !important;
+  height: 30px !important;
+  padding: 0 !important;
+  border-radius: 9px !important;
+  line-height: 30px !important;
+}
+
+.table-insert-btn mat-icon {
+  width: 17px;
+  height: 17px;
+  font-size: 17px;
+  line-height: 17px;
+}

@@ -107,6 +107,9 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   isDraggingConstructionSolution = false;
 
   activeVariableTarget: VariableTarget = null;
+  previewCollapsed = false;
+  variablesCollapsed = false;
+  tagsCollapsed = true;
 
   example: CreateExampleDTO = {
     collectionId: this.data.schoolId,
@@ -372,6 +375,99 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
   private appendInsertText(value: string | null | undefined, insertText: string): string {
     return `${value ?? ''}${insertText}`;
+  }
+
+
+  insertExistingVariableAtCursor(variableKey: string): void {
+    if (!variableKey) {
+      return;
+    }
+
+    this.insertTextAtActiveTarget(`{${variableKey}}`);
+  }
+
+  private insertTextAtActiveTarget(insertText: string): void {
+    const activeElement = document.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
+    const canUseCursor = !!activeElement && (activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'INPUT');
+
+    if (canUseCursor) {
+      const start = activeElement.selectionStart ?? 0;
+      const end = activeElement.selectionEnd ?? start;
+      const value = activeElement.value ?? '';
+
+      activeElement.value = value.slice(0, start) + insertText + value.slice(end);
+      activeElement.dispatchEvent(new Event('input', { bubbles: true }));
+
+      const nextCursor = start + insertText.length;
+      requestAnimationFrame(() => {
+        activeElement.focus();
+        activeElement.setSelectionRange(nextCursor, nextCursor);
+      });
+
+      this.syncVariablesFromContent();
+      this.markDirty();
+      return;
+    }
+
+    switch (this.activeVariableTarget?.type) {
+      case 'instruction':
+        this.example.instruction = this.appendInsertText(this.example.instruction, insertText);
+        break;
+      case 'question':
+        this.example.question = this.appendInsertText(this.example.question, insertText);
+        break;
+      case 'solution':
+        this.example.solution = this.appendInsertText(this.example.solution, insertText);
+        break;
+      case 'halfOpenAnswer': {
+        const row = this.example.answers?.[this.activeVariableTarget.index];
+        if (row) {
+          row[this.activeVariableTarget.answerIndex] = this.appendInsertText(row[this.activeVariableTarget.answerIndex], insertText);
+        }
+        break;
+      }
+      case 'option': {
+        const option = this.example.options?.[this.activeVariableTarget.index];
+        if (option) {
+          option.text = this.appendInsertText(option.text, insertText);
+        }
+        break;
+      }
+      case 'gapSolution': {
+        const gap = this.example.gaps?.[this.activeVariableTarget.index];
+        if (gap) {
+          gap.solution = this.appendInsertText(gap.solution, insertText);
+        }
+        break;
+      }
+      case 'gapOption': {
+        const option = this.example.gaps?.[this.activeVariableTarget.gapIndex]?.options?.[this.activeVariableTarget.optionIndex];
+        if (option) {
+          option.text = this.appendInsertText(option.text, insertText);
+        }
+        break;
+      }
+      case 'assignLeft': {
+        const assign = this.example.assigns?.[this.activeVariableTarget.index];
+        if (assign) {
+          assign.left = this.appendInsertText(assign.left, insertText);
+        }
+        break;
+      }
+      case 'assignRight': {
+        const right = this.example.assignRightItems?.[this.activeVariableTarget.index];
+        if (right != null) {
+          this.example.assignRightItems[this.activeVariableTarget.index] = this.appendInsertText(right, insertText);
+        }
+        break;
+      }
+      default:
+        this.example.question = this.appendInsertText(this.example.question, insertText);
+        break;
+    }
+
+    this.syncVariablesFromContent();
+    this.markDirty();
   }
 
   insertVariableAtCursor(): void {

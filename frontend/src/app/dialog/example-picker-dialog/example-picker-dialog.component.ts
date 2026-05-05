@@ -93,6 +93,8 @@ export class ExamplePickerDialogComponent implements OnInit {
     { value: 'oldest', labelKey: 'createTest.sort.oldest' },
   ];
 
+  private readonly titleMaxLength = 25;
+  private readonly descriptionMaxLength = 55;
   private readonly folderPathCache = new Map<string | null, string>();
 
   constructor(
@@ -450,10 +452,27 @@ export class ExamplePickerDialogComponent implements OnInit {
   }
 
   getExampleTitle(example: ExampleDTO): string {
+    return this.truncateText(this.getExampleTitleFull(example), this.titleMaxLength);
+  }
+
+  getExampleTitleFull(example: ExampleDTO): string {
     const instruction = this.cleanText(example.instruction);
     const question = this.cleanText(example.question);
 
     return instruction || question || `${this.translate.instant('collection.example')} #${example.id}`;
+  }
+
+  getExampleDescription(example: ExampleDTO): string {
+    return this.truncateText(this.getExampleDescriptionFull(example), this.descriptionMaxLength);
+  }
+
+  getExampleDescriptionFull(example: ExampleDTO): string {
+    const title = this.getExampleTitleFull(example);
+    const question = this.cleanText(example.question);
+    const instruction = this.cleanText(example.instruction);
+    const description = question && question !== title ? question : instruction && instruction !== title ? instruction : '';
+
+    return description;
   }
 
   getTypeIcon(type: ExampleTypes | string | null | undefined): string {
@@ -632,8 +651,8 @@ export class ExamplePickerDialogComponent implements OnInit {
   }
 
   private compareExamples(a: ExampleDTO, b: ExampleDTO): number {
-    const titleA = this.getExampleTitle(a);
-    const titleB = this.getExampleTitle(b);
+    const titleA = this.getExampleTitleFull(a);
+    const titleB = this.getExampleTitleFull(b);
     const folderA = this.getExampleFolderPathLabel(a);
     const folderB = this.getExampleFolderPathLabel(b);
     const typeA = this.getTypeLabel(a.type);
@@ -706,6 +725,16 @@ export class ExamplePickerDialogComponent implements OnInit {
 
   private cleanText(value: string | null | undefined): string {
     return (value ?? '').trim();
+  }
+
+  private truncateText(value: string, maxLength: number): string {
+    const text = this.cleanText(value);
+
+    if (text.length <= maxLength) {
+      return text;
+    }
+
+    return `${text.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
   }
 
   private normalize(value: string): string {

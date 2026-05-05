@@ -19,40 +19,6 @@
     <div class="grid">
       <div class="create-example-dialog">
         <form class="example-form">
-          <div class="variable-toolbar">
-            <button mat-stroked-button type="button" (click)="insertVariableAtCursor()">
-              <mat-icon>code</mat-icon>
-              {{ 'exampleDialog.variables.insert' | translate }}
-            </button>
-          </div>
-
-          <section class="panel-box variable-panel" *ngIf="example.variables?.length">
-            <div class="variable-panel-head">
-              <div>
-                <div class="panel-title">{{ 'exampleDialog.variables.title' | translate }}</div>
-                <p>{{ 'exampleDialog.variables.description' | translate }}</p>
-              </div>
-            </div>
-
-            <div class="variable-grid">
-              <div class="variable-card" *ngFor="let variable of example.variables; trackBy: trackByVariableKey">
-                <div class="variable-key-row">
-                  <div class="variable-key">{{ '{' }}{{ variable.key }}{{ '}' }}</div>
-                </div>
-
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>{{ 'exampleDialog.variables.defaultValue' | translate }}</mat-label>
-                  <input
-                    matInput
-                    [(ngModel)]="variable.defaultValue"
-                    name="variableDefault-{{ variable.key }}"
-                    (ngModelChange)="markDirty()"
-                    [placeholder]="'exampleDialog.variables.defaultValuePlaceholder' | translate" />
-                </mat-form-field>
-              </div>
-            </div>
-          </section>
-
           <div class="row">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>{{ 'collection.instruction' | translate }}</mat-label>
@@ -356,28 +322,102 @@
             </ng-container>
           </section>
 
-          <mat-divider></mat-divider>
-
-          <app-example-focus-selector
-            [focuses]="example.focusList"
-            [inputCtrl]="inputCtrl"
-            [filteredFocusList]="filteredFocusList"
-            [showCreateOption]="showCreateOption.bind(this)"
-            (focusRemoved)="remove($event)"
-            (focusDeleted)="deleteFocus($event.focus, $event.event)"
-            (focusSelected)="selected($event)"
-            (focusInputTokenEnd)="addFromInput($event)"
-          ></app-example-focus-selector>
         </form>
       </div>
 
       <div class="create-example-layout">
-        <app-example-preview
-          [example]="example"
-          [constructionImagePreviewUrl]="constructionImagePreviewUrl"
-          [constructionSolutionPreviewUrl]="constructionSolutionPreviewUrl"
-          [showHeader]="false"
-        ></app-example-preview>
+        <section class="panel-box side-collapsible preview-panel" [class.collapsed]="previewCollapsed">
+          <div class="side-collapse-head" role="button" tabindex="0" (click)="previewCollapsed = !previewCollapsed">
+            <mat-icon class="collapse-icon">{{ previewCollapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
+            <span class="panel-title">{{ 'exampleDialog.preview' | translate }}</span>
+          </div>
+
+          <div class="side-collapse-body" *ngIf="!previewCollapsed">
+            <app-example-preview
+              [example]="example"
+              [constructionImagePreviewUrl]="constructionImagePreviewUrl"
+              [constructionSolutionPreviewUrl]="constructionSolutionPreviewUrl"
+              [showHeader]="false"
+            ></app-example-preview>
+          </div>
+        </section>
+
+        <section class="panel-box side-collapsible compact-variable-table" [class.collapsed]="variablesCollapsed">
+          <div class="side-collapse-head" role="button" tabindex="0" (click)="variablesCollapsed = !variablesCollapsed">
+            <mat-icon class="collapse-icon">{{ variablesCollapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
+            <span class="panel-title">{{ 'exampleDialog.variables.title' | translate }}</span>
+            <span class="collapse-head-spacer"></span>
+            <button
+              mat-stroked-button
+              class="collapse-head-action"
+              type="button"
+              (click)="$event.stopPropagation(); insertVariableAtCursor(); variablesCollapsed = false"
+            >
+              <mat-icon>add</mat-icon>
+              {{ 'exampleDialog.variables.add' | translate }}
+            </button>
+          </div>
+
+          <div class="side-collapse-body" *ngIf="!variablesCollapsed">
+            <div class="empty-meta-state" *ngIf="!example.variables?.length">
+              {{ 'exampleDialog.variables.empty' | translate }}
+            </div>
+
+            <table aria-label="Variables" *ngIf="example.variables?.length">
+              <thead>
+              <tr>
+                <th>{{ 'exampleDialog.variables.name' | translate }}</th>
+                <th>{{ 'exampleDialog.variables.defaultValue' | translate }}</th>
+                <th class="insert-col"></th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr *ngFor="let variable of example.variables; trackBy: trackByVariableKey">
+                <td class="variable-name">{{ variable.key }}</td>
+                <td>
+                  <input
+                    [(ngModel)]="variable.defaultValue"
+                    name="variableDefault-{{ variable.key }}"
+                    (ngModelChange)="markDirty()"
+                    [placeholder]="'exampleDialog.variables.defaultValuePlaceholder' | translate" />
+                </td>
+                <td class="insert-col">
+                  <button
+                    mat-icon-button
+                    class="table-insert-btn"
+                    type="button"
+                    (click)="insertExistingVariableAtCursor(variable.key)"
+                    [attr.aria-label]="'exampleDialog.variables.insertShort' | translate"
+                    [matTooltip]="'exampleDialog.variables.insertShort' | translate"
+                  >
+                    <mat-icon>keyboard_return</mat-icon>
+                  </button>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel-box side-collapsible tag-meta-panel" [class.collapsed]="tagsCollapsed">
+          <div class="side-collapse-head" role="button" tabindex="0" (click)="tagsCollapsed = !tagsCollapsed">
+            <mat-icon class="collapse-icon">{{ tagsCollapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
+            <span class="panel-title">{{ 'exampleDialog.tags' | translate }}</span>
+          </div>
+
+          <div class="side-collapse-body" *ngIf="!tagsCollapsed">
+            <app-example-focus-selector
+              [focuses]="example.focusList"
+              [inputCtrl]="inputCtrl"
+              [filteredFocusList]="filteredFocusList"
+              [showCreateOption]="showCreateOption.bind(this)"
+              (focusRemoved)="remove($event)"
+              (focusDeleted)="deleteFocus($event.focus, $event.event)"
+              (focusSelected)="selected($event)"
+              (focusInputTokenEnd)="addFromInput($event)"
+            ></app-example-focus-selector>
+          </div>
+        </section>
 
         <mat-dialog-actions>
           <button

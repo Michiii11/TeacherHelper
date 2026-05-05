@@ -49,7 +49,6 @@ mat-dialog-actions {
 .picker-title-block h2 {
   margin: 0;
   font-size: 1.28rem;
-  font-weight: 850;
   letter-spacing: -0.02em;
 }
 
@@ -84,7 +83,6 @@ mat-dialog-actions {
   border-radius: 13px;
   cursor: pointer;
   font: inherit;
-  font-weight: 800;
   white-space: nowrap;
 
   mat-icon {
@@ -181,7 +179,6 @@ mat-dialog-actions {
   background: var(--primary);
   color: var(--on-primary, #fff);
   font-size: 0.72rem;
-  font-weight: 900;
 }
 
 .filter-popup-panel,
@@ -213,7 +210,6 @@ mat-dialog-actions {
   margin: 0.25rem 0.25rem 0.45rem;
   color: var(--text);
   font-size: 0.72rem;
-  font-weight: 900;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 
@@ -307,7 +303,6 @@ mat-dialog-actions {
   color: var(--text);
   cursor: pointer;
   font: inherit;
-  font-weight: 700;
 }
 
 .sort-option {
@@ -334,8 +329,8 @@ mat-dialog-actions {
 
 .selection-toggle.mat-button-toggle-group {
   order: 4;
-  height: 40px;
-  min-height: 40px;
+  height: 34px;
+  min-height: 34px;
   display: inline-flex;
   align-items: center;
   padding: 0 !important;
@@ -357,11 +352,11 @@ mat-dialog-actions {
   }
 
   .mat-button-toggle {
-    min-width: 92px;
+    min-width: 70px;
     background: transparent !important;
     color: var(--text) !important;
     font-family: inherit;
-    font-weight: 800;
+    font-size: 0.84rem;
   }
 
   .mat-button-toggle-button,
@@ -374,7 +369,7 @@ mat-dialog-actions {
   }
 
   .mat-button-toggle-label-content {
-    padding: 0 1rem !important;
+    padding: 0 0.72rem !important;
   }
 
   .mat-button-toggle-checked,
@@ -402,7 +397,6 @@ mat-dialog-actions {
   cursor: pointer;
   font: inherit;
   font-size: 0.82rem;
-  font-weight: 800;
 
   mat-icon {
     color: currentColor;
@@ -453,7 +447,6 @@ mat-dialog-actions {
   overflow: hidden;
   color: var(--text);
   font-size: 0.75rem;
-  font-weight: 850;
   letter-spacing: 0.06em;
   text-overflow: ellipsis;
   text-transform: uppercase;
@@ -535,7 +528,6 @@ mat-dialog-actions {
   min-width: 0;
   flex: 1 1 auto;
   overflow: hidden;
-  font-weight: 800;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -547,7 +539,6 @@ mat-dialog-actions {
   background: color-mix(in srgb, var(--text) 12%, transparent);
   color: var(--text);
   font-size: 0.74rem;
-  font-weight: 850;
   text-align: center;
 }
 
@@ -583,7 +574,6 @@ mat-dialog-actions {
   justify-content: flex-end;
   color: var(--text);
   font-size: 0.8rem;
-  font-weight: 850;
 }
 
 .picker-list {
@@ -598,7 +588,7 @@ mat-dialog-actions {
 .picker-row {
   min-height: 92px;
   display: grid;
-  grid-template-columns: auto minmax(220px, 1fr) minmax(190px, 0.42fr) auto;
+  grid-template-columns: auto minmax(150px, 0.48fr) minmax(230px, 1fr) auto;
   align-items: center;
   gap: 0.78rem;
   margin-top: 0.25rem;
@@ -665,14 +655,13 @@ mat-dialog-actions {
 }
 
 .picker-row-title {
-  justify-content: space-between;
-  gap: 0.7rem;
+  justify-content: flex-start;
+  gap: 0.55rem;
 
   strong {
     min-width: 0;
     overflow: hidden;
     font-size: 1.08rem;
-    font-weight: 850;
     line-height: 1.24;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -692,13 +681,13 @@ mat-dialog-actions {
 
 .example-meta-column {
   min-width: 0;
-  align-self: stretch;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
+  width: 100%;
   gap: 0.26rem;
   color: var(--text);
   font-size: 0.84rem;
-  font-weight: 760;
   line-height: 1.35;
 
   span {
@@ -729,7 +718,6 @@ mat-dialog-actions {
   background: color-mix(in srgb, var(--text) 10%, transparent) !important;
   color: var(--text) !important;
   font-size: 0.74rem;
-  font-weight: 850;
 }
 
 .row-check,
@@ -790,10 +778,9 @@ mat-dialog-actions {
 }
 
 .dialog-selection-count {
-  margin-right: auto;
+  margin-left: auto;
   color: var(--text);
   font-size: 0.84rem;
-  font-weight: 800;
 }
 
 @media (max-width: 1120px) {

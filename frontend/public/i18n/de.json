@@ -572,7 +572,11 @@
       "insertAtCursor": "Text-Variable einfügen",
       "remove": "Variable löschen",
       "defaultValue": "Standardwert",
-      "defaultValuePlaceholder": "z. B. 4 oder Anna"
+      "defaultValuePlaceholder": "z. B. 4 oder Anna",
+      "add": "Variable hinzufügen",
+      "empty": "Noch keine Variablen. Füge links oder hier eine Variable in das aktive Feld ein.",
+      "insertShort": "Einfügen",
+      "name": "Name"
     },
     "assignLeftColumn": "Links",
     "assignRightColumn": "Rechts",
@@ -608,7 +612,8 @@
       "created": "Beispiel erfolgreich erstellt.",
       "saveError": "Beispiel konnte nicht gespeichert werden.",
       "focusDeleted": "Der Schwerpunkt \"{{label}}\" wurde gelöscht."
-    }
+    },
+    "preview": "Vorschau"
   },
   "createTest": {
     "titleLabel": "Titel",
