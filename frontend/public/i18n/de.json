@@ -417,7 +417,13 @@
     "folderNamePlaceholder": "z. B. Schularbeiten / Kapitel 1 / Übungen",
     "focuses": "Schwerpunkte",
     "author": "Autor",
-    "searchPlaceholder": "Suche"
+    "searchPlaceholder": "Suche",
+    "exercises": "Beispiele",
+    "exercise": "Beispiel",
+    "createExercise": "Neues Beispiel",
+    "searchExercisesPlaceholder": "Beispiele durchsuchen",
+    "emptyExercisesTitle": "Keine Beispiele gefunden",
+    "emptyExercisesText": "Erstelle einen Ordner oder lege direkt ein Beispiel an."
   },
   "schoolSettings": {
     "title": "Schul-Einstellungen",
@@ -726,13 +732,38 @@
       "emptyText": "Probier andere Filter, eine andere Suche oder einen anderen Ordner.",
       "done": "Fertig",
       "allFolders": "Alle Ordner",
-      "noFoldersFound": "Keine Ordner gefunden"
+      "noFoldersFound": "Keine Ordner gefunden",
+      "createdBy": "Erstellt von",
+      "allExamples": "Alle",
+      "selectedExamples": "Ausgewählt",
+      "selectedExamplesCount": "{{count}} Beispiele ausgewählt"
     },
     "variables": {
       "title": "Text-Variablen",
       "description": "Standardwerte aus dem Beispiel können hier pro Test angepasst werden.",
       "valuePlaceholder": "Wert eingeben",
       "preview": "Vorschau:"
+    },
+    "exercisePicker": {
+      "title": "Beispiele auswählen",
+      "subtitle": "Übersichtliche Auswahl mit Ordnern, Filtern und Mehrfachauswahl.",
+      "available": "verfügbar",
+      "selected": "markiert",
+      "searchPlaceholder": "Nach Titel, Frage, Fokus, Typ oder Pfad suchen",
+      "search": "Suche",
+      "allTypes": "Alle Typen",
+      "allFocuses": "Alle Schwerpunkte",
+      "alreadyAdded": "Schon hinzugefügt",
+      "chosen": "Ausgewählt",
+      "emptyTitle": "Keine Beispiele gefunden",
+      "emptyText": "Probier andere Filter, eine andere Suche oder einen anderen Ordner.",
+      "done": "Fertig",
+      "allFolders": "Alle Ordner",
+      "noFoldersFound": "Keine Ordner gefunden",
+      "createdBy": "Erstellt von",
+      "allExamples": "Alle",
+      "selectedExamples": "Ausgewählt",
+      "selectedExamplesCount": "{{count}} Beispiele ausgewählt"
     }
   },
   "legalPages": {
@@ -1123,5 +1154,21 @@
     "title": "Seite nicht gefunden",
     "text": "Die angeforderte Seite existiert leider nicht oder wurde verschoben.",
     "backHome": "Zur Startseite"
+  },
+  "exerciseTypes": {
+    "open": "Offen",
+    "halfOpen": "Halb offen",
+    "construction": "Bild",
+    "multipleChoice": "Multiple-Choice",
+    "gapFill": "Lückentext",
+    "assign": "Zuordnen"
+  },
+  "exerciseTypeDescriptions": {
+    "open": "Antwort ohne Vorgaben.",
+    "halfOpen": "Antwort in Struktur eintragen.",
+    "construction": "Aufgabe mit Bild oder Grafik.",
+    "multipleChoice": "Eine oder mehrere Optionen auswählen.",
+    "gapFill": "Lücken durch Auswahl oder Eingabe füllen.",
+    "assign": "Elemente einander zuordnen."
   }
 }

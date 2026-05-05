@@ -62,6 +62,7 @@ interface DraggedExplorerFolder {
 interface FilterChip {
   key: string;
   label: string;
+  icon: string;
   action: () => void;
 }
 
@@ -74,16 +75,12 @@ interface FolderNavNode extends ExplorerFolder {
   standalone: true,
   imports: [
     FormsModule,
-    MatButton,
     MatButtonModule,
     MatIcon,
     MatIconButton,
     TranslatePipe,
-    MatSelect,
-    MatOption,
     MatFormFieldModule,
     MatProgressBarModule,
-    MatSelectTrigger
   ],
   templateUrl: './collection.component.html',
   styleUrl: './collection.component.scss'
@@ -449,11 +446,25 @@ export class CollectionComponent implements OnInit, OnDestroy {
   get activeFilterChips(): FilterChip[] {
     const chips: FilterChip[] = [];
 
+    const searchTerm = this.search.trim();
+    if (searchTerm) {
+      chips.push({
+        key: 'search',
+        label: `${searchTerm}`,
+        icon: 'search',
+        action: () => {
+          this.search = '';
+          this.isSearchOpen = false;
+        }
+      });
+    }
+
     if (this.selectedItemTypes.length < 2) {
       for (const type of this.selectedItemTypes) {
         chips.push({
           key: `type-${type}`,
           label: this.t(type === 'examples' ? 'collection.examples' : 'collection.tests'),
+          icon: type === 'examples' ? 'post_add' : 'assignment',
           action: () => this.toggleItemType(type)
         });
       }
@@ -463,6 +474,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
       chips.push({
         key: `example-type-${type}`,
         label: this.getExampleTypeLabel(type),
+        icon: this.getExampleTypeIcon(type),
         action: () => this.removeExampleType(type)
       });
     }
@@ -471,6 +483,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
       chips.push({
         key: `focus-${focus}`,
         label: focus,
+        icon: 'sell',
         action: () => this.removeExampleFocus(focus)
       });
     }
@@ -479,6 +492,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
       chips.push({
         key: `author-${author}`,
         label: author,
+        icon: 'person',
         action: () => this.removeAuthor(author)
       });
     }
@@ -1139,6 +1153,27 @@ export class CollectionComponent implements OnInit, OnDestroy {
       return this.getExampleTypeLabel(String((item.raw as ExampleOverviewDTO).type));
     }
     return this.t('collection.test');
+  }
+
+  getExampleTypeIcon(type: string): string {
+    const normalized = String(type);
+
+    switch (normalized) {
+      case ExampleTypes.OPEN:
+        return 'notes';
+      case ExampleTypes.HALF_OPEN:
+        return 'short_text';
+      case ExampleTypes.CONSTRUCTION:
+        return 'image';
+      case ExampleTypes.MULTIPLE_CHOICE:
+        return 'checklist';
+      case ExampleTypes.GAP_FILL:
+        return 'format_color_text';
+      case ExampleTypes.ASSIGN:
+        return 'device_hub';
+      default:
+        return 'post_add';
+    }
   }
 
   getItemIcon(item: ExplorerItem): string {

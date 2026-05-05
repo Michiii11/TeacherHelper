@@ -1305,10 +1305,12 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   openAddExampleDialog(): void {
     const ref = this.dialog.open(ExamplePickerDialogComponent, {
-      width: 'min(94vw, 1220px)',
-      maxWidth: '94vw',
-      maxHeight: '92vh',
+      width: 'min(1168px, calc(100vw - 48px))',
+      height: 'min(720px, calc(100vh - 48px))',
+      maxWidth: 'calc(100vw - 48px)',
+      maxHeight: 'calc(100vh - 48px)',
       autoFocus: false,
+      restoreFocus: false,
       panelClass: 'example-picker-dialog-panel',
       data: {
         examples: this.allExamples,

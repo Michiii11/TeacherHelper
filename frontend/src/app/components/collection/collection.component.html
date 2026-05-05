@@ -134,8 +134,6 @@
                 }
               </div>
 
-              <span class="toolbar-divider" aria-hidden="true"></span>
-
               <div class="filter-popup-wrap" (click)="stopClick($event)">
                 <button type="button" class="toolbar-pill-btn outlined-control" (click)="toggleFilterPopup($event)">
                   <mat-icon>filter_list</mat-icon>
@@ -151,10 +149,12 @@
                       <div class="filter-popup-title">{{ 'common.type' | translate }}</div>
                       <button type="button" class="filter-option" [class.checked]="isItemTypeSelected('examples')" (click)="toggleItemType('examples')">
                         <span class="filter-checkbox" [class.checked]="isItemTypeSelected('examples')"><mat-icon>check</mat-icon></span>
+                        <mat-icon class="filter-option-icon">post_add</mat-icon>
                         <span>{{ 'collection.examples' | translate }}</span>
                       </button>
                       <button type="button" class="filter-option" [class.checked]="isItemTypeSelected('tests')" (click)="toggleItemType('tests')">
                         <span class="filter-checkbox" [class.checked]="isItemTypeSelected('tests')"><mat-icon>check</mat-icon></span>
+                        <mat-icon class="filter-option-icon">assignment</mat-icon>
                         <span>{{ 'collection.tests' | translate }}</span>
                       </button>
                     </div>
@@ -164,6 +164,7 @@
                       @for (item of availableExampleTypes; track item.value) {
                         <button type="button" class="filter-option" [class.checked]="isExampleTypeSelected(item.value)" (click)="toggleExampleType(item.value)">
                           <span class="filter-checkbox" [class.checked]="isExampleTypeSelected(item.value)"><mat-icon>check</mat-icon></span>
+                          <mat-icon class="filter-option-icon">{{ getExampleTypeIcon(item.value) }}</mat-icon>
                           <span>{{ item.label }}</span>
                         </button>
                       }
@@ -175,6 +176,7 @@
                         @for (focus of availableExampleFocuses; track focus) {
                           <button type="button" class="filter-option" [class.checked]="isExampleFocusSelected(focus)" (click)="toggleExampleFocus(focus)">
                             <span class="filter-checkbox" [class.checked]="isExampleFocusSelected(focus)"><mat-icon>check</mat-icon></span>
+                            <mat-icon class="filter-option-icon">sell</mat-icon>
                             <span>{{ focus }}</span>
                           </button>
                         }
@@ -187,6 +189,7 @@
                         @for (author of availableAuthors; track author) {
                           <button type="button" class="filter-option" [class.checked]="isAuthorSelected(author)" (click)="toggleAuthor(author)">
                             <span class="filter-checkbox" [class.checked]="isAuthorSelected(author)"><mat-icon>check</mat-icon></span>
+                            <mat-icon class="filter-option-icon">person</mat-icon>
                             <span>{{ author }}</span>
                           </button>
                         }
@@ -202,8 +205,6 @@
                   </div>
                 }
               </div>
-
-              <span class="toolbar-divider" aria-hidden="true"></span>
 
               <div class="sort-popup-wrap" (click)="stopClick($event)">
                 <button type="button" class="toolbar-pill-btn outlined-control" (click)="toggleSortPopup($event)">
@@ -222,8 +223,6 @@
                 }
               </div>
 
-              <span class="toolbar-divider" aria-hidden="true"></span>
-
               <div class="view-toggle outlined-control" role="tablist" [attr.aria-label]="'collection.viewAria' | translate">
                 <button type="button" class="view-toggle-btn" [class.active]="currentViewMode === 'grid'" (click)="setCurrentViewMode('grid')">
                   <mat-icon>grid_view</mat-icon>
@@ -233,10 +232,8 @@
                 </button>
               </div>
 
-              <span class="toolbar-divider" aria-hidden="true"></span>
-
               <div class="create-menu-wrap" (click)="stopClick($event)">
-                <button type="button" class="new-icon-btn outlined-control" (click)="toggleCreateMenu($event)" [title]="'collection.newContent' | translate">
+                <button type="button" mat-flat-button color="primary" class="new-icon-btn outlined-control" (click)="toggleCreateMenu($event)" [title]="'collection.newContent' | translate">
                   <mat-icon>add</mat-icon>
                 </button>
 
@@ -265,8 +262,9 @@
           <div class="chip-strip">
             @for (chip of activeFilterChips; track chip.key) {
               <button type="button" class="selected-chip" (click)="chip.action()">
+                <mat-icon class="chip-leading-icon">{{ chip.icon }}</mat-icon>
                 <span>{{ chip.label }}</span>
-                <mat-icon>close</mat-icon>
+                <mat-icon class="chip-close-icon">close</mat-icon>
               </button>
             }
           </div>
