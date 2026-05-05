@@ -18,6 +18,46 @@
 
     <div class="grid">
       <div class="create-example-dialog">
+        <section class="panel-box side-collapsible editor-ribbon-panel" [class.collapsed]="editorCollapsed">
+          <div class="side-collapse-head" role="button" tabindex="0" (click)="editorCollapsed = !editorCollapsed">
+            <mat-icon class="collapse-icon">{{ editorCollapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
+            <span class="panel-title">Editor</span>
+            <span class="collapse-head-spacer"></span>
+            <span class="editor-toolbar-hint">Text · Mathe · Einfügen</span>
+          </div>
+
+          <div class="side-collapse-body editor-ribbon-body" *ngIf="!editorCollapsed">
+            <div class="editor-ribbon-tabs" aria-label="Editor Gruppen">
+              <button
+                mat-button
+                type="button"
+                class="editor-ribbon-tab"
+                *ngFor="let group of editorToolbarGroups; let groupIndex = index"
+                [class.active]="activeEditorToolbarGroupIndex === groupIndex"
+                (mousedown)="$event.preventDefault()"
+                (click)="activeEditorToolbarGroupIndex = groupIndex"
+              >
+                {{ group.label }}
+              </button>
+            </div>
+
+            <div class="editor-ribbon-toolbar" aria-label="Editor Werkzeugleiste">
+              <button
+                mat-button
+                type="button"
+                class="editor-ribbon-command"
+                *ngFor="let item of activeEditorToolbarItems"
+                (mousedown)="$event.preventDefault()"
+                (click)="runEditorToolbarAction(item.action)"
+                [matTooltip]="item.tooltip || item.insert"
+              >
+                <mat-icon>{{ item.icon }}</mat-icon>
+                <span>{{ item.label }}</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
         <form class="example-form">
           <div class="row">
             <mat-form-field appearance="outline" class="full-width">

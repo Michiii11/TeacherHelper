@@ -1,4 +1,6 @@
 import { Component, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import * as katex from 'katex';
 import { NgIf, NgForOf } from '@angular/common';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatPseudoCheckbox } from '@angular/material/core';
@@ -28,6 +30,7 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
 
   private readonly data = inject<ExamplePreviewDialogData | null>(MAT_DIALOG_DATA, { optional: true });
   private readonly http = inject(HttpService);
+  private readonly sanitizer = inject(DomSanitizer);
 
   readonly ExampleTypes = ExampleTypes;
   readonly defaultImageWidth = 320;
@@ -136,10 +139,88 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
 
 
   getResolvedText(value: string | null | undefined): string {
-    return (value ?? '').replace(this.variablePattern, (_match, key: string) => {
+    return this.replaceVariablesOutsideLatex(value);
+  }
+
+  private replaceVariablesOutsideLatex(value: string | null | undefined): string {
+    const source = String(value ?? '');
+    const mathPattern = /\$\$[\s\S]*?\$\$|\$[^$\n]*?\$/g;
+    let cursor = 0;
+    let result = '';
+    let match: RegExpExecArray | null;
+
+    const replaceVariables = (text: string): string => text.replace(this.variablePattern, (_match, key: string) => {
       const variable = (this.example?.variables ?? []).find(entry => entry.key === key.trim());
       return variable?.defaultValue ?? '';
     });
+
+    while ((match = mathPattern.exec(source)) !== null) {
+      result += replaceVariables(source.slice(cursor, match.index));
+      result += match[0];
+      cursor = match.index + match[0].length;
+    }
+
+    result += replaceVariables(source.slice(cursor));
+    return result;
+  }
+
+  renderMathText(value: string | null | undefined): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(this.renderMathHtml(this.getResolvedText(value)));
+  }
+
+  renderQuestionWithGapLabels(): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(this.renderMathHtml(this.getQuestionWithGapLabels()));
+  }
+
+  private renderMathHtml(value: string | null | undefined): string {
+    const source = String(value ?? '');
+    const parts: string[] = [];
+    let cursor = 0;
+    const mathPattern = /\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g;
+    let match: RegExpExecArray | null;
+
+    while ((match = mathPattern.exec(source)) !== null) {
+      parts.push(this.renderMarkdownHtml(source.slice(cursor, match.index)));
+
+      const isDisplay = match[1] !== undefined;
+      const formula = isDisplay ? match[1] : match[2];
+      parts.push(this.renderFormula(formula, isDisplay));
+      cursor = match.index + match[0].length;
+    }
+
+    parts.push(this.renderMarkdownHtml(source.slice(cursor)));
+    return parts.join('');
+  }
+
+  private renderMarkdownHtml(value: string | number | null | undefined): string {
+    return this.escapeHtml(value)
+      .replace(/~~([^~]+)~~/g, '<del>$1</del>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+      .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>')
+      .replace(/\n/g, '<br>');
+  }
+
+  private renderFormula(formula: string, displayMode: boolean): string {
+    try {
+      return katex.renderToString(formula.trim(), {
+        displayMode,
+        output: 'mathml',
+        throwOnError: false,
+        strict: 'ignore',
+      });
+    } catch {
+      return this.escapeHtml(displayMode ? `$$${formula}$$` : `$${formula}$`);
+    }
+  }
+
+  private escapeHtml(value: string | number | null | undefined): string {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   getQuestionWithGapLabels(): string {

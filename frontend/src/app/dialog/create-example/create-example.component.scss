@@ -2540,3 +2540,167 @@ mat-dialog-actions {
   font-size: 17px;
   line-height: 17px;
 }
+
+/* Editor toolbar panel */
+.editor-toolbar-panel {
+  margin-bottom: 12px;
+}
+
+.editor-toolbar-panel .side-collapse-body {
+  display: block;
+  padding-top: .75rem;
+}
+
+.editor-toolbar-hint {
+  color: var(--text-subtle);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+
+.mini-editor-groups {
+  display: grid;
+  gap: .85rem;
+}
+
+.mini-editor-group {
+  padding: .75rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-2) 72%, transparent);
+}
+
+.mini-editor-group-title {
+  margin-bottom: .55rem;
+  color: var(--text-subtle);
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+.mini-editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.mini-editor-btn {
+  min-height: 34px !important;
+  padding-inline: .75rem !important;
+  border-radius: 12px !important;
+  color: var(--primary) !important;
+}
+
+.mini-editor-btn mat-icon {
+  width: 17px;
+  height: 17px;
+  margin-right: 4px;
+  font-size: 17px;
+  line-height: 17px;
+}
+
+@media (max-width: 900px) {
+  .mini-editor-group {
+    padding: .65rem;
+  }
+
+  .mini-editor-btn {
+    flex: 1 1 140px;
+  }
+}
+
+
+/* Compact Word/Excel-style editor ribbon */
+.editor-ribbon-panel {
+  margin-bottom: 10px;
+}
+
+.editor-ribbon-body {
+  display: block;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.editor-toolbar-hint {
+  color: var(--text-subtle);
+  font-size: .76rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+
+.editor-ribbon-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 6px 8px 0;
+  border-bottom: 1px solid var(--border-soft);
+  overflow-x: auto;
+}
+
+.editor-ribbon-tab {
+  min-width: auto !important;
+  height: 28px !important;
+  padding: 0 10px !important;
+  border-radius: 9px 9px 0 0 !important;
+  color: var(--text-subtle) !important;
+  font-size: .76rem !important;
+  font-weight: 800 !important;
+  line-height: 28px !important;
+}
+
+.editor-ribbon-tab.active {
+  color: var(--primary) !important;
+  background: color-mix(in srgb, var(--primary) 12%, transparent) !important;
+}
+
+.editor-ribbon-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-height: 46px;
+  padding: 7px 8px 8px;
+  background: color-mix(in srgb, var(--surface-2) 78%, transparent);
+}
+
+.editor-ribbon-command {
+  min-width: 54px !important;
+  height: 32px !important;
+  padding: 0 8px !important;
+  border: 1px solid transparent !important;
+  border-radius: 9px !important;
+  color: var(--text-main) !important;
+  font-size: .76rem !important;
+  font-weight: 750 !important;
+  line-height: 1 !important;
+}
+
+.editor-ribbon-command:hover {
+  border-color: color-mix(in srgb, var(--primary) 36%, transparent) !important;
+  background: color-mix(in srgb, var(--primary) 10%, transparent) !important;
+  color: var(--primary) !important;
+}
+
+.editor-ribbon-command mat-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  font-size: 16px;
+  line-height: 16px;
+}
+
+@media (max-width: 900px) {
+  .editor-ribbon-command {
+    min-width: 42px !important;
+    padding: 0 7px !important;
+  }
+
+  .editor-ribbon-command span {
+    display: none;
+  }
+
+  .editor-ribbon-command mat-icon {
+    margin-right: 0;
+  }
+}

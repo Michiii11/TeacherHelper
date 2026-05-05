@@ -16,19 +16,19 @@
 
     <div class="preview-panel">
       <div>
-        <p class="multiline-text">{{ getResolvedText(example.instruction) }}</p>
+        <p class="multiline-text" [innerHTML]="renderMathText(example.instruction)"></p>
       </div>
 
       <p><strong>{{ 'collection.question' | translate }}:</strong></p>
 
       <div>
-        <p class="multiline-text">{{ getQuestionWithGapLabels() }}</p>
+        <p class="multiline-text" [innerHTML]="renderQuestionWithGapLabels()"></p>
       </div>
 
       @if(example.type === ExampleTypes.HALF_OPEN){
         <div class="half-open-preview">
           @for (ans of example.answers; track ans){
-            <p>{{ getResolvedText(ans[0]) }} = ___________________</p>
+            <p><span [innerHTML]="renderMathText(ans[0])"></span> = ___________________</p>
           }
         </div>
       }
@@ -58,7 +58,7 @@
           <table>
             @for (option of example.options; track option){
               <tr>
-                <td>{{ getResolvedText(option.text) }}</td>
+                <td [innerHTML]="renderMathText(option.text)"></td>
                 <td class="small">
                   <mat-pseudo-checkbox></mat-pseudo-checkbox>
                 </td>
@@ -79,7 +79,7 @@
 
                 @for(opt of gap.options; track opt){
                   <tr>
-                    <td>{{ getResolvedText(opt.text) }}</td>
+                    <td [innerHTML]="renderMathText(opt.text)"></td>
                     <td class="small">
                       <mat-pseudo-checkbox></mat-pseudo-checkbox>
                     </td>
@@ -96,7 +96,7 @@
           <table class="leftSide">
             @for(assign of example.assigns; track assign){
               <tr>
-                <td>{{ getResolvedText(assign.left) }}</td>
+                <td [innerHTML]="renderMathText(assign.left)"></td>
                 <td class="fill"></td>
               </tr>
             }
@@ -105,7 +105,7 @@
           <table class="rightSide">
             <tr *ngFor="let right of example.assignRightItems; let i = index">
               <td class="fill">{{ getLetter(i) }}</td>
-              <td>{{ getResolvedText(right) }}</td>
+              <td [innerHTML]="renderMathText(right)"></td>
             </tr>
           </table>
         </div>

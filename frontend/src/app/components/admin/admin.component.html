@@ -47,7 +47,11 @@
 
         <div class="toolbar-grid">
           <label class="control search-control">
-            <input type="text" [(ngModel)]="search" placeholder="Suche nach Name oder ID">
+            <input
+              type="text"
+              [(ngModel)]="search"
+              placeholder="Suche nach Name oder ID"
+            />
           </label>
 
           <label class="control select-control">
@@ -61,49 +65,80 @@
       </div>
 
       <div class="user-list">
-        @for (user of visibleUsers; track user.id) {
-          <button
-            type="button"
-            class="user-card"
-            [class.selected]="selectedUserId === user.id"
-            (click)="selectUser(user)">
-            <div class="user-card-top">
-              <div class="avatar-tile">{{ getUserInitials(user.username) }}</div>
-
-              <div class="user-main">
-                <div class="user-name-row">
-                  <div class="user-name">{{ user.username }}</div>
-                </div>
-
-                <div class="user-meta-row">
-                  <span>#{{ user.id }}</span>
-                  <span>erstellt: {{ user.createdAt | date:'dd.MM.yyyy' }}</span>
-                  <span>aktiv: {{ getLastActiveLabel(user.lastActive) }}</span>
+        @if (isDashboardLoading) {
+          @for (item of [1, 2, 3, 4, 5]; track item) {
+            <div class="user-card skeleton-card">
+              <div class="skeleton-row">
+                <span class="skeleton avatar-skeleton"></span>
+                <div class="skeleton-stack">
+                  <span class="skeleton line-lg"></span>
+                  <span class="skeleton line-md"></span>
                 </div>
               </div>
-
-              <button mat-icon-button type="button" (click)="copyUserId(user, $event)" title="ID kopieren">
-                <mat-icon>content_copy</mat-icon>
-              </button>
+              <div class="skeleton-metrics">
+                <span class="skeleton metric-skeleton"></span>
+                <span class="skeleton metric-skeleton"></span>
+                <span class="skeleton metric-skeleton"></span>
+              </div>
             </div>
-
-            <div class="user-stats-row">
-              @for (metric of userMetrics; track metric.key) {
-                <div class="mini-stat">
-                  <span>{{ metric.label }}</span>
-                  <strong>{{ getUserMetricValue(user, metric.key) }}</strong>
+          }
+        } @else {
+          @for (user of visibleUsers; track user.id) {
+            <button
+              type="button"
+              class="user-card"
+              [class.selected]="selectedUserId === user.id"
+              (click)="selectUser(user)"
+            >
+              <div class="user-card-top">
+                <div class="avatar-tile">
+                  {{ getUserInitials(user.username) }}
                 </div>
-              }
-            </div>
-          </button>
-        }
 
-        @if (!visibleUsers.length) {
-          <div class="empty-state">
-            <mat-icon>person_search</mat-icon>
-            <h3>Keine User gefunden</h3>
-            <p>Probier eine andere Suche oder Sortierung.</p>
-          </div>
+                <div class="user-main">
+                  <div class="user-name-row">
+                    <div class="user-name">{{ user.username }}</div>
+                  </div>
+
+                  <div class="user-meta-row">
+                    <span>#{{ user.id }}</span>
+                    <span
+                    >erstellt: {{ user.createdAt | date: "dd.MM.yyyy" }}</span
+                    >
+                    <span
+                    >aktiv: {{ getLastActiveLabel(user.lastActive) }}</span
+                    >
+                  </div>
+                </div>
+
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="copyUserId(user, $event)"
+                  title="ID kopieren"
+                >
+                  <mat-icon>content_copy</mat-icon>
+                </button>
+              </div>
+
+              <div class="user-stats-row">
+                @for (metric of userMetrics; track metric.key) {
+                  <div class="mini-stat">
+                    <span>{{ metric.label }}</span>
+                    <strong>{{ getUserMetricValue(user, metric.key) }}</strong>
+                  </div>
+                }
+              </div>
+            </button>
+          }
+
+          @if (!visibleUsers.length) {
+            <div class="empty-state">
+              <mat-icon>person_search</mat-icon>
+              <h3>Keine User gefunden</h3>
+              <p>Probier eine andere Suche oder Sortierung.</p>
+            </div>
+          }
         }
       </div>
     </article>
@@ -120,44 +155,96 @@
             </div>
           </div>
 
-          <button mat-icon-button type="button" (click)="copyUserId(user, $event)" title="ID kopieren">
+          <button
+            mat-icon-button
+            type="button"
+            (click)="copyUserId(user, $event)"
+            title="ID kopieren"
+          >
             <mat-icon>content_copy</mat-icon>
           </button>
         </div>
 
         <section class="collections-section">
-          <div class="section-title-row">
-            <h3>Collections</h3>
-            <span>{{ selectedUserDTO.schools.length }}</span>
+          <div class="section-title-row collections-title-row">
+            <div>
+              <h3>Collections</h3>
+              <p>
+                {{ visibleCollections.length }} von
+                {{ selectedUserDTO.collections.length }} angezeigt
+              </p>
+            </div>
+            <span>{{ selectedUserDTO.collections.length }}</span>
+          </div>
+
+          <div class="collection-toolbar">
+            <label class="control search-control">
+              <input
+                type="text"
+                [(ngModel)]="collectionSearch"
+                placeholder="Collection suchen"
+              />
+            </label>
+
+            <label class="control select-control">
+              <select [(ngModel)]="collectionSort">
+                @for (option of collectionSortOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </label>
           </div>
 
           <div class="collection-list">
-            @for (collection of selectedUserDTO.schools; track trackByCollection($index, collection)) {
-              <div class="collection-card">
-                <div class="collection-title">{{ getCollectionName(collection) }}</div>
-
-                <div class="collection-meta-grid">
-                  <div>
-                    <span>Mitglieder</span>
-                    <strong>{{ getCollectionMemberCount(collection) }}</strong>
-                  </div>
-                  <div>
-                    <span>Beispiele</span>
-                    <strong>{{ getCollectionExampleCount(collection) }}</strong>
-                  </div>
-                  <div>
-                    <span>Tests</span>
-                    <strong>{{ getCollectionTestCount(collection) }}</strong>
+            @if (isUserLoading) {
+              @for (item of [1, 2, 3]; track item) {
+                <div class="collection-card skeleton-card">
+                  <span class="skeleton line-lg"></span>
+                  <div class="skeleton-metrics collection-skeleton-metrics">
+                    <span class="skeleton metric-skeleton"></span>
+                    <span class="skeleton metric-skeleton"></span>
+                    <span class="skeleton metric-skeleton"></span>
                   </div>
                 </div>
-              </div>
-            }
+              }
+            } @else {
+              @for (
+                collection of visibleCollections;
+                track trackByCollection($index, collection)
+                ) {
+                <div class="collection-card">
+                  <div class="collection-title">
+                    {{ getCollectionName(collection) }}
+                  </div>
 
-            @if (!selectedUserDTO.schools.length) {
-              <div class="empty-state compact">
-                <mat-icon>folder_off</mat-icon>
-                <h3>Keine Collections vorhanden</h3>
-              </div>
+                  <div class="collection-meta-grid">
+                    <div>
+                      <span>Mitglieder</span>
+                      <strong>{{
+                          getCollectionMemberCount(collection)
+                        }}</strong>
+                    </div>
+                    <div>
+                      <span>Beispiele</span>
+                      <strong>{{
+                          getCollectionExampleCount(collection)
+                        }}</strong>
+                    </div>
+                    <div>
+                      <span>Tests</span>
+                      <strong>{{ getCollectionTestCount(collection) }}</strong>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              @if (!visibleCollections.length) {
+                <div class="empty-state compact">
+                  <mat-icon>folder_off</mat-icon>
+                  <h3>Keine Collections gefunden</h3>
+                  <p>Probier eine andere Collection-Suche oder Sortierung.</p>
+                </div>
+              }
             }
           </div>
         </section>

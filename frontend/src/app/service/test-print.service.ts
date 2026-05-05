@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import * as katex from 'katex';
 
 import { Example, ExampleTypes, Gap, Option } from '../model/Example';
 import { CreateTestDTO, GradingLevel, TestExampleDTO } from '../model/Test';
@@ -64,6 +65,7 @@ export type TestPrintOptions = {
 @Injectable({ providedIn: 'root' })
 export class TestPrintService {
   private readonly defaultImageWidth = 320;
+  private readonly variablePattern = /\{([a-zA-Z_][a-zA-Z0-9_-]*)\}/g;
 
   buildPreviewHtml(test: PrintableTest, selectedExamples: TestExampleDTO[], options: TestPrintOptions): string {
     return `
@@ -208,8 +210,80 @@ export class TestPrintService {
       .replace(/'/g, '&#39;');
   }
 
-  private formatMultiline(value: string | number | null | undefined): string {
-    return this.escapeHtml(value).replace(/\n/g, '<br>');
+  private formatMultiline(
+    value: string | number | null | undefined,
+    variables?: { key?: string; defaultValue?: string | number | null }[] | null
+  ): string {
+    return this.renderMathHtml(value, variables).replace(/\n/g, '<br>');
+  }
+
+  private renderMathHtml(
+    value: string | number | null | undefined,
+    variables?: { key?: string; defaultValue?: string | number | null }[] | null
+  ): string {
+    const source = this.replaceVariablesOutsideLatex(value, variables);
+    const parts: string[] = [];
+    let cursor = 0;
+    const mathPattern = /\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g;
+    let match: RegExpExecArray | null;
+
+    while ((match = mathPattern.exec(source)) !== null) {
+      parts.push(this.renderMarkdownHtml(source.slice(cursor, match.index)));
+
+      const isDisplay = match[1] !== undefined;
+      const formula = isDisplay ? match[1] : match[2];
+      parts.push(this.renderFormula(formula, isDisplay));
+      cursor = match.index + match[0].length;
+    }
+
+    parts.push(this.renderMarkdownHtml(source.slice(cursor)));
+    return parts.join('');
+  }
+
+  private replaceVariablesOutsideLatex(
+    value: string | number | null | undefined,
+    variables?: { key?: string; defaultValue?: string | number | null }[] | null
+  ): string {
+    const source = String(value ?? '');
+    const mathPattern = /\$\$[\s\S]*?\$\$|\$[^$\n]*?\$/g;
+    let cursor = 0;
+    let result = '';
+    let match: RegExpExecArray | null;
+
+    const replaceVariables = (text: string): string => text.replace(this.variablePattern, (_match, key: string) => {
+      const variable = (variables ?? []).find(entry => String(entry.key ?? '').trim() === key.trim());
+      return String(variable?.defaultValue ?? '');
+    });
+
+    while ((match = mathPattern.exec(source)) !== null) {
+      result += replaceVariables(source.slice(cursor, match.index));
+      result += match[0];
+      cursor = match.index + match[0].length;
+    }
+
+    result += replaceVariables(source.slice(cursor));
+    return result;
+  }
+
+  private renderMarkdownHtml(value: string | number | null | undefined): string {
+    return this.escapeHtml(value)
+      .replace(/~~([^~]+)~~/g, '<del>$1</del>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+      .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
+  }
+
+  private renderFormula(formula: string, displayMode: boolean): string {
+    try {
+      return katex.renderToString(formula.trim(), {
+        displayMode,
+        output: 'mathml',
+        throwOnError: false,
+        strict: 'ignore',
+      });
+    } catch {
+      return this.escapeHtml(displayMode ? `$$${formula}$$` : `$${formula}$`);
+    }
   }
 
   private buildPdfBodyHtml(test: PrintableTest, selectedExamples: TestExampleDTO[], options: TestPrintOptions): string {
@@ -538,12 +612,12 @@ export class TestPrintService {
     `;
 
     const instruction = entry.example.instruction
-      ? `<p class="task-instruction">${this.formatMultiline(entry.example.instruction)}</p>`
+      ? `<p class="task-instruction">${this.formatMultiline(entry.example.instruction, entry.example.variables)}</p>`
       : '';
 
     const question = entry.example.type === ExampleTypes.GAP_FILL
       ? `<div class="task-question rich-gap-question">${isSolution && entry.example.gapFillType === 'INPUT' ? this.buildGapQuestionSolutionHtml(entry.example) : this.buildGapQuestionHtml(entry.example)}</div>`
-      : `<p class="task-question">${this.formatMultiline(options.getQuestionWithGapLabels(entry.example))}</p>`;
+      : `<p class="task-question">${this.formatMultiline(options.getQuestionWithGapLabels(entry.example), entry.example.variables)}</p>`;
 
     return `
       <div class="task print-task" style="margin-bottom:${margin}px;">
@@ -559,66 +633,77 @@ export class TestPrintService {
   }
 
   private buildGapQuestionHtml(example: Example): string {
-    const escapedQuestion = this.escapeHtml(example.question || '');
     let gapIndex = 0;
 
-    return escapedQuestion
-      .replace(/\n/g, '<br>')
-      .replace(/\{\d+\}/g, () => {
-        const gap = (example.gaps ?? [])[gapIndex];
-        const gapNumber = this.escapeHtml(String(gapIndex + 1));
-        gapIndex += 1;
+    return this.renderTextWithGapPlaceholders(example.question || '', () => {
+      const gap = (example.gaps ?? [])[gapIndex];
+      const gapNumber = this.escapeHtml(String(gapIndex + 1));
+      gapIndex += 1;
 
-        if (example.gapFillType === 'INPUT') {
-          const width = this.normalizeGapInlineWidth((gap as any)?.width, (gap as any)?.solution);
-          return `
-            <span class="gap-inline gap-inline-input" style="width:${width}px;">
-              <span class="gap-inline-label gap-inline-label-number">${gapNumber}</span>
-              <span class="gap-inline-line"></span>
-            </span>
-          `;
-        }
-
+      if (example.gapFillType === 'INPUT') {
+        const width = this.normalizeGapInlineWidth((gap as any)?.width, (gap as any)?.solution);
         return `
-          <span class="gap-inline gap-inline-select">
-            <span class="gap-inline-pill">
-              <span class="gap-inline-pill-number">${gapNumber}</span>
-            </span>
+          <span class="gap-inline gap-inline-input" style="width:${width}px;">
+            <span class="gap-inline-label gap-inline-label-number">${gapNumber}</span>
+            <span class="gap-inline-line"></span>
           </span>
         `;
-      });
+      }
+
+      return `
+        <span class="gap-inline gap-inline-select">
+          <span class="gap-inline-pill">
+            <span class="gap-inline-pill-number">${gapNumber}</span>
+          </span>
+        </span>
+      `;
+    }, example.variables);
   }
 
   private buildGapQuestionSolutionHtml(example: Example): string {
-    const escapedQuestion = this.escapeHtml(example.question || '');
     let gapIndex = 0;
 
-    return escapedQuestion
-      .replace(/\n/g, '<br>')
-      .replace(/\{\d+\}/g, () => {
-        const gap = (example.gaps ?? [])[gapIndex];
-        const gapNumber = this.escapeHtml(String(gapIndex + 1));
-        gapIndex += 1;
+    return this.renderTextWithGapPlaceholders(example.question || '', () => {
+      const gap = (example.gaps ?? [])[gapIndex];
+      const gapNumber = this.escapeHtml(String(gapIndex + 1));
+      gapIndex += 1;
 
-        if (example.gapFillType === 'INPUT') {
-          const solution = this.escapeHtml(String((gap as any)?.solution ?? ''));
-          const width = this.normalizeGapInlineWidth((gap as any)?.width, (gap as any)?.solution);
-          return `
-            <span class="gap-inline gap-inline-input" style="width:${width}px;">
-              <span class="gap-inline-label gap-inline-label-number">${gapNumber}</span>
-              <span class="gap-inline-solution">${solution || '&nbsp;'}</span>
-            </span>
-          `;
-        }
-
+      if (example.gapFillType === 'INPUT') {
+        const solution = this.renderMathHtml(String((gap as any)?.solution ?? ''), example.variables);
+        const width = this.normalizeGapInlineWidth((gap as any)?.width, (gap as any)?.solution);
         return `
-          <span class="gap-inline gap-inline-select">
-            <span class="gap-inline-pill">
-              <span class="gap-inline-pill-number">${gapNumber}</span>
-            </span>
+          <span class="gap-inline gap-inline-input" style="width:${width}px;">
+            <span class="gap-inline-label gap-inline-label-number">${gapNumber}</span>
+            <span class="gap-inline-solution">${solution || '&nbsp;'}</span>
           </span>
         `;
-      });
+      }
+
+      return `
+        <span class="gap-inline gap-inline-select">
+          <span class="gap-inline-pill">
+            <span class="gap-inline-pill-number">${gapNumber}</span>
+          </span>
+        </span>
+      `;
+    }, example.variables);
+  }
+
+  private renderTextWithGapPlaceholders(value: string, gapRenderer: () => string, variables?: Example['variables']): string {
+    const source = String(value ?? '');
+    const parts: string[] = [];
+    const gapPattern = /\{\d+\}|\{Lücke \d+\}/g;
+    let cursor = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = gapPattern.exec(source)) !== null) {
+      parts.push(this.formatMultiline(source.slice(cursor, match.index), variables));
+      parts.push(gapRenderer());
+      cursor = match.index + match[0].length;
+    }
+
+    parts.push(this.formatMultiline(source.slice(cursor), variables));
+    return parts.join('');
   }
 
   private normalizeGapInlineWidth(value: number | string | null | undefined, solution: string | null | undefined): number {
@@ -638,15 +723,15 @@ export class TestPrintService {
     switch (example.type) {
       case ExampleTypes.OPEN:
         return isSolution
-          ? `<div class="solution-box">${this.formatMultiline((example as any).solution || '') || `<span class="muted">${this.escapeHtml(labels.noSolution)}</span>`}</div>`
+          ? `<div class="solution-box">${this.formatMultiline((example as any).solution || '', example.variables) || `<span class="muted">${this.escapeHtml(labels.noSolution)}</span>`}</div>`
           : `<div class="free-space large"></div>`;
 
       case ExampleTypes.HALF_OPEN:
         return isSolution
-          ? `<div class="solution-list">${(example.answers ?? []).map(ans => `<div><strong>${this.escapeHtml(ans?.[0] ?? '')}</strong> = ${this.escapeHtml(ans?.[1] ?? '')}</div>`).join('')}</div>`
+          ? `<div class="solution-list">${(example.answers ?? []).map(ans => `<div><strong>${this.formatMultiline(ans?.[0] ?? '', example.variables)}</strong> = ${this.formatMultiline(ans?.[1] ?? '', example.variables)}</div>`).join('')}</div>`
           : `
               <div class="solution-list student-list">
-                ${(example.answers ?? []).map(ans => `<div>${this.escapeHtml(ans?.[0] ?? '')} = _________________________________</div>`).join('')}
+                ${(example.answers ?? []).map(ans => `<div>${this.formatMultiline(ans?.[0] ?? '', example.variables)} = _________________________________</div>`).join('')}
               </div>
               <div class="free-space medium"></div>
             `;
@@ -673,7 +758,7 @@ export class TestPrintService {
             <table>
               ${(example.options ?? []).map((opt: Option) => `
                 <tr>
-                  <td>${this.escapeHtml(opt.text)}</td>
+                  <td>${this.formatMultiline(opt.text, example.variables)}</td>
                   <td class="small checkbox-cell">${isSolution && opt.correct ? '☒' : '☐'}</td>
                 </tr>
               `).join('')}
@@ -690,7 +775,7 @@ export class TestPrintService {
                   <tr><th>${this.escapeHtml(gap.label || labels.gap)}</th></tr>
                   ${(gap.options ?? []).map((opt: Option) => `
                     <tr>
-                      <td>${this.escapeHtml(opt.text)}</td>
+                      <td>${this.formatMultiline(opt.text, example.variables)}</td>
                       <td class="small checkbox-cell">${isSolution && opt.correct ? '☒' : '☐'}</td>
                     </tr>
                   `).join('')}
@@ -708,7 +793,7 @@ export class TestPrintService {
         return isSolution
           ? `
             <div class="solution-list">
-              ${(example.assigns ?? []).map(assign => `<div>${this.escapeHtml(assign.left)} → ${this.escapeHtml(assign.right)}</div>`).join('')}
+              ${(example.assigns ?? []).map(assign => `<div>${this.formatMultiline(assign.left, example.variables)} → ${this.formatMultiline(assign.right, example.variables)}</div>`).join('')}
             </div>
           `
           : `
@@ -716,7 +801,7 @@ export class TestPrintService {
               <table class="leftSide">
                 ${(example.assigns ?? []).map(assign => `
                   <tr>
-                    <td>${this.escapeHtml(assign.left)}</td>
+                    <td>${this.formatMultiline(assign.left, example.variables)}</td>
                     <td class="fill"></td>
                   </tr>
                 `).join('')}
@@ -725,7 +810,7 @@ export class TestPrintService {
                 ${(example.assignRightItems ?? []).map((right: string, j: number) => `
                   <tr>
                     <td class="fill letter-cell">${this.escapeHtml(options.getLetter(j))}</td>
-                    <td>${this.escapeHtml(right)}</td>
+                    <td>${this.formatMultiline(right, example.variables)}</td>
                   </tr>
                 `).join('')}
               </table>

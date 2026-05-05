@@ -41,6 +41,42 @@ import { ExamplePreviewComponent } from '../example-preview/example-preview.comp
 import { ExampleFocusSelectorComponent } from './example-focus-selector/example-focus-selector.component';
 import { ConstructionImageCardComponent } from './construction-image-card/construction-image-card.component';
 
+type EditorToolbarAction =
+  | 'bold'
+  | 'italic'
+  | 'strike'
+  | 'inlineCode'
+  | 'bulletList'
+  | 'numberedList'
+  | 'quote'
+  | 'inlineFormula'
+  | 'displayFormula'
+  | 'frac'
+  | 'sqrt'
+  | 'nthRoot'
+  | 'power'
+  | 'index'
+  | 'cdot'
+  | 'times'
+  | 'leq'
+  | 'geq'
+  | 'approx'
+  | 'degree'
+  | 'pi'
+  | 'textUnit'
+  | 'sum'
+  | 'integral'
+  | 'vector'
+  | 'aligned';
+
+type EditorToolbarItem = {
+  label: string;
+  icon: string;
+  action: EditorToolbarAction;
+  insert: string;
+  tooltip?: string;
+};
+
 type VariableTarget =
   | { type: 'instruction' | 'question' | 'solution' }
   | { type: 'halfOpenAnswer'; index: number; answerIndex: 0 | 1 }
@@ -108,8 +144,63 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
   activeVariableTarget: VariableTarget = null;
   previewCollapsed = false;
-  variablesCollapsed = false;
+  variablesCollapsed = true;
+  editorCollapsed = true;
+  activeEditorToolbarGroupIndex = 0;
   tagsCollapsed = true;
+
+  readonly editorToolbarGroups = [
+    {
+      label: 'Start',
+      items: [
+        { label: 'Fett', icon: 'format_bold', action: 'bold', insert: '**Text**' },
+        { label: 'Kursiv', icon: 'format_italic', action: 'italic', insert: '*Text*' },
+        { label: 'Durchstr.', icon: 'strikethrough_s', action: 'strike', insert: '~~Text~~' },
+        { label: 'Code', icon: 'code', action: 'inlineCode', insert: '`Text`' },
+        { label: 'Liste', icon: 'format_list_bulleted', action: 'bulletList', insert: '- Text' },
+        { label: 'Nr.', icon: 'format_list_numbered', action: 'numberedList', insert: '1. Text' },
+        { label: 'Zitat', icon: 'format_quote', action: 'quote', insert: '> Text' },
+      ],
+    },
+    {
+      label: 'Formeln',
+      items: [
+        { label: 'Inline', icon: 'functions', action: 'inlineFormula', insert: '$x$' },
+        { label: 'Block', icon: 'calculate', action: 'displayFormula', insert: '$$x$$' },
+        { label: 'Bruch', icon: 'functions', action: 'frac', insert: '$\\frac{a}{b}$' },
+        { label: 'Wurzel', icon: 'data_object', action: 'sqrt', insert: '$\\sqrt{x}$' },
+        { label: 'Potenz', icon: 'superscript', action: 'power', insert: '$x^2$' },
+        { label: 'Index', icon: 'subscript', action: 'index', insert: '$x_1$' },
+        { label: 'Einheit', icon: 'straighten', action: 'textUnit', insert: '$10\\,\\text{mm}$' },
+      ],
+    },
+    {
+      label: 'Zeichen',
+      items: [
+        { label: '·', icon: 'close', action: 'cdot', insert: '$a\\cdot b$' },
+        { label: '×', icon: 'close', action: 'times', insert: '$a\\times b$' },
+        { label: '≤', icon: 'keyboard_double_arrow_left', action: 'leq', insert: '$a\\le b$' },
+        { label: '≥', icon: 'keyboard_double_arrow_right', action: 'geq', insert: '$a\\ge b$' },
+        { label: '≈', icon: 'waves', action: 'approx', insert: '$a\\approx b$' },
+        { label: '°', icon: 'radio_button_unchecked', action: 'degree', insert: '$90^\\circ$' },
+        { label: 'π', icon: 'blur_circular', action: 'pi', insert: '$\\pi$' },
+      ],
+    },
+    {
+      label: 'Mehr',
+      items: [
+        { label: 'n√', icon: 'data_object', action: 'nthRoot', insert: '$\\sqrt[n]{x}$' },
+        { label: 'Summe', icon: 'functions', action: 'sum', insert: '$\\sum_{i=1}^{n} i$' },
+        { label: 'Integral', icon: 'functions', action: 'integral', insert: '$\\int_a^b f(x)\\,dx$' },
+        { label: 'Vektor', icon: 'arrow_forward', action: 'vector', insert: '$\\vec{a}$' },
+        { label: 'Gleichungen', icon: 'reorder', action: 'aligned', insert: '$$\\begin{aligned} a&=b+c \\ d&=e+f \\end{aligned}$$' },
+      ],
+    },
+  ] as ReadonlyArray<{ label: string; items: ReadonlyArray<EditorToolbarItem> }>;
+
+  get activeEditorToolbarItems(): ReadonlyArray<EditorToolbarItem> {
+    return this.editorToolbarGroups[this.activeEditorToolbarGroupIndex]?.items ?? [];
+  }
 
   example: CreateExampleDTO = {
     collectionId: this.data.schoolId,
@@ -329,6 +420,150 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     return parts.filter(Boolean);
   }
 
+
+  private stripLatexForVariableScan(value: string | null | undefined): string {
+    return String(value ?? '').replace(/\$\$[\s\S]*?\$\$|\$[^$\n]*?\$/g, ' ');
+  }
+
+  private replaceVariablesOutsideLatex(value: string | null | undefined): string {
+    const source = String(value ?? '');
+    const mathPattern = /\$\$[\s\S]*?\$\$|\$[^$\n]*?\$/g;
+    let cursor = 0;
+    let result = '';
+    let match: RegExpExecArray | null;
+
+    const replaceVariables = (text: string): string => text.replace(this.variablePattern, (_match, key: string) => {
+      const variable = (this.example.variables ?? []).find(entry => entry.key === key.trim());
+      return variable?.defaultValue ?? '';
+    });
+
+    while ((match = mathPattern.exec(source)) !== null) {
+      result += replaceVariables(source.slice(cursor, match.index));
+      result += match[0];
+      cursor = match.index + match[0].length;
+    }
+
+    result += replaceVariables(source.slice(cursor));
+    return result;
+  }
+
+
+  runEditorToolbarAction(action: EditorToolbarAction): void {
+    switch (action) {
+      case 'bold':
+        this.wrapSelectionOrInsert('**', '**', 'Text');
+        break;
+      case 'italic':
+        this.wrapSelectionOrInsert('*', '*', 'Text');
+        break;
+      case 'strike':
+        this.wrapSelectionOrInsert('~~', '~~', 'Text');
+        break;
+      case 'inlineCode':
+        this.wrapSelectionOrInsert('`', '`', 'Text');
+        break;
+      case 'bulletList':
+        this.insertLineSnippet('- Text');
+        break;
+      case 'numberedList':
+        this.insertLineSnippet('1. Text');
+        break;
+      case 'quote':
+        this.insertLineSnippet('> Text');
+        break;
+      case 'inlineFormula':
+        this.insertTextAtActiveTarget('$x$');
+        break;
+      case 'displayFormula':
+        this.insertLineSnippet('$$\n\\frac{a}{b}\n$$');
+        break;
+      case 'frac':
+        this.insertTextAtActiveTarget('$\\frac{a}{b}$');
+        break;
+      case 'sqrt':
+        this.insertTextAtActiveTarget('$\\sqrt{x}$');
+        break;
+      case 'nthRoot':
+        this.insertTextAtActiveTarget('$\\sqrt[n]{x}$');
+        break;
+      case 'power':
+        this.insertTextAtActiveTarget('$x^2$');
+        break;
+      case 'index':
+        this.insertTextAtActiveTarget('$x_1$');
+        break;
+      case 'cdot':
+        this.insertTextAtActiveTarget('$a\\cdot b$');
+        break;
+      case 'times':
+        this.insertTextAtActiveTarget('$a\\times b$');
+        break;
+      case 'leq':
+        this.insertTextAtActiveTarget('$a\\le b$');
+        break;
+      case 'geq':
+        this.insertTextAtActiveTarget('$a\\ge b$');
+        break;
+      case 'approx':
+        this.insertTextAtActiveTarget('$a\\approx b$');
+        break;
+      case 'degree':
+        this.insertTextAtActiveTarget('$90^\\circ$');
+        break;
+      case 'pi':
+        this.insertTextAtActiveTarget('$\\pi$');
+        break;
+      case 'textUnit':
+        this.insertTextAtActiveTarget('$10\\,\\text{mm}$');
+        break;
+      case 'sum':
+        this.insertTextAtActiveTarget('$\\sum_{i=1}^{n} i$');
+        break;
+      case 'integral':
+        this.insertTextAtActiveTarget('$\\int_a^b f(x)\\,dx$');
+        break;
+      case 'vector':
+        this.insertTextAtActiveTarget('$\\vec{a}$');
+        break;
+      case 'aligned':
+        this.insertLineSnippet('$$\n\\begin{aligned}\na&=b+c \\\\nd&=e+f\n\\end{aligned}\n$$');
+        break;
+    }
+  }
+
+  private insertLineSnippet(snippet: string): void {
+    this.insertTextAtActiveTarget(`\n${snippet}\n`);
+  }
+
+  private wrapSelectionOrInsert(prefix: string, suffix: string, placeholder: string): void {
+    const activeElement = document.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
+    const canUseCursor = !!activeElement && (activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'INPUT');
+
+    if (!canUseCursor) {
+      this.insertTextAtActiveTarget(`${prefix}${placeholder}${suffix}`);
+      return;
+    }
+
+    const start = activeElement.selectionStart ?? 0;
+    const end = activeElement.selectionEnd ?? start;
+    const value = activeElement.value ?? '';
+    const selectedText = value.slice(start, end) || placeholder;
+    const insertText = `${prefix}${selectedText}${suffix}`;
+
+    activeElement.value = value.slice(0, start) + insertText + value.slice(end);
+    activeElement.dispatchEvent(new Event('input', { bubbles: true }));
+
+    const selectionStart = start + prefix.length;
+    const selectionEnd = selectionStart + selectedText.length;
+    requestAnimationFrame(() => {
+      activeElement.focus();
+      activeElement.setSelectionRange(selectionStart, selectionEnd);
+    });
+
+    this.syncVariablesFromContent();
+    this.markDirty();
+  }
+
   syncVariablesFromContent(): void {
     const previousMap = new Map(
       (this.example.variables ?? []).map(variable => [this.normalizeVariableKey(variable.key), variable])
@@ -337,7 +572,9 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     const keysInOrder: string[] = [];
 
     for (const sourceText of this.getVariableSourceTexts()) {
-      for (const match of sourceText.matchAll(this.variablePattern)) {
+      const sourceTextWithoutLatex = this.stripLatexForVariableScan(sourceText);
+
+      for (const match of sourceTextWithoutLatex.matchAll(this.variablePattern)) {
         const normalizedKey = this.normalizeVariableKey(match[1]);
         if (!normalizedKey || keysInOrder.includes(normalizedKey)) {
           continue;
@@ -607,10 +844,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   }
 
   getResolvedTextWithDefaults(value: string | null | undefined): string {
-    return (value ?? '').replace(this.variablePattern, (_match, key: string) => {
-      const variable = (this.example.variables ?? []).find(entry => entry.key === key.trim());
-      return variable?.defaultValue ?? '';
-    });
+    return this.replaceVariablesOutsideLatex(value);
   }
 
   addOption(): void {
