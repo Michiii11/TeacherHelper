@@ -1,5 +1,6 @@
 package at.repository;
 
+import at.dtos.Collection.CollectionDTO;
 import at.dtos.Notification.CollectionInviteDTO;
 import at.enums.NotificationActionType;
 import at.enums.NotificationType;
@@ -48,20 +49,51 @@ public class CollectionRepository {
     public Response getYourCollections(UUID userId) {
         User user = em.find(User.class, userId);
 
+        if (user == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("User not found").build();
+        }
+
         List<Collection> collections = em.createQuery(
-                        "SELECT s FROM Collection s WHERE s.admin.id = :userId OR :user MEMBER OF s.users", Collection.class)
+                        """
+                        SELECT DISTINCT c
+                        FROM Collection c
+                        LEFT JOIN FETCH c.admin
+                        LEFT JOIN FETCH c.users
+                        WHERE c.admin.id = :userId OR :user MEMBER OF c.users
+                        ORDER BY c.name
+                        """, Collection.class)
                 .setParameter("userId", userId)
                 .setParameter("user", user)
                 .getResultList();
 
-        collections.stream().map(c -> {
-            // get example count
-            // get test count
-        })
-
         return Response.ok(collections.stream()
-                .map(Collection::toDTO)
+                .map(this::toCollectionDTOWithCounts)
                 .toList()).build();
+    }
+
+
+    private CollectionDTO toCollectionDTOWithCounts(Collection collection) {
+        Long exampleCount = em.createQuery(
+                        "SELECT COUNT(e) FROM Example e WHERE e.collection.id = :collectionId",
+                        Long.class)
+                .setParameter("collectionId", collection.getId())
+                .getSingleResult();
+
+        Long testCount = em.createQuery(
+                        "SELECT COUNT(t) FROM Test t WHERE t.collection.id = :collectionId",
+                        Long.class)
+                .setParameter("collectionId", collection.getId())
+                .getSingleResult();
+
+        return new CollectionDTO(
+                collection.getId(),
+                collection.getName(),
+                collection.getLogoUrl(),
+                collection.getAdminDTO(),
+                exampleCount.intValue(),
+                testCount.intValue(),
+                collection.getUsers().stream().map(User::toUserDTO).toList()
+        );
     }
 
     public Response findById(UUID collectionId, UUID userId) {
@@ -86,23 +118,10 @@ public class CollectionRepository {
                 return Response.status(Response.Status.BAD_REQUEST).entity("User not found").build();
             }
 
-            int count = em.createQuery("""
-                    SELECT COUNT(c)
-                    FROM Collection c
-                    WHERE LOWER(c.name) = LOWER(:name)
-                    """, Long.class)
-                    .setParameter("name", collectionName.trim())
-                    .getSingleResult()
-                    .intValue();
-
-            if(count > 0) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("A collection with this name already exists").build();
-            }
-
             Collection collection = new Collection(collectionName, user);
             em.persist(collection);
 
-            return Response.ok(collection.getId()).build();
+            return Response.ok(collection.toDTO()).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST).entity("User not found or error occurred").build();
         }

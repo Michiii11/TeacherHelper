@@ -288,6 +288,7 @@ public class TestRepository {
                         e.getCollection().getLogoUrl(),
                         e.getCollection().getAdminDTO(),
                         0,
+                        0,
                         null
                 ),
                 e.getAnswers() == null ? new LinkedList<>() : new LinkedList<>(e.getAnswers()),
