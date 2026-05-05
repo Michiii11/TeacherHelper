@@ -11,6 +11,7 @@ public record CollectionDTO(
         String logoUrl,
         UserDTO admin,
         int exampleCount,
+        int testCount,
         List<UserDTO> members
 ) {
 }

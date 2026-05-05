@@ -143,7 +143,7 @@ public class Collection {
                 this.getName(),
                 this.getLogoUrl(),
                 this.getAdminDTO(),
-                this.getUsers().size(),
+                0, 0,
                 this.getUsers().stream().map(User::toUserDTO).toList()
         );
     }

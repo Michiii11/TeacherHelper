@@ -476,29 +476,64 @@ export class ExamplePickerDialogComponent implements OnInit {
   }
 
   getTypeIcon(type: ExampleTypes | string | null | undefined): string {
-    const value = String(type ?? '').toLowerCase();
+    const normalized = String(type ?? '').toLowerCase();
 
-    if (value.includes('image') || value.includes('bild')) {
-      return 'image';
+    switch (normalized) {
+      case String(ExampleTypes.OPEN).toLowerCase():
+        return 'notes';
+      case String(ExampleTypes.HALF_OPEN).toLowerCase():
+        return 'short_text';
+      case String(ExampleTypes.CONSTRUCTION).toLowerCase():
+        return 'architecture';
+      case String(ExampleTypes.MULTIPLE_CHOICE).toLowerCase():
+        return 'checklist';
+      case String(ExampleTypes.GAP_FILL).toLowerCase():
+        return 'format_color_text';
+      case String(ExampleTypes.ASSIGN).toLowerCase():
+        return 'device_hub';
+      default:
+        if (normalized.includes('gap') || normalized.includes('luecke') || normalized.includes('lücke')) {
+          return 'format_color_text';
+        }
+
+        if (normalized.includes('match') || normalized.includes('assign') || normalized.includes('zuord')) {
+          return 'device_hub';
+        }
+
+        if (normalized.includes('multiple') || normalized.includes('choice') || normalized.includes('auswahl')) {
+          return 'checklist';
+        }
+
+        if (normalized.includes('half') || normalized.includes('halb')) {
+          return 'short_text';
+        }
+
+        if (normalized.includes('construction') || normalized.includes('construct') || normalized.includes('konstruk')) {
+          return 'architecture';
+        }
+
+        if (normalized.includes('open') || normalized.includes('offen')) {
+          return 'notes';
+        }
+
+        if (normalized.includes('image') || normalized.includes('bild')) {
+          return 'image';
+        }
+
+        if (normalized.includes('audio') || normalized.includes('sound')) {
+          return 'graphic_eq';
+        }
+
+        if (normalized.includes('video')) {
+          return 'movie';
+        }
+
+        if (normalized.includes('code')) {
+          return 'code';
+        }
+
+        return 'post_add';
     }
-
-    if (value.includes('audio') || value.includes('sound')) {
-      return 'graphic_eq';
-    }
-
-    if (value.includes('video')) {
-      return 'movie';
-    }
-
-    if (value.includes('text') || value.includes('schrift')) {
-      return 'notes';
-    }
-
-    if (value.includes('code')) {
-      return 'code';
-    }
-
-    return 'post_add';
   }
 
   getTypeLabel(type: ExampleTypes | string | null | undefined): string {

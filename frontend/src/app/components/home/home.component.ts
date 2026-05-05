@@ -11,6 +11,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { TranslatePipe } from '@ngx-translate/core';
 import { NavbarActionsService } from '../navigation/navbar-actions.service';
+import * as console from 'node:console'
 
 @Component({
   selector: 'app-home',
@@ -121,8 +122,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(schoolName => {
       if (schoolName) {
         this.http.addCollection(schoolName).subscribe({
-          next: () => {
-            this.loadSchools();
+          next: (id: string) => {
+            this.router.navigate(['/collection', id]);
           },
           error: (err) => {
             console.log('Fehler beim Hinzufügen:', err.error);

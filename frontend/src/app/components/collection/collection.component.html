@@ -30,7 +30,7 @@
           (dragleave)="onDropLeave($event, 'root')"
           (drop)="onDropToRoot($event)"
         >
-          <mat-icon>home</mat-icon>
+          <mat-icon>collections_bookmark</mat-icon>
           <span>{{ 'collection.root' | translate }}</span>
         </button>
 
@@ -70,21 +70,8 @@
       <article class="explorer-main">
         <header class="topbar compact-topbar one-line-topbar">
           <div class="single-toolbar-row">
-            @if (currentFolder) {
-              <button
-                mat-icon-button
-                type="button"
-                class="toolbar-icon-btn outlined-control"
-                (click)="goToParentFolder()"
-                [title]="'collection.goUp' | translate"
-              >
-                <mat-icon>arrow_upward</mat-icon>
-              </button>
-            }
-
             <div class="current-location smart-location">
-              <button type="button" class="crumb-home" (click)="selectFolder(null)">
-                <mat-icon>home</mat-icon>
+              <button type="button" class="crumb-home collection-home" (click)="selectFolder(null)">
                 <span>{{ 'collection.root' | translate }}</span>
               </button>
               @for (crumb of currentBreadcrumbs; track crumb.id; let isLast = $last) {
@@ -322,15 +309,22 @@
                   <strong>{{ item.title }}</strong>
                   <span>{{ getItemMeta(item) }}</span>
                 </div>
-                <div class="card-actions" (click)="$event.stopPropagation()">
-                  <button mat-icon-button type="button" (click)="openItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>visibility</mat-icon></button>
-                  @if (canManageItem(item)) {
-                    <button mat-icon-button type="button" (click)="editItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>edit</mat-icon></button>
-                    <button mat-icon-button type="button" (click)="moveItemWithPicker(item)" [disabled]="isDeletingItem(item)"><mat-icon>drive_file_move</mat-icon></button>
-                    <button mat-icon-button type="button" color="warn" (click)="deleteItem(item)" [disabled]="isDeletingItem(item)">
-                      <mat-icon>{{ isDeletingItem(item) ? 'hourglass_top' : 'delete' }}</mat-icon>
-                    </button>
-                  }
+                <div class="card-actions item-bottom-bar" (click)="$event.stopPropagation()">
+                  <div class="item-tags" aria-label="Tags">
+                    @for (tag of getItemTags(item); track tag) {
+                      <span class="item-tag"><mat-icon>sell</mat-icon>{{ tag }}</span>
+                    }
+                  </div>
+                  <div class="action-buttons">
+                    <button mat-icon-button type="button" (click)="openItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>visibility</mat-icon></button>
+                    @if (canManageItem(item)) {
+                      <button mat-icon-button type="button" (click)="editItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>edit</mat-icon></button>
+                      <button mat-icon-button type="button" (click)="moveItemWithPicker(item)" [disabled]="isDeletingItem(item)"><mat-icon>drive_file_move</mat-icon></button>
+                      <button mat-icon-button type="button" color="warn" (click)="deleteItem(item)" [disabled]="isDeletingItem(item)">
+                        <mat-icon>{{ isDeletingItem(item) ? 'hourglass_top' : 'delete' }}</mat-icon>
+                      </button>
+                    }
+                  </div>
                 </div>
                 @if (isDeletingItem(item)) {
                   <mat-progress-bar class="delete-progress" mode="indeterminate"></mat-progress-bar>
@@ -402,15 +396,22 @@
                     <span>{{ getItemMeta(item) }}</span>
                   </div>
                 </div>
-                <div class="compact-actions" (click)="$event.stopPropagation()">
-                  <button mat-icon-button type="button" (click)="openItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>visibility</mat-icon></button>
-                  @if (canManageItem(item)) {
-                    <button mat-icon-button type="button" (click)="editItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>edit</mat-icon></button>
-                    <button mat-icon-button type="button" (click)="moveItemWithPicker(item)" [disabled]="isDeletingItem(item)"><mat-icon>drive_file_move</mat-icon></button>
-                    <button mat-icon-button type="button" color="warn" (click)="deleteItem(item)" [disabled]="isDeletingItem(item)">
-                      <mat-icon>{{ isDeletingItem(item) ? 'hourglass_top' : 'delete' }}</mat-icon>
-                    </button>
-                  }
+                <div class="compact-actions item-bottom-bar" (click)="$event.stopPropagation()">
+                  <div class="item-tags" aria-label="Tags">
+                    @for (tag of getItemTags(item); track tag) {
+                      <span class="item-tag"><mat-icon>sell</mat-icon>{{ tag }}</span>
+                    }
+                  </div>
+                  <div class="action-buttons">
+                    <button mat-icon-button type="button" (click)="openItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>visibility</mat-icon></button>
+                    @if (canManageItem(item)) {
+                      <button mat-icon-button type="button" (click)="editItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>edit</mat-icon></button>
+                      <button mat-icon-button type="button" (click)="moveItemWithPicker(item)" [disabled]="isDeletingItem(item)"><mat-icon>drive_file_move</mat-icon></button>
+                      <button mat-icon-button type="button" color="warn" (click)="deleteItem(item)" [disabled]="isDeletingItem(item)">
+                        <mat-icon>{{ isDeletingItem(item) ? 'hourglass_top' : 'delete' }}</mat-icon>
+                      </button>
+                    }
+                  </div>
                 </div>
                 @if (isDeletingItem(item)) {
                   <mat-progress-bar class="delete-progress" mode="indeterminate"></mat-progress-bar>

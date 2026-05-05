@@ -33,7 +33,7 @@ import { NavbarActionsService } from '../navigation/navbar-actions.service';
 import {NgIf} from '@angular/common'
 
 type ExplorerItemType = 'examples' | 'tests';
-type SortOption = 'nameAsc' | 'nameDesc' | 'createdDesc' | 'createdAsc' | 'authorAsc';
+type SortOption = 'nameAsc' | 'nameDesc' | 'createdDesc' | 'createdAsc' | 'authorAsc' | 'typeAsc';
 type ViewMode = 'grid' | 'compact';
 
 interface ExplorerFolder extends FolderDTO {}
@@ -465,7 +465,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
           key: `type-${type}`,
           label: this.t(type === 'examples' ? 'collection.examples' : 'collection.tests'),
           icon: type === 'examples' ? 'post_add' : 'assignment',
-          action: () => this.toggleItemType(type)
+          action: () => this.clearItemTypeFilter()
         });
       }
     }
@@ -1004,6 +1004,11 @@ export class CollectionComponent implements OnInit, OnDestroy {
     this.selectedItemTypes = [...this.selectedItemTypes, type];
   }
 
+
+  clearItemTypeFilter(): void {
+    this.selectedItemTypes = ['examples', 'tests'];
+  }
+
   isItemTypeSelected(type: ExplorerItemType): boolean {
     return this.selectedItemTypes.includes(type);
   }
@@ -1111,6 +1116,11 @@ export class CollectionComponent implements OnInit, OnDestroy {
           return getDate(a.updatedAt || a.createdAt) - getDate(b.updatedAt || b.createdAt);
         case 'authorAsc':
           return a.author.localeCompare(b.author, this.translate.currentLang || 'de', { sensitivity: 'base' });
+        case 'typeAsc': {
+          const typeOrder: Record<ExplorerItemType, number> = { examples: 0, tests: 1 };
+          const typeCompare = typeOrder[a.type] - typeOrder[b.type];
+          return typeCompare || a.title.localeCompare(b.title, this.translate.currentLang || 'de', { sensitivity: 'base' });
+        }
         case 'nameAsc':
         default:
           return a.title.localeCompare(b.title, this.translate.currentLang || 'de', { sensitivity: 'base' });
@@ -1141,6 +1151,18 @@ export class CollectionComponent implements OnInit, OnDestroy {
     return type;
   }
 
+
+  getItemTags(item: ExplorerItem): string[] {
+    if (item.type !== 'examples') {
+      return [];
+    }
+
+    return ((item.raw as ExampleOverviewDTO).focusList ?? [])
+      .map(focus => (focus.label ?? '').trim())
+      .filter(Boolean)
+      .slice(0, 4);
+  }
+
   getItemMeta(item: ExplorerItem): string {
     return [this.getItemTypeLabel(item), item.author, item.subtitle]
       .map(part => (part ?? '').trim())
@@ -1155,29 +1177,57 @@ export class CollectionComponent implements OnInit, OnDestroy {
     return this.t('collection.test');
   }
 
-  getExampleTypeIcon(type: string): string {
-    const normalized = String(type);
+  getExampleTypeIcon(type: string | ExampleTypes | null | undefined): string {
+    const normalized = String(type ?? '').toLowerCase();
 
     switch (normalized) {
-      case ExampleTypes.OPEN:
+      case String(ExampleTypes.OPEN).toLowerCase():
         return 'notes';
-      case ExampleTypes.HALF_OPEN:
+      case String(ExampleTypes.HALF_OPEN).toLowerCase():
         return 'short_text';
-      case ExampleTypes.CONSTRUCTION:
-        return 'image';
-      case ExampleTypes.MULTIPLE_CHOICE:
+      case String(ExampleTypes.CONSTRUCTION).toLowerCase():
+        return 'architecture';
+      case String(ExampleTypes.MULTIPLE_CHOICE).toLowerCase():
         return 'checklist';
-      case ExampleTypes.GAP_FILL:
+      case String(ExampleTypes.GAP_FILL).toLowerCase():
         return 'format_color_text';
-      case ExampleTypes.ASSIGN:
+      case String(ExampleTypes.ASSIGN).toLowerCase():
         return 'device_hub';
       default:
+        if (normalized.includes('gap') || normalized.includes('luecke') || normalized.includes('lücke')) {
+          return 'format_color_text';
+        }
+
+        if (normalized.includes('match') || normalized.includes('assign') || normalized.includes('zuord')) {
+          return 'device_hub';
+        }
+
+        if (normalized.includes('multiple') || normalized.includes('choice') || normalized.includes('auswahl')) {
+          return 'checklist';
+        }
+
+        if (normalized.includes('half') || normalized.includes('halb')) {
+          return 'short_text';
+        }
+
+        if (normalized.includes('construction') || normalized.includes('construct') || normalized.includes('konstruk')) {
+          return 'architecture';
+        }
+
+        if (normalized.includes('open') || normalized.includes('offen')) {
+          return 'notes';
+        }
+
         return 'post_add';
     }
   }
 
   getItemIcon(item: ExplorerItem): string {
-    return item.type === 'examples' ? 'article' : 'quiz';
+    if (item.type === 'examples') {
+      return this.getExampleTypeIcon(String((item.raw as ExampleOverviewDTO).type));
+    }
+
+    return 'quiz';
   }
 
   canManageItem(item: ExplorerItem): boolean {

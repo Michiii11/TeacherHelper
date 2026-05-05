@@ -20,6 +20,9 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -51,6 +54,11 @@ public class CollectionRepository {
                 .setParameter("user", user)
                 .getResultList();
 
+        collections.stream().map(c -> {
+            // get example count
+            // get test count
+        })
+
         return Response.ok(collections.stream()
                 .map(Collection::toDTO)
                 .toList()).build();
@@ -78,10 +86,23 @@ public class CollectionRepository {
                 return Response.status(Response.Status.BAD_REQUEST).entity("User not found").build();
             }
 
+            int count = em.createQuery("""
+                    SELECT COUNT(c)
+                    FROM Collection c
+                    WHERE LOWER(c.name) = LOWER(:name)
+                    """, Long.class)
+                    .setParameter("name", collectionName.trim())
+                    .getSingleResult()
+                    .intValue();
+
+            if(count > 0) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("A collection with this name already exists").build();
+            }
+
             Collection collection = new Collection(collectionName, user);
             em.persist(collection);
 
-            return Response.ok(collection.toDTO()).build();
+            return Response.ok(collection.getId()).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST).entity("User not found or error occurred").build();
         }
@@ -98,49 +119,218 @@ public class CollectionRepository {
             return Response.status(Response.Status.FORBIDDEN).entity("Only the collection admin can delete the collection").build();
         }
 
+        String logoUrl = collection.getLogoUrl();
+
+        List<UUID> testIds = em.createQuery("""
+            SELECT t.id
+            FROM Test t
+            WHERE t.collection.id = :collectionId
+            """, UUID.class)
+                .setParameter("collectionId", collectionId)
+                .getResultList();
+
+        List<UUID> exampleIds = em.createQuery("""
+            SELECT e.id
+            FROM Example e
+            WHERE e.collection.id = :collectionId
+            """, UUID.class)
+                .setParameter("collectionId", collectionId)
+                .getResultList();
+
+        List<UUID> folderIds = collectFolderIds(collectionId);
+        List<UUID> focusIds = em.createQuery("""
+            SELECT f.id
+            FROM Collection c JOIN c.focusList f
+            WHERE c.id = :collectionId
+            """, UUID.class)
+                .setParameter("collectionId", collectionId)
+                .getResultList();
+
+        List<UUID> testExampleIds = collectTestExampleIds(testIds, exampleIds);
+        deleteTestExamples(testExampleIds);
+        deleteTestElementCollections(testIds);
+
+        if (!testIds.isEmpty()) {
+            em.createQuery("""
+                DELETE FROM Test t
+                WHERE t.id IN :testIds
+                """)
+                    .setParameter("testIds", testIds)
+                    .executeUpdate();
+        }
+
+        if (!exampleIds.isEmpty()) {
+            em.createQuery("""
+                DELETE FROM Example e
+                WHERE e.id IN :exampleIds
+                """)
+                    .setParameter("exampleIds", exampleIds)
+                    .executeUpdate();
+        }
+
+        deleteFolders(folderIds);
+
         // clear invites of collection
         em.createQuery("DELETE FROM CollectionInvite i WHERE i.collection.id = :collectionId")
                 .setParameter("collectionId", collectionId)
                 .executeUpdate();
 
-        // clear members of collection
+        // clear members and focus list join tables before deleting the collection itself
         collection.getUsers().clear();
-
-        // clear focus list of collection
-        if (collection.getFocusList() != null) {
-            for (Focus focus : collection.getFocusList()) {
-                em.remove(em.contains(focus) ? focus : em.merge(focus));
-            }
-            collection.getFocusList().clear();
-        }
-
-        // clear examples of collection
-        List<Example> examples = em.createQuery("SELECT e FROM Example e WHERE e.collection.id = :collectionId", Example.class)
-                .setParameter("collectionId", collectionId)
-                .getResultList();
-
-        for(Example example : examples) {
-            em.remove(example);
-        }
-
-        // clear tests of collection
-        List<Test> tests = em.createQuery("SELECT t FROM Test t WHERE t.collection.id = :collectionId", Test.class)
-                .setParameter("collectionId", collectionId)
-                .getResultList();
-
-        for(Test test : tests) {
-            em.remove(test);
-        }
-
-        // clear logo of collection
-        if(collection.getLogoUrl() != null) {
-            mediaStorageService.delete(collection.getLogoUrl());
-        }
-
+        collection.getFocusList().clear();
         em.merge(collection);
-        em.remove(collection);
+        em.flush();
 
+        if (!focusIds.isEmpty()) {
+            em.createQuery("""
+                DELETE FROM Focus f
+                WHERE f.id IN :focusIds
+                """)
+                    .setParameter("focusIds", focusIds)
+                    .executeUpdate();
+        }
+
+        if (logoUrl != null && !logoUrl.isBlank()) {
+            mediaStorageService.delete(logoUrl);
+        }
+
+        em.remove(em.contains(collection) ? collection : em.merge(collection));
+        em.flush();
+        em.clear();
+
+        CollectionSocket.broadcast(collectionId);
         return Response.ok().build();
+    }
+
+    private List<UUID> collectFolderIds(UUID collectionId) {
+        List<UUID> rootFolderIds = em.createQuery("""
+            SELECT f.id
+            FROM Folder f
+            WHERE f.collection.id = :collectionId
+              AND f.parent IS NULL
+            """, UUID.class)
+                .setParameter("collectionId", collectionId)
+                .getResultList();
+
+        Set<UUID> folderIds = new LinkedHashSet<>();
+        for (UUID rootFolderId : rootFolderIds) {
+            collectFolderIdsRecursive(rootFolderId, folderIds);
+        }
+
+        // Safety net for inconsistent data where a folder has a parent outside the current tree.
+        folderIds.addAll(em.createQuery("""
+            SELECT f.id
+            FROM Folder f
+            WHERE f.collection.id = :collectionId
+            """, UUID.class)
+                .setParameter("collectionId", collectionId)
+                .getResultList());
+
+        return new ArrayList<>(folderIds);
+    }
+
+    private void collectFolderIdsRecursive(UUID folderId, Set<UUID> folderIds) {
+        if (!folderIds.add(folderId)) {
+            return;
+        }
+
+        List<UUID> childFolderIds = em.createQuery("""
+            SELECT f.id
+            FROM Folder f
+            WHERE f.parent.id = :folderId
+            """, UUID.class)
+                .setParameter("folderId", folderId)
+                .getResultList();
+
+        for (UUID childId : childFolderIds) {
+            collectFolderIdsRecursive(childId, folderIds);
+        }
+    }
+
+    private List<UUID> collectTestExampleIds(List<UUID> testIds, List<UUID> exampleIds) {
+        Set<UUID> ids = new LinkedHashSet<>();
+
+        if (testIds != null && !testIds.isEmpty()) {
+            ids.addAll(em.createQuery("""
+                SELECT te.id
+                FROM TestExample te
+                WHERE te.test.id IN :testIds
+                """, UUID.class)
+                    .setParameter("testIds", testIds)
+                    .getResultList());
+        }
+
+        if (exampleIds != null && !exampleIds.isEmpty()) {
+            ids.addAll(em.createQuery("""
+                SELECT te.id
+                FROM TestExample te
+                WHERE te.example.id IN :exampleIds
+                """, UUID.class)
+                    .setParameter("exampleIds", exampleIds)
+                    .getResultList());
+        }
+
+        return new ArrayList<>(ids);
+    }
+
+    private void deleteTestExamples(List<UUID> testExampleIds) {
+        if (testExampleIds == null || testExampleIds.isEmpty()) {
+            return;
+        }
+
+        em.createNativeQuery("""
+            DELETE FROM test_example_variable_values
+            WHERE test_example_id IN (:testExampleIds)
+            """)
+                .setParameter("testExampleIds", testExampleIds)
+                .executeUpdate();
+
+        em.createQuery("""
+            DELETE FROM TestExample te
+            WHERE te.id IN :testExampleIds
+            """)
+                .setParameter("testExampleIds", testExampleIds)
+                .executeUpdate();
+    }
+
+    private void deleteTestElementCollections(List<UUID> testIds) {
+        if (testIds == null || testIds.isEmpty()) {
+            return;
+        }
+
+        em.createNativeQuery("DELETE FROM test_task_spacing WHERE test_id IN (:testIds)")
+                .setParameter("testIds", testIds)
+                .executeUpdate();
+
+        em.createNativeQuery("DELETE FROM test_grading_levels WHERE test_id IN (:testIds)")
+                .setParameter("testIds", testIds)
+                .executeUpdate();
+
+        em.createNativeQuery("DELETE FROM test_grade_percentages WHERE test_id IN (:testIds)")
+                .setParameter("testIds", testIds)
+                .executeUpdate();
+
+        em.createNativeQuery("DELETE FROM test_manual_grade_minimums WHERE test_id IN (:testIds)")
+                .setParameter("testIds", testIds)
+                .executeUpdate();
+    }
+
+    private void deleteFolders(List<UUID> folderIds) {
+        if (folderIds == null || folderIds.isEmpty()) {
+            return;
+        }
+
+        List<UUID> reversedFolderIds = new ArrayList<>(folderIds);
+        Collections.reverse(reversedFolderIds);
+
+        for (UUID folderId : reversedFolderIds) {
+            em.createQuery("""
+                DELETE FROM Folder f
+                WHERE f.id = :folderId
+                """)
+                    .setParameter("folderId", folderId)
+                    .executeUpdate();
+        }
     }
 
     public Response updateCollectionLogo(UUID collectionId, UUID userId, String logoUrl) {
@@ -412,7 +602,7 @@ public class CollectionRepository {
         Collection collection = em.find(Collection.class, collectionId);
 
         if(!collection.getAdmin().getId().equals(userId) &&
-        collection.getUsers().stream().noneMatch(u -> u.getId().equals(userId))) {
+                collection.getUsers().stream().noneMatch(u -> u.getId().equals(userId))) {
             return Response.status(Response.Status.FORBIDDEN).entity("Only members of the collection can access the focus list").build();
         }
 

@@ -1744,3 +1744,245 @@
   font-size: 15px;
   opacity: 0.78;
 }
+
+.folder-card .folder-leading,
+.compact-row.folder-row .compact-icon.folder {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 18%, var(--surface-soft));
+}
+
+.example-card,
+.compact-row.example-row {
+  border-color: color-mix(in srgb, var(--primary-2) 38%, var(--border));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary-2) 14%, transparent), transparent 62%),
+    var(--surface-soft);
+}
+
+.example-card .item-leading,
+.compact-row.example-row .compact-icon.item {
+  color: var(--primary-2);
+  background: color-mix(in srgb, var(--primary-2) 20%, var(--surface-soft));
+}
+
+.test-card,
+.compact-row.test-row {
+  border-color: color-mix(in srgb, var(--success-strong) 42%, var(--border));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--success-strong) 13%, transparent), transparent 62%),
+    var(--surface-soft);
+}
+
+.test-card .item-leading,
+.compact-row.test-row .compact-icon.item {
+  color: var(--success-strong);
+  background: color-mix(in srgb, var(--success-strong) 18%, var(--surface-soft));
+}
+
+.item-bottom-bar {
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.item-tags {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  overflow: hidden;
+}
+
+.item-tag {
+  max-width: 9.5rem;
+  padding: 0.18rem 0.5rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--text);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.action-buttons {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.compact-actions.item-bottom-bar {
+  flex: 0 1 48%;
+}
+
+@media (max-width: 760px) {
+  .compact-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .compact-actions.item-bottom-bar {
+    width: 100%;
+    flex-basis: auto;
+  }
+}
+
+
+/* ========================================================================
+   Collection design refactor
+   - Collection/root icon uses neutral text color
+   - Folder uses a warm, muted yellow palette aligned with example/test cards
+   - Shared type-card rules reduce duplicate visual styling
+   ======================================================================== */
+
+:host {
+  --collection-icon-color: color-mix(in srgb, var(--text) 72%, transparent);
+  --folder-accent: #d9a514;
+  --folder-accent-strong: #a96f00;
+  --folder-surface: rgba(255, 221, 117, 0.14);
+  --folder-surface-hover: rgba(255, 221, 117, 0.22);
+  --folder-border: rgba(217, 165, 20, 0.34);
+  --folder-border-hover: rgba(217, 165, 20, 0.52);
+
+  --example-accent: var(--primary-2);
+  --example-surface: color-mix(in srgb, var(--primary-2) 13%, var(--surface-soft));
+  --example-border: color-mix(in srgb, var(--primary-2) 36%, var(--border));
+
+  --test-accent: var(--success-strong);
+  --test-surface: color-mix(in srgb, var(--success-strong) 12%, var(--surface-soft));
+  --test-border: color-mix(in srgb, var(--success-strong) 38%, var(--border));
+}
+
+/* Collection/root icons are intentionally neutral, not yellow. */
+.root-nav-btn > mat-icon:first-child,
+.crumb-home.collection-home > mat-icon,
+.collection-home mat-icon {
+  color: var(--collection-icon-color);
+}
+
+.root-nav-btn:hover > mat-icon:first-child,
+.root-nav-btn.active > mat-icon:first-child,
+.crumb-home.collection-home:hover > mat-icon,
+.collection-home:hover mat-icon {
+  color: currentColor;
+}
+
+/* Folder icons keep a muted yellow accent in tree, grid and compact list. */
+.folder-tree-node > mat-icon,
+.compact-icon.folder,
+.folder-leading mat-icon,
+.folder-leading {
+  color: var(--folder-accent-strong);
+}
+
+.folder-tree-node.active > mat-icon,
+.folder-tree-node.in-path > mat-icon {
+  color: var(--folder-accent-strong);
+}
+
+/* Shared type cards */
+.folder-card,
+.example-card,
+.test-card,
+.compact-row.folder-row,
+.compact-row.example-row,
+.compact-row.test-row {
+  border-style: solid;
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background 0.16s ease;
+}
+
+.folder-card,
+.compact-row.folder-row {
+  background:
+    linear-gradient(135deg, var(--folder-surface), transparent 68%),
+    var(--surface-soft);
+}
+
+.folder-card .folder-leading,
+.compact-row.folder-row .compact-icon.folder {
+  color: var(--folder-accent-strong);
+  background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--folder-accent) 16%, var(--surface-soft)),
+      color-mix(in srgb, var(--folder-accent) 28%, var(--surface-soft))
+  );
+}
+
+.compact-row.folder-row {
+  border-color: var(--folder-border);
+}
+
+.example-card,
+.compact-row.example-row {
+  border-color: var(--example-border);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--example-accent) 11%, transparent), transparent 68%),
+    var(--surface-soft);
+}
+
+.example-card .item-leading,
+.compact-row.example-row .compact-icon.item {
+  color: var(--example-accent);
+  background: var(--example-surface);
+}
+
+.test-card,
+.compact-row.test-row {
+  border-color: var(--test-border);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--test-accent) 10%, transparent), transparent 68%),
+    var(--surface-soft);
+}
+
+.test-card .item-leading,
+.compact-row.test-row .compact-icon.item {
+  color: var(--test-accent);
+  background: var(--test-surface);
+}
+
+/* Unified icon containers */
+.card-leading,
+.compact-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.card-leading mat-icon,
+.compact-icon {
+  line-height: 1;
+}
+
+/* Tags */
+.item-tags {
+  gap: 0.45rem;
+}
+
+.item-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  max-width: 11.5rem;
+  padding: 0.28rem 0.66rem;
+  border-color: color-mix(in srgb, var(--primary-2) 30%, var(--border));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary-2) 12%, var(--surface-soft)), var(--surface-muted));
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.item-tag mat-icon {
+  width: 15px;
+  height: 15px;
+  font-size: 15px;
+  flex: 0 0 auto;
+  color: currentColor;
+  opacity: 0.82;
+}

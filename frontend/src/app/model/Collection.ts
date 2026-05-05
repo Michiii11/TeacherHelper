@@ -18,5 +18,6 @@ export interface CollectionDTO {
   logoUrl: string | null;
   admin: UserDTO;
   exampleCount: number;
+  testCount: number;
   members: UserDTO[],
 }
