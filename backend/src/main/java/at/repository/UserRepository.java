@@ -1,5 +1,8 @@
 package at.repository;
 
+import at.dtos.Collection.CollectionDTO;
+import at.dtos.Example.ExampleOverviewDTO;
+import at.dtos.Test.TestOverviewDTO;
 import at.dtos.User.*;
 import at.enums.SubscriptionModel;
 import at.model.Collection;
@@ -635,15 +638,90 @@ public class UserRepository {
 
     public Response getUserAdminDashboard(UUID id) {
         User user = em.find(User.class, id);
-        if (user == null) return Response.status(Response.Status.NOT_FOUND).entity("User not found.").build();
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("User not found.")
+                    .build();
+        }
 
         List<Collection> collections = em.createQuery(
-                "SELECT s FROM Collection s WHERE s.admin.id = :userId",
-                Collection.class).setParameter("userId", id).getResultList();
+                """
+                SELECT DISTINCT c
+                FROM Collection c
+                LEFT JOIN FETCH c.users
+                WHERE c.admin.id = :userId
+                ORDER BY c.name
+                """,
+                Collection.class
+        ).setParameter("userId", id).getResultList();
+
+        List<CollectionDTO> collectionDTOs = collections.stream()
+                .map(collection -> {
+                    List<ExampleOverviewDTO> examples = em.createQuery(
+                                    """
+                                    SELECT DISTINCT e
+                                    FROM Example e
+                                    LEFT JOIN FETCH e.focusList
+                                    LEFT JOIN FETCH e.admin
+                                    LEFT JOIN FETCH e.folder
+                                    WHERE e.collection.id = :collectionId
+                                    ORDER BY e.createdAt DESC
+                                    """,
+                                    Example.class
+                            )
+                            .setParameter("collectionId", collection.getId())
+                            .getResultList()
+                            .stream()
+                            .map(e -> new ExampleOverviewDTO(
+                                    e.getId(),
+                                    e.getType(),
+                                    e.getInstruction(),
+                                    e.getQuestion(),
+                                    e.getAdmin() != null ? e.getAdmin().getUsername() : null,
+                                    e.getAdmin() != null ? e.getAdmin().getId() : null,
+                                    e.getFocusList() != null
+                                            ? new java.util.LinkedList<>(e.getFocusList())
+                                            : List.of(),
+                                    e.getFolder() != null ? e.getFolder().getId() : null,
+                                    e.getCreatedAt(),
+                                    e.getUpdatedAt()
+                            ))
+                            .toList();
+
+                    List<TestOverviewDTO> tests = em.createQuery(
+                                    """
+                                    SELECT DISTINCT t
+                                    FROM Test t
+                                    LEFT JOIN FETCH t.admin
+                                    LEFT JOIN FETCH t.folder
+                                    WHERE t.collection.id = :collectionId
+                                    ORDER BY t.createdAt DESC
+                                    """,
+                                    Test.class
+                            )
+                            .setParameter("collectionId", collection.getId())
+                            .getResultList()
+                            .stream()
+                            .map(t -> new TestOverviewDTO(
+                                    t.getId(),
+                                    t.getName(),
+                                    t.getExampleList() != null ? t.getExampleList().size() : 0,
+                                    t.getDuration(),
+                                    t.getAdmin() != null ? t.getAdmin().getUsername() : null,
+                                    t.getAdmin() != null ? t.getAdmin().getId() : null,
+                                    t.getCreatedAt(),
+                                    t.getUpdatedAt(),
+                                    t.getFolder() != null ? t.getFolder().getId() : null
+                            ))
+                            .toList();
+
+                    return collection.toDTOFull(examples, tests);
+                })
+                .toList();
 
         AdminUserDetailDTO dto = new AdminUserDetailDTO(
                 user.getId(),
-                collections.stream().map(Collection::toDTO).collect(java.util.stream.Collectors.toList())
+                collectionDTOs
         );
 
         return Response.ok(dto).build();

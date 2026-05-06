@@ -2042,3 +2042,55 @@ mat-icon {
   overflow: visible;
   line-height: 1;
 }
+
+
+
+/* Fix collection card titles: one visible inline row, no ellipsis and no block/list margins. */
+.card-copy > .rendered-preview-title,
+.compact-title-wrap .rendered-preview-title {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 0;
+  height: 1.35em;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+  word-break: normal;
+  line-height: 1.35;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: unset;
+}
+
+.card-copy > .rendered-preview-title :where(p, ol, ul, li, blockquote),
+.compact-title-wrap .rendered-preview-title :where(p, ol, ul, li, blockquote) {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card-copy > .rendered-preview-title :where(br),
+.compact-title-wrap .rendered-preview-title :where(br) {
+  display: none;
+}
+
+.card-copy > .rendered-preview-title :where(.katex, .katex-display),
+.compact-title-wrap .rendered-preview-title :where(.katex, .katex-display),
+.card-copy > .rendered-preview-title :where(math),
+.compact-title-wrap .rendered-preview-title :where(math) {
+  display: inline-block;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  vertical-align: -0.08em;
+  line-height: 1;
+}
+
+.card-copy > .rendered-preview-title :where(.katex-display > .katex),
+.compact-title-wrap .rendered-preview-title :where(.katex-display > .katex) {
+  display: inline-block;
+}

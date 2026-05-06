@@ -1,7 +1,9 @@
 package at.repository;
 
 import at.dtos.Collection.CollectionDTO;
+import at.dtos.Example.ExampleOverviewDTO;
 import at.dtos.Notification.CollectionInviteDTO;
+import at.dtos.Test.TestOverviewDTO;
 import at.enums.NotificationActionType;
 import at.enums.NotificationType;
 import at.enums.InviteStatus;
@@ -73,26 +75,74 @@ public class CollectionRepository {
 
 
     private CollectionDTO toCollectionDTOWithCounts(Collection collection) {
-        Long exampleCount = em.createQuery(
-                        "SELECT COUNT(e) FROM Example e WHERE e.collection.id = :collectionId",
-                        Long.class)
+        List<ExampleOverviewDTO> examples = em.createQuery(
+                        """
+                        SELECT DISTINCT e
+                        FROM Example e
+                        LEFT JOIN FETCH e.focusList
+                        LEFT JOIN FETCH e.admin
+                        LEFT JOIN FETCH e.folder
+                        WHERE e.collection.id = :collectionId
+                        ORDER BY e.createdAt DESC
+                        """,
+                        Example.class
+                )
                 .setParameter("collectionId", collection.getId())
-                .getSingleResult();
+                .getResultList()
+                .stream()
+                .map(e -> new ExampleOverviewDTO(
+                        e.getId(),
+                        e.getType(),
+                        e.getInstruction(),
+                        e.getQuestion(),
+                        e.getAdmin() != null ? e.getAdmin().getUsername() : null,
+                        e.getAdmin() != null ? e.getAdmin().getId() : null,
+                        e.getFocusList() != null
+                                ? new java.util.LinkedList<>(e.getFocusList())
+                                : List.of(),
+                        e.getFolder() != null ? e.getFolder().getId() : null,
+                        e.getCreatedAt(),
+                        e.getUpdatedAt()
+                ))
+                .toList();
 
-        Long testCount = em.createQuery(
-                        "SELECT COUNT(t) FROM Test t WHERE t.collection.id = :collectionId",
-                        Long.class)
+        List<TestOverviewDTO> tests = em.createQuery(
+                        """
+                        SELECT DISTINCT t
+                        FROM Test t
+                        LEFT JOIN FETCH t.admin
+                        LEFT JOIN FETCH t.folder
+                        WHERE t.collection.id = :collectionId
+                        ORDER BY t.createdAt DESC
+                        """,
+                        Test.class
+                )
                 .setParameter("collectionId", collection.getId())
-                .getSingleResult();
+                .getResultList()
+                .stream()
+                .map(t -> new TestOverviewDTO(
+                        t.getId(),
+                        t.getName(),
+                        t.getExampleList() != null ? t.getExampleList().size() : 0,
+                        t.getDuration(),
+                        t.getAdmin() != null ? t.getAdmin().getUsername() : null,
+                        t.getAdmin() != null ? t.getAdmin().getId() : null,
+                        t.getCreatedAt(),
+                        t.getUpdatedAt(),
+                        t.getFolder() != null ? t.getFolder().getId() : null
+                ))
+                .toList();
 
         return new CollectionDTO(
                 collection.getId(),
                 collection.getName(),
                 collection.getLogoUrl(),
                 collection.getAdminDTO(),
-                exampleCount.intValue(),
-                testCount.intValue(),
-                collection.getUsers().stream().map(User::toUserDTO).toList()
+                examples,
+                tests,
+                collection.getUsers() != null
+                        ? collection.getUsers().stream().map(User::toUserDTO).toList()
+                        : List.of()
         );
     }
 

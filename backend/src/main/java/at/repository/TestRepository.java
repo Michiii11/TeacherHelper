@@ -287,9 +287,13 @@ public class TestRepository {
                         e.getCollection().getName(),
                         e.getCollection().getLogoUrl(),
                         e.getCollection().getAdminDTO(),
-                        0,
-                        0,
-                        null
+                        List.of(),
+                        List.of(),
+                        e.getCollection().getUsers() == null
+                                ? List.of()
+                                : e.getCollection().getUsers().stream()
+                                .map(User::toUserDTO)
+                                .toList()
                 ),
                 e.getAnswers() == null ? new LinkedList<>() : new LinkedList<>(e.getAnswers()),
                 e.getOptions() == null ? new LinkedList<>() : new LinkedList<>(e.getOptions()),

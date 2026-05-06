@@ -1,6 +1,8 @@
 package at.model;
 
 import at.dtos.Collection.CollectionDTO;
+import at.dtos.Example.ExampleOverviewDTO;
+import at.dtos.Test.TestOverviewDTO;
 import at.dtos.User.UserDTO;
 import at.model.helper.Focus;
 import jakarta.persistence.*;
@@ -143,8 +145,25 @@ public class Collection {
                 this.getName(),
                 this.getLogoUrl(),
                 this.getAdminDTO(),
-                0, 0,
+                null, null,
                 this.getUsers().stream().map(User::toUserDTO).toList()
+        );
+    }
+
+    public CollectionDTO toDTOFull(
+            List<ExampleOverviewDTO> examples,
+            List<TestOverviewDTO> tests
+    ) {
+        return new CollectionDTO(
+                this.getId(),
+                this.getName(),
+                this.getLogoUrl(),
+                this.getAdminDTO(),
+                examples,
+                tests,
+                this.getUsers().stream()
+                        .map(User::toUserDTO)
+                        .toList()
         );
     }
 }

@@ -210,18 +210,43 @@ export class TestPrintService {
       .replace(/'/g, '&#39;');
   }
 
+  /**
+   * Applies a replacement only outside LaTeX segments.
+   * Important: LaTeX uses braces as syntax, e.g. $\frac{a}{b}$.
+   * Those braces must never be treated as task variables or gap placeholders.
+   */
+  private replaceOutsideLatex(value: string, replacer: (text: string) => string): string {
+    const source = String(value ?? '');
+    const mathPattern = /\$\$[\s\S]*?\$\$|\$[^$\n]*?\$/g;
+    let cursor = 0;
+    let result = '';
+    let match: RegExpExecArray | null;
+
+    while ((match = mathPattern.exec(source)) !== null) {
+      result += replacer(source.slice(cursor, match.index));
+      result += match[0];
+      cursor = match.index + match[0].length;
+    }
+
+    result += replacer(source.slice(cursor));
+    return result;
+  }
+
   private formatMultiline(
     value: string | number | null | undefined,
     variables?: { key?: string; defaultValue?: string | number | null }[] | null
   ): string {
-    return this.renderMathHtml(value, variables);
+    return this.renderMathHtml(this.replaceVariablesOutsideLatex(value, variables));
   }
 
-  private renderMathHtml(
-    value: string | number | null | undefined,
-    variables?: { key?: string; defaultValue?: string | number | null }[] | null
-  ): string {
-    const source = this.replaceVariablesOutsideLatex(value, variables);
+  /**
+   * 1:1 wie ExamplePreviewComponent:
+   * - zuerst LaTeX durch Tokens ersetzen
+   * - dann normalen Text/Markdown rendern
+   * - danach KaTeX-HTML wieder einsetzen
+   */
+  private renderMathHtml(value: string | null | undefined): string {
+    const source = String(value ?? '');
     const mathTokens: string[] = [];
     const mathPattern = /\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g;
 
@@ -237,32 +262,25 @@ export class TestPrintService {
     mathTokens.forEach((formulaHtml, index) => {
       html = html.replace(new RegExp(`@@MATH_TOKEN_${index}@@`, 'g'), formulaHtml);
     });
+
     return html;
+  }
+
+  private replaceVariables(
+    value: string | number | null | undefined,
+    variables?: { key?: string; defaultValue?: string | number | null }[] | null
+  ): string {
+    return String(value ?? '').replace(this.variablePattern, (_match, key: string) => {
+      const variable = (variables ?? []).find(entry => String(entry.key ?? '').trim() === key.trim());
+      return String(variable?.defaultValue ?? '');
+    });
   }
 
   private replaceVariablesOutsideLatex(
     value: string | number | null | undefined,
     variables?: { key?: string; defaultValue?: string | number | null }[] | null
   ): string {
-    const source = String(value ?? '');
-    const mathPattern = /\$\$[\s\S]*?\$\$|\$[^$\n]*?\$/g;
-    let cursor = 0;
-    let result = '';
-    let match: RegExpExecArray | null;
-
-    const replaceVariables = (text: string): string => text.replace(this.variablePattern, (_match, key: string) => {
-      const variable = (variables ?? []).find(entry => String(entry.key ?? '').trim() === key.trim());
-      return String(variable?.defaultValue ?? '');
-    });
-
-    while ((match = mathPattern.exec(source)) !== null) {
-      result += replaceVariables(source.slice(cursor, match.index));
-      result += match[0];
-      cursor = match.index + match[0].length;
-    }
-
-    result += replaceVariables(source.slice(cursor));
-    return result;
+    return this.replaceOutsideLatex(String(value ?? ''), (text) => this.replaceVariables(text, variables));
   }
 
   private renderMarkdownHtml(value: string | number | null | undefined): string {
@@ -279,6 +297,7 @@ export class TestPrintService {
       const line = lines[index];
 
       if (!line.trim()) {
+        blocks.push('<p><br></p>');
         index += 1;
         continue;
       }
@@ -627,6 +646,199 @@ export class TestPrintService {
         .free-space { width: 100%; }
         .free-space.medium { min-height: 90px; }
         .free-space.large { min-height: 150px; }
+
+
+        /* Task content uses the same inner rendering rules as ExamplePreviewComponent,
+           but without wrapping the whole question in an additional card/frame. */
+        .preview-panel {
+          padding: 0;
+          border-radius: 0;
+          background: transparent;
+          border: 0;
+          color: #111;
+          line-height: 1.4;
+          overflow-wrap: normal;
+          word-break: normal;
+          overflow-x: visible;
+          overflow-y: visible;
+        }
+        .preview-panel p {
+          margin: 0 0 0.9rem;
+          color: #333;
+        }
+        .preview-panel strong {
+          color: #111;
+        }
+        .multiline-text,
+        .rich-text,
+        .task-instruction,
+        .task-question {
+          white-space: normal;
+          overflow-wrap: normal;
+          word-break: normal;
+        }
+        .rich-text math,
+        .rich-text code,
+        .gap-inline,
+        .gap-inline * {
+          white-space: nowrap;
+        }
+        .rich-text p,
+        .rich-text ul,
+        .rich-text ol,
+        .rich-text blockquote,
+        .rich-text pre,
+        .solution-box p,
+        .solution-box ul,
+        .solution-box ol,
+        .solution-box blockquote,
+        .solution-box pre,
+        .teacher-note p,
+        .teacher-note ul,
+        .teacher-note ol,
+        .teacher-note blockquote,
+        .teacher-note pre {
+          margin: 0 0 0.25rem;
+        }
+        .rich-text p:last-child,
+        .rich-text ul:last-child,
+        .rich-text ol:last-child,
+        .rich-text blockquote:last-child,
+        .rich-text pre:last-child,
+        .solution-box p:last-child,
+        .solution-box ul:last-child,
+        .solution-box ol:last-child,
+        .solution-box blockquote:last-child,
+        .solution-box pre:last-child,
+        .teacher-note p:last-child,
+        .teacher-note ul:last-child,
+        .teacher-note ol:last-child,
+        .teacher-note blockquote:last-child,
+        .teacher-note pre:last-child {
+          margin-bottom: 0;
+        }
+        .rich-text ul,
+        .rich-text ol,
+        .solution-box ul,
+        .solution-box ol,
+        .teacher-note ul,
+        .teacher-note ol {
+          padding-left: 1.45rem;
+        }
+        .rich-text li,
+        .solution-box li,
+        .teacher-note li {
+          margin: 0.18rem 0;
+        }
+        .rich-text code,
+        .solution-box code,
+        .teacher-note code {
+          padding: 0.12rem 0.35rem;
+          border: 1px solid #cbd5e1;
+          border-radius: 0.35rem;
+          background: #f1f5f9;
+          font-family: Consolas, Menlo, Monaco, monospace;
+          font-size: 0.92em;
+        }
+        .rich-text pre,
+        .solution-box pre,
+        .teacher-note pre {
+          padding: 0.7rem 0.85rem;
+          border: 1px solid #cbd5e1;
+          border-radius: 0.7rem;
+          background: #f8fafc;
+          overflow-x: auto;
+          white-space: pre-wrap;
+        }
+        .rich-text pre code,
+        .solution-box pre code,
+        .teacher-note pre code {
+          padding: 0;
+          border: 0;
+          background: transparent;
+        }
+        .rich-text blockquote,
+        .solution-box blockquote,
+        .teacher-note blockquote {
+          padding: 0.55rem 0.8rem;
+          border-left: 3px solid #64748b;
+          border-radius: 0 0.65rem 0.65rem 0;
+          background: #f8fafc;
+        }
+        .construction-preview {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          margin-top: 0.8rem;
+          overflow: visible;
+        }
+        .image-preview {
+          display: block;
+          width: auto;
+          height: auto;
+          object-fit: contain;
+          object-position: center;
+          border-radius: 14px;
+        }
+        .multiple-choice-preview table,
+        .gap-fill-preview table,
+        .assign-preview table {
+          width: 100%;
+          border-collapse: collapse;
+          border-spacing: 0;
+          margin-top: 0.75rem;
+          table-layout: fixed;
+        }
+        .multiple-choice-preview td,
+        .gap-fill-preview td,
+        .gap-fill-preview th,
+        .assign-preview td {
+          border: 1px solid #d7deea;
+          padding: 0.7rem 0.8rem;
+          vertical-align: middle;
+          overflow-wrap: normal;
+          word-break: normal;
+          color: #333;
+        }
+        .gap-fill-preview {
+          display: flex;
+          flex-direction: column;
+          gap: 0.9rem;
+          margin-top: 0.8rem;
+        }
+        .gap-fill-preview th {
+          text-align: center;
+          font-weight: 800;
+          color: #111;
+          background: #f8fafc;
+        }
+        .assign-preview {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 1rem;
+          margin-top: 0.8rem;
+        }
+        .fill {
+          width: 56px;
+        }
+        .small,
+        .checkbox-cell {
+          width: 48px;
+          text-align: center;
+        }
+        .half-open-preview {
+          margin-top: 0.8rem;
+        }
+        @media print {
+          .preview-panel {
+            background: #fff;
+            border-color: transparent;
+            padding: 0;
+            border-radius: 0;
+            overflow: visible;
+          }
+        }
+
       </style>
     `;
   }
@@ -729,27 +941,65 @@ export class TestPrintService {
     `;
   }
 
+  private resolveExplicitTaskTitle(entry: TestExampleDTO): string {
+    const rawTitle = String(
+      (entry as any).taskTitle ??
+      (entry as any).customTitle ??
+      (entry as any).taskName ??
+      (entry as any).title ??
+      ''
+    ).trim();
+
+    if (!rawTitle) {
+      return '';
+    }
+
+    const example = entry.example as any;
+    const autoGeneratedTitleSources = [
+      example?.instruction,
+      example?.question,
+      example?.title,
+      example?.name,
+    ];
+
+    const normalizedTitle = this.normalizeComparableText(rawTitle);
+    const looksLikeAutoGeneratedTitle = autoGeneratedTitleSources.some(source => {
+      const normalizedSource = this.normalizeComparableText(source);
+      return !!normalizedSource && normalizedSource === normalizedTitle;
+    });
+
+    return looksLikeAutoGeneratedTitle ? '' : rawTitle;
+  }
+
+  private normalizeComparableText(value: string | number | null | undefined): string {
+    return String(value ?? '')
+      .replace(/\r\n?/g, '\n')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   private buildTaskHtml(entry: TestExampleDTO, index: number, isSolution: boolean, options: TestPrintOptions): string {
     const exampleId = entry.example?.id ?? '';
     const margin = options.getTaskSpacing(exampleId);
     const exampleLabel = options.labels.exampleShort;
+    const taskTitle = this.resolveExplicitTaskTitle(entry);
 
     const schoolQuestion = options.labels.question;
 
     const header = `
       <div class="task-head">
-        <div class="task-title">${this.escapeHtml(exampleLabel)} ${index + 1}${entry.title ? ': ' + this.escapeHtml(entry.title) : ''}</div>
+        <div class="task-title">${this.escapeHtml(exampleLabel)} ${index + 1}: ${taskTitle ? this.escapeHtml(taskTitle) : ''}</div>
         <div class="task-points">(${isSolution ? this.escapeHtml(entry.points || '__') : '__'} / ${this.escapeHtml(entry.points || '__')} P.)</div>
       </div>
     `;
 
     const instruction = entry.example.instruction
-      ? `<div class="task-instruction">${this.formatMultiline(entry.example.instruction, entry.example.variables)}</div>`
+      ? `<div class="task-instruction rich-text multiline-text">${this.formatMultiline(entry.example.instruction, entry.example.variables)}</div>`
       : '';
 
     const question = entry.example.type === ExampleTypes.GAP_FILL
-      ? `<div class="task-question rich-gap-question">${isSolution && entry.example.gapFillType === 'INPUT' ? this.buildGapQuestionSolutionHtml(entry.example) : this.buildGapQuestionHtml(entry.example)}</div>`
-      : `<div class="task-question">${this.formatMultiline(options.getQuestionWithGapLabels(entry.example), entry.example.variables)}</div>`;
+      ? `<div class="task-question rich-text multiline-text rich-gap-question">${isSolution && entry.example.gapFillType === 'INPUT' ? this.buildGapQuestionSolutionHtml(entry.example) : this.buildGapQuestionHtml(entry.example)}</div>`
+      : `<div class="task-question rich-text multiline-text">${this.formatMultiline(options.getQuestionWithGapLabels(entry.example), entry.example.variables)}</div>`;
 
     return `
       <div class="task print-task" style="margin-bottom:${margin}px;">
@@ -801,7 +1051,7 @@ export class TestPrintService {
       gapIndex += 1;
 
       if (example.gapFillType === 'INPUT') {
-        const solution = this.renderMathHtml(String((gap as any)?.solution ?? ''), example.variables);
+        const solution = this.formatMultiline(String((gap as any)?.solution ?? ''), example.variables);
         const width = this.normalizeGapInlineWidth((gap as any)?.width, (gap as any)?.solution);
         return `
           <span class="gap-inline gap-inline-input" style="width:${width}px;">
@@ -826,11 +1076,11 @@ export class TestPrintService {
     const gapTokens: string[] = [];
     const gapPattern = /\{\d+\}|\{Lücke \d+\}|_{3,}/g;
 
-    const textWithGapTokens = source.replace(gapPattern, () => {
+    const textWithGapTokens = this.replaceOutsideLatex(source, (text) => text.replace(gapPattern, () => {
       const token = `@@GAP_TOKEN_${gapTokens.length}@@`;
       gapTokens.push(gapRenderer());
       return token;
-    });
+    }));
 
     let html = this.formatMultiline(textWithGapTokens, variables);
     gapTokens.forEach((gapHtml, index) => {
@@ -857,15 +1107,15 @@ export class TestPrintService {
     switch (example.type) {
       case ExampleTypes.OPEN:
         return isSolution
-          ? `<div class="solution-box">${this.formatMultiline((example as any).solution || '', example.variables) || `<span class="muted">${this.escapeHtml(labels.noSolution)}</span>`}</div>`
+          ? `<div class="solution-box rich-text multiline-text">${this.formatMultiline((example as any).solution || '', example.variables) || `<span class="muted">${this.escapeHtml(labels.noSolution)}</span>`}</div>`
           : `<div class="free-space large"></div>`;
 
       case ExampleTypes.HALF_OPEN:
         return isSolution
-          ? `<div class="solution-list">${(example.answers ?? []).map(ans => `<div><strong>${this.formatMultiline(ans?.[0] ?? '', example.variables)}</strong> = ${this.formatMultiline(ans?.[1] ?? '', example.variables)}</div>`).join('')}</div>`
+          ? `<div class="half-open-preview solution-list">${(example.answers ?? []).map(ans => `<p><strong>${this.formatMultiline(ans?.[0] ?? '', example.variables)}</strong> = ${this.formatMultiline(ans?.[1] ?? '', example.variables)}</p>`).join('')}</div>`
           : `
-              <div class="solution-list student-list">
-                ${(example.answers ?? []).map(ans => `<div>${this.formatMultiline(ans?.[0] ?? '', example.variables)} = _________________________________</div>`).join('')}
+              <div class="half-open-preview solution-list student-list">
+                ${(example.answers ?? []).map(ans => `<p>${this.formatMultiline(ans?.[0] ?? '', example.variables)} = ___________________</p>`).join('')}
               </div>
               <div class="free-space medium"></div>
             `;
@@ -888,7 +1138,7 @@ export class TestPrintService {
 
       case ExampleTypes.MULTIPLE_CHOICE:
         return `
-          <div class="answer-table-wrap">
+          <div class="multiple-choice-preview answer-table-wrap">
             <table>
               ${(example.options ?? []).map((opt: Option) => `
                 <tr>
@@ -903,10 +1153,10 @@ export class TestPrintService {
       case ExampleTypes.GAP_FILL:
         if (example.gapFillType === 'SELECT') {
           return `
-            <div class="gap-grid">
-              ${(example.gaps ?? []).map((gap: Gap) => `
+            <div class="gap-fill-preview gap-grid">
+              ${(example.gaps ?? []).map((gap: Gap, gapIndex: number) => `
                 <table>
-                  <tr><th>${this.escapeHtml(gap.label || labels.gap)}</th></tr>
+                  <tr><th colspan="2">${this.escapeHtml(String(gapIndex + 1))}</th></tr>
                   ${(gap.options ?? []).map((opt: Option) => `
                     <tr>
                       <td>${this.formatMultiline(opt.text, example.variables)}</td>

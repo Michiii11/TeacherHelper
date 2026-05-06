@@ -176,6 +176,7 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
 
   setIncludeSolutionSheet(value: boolean): void {
     this.includeSolutionSheet = value;
+    this.refreshPreviewHtml();
   }
 
   increaseCount(): void {
@@ -266,11 +267,30 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
 
   getQuestionWithGapLabels(example: Example): string {
     let idx = 0;
-    return (example.question || '').replace(/\{Lücke \d+\}/g, () => {
+    const replaceGapLabels = (text: string): string => text.replace(/\{Lücke \d+\}/g, () => {
       const label = example.gaps?.[idx]?.label?.trim();
       idx++;
       return label ? `_____(${label})_____` : `______________`;
     });
+
+    return this.replaceOutsideLatex(example.question || '', replaceGapLabels);
+  }
+
+  private replaceOutsideLatex(value: string, replacer: (text: string) => string): string {
+    const source = String(value ?? '');
+    const mathPattern = /\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\$[^$]*?\$|\\\([\s\S]*?\\\)/g;
+    let cursor = 0;
+    let result = '';
+    let match: RegExpExecArray | null;
+
+    while ((match = mathPattern.exec(source)) !== null) {
+      result += replacer(source.slice(cursor, match.index));
+      result += match[0];
+      cursor = match.index + match[0].length;
+    }
+
+    result += replacer(source.slice(cursor));
+    return result;
   }
 
   getLetter(i: number): string {

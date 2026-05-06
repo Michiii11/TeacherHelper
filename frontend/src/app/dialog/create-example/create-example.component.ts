@@ -48,7 +48,6 @@ type EditorToolbarAction =
   | 'inlineCode'
   | 'bulletList'
   | 'numberedList'
-  | 'quote'
   | 'inlineFormula'
   | 'displayFormula'
   | 'frac'
@@ -166,7 +165,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
         { label: 'exampleDialog.editor.commands.code', icon: 'code', action: 'inlineCode', insert: '`Text`' },
         { label: 'exampleDialog.editor.commands.bulletList', icon: 'format_list_bulleted', action: 'bulletList', insert: '- Text' },
         { label: 'exampleDialog.editor.commands.numberedList', icon: 'format_list_numbered', action: 'numberedList', insert: '1. Text' },
-        { label: 'exampleDialog.editor.commands.quote', icon: 'format_quote', action: 'quote', insert: '> Text' },
       ],
     },
     {
@@ -511,9 +509,6 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
         break;
       case 'numberedList':
         this.applyNumberedListOrInsert();
-        break;
-      case 'quote':
-        this.applyLinePrefixOrInsert('> ', 'Text');
         break;
       case 'inlineFormula':
         this.insertTextAtActiveTarget('$x$');
