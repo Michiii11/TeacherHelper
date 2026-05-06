@@ -49,6 +49,8 @@ export type TestPrintLabels = {
   previewTitle: string;
   previewSubtitle: string;
   question: string;
+  instruction?: string;
+  taskImage?: string;
 };
 
 export type TestPrintOptions = {
@@ -985,6 +987,10 @@ export class TestPrintService {
     const taskTitle = this.resolveExplicitTaskTitle(entry);
 
     const schoolQuestion = options.labels.question;
+    const instructionLabel = options.labels.instruction || 'Angabe';
+    const displaySettings = (entry.example as any).displaySettings ?? {};
+    const showInstructionLabel = displaySettings.showInstructionLabel !== false;
+    const showQuestionLabel = displaySettings.showQuestionLabel !== false;
 
     const header = `
       <div class="task-head">
@@ -994,7 +1000,7 @@ export class TestPrintService {
     `;
 
     const instruction = entry.example.instruction
-      ? `<div class="task-instruction rich-text multiline-text">${this.formatMultiline(entry.example.instruction, entry.example.variables)}</div>`
+      ? `${showInstructionLabel ? `<p><strong>${this.escapeHtml(instructionLabel)}:</strong></p>` : ''}<div class="task-instruction rich-text multiline-text">${this.formatMultiline(entry.example.instruction, entry.example.variables)}</div>`
       : '';
 
     const question = entry.example.type === ExampleTypes.GAP_FILL
@@ -1006,7 +1012,7 @@ export class TestPrintService {
         ${header}
         <div class="preview-panel">
           ${instruction}
-          <p><strong>${schoolQuestion}:</strong></p>
+          ${showQuestionLabel ? `<p><strong>${this.escapeHtml(schoolQuestion)}:</strong></p>` : ''}
           ${question}
           ${this.buildTaskBodyHtml(entry.example, isSolution, options)}
         </div>
@@ -1129,8 +1135,13 @@ export class TestPrintService {
           ? this.normalizeImageWidth((example as any).solutionImageWidth)
           : this.normalizeImageWidth((example as any).imageWidth);
 
+        const displaySettings = (example as any).displaySettings ?? {};
+        const showTaskImageLabel = !isSolution && displaySettings.showTaskImageLabel !== false;
+        const taskImageLabel = labels.taskImage || 'Aufgabenbild';
+
         return `
           <div class="construction-preview">
+            ${showTaskImageLabel ? `<p><strong>${this.escapeHtml(taskImageLabel)}:</strong></p>` : ''}
             ${image ? `<img src="${this.escapeHtml(image)}" alt="${this.escapeHtml(labels.imagePreviewAlt)}" class="image-preview" style="width:${width}px;max-width:100%;height:auto;" />` : ''}
           </div>
         `;

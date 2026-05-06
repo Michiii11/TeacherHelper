@@ -43,6 +43,18 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
 
   isLoading = true;
 
+  showInstructionLabel(): boolean {
+    return this.example?.displaySettings?.showInstructionLabel !== false;
+  }
+
+  showQuestionLabel(): boolean {
+    return this.example?.displaySettings?.showQuestionLabel !== false;
+  }
+
+  showTaskImageLabel(): boolean {
+    return this.example?.displaySettings?.showTaskImageLabel !== false;
+  }
+
   @HostBinding('class.embedded-preview')
   get embeddedPreview(): boolean {
     return !this.showHeader;

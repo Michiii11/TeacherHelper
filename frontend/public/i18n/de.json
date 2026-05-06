@@ -645,6 +645,12 @@
         "vector": "Vektor",
         "aligned": "Gleichungen"
       }
+    },
+    "displaySettings": {
+      "title": "Anzeige",
+      "instructionLabel": "„Angabe“ anzeigen",
+      "questionLabel": "„Aufgabenstellung“ anzeigen",
+      "taskImageLabel": "„Aufgabenbild“ anzeigen"
     }
   },
   "createTest": {

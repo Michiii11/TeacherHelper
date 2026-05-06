@@ -16,10 +16,11 @@
 
     <div class="preview-panel">
       <div>
+        <p *ngIf="showInstructionLabel()"><strong>{{ 'collection.instruction' | translate }}:</strong></p>
         <div class="rich-text multiline-text" [innerHTML]="renderMathText(example.instruction)"></div>
       </div>
 
-      <p><strong>{{ 'collection.question' | translate }}:</strong></p>
+      <p *ngIf="showQuestionLabel()"><strong>{{ 'collection.question' | translate }}:</strong></p>
 
       <div>
         <div class="rich-text multiline-text" [innerHTML]="renderQuestionWithGapLabels()"></div>
@@ -36,7 +37,7 @@
       @if(example.type === ExampleTypes.CONSTRUCTION){
         <div class="construction-preview">
           <div>
-            <p><strong>{{ 'exampleDialog.taskImage' | translate }}</strong></p>
+            <p *ngIf="showTaskImageLabel()"><strong>{{ 'exampleDialog.taskImage' | translate }}</strong></p>
 
             <div *ngIf="getPreviewImageUrl()" class="image-preview-frame">
               <img

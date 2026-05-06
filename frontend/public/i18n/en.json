@@ -1322,6 +1322,12 @@
         "vector": "Vector",
         "aligned": "Equations"
       }
+    },
+    "displaySettings": {
+      "title": "Display",
+      "instructionLabel": "Show “Instruction”",
+      "questionLabel": "Show “Question”",
+      "taskImageLabel": "Show “Task image”"
     }
   }
 }

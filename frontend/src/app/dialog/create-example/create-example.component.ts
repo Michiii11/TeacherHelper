@@ -30,7 +30,7 @@ import {
   Focus,
   Gap,
   Option,
-  ExampleVariable
+  ExampleVariable, ExampleDisplaySettings
 } from '../../model/Example';
 import { HttpService } from '../../service/http.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
@@ -74,6 +74,12 @@ type EditorToolbarItem = {
   action: EditorToolbarAction;
   insert: string;
   tooltip?: string;
+};
+
+export const defaultExampleDisplaySettings: ExampleDisplaySettings = {
+  showInstructionLabel: false,
+  showQuestionLabel: true,
+  showTaskImageLabel: true
 };
 
 type VariableTarget =
@@ -152,6 +158,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   previewCollapsed = false;
   variablesCollapsed = true;
   editorCollapsed = true;
+  displaySettingsCollapsed = true;
   activeEditorToolbarGroupIndex = 0;
   tagsCollapsed = true;
 
@@ -225,7 +232,8 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     variables: [],
     imageWidth: this.defaultImageWidth,
     solutionImageWidth: this.defaultImageWidth,
-    folderId: this.data.folderId
+    folderId: this.data.folderId,
+    displaySettings: defaultExampleDisplaySettings
   };
 
   readonly ExampleTypes = ExampleTypes;
@@ -326,7 +334,11 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
               ...response,
               imageWidth: response.imageWidth ?? this.defaultImageWidth,
               solutionImageWidth: response.solutionImageWidth ?? this.defaultImageWidth,
-              variables: response.variables ?? []
+              variables: response.variables ?? [],
+              displaySettings: {
+                ...defaultExampleDisplaySettings,
+                ...(response.displaySettings ?? {})
+              }
             };
             this.isEditMode = true;
 

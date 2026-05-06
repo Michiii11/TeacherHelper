@@ -2752,3 +2752,97 @@ mat-dialog-actions {
   height: 0;
   display: none;
 }
+
+/* Display settings: collapsed by default, profile-like toggle cards */
+.display-settings-panel .side-collapse-body {
+  padding-top: .1rem !important;
+}
+
+.display-settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.display-setting-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .85rem .95rem;
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--surface-solid), color-mix(in srgb, var(--surface-2) 82%, transparent));
+  border: 1px solid var(--border);
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.display-setting-card:hover {
+  border-color: color-mix(in srgb, var(--primary) 28%, transparent);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--primary) 10%, transparent);
+  transform: translateY(-1px);
+}
+
+.display-setting-card .setting-copy {
+  min-width: 0;
+}
+
+.display-setting-card .setting-title {
+  font-size: .92rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.display-setting-card .setting-description {
+  margin-top: .2rem;
+  color: var(--text-subtle);
+  line-height: 1.35;
+}
+
+.switch {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+.switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.switch-track {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 58px;
+  height: 34px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #dbe4f0, var(--border-strong));
+  box-shadow: inset 0 2px 6px rgba(15, 23, 42, .12);
+  transition: all .22s ease;
+}
+
+.switch-thumb {
+  position: absolute;
+  left: 4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--surface-solid), var(--bg-base));
+  transition: transform .22s ease;
+}
+
+.switch input:checked + .switch-track {
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+}
+
+.switch input:checked + .switch-track .switch-thumb {
+  transform: translateX(24px);
+}
+
+.switch input:focus-visible + .switch-track {
+  box-shadow:
+    inset 0 2px 6px rgba(15, 23, 42, .12),
+    0 0 0 4px color-mix(in srgb, var(--primary) 18%, transparent);
+}

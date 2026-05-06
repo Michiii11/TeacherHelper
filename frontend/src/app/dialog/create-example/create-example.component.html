@@ -372,6 +372,71 @@
             </ng-container>
           </section>
 
+          <section class="panel-box side-collapsible display-settings-panel" [class.collapsed]="displaySettingsCollapsed">
+            <div class="side-collapse-head" role="button" tabindex="0" (click)="displaySettingsCollapsed = !displaySettingsCollapsed">
+              <mat-icon class="collapse-icon">{{ displaySettingsCollapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
+              <mat-icon>visibility</mat-icon>
+              <span class="panel-title">{{ 'exampleDialog.displaySettings.title' | translate }}</span>
+            </div>
+
+            <div class="side-collapse-body" *ngIf="!displaySettingsCollapsed">
+              <div class="display-settings-list">
+                <div class="display-setting-card">
+                  <div class="setting-copy">
+                    <div class="setting-title">{{ 'exampleDialog.displaySettings.instructionLabel' | translate }}</div>
+                  </div>
+
+                  <label class="switch" [attr.aria-label]="'exampleDialog.displaySettings.instructionLabel' | translate">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="example.displaySettings.showInstructionLabel"
+                      name="showInstructionLabel"
+                      (change)="markDirty()"
+                    >
+                    <span class="switch-track">
+                      <span class="switch-thumb"></span>
+                    </span>
+                  </label>
+                </div>
+
+                <div class="display-setting-card">
+                  <div class="setting-copy">
+                    <div class="setting-title">{{ 'exampleDialog.displaySettings.questionLabel' | translate }}</div>
+                  </div>
+
+                  <label class="switch" [attr.aria-label]="'exampleDialog.displaySettings.questionLabel' | translate">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="example.displaySettings.showQuestionLabel"
+                      name="showQuestionLabel"
+                      (change)="markDirty()"
+                    >
+                    <span class="switch-track">
+                      <span class="switch-thumb"></span>
+                    </span>
+                  </label>
+                </div>
+
+                <div class="display-setting-card" *ngIf="example.type === ExampleTypes.CONSTRUCTION">
+                  <div class="setting-copy">
+                    <div class="setting-title">{{ 'exampleDialog.displaySettings.taskImageLabel' | translate }}</div>
+                  </div>
+
+                  <label class="switch" [attr.aria-label]="'exampleDialog.displaySettings.taskImageLabel' | translate">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="example.displaySettings.showTaskImageLabel"
+                      name="showTaskImageLabel"
+                      (change)="markDirty()"
+                    >
+                    <span class="switch-track">
+                      <span class="switch-thumb"></span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </section>
         </form>
       </div>
 

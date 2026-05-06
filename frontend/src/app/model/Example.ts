@@ -42,6 +42,7 @@ export interface Example {
   assignRightItems: string[];
   createdAt: string;
   updatedAt: string;
+  displaySettings: ExampleDisplaySettings;
 }
 
 export interface ExampleDTO {
@@ -65,6 +66,7 @@ export interface ExampleDTO {
   gaps: Gap[];
   assigns: Assign[];
   assignRightItems: string[];
+  displaySettings: ExampleDisplaySettings;
 }
 
 export interface CreateExampleDTO {
@@ -86,6 +88,7 @@ export interface CreateExampleDTO {
   imageWidth: number;
   solutionImageWidth: number;
   folderId: string;
+  displaySettings: ExampleDisplaySettings;
 
   imageFile?: File;
   solutionFile?: File;
@@ -104,6 +107,11 @@ export interface ExampleOverviewDTO {
   updatedAt: string;
 }
 
+export interface ExampleDisplaySettings {
+  showInstructionLabel: boolean;
+  showQuestionLabel: boolean;
+  showTaskImageLabel: boolean;
+}
 
 export interface ExampleVariable {
   id: string;
