@@ -430,7 +430,7 @@
     "example": "Exercise",
     "createExample": "Create exercise",
     "searchExamplesPlaceholder": "Search exercises",
-    "emptyExamplesTitle": "No exercises found",
+    "emptyExamplesTitle": "No content found",
     "emptyExamplesText": "Create a folder or add an exercise directly.",
     "deleteExampleTitle": "Delete exercise",
     "deleteExampleMessage": "Delete exercise \"{{name}}\"?"
@@ -1288,8 +1288,40 @@
       "saved": "Exercise saved successfully.",
       "created": "Exercise created successfully.",
       "saveError": "Exercise could not be saved.",
-      "focusDeleted": "The focus \"{{label}}\" was deleted."
+      "focusDeleted": "The focus \"{{label}}\" was deleted.",
+      "imageSizeError": "The image must not exceed 5 MB."
     },
-    "preview": "Preview"
+    "preview": "Preview",
+    "editor": {
+      "title": "Editor",
+      "groupsAria": "Editor groups",
+      "toolbarAria": "Editor toolbar",
+      "groups": {
+        "start": "Home",
+        "formulas": "Formulas",
+        "symbols": "Symbols",
+        "more": "More"
+      },
+      "commands": {
+        "bold": "Bold",
+        "italic": "Italic",
+        "strike": "Strike",
+        "code": "Code",
+        "bulletList": "List",
+        "numberedList": "No.",
+        "quote": "Quote",
+        "inlineFormula": "Inline",
+        "displayFormula": "Block",
+        "frac": "Fraction",
+        "sqrt": "Root",
+        "power": "Power",
+        "index": "Index",
+        "textUnit": "Unit",
+        "sum": "Sum",
+        "integral": "Integral",
+        "vector": "Vector",
+        "aligned": "Equations"
+      }
+    }
   }
 }

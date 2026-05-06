@@ -214,7 +214,7 @@ export class TestPrintService {
     value: string | number | null | undefined,
     variables?: { key?: string; defaultValue?: string | number | null }[] | null
   ): string {
-    return this.renderMathHtml(value, variables).replace(/\n/g, '<br>');
+    return this.renderMathHtml(value, variables);
   }
 
   private renderMathHtml(
@@ -222,22 +222,22 @@ export class TestPrintService {
     variables?: { key?: string; defaultValue?: string | number | null }[] | null
   ): string {
     const source = this.replaceVariablesOutsideLatex(value, variables);
-    const parts: string[] = [];
-    let cursor = 0;
+    const mathTokens: string[] = [];
     const mathPattern = /\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g;
-    let match: RegExpExecArray | null;
 
-    while ((match = mathPattern.exec(source)) !== null) {
-      parts.push(this.renderMarkdownHtml(source.slice(cursor, match.index)));
+    const textWithMathTokens = source.replace(mathPattern, (_fullMatch, displayFormula, inlineFormula) => {
+      const isDisplay = displayFormula !== undefined;
+      const formula = isDisplay ? displayFormula : inlineFormula;
+      const token = `@@MATH_TOKEN_${mathTokens.length}@@`;
+      mathTokens.push(this.renderFormula(formula, isDisplay));
+      return token;
+    });
 
-      const isDisplay = match[1] !== undefined;
-      const formula = isDisplay ? match[1] : match[2];
-      parts.push(this.renderFormula(formula, isDisplay));
-      cursor = match.index + match[0].length;
-    }
-
-    parts.push(this.renderMarkdownHtml(source.slice(cursor)));
-    return parts.join('');
+    let html = this.renderMarkdownHtml(textWithMathTokens);
+    mathTokens.forEach((formulaHtml, index) => {
+      html = html.replace(new RegExp(`@@MATH_TOKEN_${index}@@`, 'g'), formulaHtml);
+    });
+    return html;
   }
 
   private replaceVariablesOutsideLatex(
@@ -266,7 +266,88 @@ export class TestPrintService {
   }
 
   private renderMarkdownHtml(value: string | number | null | undefined): string {
+    const source = String(value ?? '').replace(/\r\n?/g, '\n');
+    if (!source.trim()) {
+      return '';
+    }
+
+    const lines = source.split('\n');
+    const blocks: string[] = [];
+    let index = 0;
+
+    while (index < lines.length) {
+      const line = lines[index];
+
+      if (!line.trim()) {
+        index += 1;
+        continue;
+      }
+
+      if (/^\s*```/.test(line)) {
+        const codeLines: string[] = [];
+        index += 1;
+        while (index < lines.length && !/^\s*```/.test(lines[index])) {
+          codeLines.push(lines[index]);
+          index += 1;
+        }
+        if (index < lines.length) {
+          index += 1;
+        }
+        blocks.push(`<pre><code>${this.escapeHtml(codeLines.join('\n'))}</code></pre>`);
+        continue;
+      }
+
+      if (/^\s*>\s?/.test(line)) {
+        const quoteLines: string[] = [];
+        while (index < lines.length && /^\s*>\s?/.test(lines[index])) {
+          quoteLines.push(lines[index].replace(/^\s*>\s?/, ''));
+          index += 1;
+        }
+        blocks.push(`<blockquote>${quoteLines.map(item => this.renderInlineMarkdown(item)).join('<br>')}</blockquote>`);
+        continue;
+      }
+
+      if (/^\s*[-*+]\s+/.test(line)) {
+        const items: string[] = [];
+        while (index < lines.length && /^\s*[-*+]\s+/.test(lines[index])) {
+          items.push(lines[index].replace(/^\s*[-*+]\s+/, ''));
+          index += 1;
+        }
+        blocks.push(`<ul>${items.map(item => `<li>${this.renderInlineMarkdown(item)}</li>`).join('')}</ul>`);
+        continue;
+      }
+
+      if (/^\s*\d+[.)]\s+/.test(line)) {
+        const items: string[] = [];
+        while (index < lines.length && /^\s*\d+[.)]\s+/.test(lines[index])) {
+          items.push(lines[index].replace(/^\s*\d+[.)]\s+/, ''));
+          index += 1;
+        }
+        blocks.push(`<ol>${items.map(item => `<li>${this.renderInlineMarkdown(item)}</li>`).join('')}</ol>`);
+        continue;
+      }
+
+      const paragraphLines: string[] = [];
+      while (
+        index < lines.length
+        && lines[index].trim()
+        && !/^\s*```/.test(lines[index])
+        && !/^\s*>\s?/.test(lines[index])
+        && !/^\s*[-*+]\s+/.test(lines[index])
+        && !/^\s*\d+[.)]\s+/.test(lines[index])
+        ) {
+        paragraphLines.push(lines[index]);
+        index += 1;
+      }
+      blocks.push(`<p>${paragraphLines.map(item => this.renderInlineMarkdown(item)).join('<br>')}</p>`);
+    }
+
+    return blocks.join('');
+  }
+
+  private renderInlineMarkdown(value: string | number | null | undefined): string {
     return this.escapeHtml(value)
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
       .replace(/~~([^~]+)~~/g, '<del>$1</del>')
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
       .replace(/__([^_]+)__/g, '<strong>$1</strong>')
@@ -398,21 +479,72 @@ export class TestPrintService {
           border-left: 1px solid #222;
         }
         .grading-title { margin: 0 0 6px; font-weight: 700; }
-        .teacher-note { margin: 14px 0 10px; white-space: pre-line; text-align: center; line-height: 1.5; }
+        .teacher-note { margin: 14px 0 10px; white-space: normal; text-align: center; line-height: 1.5; }
         .good-luck { text-align: center; margin: 0 0 8px; font-size: 15px; }
         .header-divider { border: none; border-top: 1px solid #222; margin: 10px 0 16px; }
         .task { page-break-inside: avoid; break-inside: avoid; }
         .task-head { display: flex; justify-content: space-between; gap: 12px; font-weight: 700; margin-bottom: 8px; font-size: 14px; }
         .task-points { white-space: nowrap; }
-        .preview-panel { line-height: 1.4; }
-        .task-instruction, .task-question { margin: 0 0 10px; white-space: pre-line; }
+        .preview-panel { line-height: 1.4; overflow-wrap: normal; word-break: normal; }
+        .task-instruction, .task-question { margin: 0 0 10px; white-space: normal; overflow-wrap: normal; word-break: normal; }
+        .task-instruction math, .task-question math, .solution-box math,
+        .task-instruction code, .task-question code, .solution-box code,
+        .gap-inline, .gap-inline * { white-space: nowrap; }
         .task-question.rich-gap-question { white-space: normal; }
+        .task-instruction p, .task-question p, .solution-box p, .teacher-note p,
+        .task-instruction ul, .task-question ul, .solution-box ul, .teacher-note ul,
+        .task-instruction ol, .task-question ol, .solution-box ol, .teacher-note ol,
+        .task-instruction blockquote, .task-question blockquote, .solution-box blockquote, .teacher-note blockquote,
+        .task-instruction pre, .task-question pre, .solution-box pre, .teacher-note pre {
+          margin: 0 0 8px;
+        }
+        .task-instruction p:last-child, .task-question p:last-child, .solution-box p:last-child, .teacher-note p:last-child,
+        .task-instruction ul:last-child, .task-question ul:last-child, .solution-box ul:last-child, .teacher-note ul:last-child,
+        .task-instruction ol:last-child, .task-question ol:last-child, .solution-box ol:last-child, .teacher-note ol:last-child,
+        .task-instruction blockquote:last-child, .task-question blockquote:last-child, .solution-box blockquote:last-child, .teacher-note blockquote:last-child,
+        .task-instruction pre:last-child, .task-question pre:last-child, .solution-box pre:last-child, .teacher-note pre:last-child {
+          margin-bottom: 0;
+        }
+        .task-instruction ul, .task-question ul, .solution-box ul, .teacher-note ul,
+        .task-instruction ol, .task-question ol, .solution-box ol, .teacher-note ol {
+          padding-left: 22px;
+        }
+        .task-instruction li, .task-question li, .solution-box li, .teacher-note li {
+          margin: 2px 0;
+        }
+        .task-instruction code, .task-question code, .solution-box code, .teacher-note code {
+          padding: 1px 4px;
+          border: 1px solid #cbd5e1;
+          border-radius: 4px;
+          background: #f1f5f9;
+          font-family: Consolas, Menlo, Monaco, monospace;
+          font-size: 0.92em;
+        }
+        .task-instruction pre, .task-question pre, .solution-box pre, .teacher-note pre {
+          padding: 8px 10px;
+          border: 1px solid #cbd5e1;
+          border-radius: 6px;
+          background: #f8fafc;
+          white-space: pre-wrap;
+        }
+        .task-instruction pre code, .task-question pre code, .solution-box pre code, .teacher-note pre code {
+          padding: 0;
+          border: 0;
+          background: transparent;
+        }
+        .task-instruction blockquote, .task-question blockquote, .solution-box blockquote, .teacher-note blockquote {
+          padding: 6px 10px;
+          border-left: 3px solid #64748b;
+          background: #f8fafc;
+          color: #334155;
+        }
         .gap-inline {
           display: inline-flex;
           vertical-align: middle;
           align-items: center;
           justify-content: center;
           margin: 0 0.2rem;
+          white-space: nowrap;
         }
         .gap-inline-select {
           min-width: 3.1rem;
@@ -550,7 +682,7 @@ export class TestPrintService {
           </div>
         </div>
 
-        ${test.note ? `<p class="teacher-note">${this.formatMultiline(test.note)}</p>` : ''}
+        ${test.note ? `<div class="teacher-note">${this.formatMultiline(test.note)}</div>` : ''}
         <h3 class="good-luck">${this.escapeHtml(labels.goodLuck)}</h3>
         <hr class="header-divider" />
       </div>
@@ -612,12 +744,12 @@ export class TestPrintService {
     `;
 
     const instruction = entry.example.instruction
-      ? `<p class="task-instruction">${this.formatMultiline(entry.example.instruction, entry.example.variables)}</p>`
+      ? `<div class="task-instruction">${this.formatMultiline(entry.example.instruction, entry.example.variables)}</div>`
       : '';
 
     const question = entry.example.type === ExampleTypes.GAP_FILL
       ? `<div class="task-question rich-gap-question">${isSolution && entry.example.gapFillType === 'INPUT' ? this.buildGapQuestionSolutionHtml(entry.example) : this.buildGapQuestionHtml(entry.example)}</div>`
-      : `<p class="task-question">${this.formatMultiline(options.getQuestionWithGapLabels(entry.example), entry.example.variables)}</p>`;
+      : `<div class="task-question">${this.formatMultiline(options.getQuestionWithGapLabels(entry.example), entry.example.variables)}</div>`;
 
     return `
       <div class="task print-task" style="margin-bottom:${margin}px;">
@@ -691,19 +823,21 @@ export class TestPrintService {
 
   private renderTextWithGapPlaceholders(value: string, gapRenderer: () => string, variables?: Example['variables']): string {
     const source = String(value ?? '');
-    const parts: string[] = [];
-    const gapPattern = /\{\d+\}|\{Lücke \d+\}/g;
-    let cursor = 0;
-    let match: RegExpExecArray | null;
+    const gapTokens: string[] = [];
+    const gapPattern = /\{\d+\}|\{Lücke \d+\}|_{3,}/g;
 
-    while ((match = gapPattern.exec(source)) !== null) {
-      parts.push(this.formatMultiline(source.slice(cursor, match.index), variables));
-      parts.push(gapRenderer());
-      cursor = match.index + match[0].length;
-    }
+    const textWithGapTokens = source.replace(gapPattern, () => {
+      const token = `@@GAP_TOKEN_${gapTokens.length}@@`;
+      gapTokens.push(gapRenderer());
+      return token;
+    });
 
-    parts.push(this.formatMultiline(source.slice(cursor), variables));
-    return parts.join('');
+    let html = this.formatMultiline(textWithGapTokens, variables);
+    gapTokens.forEach((gapHtml, index) => {
+      html = html.replace(new RegExp(`@@GAP_TOKEN_${index}@@`, 'g'), gapHtml);
+    });
+
+    return html;
   }
 
   private normalizeGapInlineWidth(value: number | string | null | undefined, solution: string | null | undefined): number {

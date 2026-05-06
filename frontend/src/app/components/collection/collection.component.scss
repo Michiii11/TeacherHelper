@@ -703,8 +703,8 @@
   grid-column: 1 / -1;
   min-height: 260px;
   border: 1px dashed var(--border);
-  border-radius: 22px;
-  background: var(--surface-muted);
+  border-radius: 14px;
+  background: var(--surface-soft);
   color: var(--text);
   display: grid;
   place-items: center;
@@ -903,10 +903,6 @@
   width: 42px;
   height: 42px;
   border-radius: 14px;
-}
-
-.card-actions {
-  opacity: 0.68;
 }
 
 .tree-count {
@@ -1138,33 +1134,6 @@
   display: none;
 }
 
-.card-actions {
-  grid-column: auto;
-  justify-self: end;
-  opacity: 0;
-  transform: translateX(3px);
-  transition: opacity 0.14s ease, transform 0.14s ease;
-}
-
-.content-card:hover .card-actions,
-.content-card:focus-within .card-actions {
-  opacity: 0.92;
-  transform: translateX(0);
-}
-
-.card-actions button,
-.compact-actions button {
-  width: 32px;
-  height: 32px;
-}
-
-.card-actions mat-icon,
-.compact-actions mat-icon {
-  width: 19px;
-  height: 19px;
-  font-size: 19px;
-}
-
 .compact-row {
   min-height: 54px;
   border-radius: 12px;
@@ -1303,7 +1272,9 @@
 .compact-actions button {
   width: 34px;
   height: 34px;
-  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .card-actions button:hover,
@@ -1985,4 +1956,89 @@
   flex: 0 0 auto;
   color: currentColor;
   opacity: 0.82;
+}
+
+
+/* Rendered markdown/LaTeX preview titles */
+.rendered-preview-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+  word-break: break-word;
+
+  :where(p) {
+    display: inline;
+    margin: 0;
+  }
+
+  :where(strong, b) {
+    font-weight: 850;
+  }
+
+  :where(em, i) {
+    font-style: italic;
+  }
+
+  :where(code) {
+    padding: 0.08rem 0.28rem;
+    border-radius: 0.35rem;
+    background: var(--surface-muted);
+    font-size: 0.92em;
+  }
+
+  :where(.katex) {
+    font-size: 1em;
+    line-height: 1.2;
+  }
+
+  :where(.katex-display) {
+    display: inline-block;
+    max-width: 100%;
+    margin: 0;
+    overflow: hidden;
+    vertical-align: middle;
+  }
+}
+
+/* Prevent slightly clipped Material icons in compact controls/cards */
+mat-icon {
+  overflow: visible;
+  line-height: 1;
+}
+
+.card-actions button,
+.compact-actions button,
+.view-toggle-btn,
+.search-icon-btn,
+.new-icon-btn,
+.toolbar-pill-btn,
+.search-clear-btn,
+.create-menu-item,
+.filter-option,
+.sort-option,
+.selected-chip {
+  overflow: visible;
+}
+
+.card-actions mat-icon,
+.compact-actions mat-icon,
+.view-toggle-btn mat-icon,
+.search-icon-btn mat-icon,
+.new-icon-btn mat-icon,
+.toolbar-pill-btn mat-icon,
+.search-clear-btn mat-icon,
+.create-menu-item mat-icon,
+.filter-option mat-icon,
+.sort-option mat-icon,
+.selected-chip mat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  line-height: 1;
 }

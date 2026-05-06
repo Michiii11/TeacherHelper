@@ -611,9 +611,41 @@
       "saved": "Beispiel erfolgreich gespeichert.",
       "created": "Beispiel erfolgreich erstellt.",
       "saveError": "Beispiel konnte nicht gespeichert werden.",
-      "focusDeleted": "Der Schwerpunkt \"{{label}}\" wurde gelöscht."
+      "focusDeleted": "Der Schwerpunkt \"{{label}}\" wurde gelöscht.",
+      "imageSizeError": "Das Bild darf maximal 5 MB groß sein."
     },
-    "preview": "Vorschau"
+    "preview": "Vorschau",
+    "editor": {
+      "title": "Editor",
+      "groupsAria": "Editor-Gruppen",
+      "toolbarAria": "Editor-Werkzeugleiste",
+      "groups": {
+        "start": "Start",
+        "formulas": "Formeln",
+        "symbols": "Zeichen",
+        "more": "Mehr"
+      },
+      "commands": {
+        "bold": "Fett",
+        "italic": "Kursiv",
+        "strike": "Durchstr.",
+        "code": "Code",
+        "bulletList": "Liste",
+        "numberedList": "Nr.",
+        "quote": "Zitat",
+        "inlineFormula": "Inline",
+        "displayFormula": "Block",
+        "frac": "Bruch",
+        "sqrt": "Wurzel",
+        "power": "Potenz",
+        "index": "Index",
+        "textUnit": "Einheit",
+        "sum": "Summe",
+        "integral": "Integral",
+        "vector": "Vektor",
+        "aligned": "Gleichungen"
+      }
+    }
   },
   "createTest": {
     "titleLabel": "Titel",

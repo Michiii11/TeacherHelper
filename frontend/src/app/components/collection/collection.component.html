@@ -57,13 +57,6 @@
               <span class="tree-name">{{ folder.name }}</span>
             </button>
           }
-
-          @if (!folderNavNodes.length) {
-            <div class="sidebar-empty">
-              <mat-icon>folder_off</mat-icon>
-              <span>{{ 'collection.emptyExamplesTitle' | translate }}</span>
-            </div>
-          }
         </nav>
       </aside>
 
@@ -302,17 +295,17 @@
                 [attr.draggable]="canManageItem(item) && !isDeletingItem(item)"
                 (dragstart)="canManageItem(item) && !isDeletingItem(item) && onItemDragStart(item.type, item.id)"
                 (dragend)="onItemDragEnd()"
-                (click)="openItem(item)"
+                (click)="editItem(item)"
               >
                 <div class="card-leading item-leading"><mat-icon>{{ getItemIcon(item) }}</mat-icon></div>
                 <div class="card-copy">
-                  <strong>{{ item.title }}</strong>
+                  <strong class="rendered-preview-title" [innerHTML]="getRenderedPreviewTitle(item)"></strong>
                   <span>{{ getItemMeta(item) }}</span>
                 </div>
                 <div class="card-actions item-bottom-bar" (click)="$event.stopPropagation()">
                   <div class="item-tags" aria-label="Tags">
                     @for (tag of getItemTags(item); track tag) {
-                      <span class="item-tag"><mat-icon>sell</mat-icon>{{ tag }}</span>
+                      <span class="item-tag">{{ tag }}</span>
                     }
                   </div>
                   <div class="action-buttons">
@@ -320,7 +313,7 @@
                     @if (canManageItem(item)) {
                       <button mat-icon-button type="button" (click)="editItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>edit</mat-icon></button>
                       <button mat-icon-button type="button" (click)="moveItemWithPicker(item)" [disabled]="isDeletingItem(item)"><mat-icon>drive_file_move</mat-icon></button>
-                      <button mat-icon-button type="button" color="warn" (click)="deleteItem(item)" [disabled]="isDeletingItem(item)">
+                      <button mat-icon-button type="button" color="warn" (click)="$event.preventDefault(); deleteItem(item)" [disabled]="isDeletingItem(item)">
                         <mat-icon>{{ isDeletingItem(item) ? 'hourglass_top' : 'delete' }}</mat-icon>
                       </button>
                     }
@@ -392,7 +385,7 @@
                 <div class="compact-title-wrap">
                   <mat-icon class="compact-icon item">{{ getItemIcon(item) }}</mat-icon>
                   <div>
-                    <strong>{{ item.title }}</strong>
+                    <strong class="rendered-preview-title" [innerHTML]="getRenderedPreviewTitle(item)"></strong>
                     <span>{{ getItemMeta(item) }}</span>
                   </div>
                 </div>

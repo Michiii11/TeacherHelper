@@ -45,8 +45,9 @@
   background: var(--bg-soft);
   border: 1px solid var(--border);
   color: var(--text);
-  overflow-wrap: anywhere;
-  overflow-x: hidden;
+  overflow-wrap: normal;
+  word-break: normal;
+  overflow-x: auto;
   overflow-y: auto;
 }
 
@@ -64,8 +65,137 @@
 }
 
 .multiline-text {
-  white-space: pre-line;
+  white-space: normal;
 }
+
+.rich-text {
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.rich-text math,
+.rich-text code,
+.gap-inline,
+.gap-inline * {
+  white-space: nowrap;
+}
+
+.rich-text p,
+.rich-text ul,
+.rich-text ol,
+.rich-text blockquote,
+.rich-text pre {
+  margin: 0 0 0.75rem;
+}
+
+.rich-text p:last-child,
+.rich-text ul:last-child,
+.rich-text ol:last-child,
+.rich-text blockquote:last-child,
+.rich-text pre:last-child {
+  margin-bottom: 0;
+}
+
+.rich-text ul,
+.rich-text ol {
+  padding-left: 1.45rem;
+}
+
+.rich-text li {
+  margin: 0.18rem 0;
+}
+
+.rich-text code {
+  padding: 0.12rem 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  border-radius: 0.35rem;
+  background: color-mix(in srgb, var(--bg) 70%, var(--bg-soft));
+  color: var(--text);
+  font-family: Consolas, Menlo, Monaco, monospace;
+  font-size: 0.92em;
+}
+
+.rich-text pre {
+  padding: 0.7rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--bg) 72%, var(--bg-soft));
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+.rich-text pre code {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.rich-text blockquote {
+  padding: 0.55rem 0.8rem;
+  border-left: 3px solid var(--primary);
+  border-radius: 0 0.65rem 0.65rem 0;
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+
+.gap-inline {
+  display: inline-flex;
+  vertical-align: middle;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0.2rem;
+  white-space: nowrap;
+}
+
+.gap-inline-select {
+  min-width: 3.1rem;
+}
+
+.gap-inline-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.8rem;
+  min-height: 2.2rem;
+  padding: 0.28rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border) 70%, var(--text-soft));
+  background: color-mix(in srgb, var(--primary) 12%, var(--bg-soft));
+  color: var(--text);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.gap-inline-pill-number {
+  font-size: 0.95rem;
+}
+
+.gap-inline-input {
+  position: relative;
+  min-height: 2rem;
+  justify-content: flex-start;
+  padding-left: 1.6rem;
+  border-bottom: 2px solid var(--text-soft);
+}
+
+.gap-inline-label {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.gap-inline-line {
+  display: inline-block;
+  width: 100%;
+  height: 1px;
+}
+
 
 .construction-preview {
   display: flex;
@@ -102,7 +232,8 @@
   padding: 0.7rem 0.8rem;
   border: 1px solid var(--border);
   vertical-align: middle;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  word-break: normal;
   color: color-mix(in srgb, var(--text) 78%, var(--text-soft));
 }
 
@@ -110,6 +241,13 @@
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
+}
+
+.gap-fill-preview th {
+  text-align: center;
+  font-weight: 800;
+  color: var(--text);
+  background: color-mix(in srgb, var(--bg) 55%, var(--bg-soft));
 }
 
 .assign-preview {
@@ -185,4 +323,84 @@
 
 .school-loading-card mat-progress-bar {
   width: 100%;
+}
+
+:host ::ng-deep .rich-text p,
+:host ::ng-deep .rich-text ul,
+:host ::ng-deep .rich-text ol,
+:host ::ng-deep .rich-text blockquote,
+:host ::ng-deep .rich-text pre {
+  margin: 0 0 0.25rem;
+}
+
+:host ::ng-deep .rich-text p:last-child,
+:host ::ng-deep .rich-text ul:last-child,
+:host ::ng-deep .rich-text ol:last-child,
+:host ::ng-deep .rich-text blockquote:last-child,
+:host ::ng-deep .rich-text pre:last-child {
+  margin-bottom: 0;
+}
+
+:host ::ng-deep .rich-text math,
+:host ::ng-deep .rich-text code,
+:host ::ng-deep .gap-inline,
+:host ::ng-deep .gap-inline * {
+  white-space: nowrap;
+}
+
+:host ::ng-deep .gap-inline {
+  display: inline-flex;
+  vertical-align: middle;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0.2rem;
+  white-space: nowrap;
+}
+
+:host ::ng-deep .gap-inline-select {
+  min-width: 3.1rem;
+}
+
+:host ::ng-deep .gap-inline-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.8rem;
+  min-height: 2.2rem;
+  padding: 0.28rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border) 70%, var(--text-soft));
+  background: color-mix(in srgb, var(--primary) 12%, var(--bg-soft));
+  color: var(--text);
+  font-weight: 700;
+  line-height: 1;
+}
+
+:host ::ng-deep .gap-inline-pill-number {
+  font-size: 0.95rem;
+}
+
+:host ::ng-deep .gap-inline-input {
+  position: relative;
+  min-height: 2rem;
+  justify-content: flex-start;
+  padding-left: 1.6rem;
+  border-bottom: 2px solid var(--text-soft);
+}
+
+:host ::ng-deep .gap-inline-label {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+:host ::ng-deep .gap-inline-line {
+  display: inline-block;
+  width: 100%;
+  height: 1px;
 }

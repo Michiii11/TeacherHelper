@@ -169,36 +169,122 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   renderQuestionWithGapLabels(): SafeHtml {
+    if (this.example?.type === ExampleTypes.GAP_FILL) {
+      return this.sanitizer.bypassSecurityTrustHtml(this.buildGapQuestionHtml());
+    }
+
     return this.sanitizer.bypassSecurityTrustHtml(this.renderMathHtml(this.getQuestionWithGapLabels()));
   }
 
   private renderMathHtml(value: string | null | undefined): string {
     const source = String(value ?? '');
-    const parts: string[] = [];
-    let cursor = 0;
+    const mathTokens: string[] = [];
     const mathPattern = /\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g;
-    let match: RegExpExecArray | null;
 
-    while ((match = mathPattern.exec(source)) !== null) {
-      parts.push(this.renderMarkdownHtml(source.slice(cursor, match.index)));
+    const textWithMathTokens = source.replace(mathPattern, (_fullMatch, displayFormula, inlineFormula) => {
+      const isDisplay = displayFormula !== undefined;
+      const formula = isDisplay ? displayFormula : inlineFormula;
+      const token = `@@MATH_TOKEN_${mathTokens.length}@@`;
+      mathTokens.push(this.renderFormula(formula, isDisplay));
+      return token;
+    });
 
-      const isDisplay = match[1] !== undefined;
-      const formula = isDisplay ? match[1] : match[2];
-      parts.push(this.renderFormula(formula, isDisplay));
-      cursor = match.index + match[0].length;
-    }
+    let html = this.renderMarkdownHtml(textWithMathTokens);
+    mathTokens.forEach((formulaHtml, index) => {
+      html = html.replace(new RegExp(`@@MATH_TOKEN_${index}@@`, 'g'), formulaHtml);
+    });
 
-    parts.push(this.renderMarkdownHtml(source.slice(cursor)));
-    return parts.join('');
+    return html;
   }
 
   private renderMarkdownHtml(value: string | number | null | undefined): string {
+    const source = String(value ?? '').replace(/\r\n?/g, '\n');
+    if (!source.trim()) {
+      return '';
+    }
+
+    const lines = source.split('\n');
+    const blocks: string[] = [];
+    let index = 0;
+
+    while (index < lines.length) {
+      const line = lines[index];
+
+      if (!line.trim()) {
+        blocks.push('<p><br></p>');
+        index += 1;
+        continue;
+      }
+
+      if (/^\s*```/.test(line)) {
+        const codeLines: string[] = [];
+        index += 1;
+        while (index < lines.length && !/^\s*```/.test(lines[index])) {
+          codeLines.push(lines[index]);
+          index += 1;
+        }
+        if (index < lines.length) {
+          index += 1;
+        }
+        blocks.push(`<pre><code>${this.escapeHtml(codeLines.join('\n'))}</code></pre>`);
+        continue;
+      }
+
+      if (/^\s*>\s?/.test(line)) {
+        const quoteLines: string[] = [];
+        while (index < lines.length && /^\s*>\s?/.test(lines[index])) {
+          quoteLines.push(lines[index].replace(/^\s*>\s?/, ''));
+          index += 1;
+        }
+        blocks.push(`<blockquote>${quoteLines.map(item => this.renderInlineMarkdown(item)).join('<br>')}</blockquote>`);
+        continue;
+      }
+
+      if (/^\s*[-*+]\s+/.test(line)) {
+        const items: string[] = [];
+        while (index < lines.length && /^\s*[-*+]\s+/.test(lines[index])) {
+          items.push(lines[index].replace(/^\s*[-*+]\s+/, ''));
+          index += 1;
+        }
+        blocks.push(`<ul>${items.map(item => `<li>${this.renderInlineMarkdown(item)}</li>`).join('')}</ul>`);
+        continue;
+      }
+
+      if (/^\s*\d+[.)]\s+/.test(line)) {
+        const items: string[] = [];
+        while (index < lines.length && /^\s*\d+[.)]\s+/.test(lines[index])) {
+          items.push(lines[index].replace(/^\s*\d+[.)]\s+/, ''));
+          index += 1;
+        }
+        blocks.push(`<ol>${items.map(item => `<li>${this.renderInlineMarkdown(item)}</li>`).join('')}</ol>`);
+        continue;
+      }
+
+      const paragraphLines: string[] = [];
+      while (
+        index < lines.length
+        && lines[index].trim()
+        && !/^\s*```/.test(lines[index])
+        && !/^\s*>\s?/.test(lines[index])
+        && !/^\s*[-*+]\s+/.test(lines[index])
+        && !/^\s*\d+[.)]\s+/.test(lines[index])
+        ) {
+        paragraphLines.push(lines[index]);
+        index += 1;
+      }
+      blocks.push(`<p>${paragraphLines.map(item => this.renderInlineMarkdown(item)).join('<br>')}</p>`);
+    }
+
+    return blocks.join('');
+  }
+
+  private renderInlineMarkdown(value: string | number | null | undefined): string {
     return this.escapeHtml(value)
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
       .replace(/~~([^~]+)~~/g, '<del>$1</del>')
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
       .replace(/__([^_]+)__/g, '<strong>$1</strong>')
-      .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>')
-      .replace(/\n/g, '<br>');
+      .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
   }
 
   private renderFormula(formula: string, displayMode: boolean): string {
@@ -221,6 +307,69 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
       .replace(/>/g, '&gt;')
       .replace(/\"/g, '&quot;')
       .replace(/'/g, '&#39;');
+  }
+
+  private buildGapQuestionHtml(): string {
+    const example = this.example;
+    if (!example) {
+      return '';
+    }
+
+    let gapIndex = 0;
+
+    return this.renderTextWithGapPlaceholders(example.question || '', () => {
+      const gap = (example.gaps ?? [])[gapIndex];
+      const gapNumber = this.escapeHtml(String(gapIndex + 1));
+      gapIndex += 1;
+
+      if (example.gapFillType === 'INPUT') {
+        const width = this.normalizeGapInlineWidth((gap as { width?: number | string; solution?: string | null } | undefined)?.width, (gap as { solution?: string | null } | undefined)?.solution);
+        return `
+          <span class="gap-inline gap-inline-input" style="width:${width}px;">
+            <span class="gap-inline-label gap-inline-label-number">${gapNumber}</span>
+            <span class="gap-inline-line"></span>
+          </span>
+        `;
+      }
+
+      return `
+        <span class="gap-inline gap-inline-select">
+          <span class="gap-inline-pill">
+            <span class="gap-inline-pill-number">${gapNumber}</span>
+          </span>
+        </span>
+      `;
+    });
+  }
+
+  private renderTextWithGapPlaceholders(value: string, gapRenderer: () => string): string {
+    const source = String(value ?? '');
+    const gapTokens: string[] = [];
+    const gapPattern = /\{\d+\}|\{Lücke \d+\}|_{3,}/g;
+
+    const textWithGapTokens = source.replace(gapPattern, () => {
+      const token = `@@GAP_TOKEN_${gapTokens.length}@@`;
+      gapTokens.push(gapRenderer());
+      return token;
+    });
+
+    let html = this.renderMathHtml(this.getResolvedText(textWithGapTokens));
+    gapTokens.forEach((gapHtml, index) => {
+      html = html.replace(new RegExp(`@@GAP_TOKEN_${index}@@`, 'g'), gapHtml);
+    });
+
+    return html;
+  }
+
+  private normalizeGapInlineWidth(value: number | string | null | undefined, solution: string | null | undefined): number {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return Math.max(90, Math.min(420, Math.round(parsed)));
+    }
+
+    const solutionLength = String(solution ?? '').trim().length;
+    const estimated = 90 + solutionLength * 9;
+    return Math.max(90, Math.min(420, estimated));
   }
 
   getQuestionWithGapLabels(): string {

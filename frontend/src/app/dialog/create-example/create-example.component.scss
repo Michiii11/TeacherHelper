@@ -145,15 +145,14 @@
 
 .create-example-dialog,
 .create-example-layout {
-  margin: 0;
   box-sizing: border-box;
   min-width: 0;
+  margin-top: 1rem;
 }
 
 .create-example-layout {
   position: sticky;
   top: 0;
-  padding-top: 1rem;
 }
 
 .create-example-dialog h1,
@@ -2343,6 +2342,26 @@ mat-dialog-actions {
   max-height: none;
 }
 
+.preview-panel {
+  scrollbar-width: none; // Firefox
+  -ms-overflow-style: none; // ältere Edge/IE
+}
+
+.preview-panel::-webkit-scrollbar {
+  display: none; // Chrome, Edge, Safari
+}
+
+::ng-deep .preview-panel app-example-preview,
+::ng-deep .preview-panel app-example-preview * {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+::ng-deep .preview-panel app-example-preview::-webkit-scrollbar,
+::ng-deep .preview-panel app-example-preview *::-webkit-scrollbar {
+  display: none;
+}
+
 .preview-panel:not(.collapsed) {
   flex: 1 1 260px;
   min-height: 180px;
@@ -2636,6 +2655,7 @@ mat-dialog-actions {
   padding: 6px 8px 0;
   border-bottom: 1px solid var(--border-soft);
   overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .editor-ribbon-tab {
@@ -2703,4 +2723,32 @@ mat-dialog-actions {
   .editor-ribbon-command mat-icon {
     margin-right: 0;
   }
+}
+
+/* Hidden scrollbars while preserving scrolling */
+.example-form,
+.create-example-layout,
+.preview-panel .side-collapse-body,
+.preview-panel app-example-preview,
+.editor-ribbon-tabs,
+.compact-variable-table .side-collapse-body,
+.tag-meta-panel .side-collapse-body,
+.assign-board,
+.gap-options {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.example-form::-webkit-scrollbar,
+.create-example-layout::-webkit-scrollbar,
+.preview-panel .side-collapse-body::-webkit-scrollbar,
+.preview-panel app-example-preview::-webkit-scrollbar,
+.editor-ribbon-tabs::-webkit-scrollbar,
+.compact-variable-table .side-collapse-body::-webkit-scrollbar,
+.tag-meta-panel .side-collapse-body::-webkit-scrollbar,
+.assign-board::-webkit-scrollbar,
+.gap-options::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }

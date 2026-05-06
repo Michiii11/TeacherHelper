@@ -16,13 +16,13 @@
 
     <div class="preview-panel">
       <div>
-        <p class="multiline-text" [innerHTML]="renderMathText(example.instruction)"></p>
+        <div class="rich-text multiline-text" [innerHTML]="renderMathText(example.instruction)"></div>
       </div>
 
       <p><strong>{{ 'collection.question' | translate }}:</strong></p>
 
       <div>
-        <p class="multiline-text" [innerHTML]="renderQuestionWithGapLabels()"></p>
+        <div class="rich-text multiline-text" [innerHTML]="renderQuestionWithGapLabels()"></div>
       </div>
 
       @if(example.type === ExampleTypes.HALF_OPEN){
@@ -71,10 +71,10 @@
       @if(example.type === ExampleTypes.GAP_FILL){
         @if(example.gapFillType === 'SELECT'){
           <div class="gap-fill-preview">
-            @for (gap of example.gaps; track gap){
+            @for (gap of example.gaps; track gap; let gapIndex = $index){
               <table>
                 <tr>
-                  <th>({{gap.label}})</th>
+                  <th colspan="2">{{ gapIndex + 1 }}</th>
                 </tr>
 
                 @for(opt of gap.options; track opt){

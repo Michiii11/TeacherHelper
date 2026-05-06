@@ -1,5 +1,8 @@
 import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { marked } from 'marked';
+import katex from 'katex';
 import { FormsModule } from '@angular/forms';
 import {catchError, finalize, firstValueFrom, forkJoin, of, Subject, Subscription, takeUntil} from 'rxjs';
 
@@ -91,7 +94,9 @@ export class CollectionComponent implements OnInit, OnDestroy {
   translate = inject(TranslateService);
   snack = inject(MatSnackBar);
   navbarActions = inject(NavbarActionsService);
+  private readonly sanitizer = inject(DomSanitizer);
   private readonly destroy$ = new Subject<void>();
+  private readonly previewHtmlCache = new Map<string, SafeHtml>();
 
   school: CollectionDTO = {} as CollectionDTO;
   schoolId: string | null = null;
@@ -192,6 +197,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
     this.examples = [];
     this.tests = [];
     this.folders = [];
+    this.previewHtmlCache.clear();
 
     this.service.getCollectionLogo(this.schoolId).subscribe({
       next: (blob) => {
@@ -795,7 +801,6 @@ export class CollectionComponent implements OnInit, OnDestroy {
         next: folder => {
           this.folders = [...this.folders, folder as ExplorerFolder];
           this.setNavbarActions();
-          this.snack.open(this.t('collection.newFolder'), this.t('common.close'), { duration: 2500 });
         },
         error: err => this.showErrorSnack(err)
       });
@@ -1152,6 +1157,74 @@ export class CollectionComponent implements OnInit, OnDestroy {
   }
 
 
+  getRenderedPreviewTitle(item: ExplorerItem): SafeHtml {
+    const fallbackTitle = this.t('collection.untitled') || 'Unbenannt';
+    const title = item.title || fallbackTitle;
+    const cacheKey = `${item.type}-${item.id}-${title}`;
+    const cached = this.previewHtmlCache.get(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
+    const rendered = this.renderInlineMarkdownLatex(title);
+    this.previewHtmlCache.set(cacheKey, rendered);
+    return rendered;
+  }
+
+  private renderInlineMarkdownLatex(value: string): SafeHtml {
+    const latexParts: string[] = [];
+
+    const protectLatex = (expression: string, displayMode = false): string => {
+      const token = `@@LATEX_${latexParts.length}@@`;
+      latexParts.push(
+        katex.renderToString(expression.trim(), {
+          throwOnError: false,
+          displayMode,
+          strict: 'ignore',
+          trust: false
+        })
+      );
+      return token;
+    };
+
+    const escapedSource = this.escapeHtml(value)
+      .replace(/\$\$([\s\S]+?)\$\$/g, (_match, expr) => protectLatex(this.unescapeHtml(expr), true))
+      .replace(/\\\[([\s\S]+?)\\\]/g, (_match, expr) => protectLatex(this.unescapeHtml(expr), true))
+      .replace(/\\\(([\s\S]+?)\\\)/g, (_match, expr) => protectLatex(this.unescapeHtml(expr), false))
+      .replace(/\$([^$\n]+?)\$/g, (_match, expr) => protectLatex(this.unescapeHtml(expr), false));
+
+    let html = marked.parseInline(escapedSource, {
+      breaks: true,
+      gfm: true
+    }) as string;
+
+    latexParts.forEach((latexHtml, index) => {
+      html = html.replace(`@@LATEX_${index}@@`, latexHtml);
+    });
+
+    return this.sanitizer.bypassSecurityTrustHtml(html);
+  }
+
+  private escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  private unescapeHtml(value: string): string {
+    return value
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#039;/g, "'")
+      .replace(/&amp;/g, '&');
+  }
+
+
   getItemTags(item: ExplorerItem): string[] {
     if (item.type !== 'examples') {
       return [];
@@ -1348,7 +1421,11 @@ export class CollectionComponent implements OnInit, OnDestroy {
   }
 
   openItem(item: ExplorerItem): void {
-    this.editItem(item);
+    if (item.type === 'examples') {
+      this.openExample(item.raw as ExampleOverviewDTO);
+      return;
+    }
+    this.openTest(item.raw as TestOverviewDTO);
   }
 
   editItem(item: ExplorerItem): void {

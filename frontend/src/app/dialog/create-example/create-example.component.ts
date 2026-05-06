@@ -87,6 +87,12 @@ type VariableTarget =
   | { type: 'assignRight'; index: number }
   | null;
 
+type TextSelectionState = {
+  targetKey: string;
+  start: number;
+  end: number;
+};
+
 @Component({
   selector: 'app-create-example',
   standalone: true,
@@ -143,6 +149,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   isDraggingConstructionSolution = false;
 
   activeVariableTarget: VariableTarget = null;
+  private activeTextSelection: TextSelectionState | null = null;
   previewCollapsed = false;
   variablesCollapsed = true;
   editorCollapsed = true;
@@ -151,31 +158,31 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
   readonly editorToolbarGroups = [
     {
-      label: 'Start',
+      label: 'exampleDialog.editor.groups.start',
       items: [
-        { label: 'Fett', icon: 'format_bold', action: 'bold', insert: '**Text**' },
-        { label: 'Kursiv', icon: 'format_italic', action: 'italic', insert: '*Text*' },
-        { label: 'Durchstr.', icon: 'strikethrough_s', action: 'strike', insert: '~~Text~~' },
-        { label: 'Code', icon: 'code', action: 'inlineCode', insert: '`Text`' },
-        { label: 'Liste', icon: 'format_list_bulleted', action: 'bulletList', insert: '- Text' },
-        { label: 'Nr.', icon: 'format_list_numbered', action: 'numberedList', insert: '1. Text' },
-        { label: 'Zitat', icon: 'format_quote', action: 'quote', insert: '> Text' },
+        { label: 'exampleDialog.editor.commands.bold', icon: 'format_bold', action: 'bold', insert: '**Text**' },
+        { label: 'exampleDialog.editor.commands.italic', icon: 'format_italic', action: 'italic', insert: '*Text*' },
+        { label: 'exampleDialog.editor.commands.strike', icon: 'strikethrough_s', action: 'strike', insert: '~~Text~~' },
+        { label: 'exampleDialog.editor.commands.code', icon: 'code', action: 'inlineCode', insert: '`Text`' },
+        { label: 'exampleDialog.editor.commands.bulletList', icon: 'format_list_bulleted', action: 'bulletList', insert: '- Text' },
+        { label: 'exampleDialog.editor.commands.numberedList', icon: 'format_list_numbered', action: 'numberedList', insert: '1. Text' },
+        { label: 'exampleDialog.editor.commands.quote', icon: 'format_quote', action: 'quote', insert: '> Text' },
       ],
     },
     {
-      label: 'Formeln',
+      label: 'exampleDialog.editor.groups.formulas',
       items: [
-        { label: 'Inline', icon: 'functions', action: 'inlineFormula', insert: '$x$' },
-        { label: 'Block', icon: 'calculate', action: 'displayFormula', insert: '$$x$$' },
-        { label: 'Bruch', icon: 'functions', action: 'frac', insert: '$\\frac{a}{b}$' },
-        { label: 'Wurzel', icon: 'data_object', action: 'sqrt', insert: '$\\sqrt{x}$' },
-        { label: 'Potenz', icon: 'superscript', action: 'power', insert: '$x^2$' },
-        { label: 'Index', icon: 'subscript', action: 'index', insert: '$x_1$' },
-        { label: 'Einheit', icon: 'straighten', action: 'textUnit', insert: '$10\\,\\text{mm}$' },
+        { label: 'exampleDialog.editor.commands.inlineFormula', icon: 'functions', action: 'inlineFormula', insert: '$x$' },
+        { label: 'exampleDialog.editor.commands.displayFormula', icon: 'calculate', action: 'displayFormula', insert: '$$x$$' },
+        { label: 'exampleDialog.editor.commands.frac', icon: 'functions', action: 'frac', insert: '$\\frac{a}{b}$' },
+        { label: 'exampleDialog.editor.commands.sqrt', icon: 'data_object', action: 'sqrt', insert: '$\\sqrt{x}$' },
+        { label: 'exampleDialog.editor.commands.power', icon: 'superscript', action: 'power', insert: '$x^2$' },
+        { label: 'exampleDialog.editor.commands.index', icon: 'subscript', action: 'index', insert: '$x_1$' },
+        { label: 'exampleDialog.editor.commands.textUnit', icon: 'straighten', action: 'textUnit', insert: '$10\\,\\text{mm}$' },
       ],
     },
     {
-      label: 'Zeichen',
+      label: 'exampleDialog.editor.groups.symbols',
       items: [
         { label: '·', icon: 'close', action: 'cdot', insert: '$a\\cdot b$' },
         { label: '×', icon: 'close', action: 'times', insert: '$a\\times b$' },
@@ -187,13 +194,13 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       ],
     },
     {
-      label: 'Mehr',
+      label: 'exampleDialog.editor.groups.more',
       items: [
         { label: 'n√', icon: 'data_object', action: 'nthRoot', insert: '$\\sqrt[n]{x}$' },
-        { label: 'Summe', icon: 'functions', action: 'sum', insert: '$\\sum_{i=1}^{n} i$' },
-        { label: 'Integral', icon: 'functions', action: 'integral', insert: '$\\int_a^b f(x)\\,dx$' },
-        { label: 'Vektor', icon: 'arrow_forward', action: 'vector', insert: '$\\vec{a}$' },
-        { label: 'Gleichungen', icon: 'reorder', action: 'aligned', insert: '$$\\begin{aligned} a&=b+c \\ d&=e+f \\end{aligned}$$' },
+        { label: 'exampleDialog.editor.commands.sum', icon: 'functions', action: 'sum', insert: '$\\sum_{i=1}^{n} i$' },
+        { label: 'exampleDialog.editor.commands.integral', icon: 'functions', action: 'integral', insert: '$\\int_a^b f(x)\\,dx$' },
+        { label: 'exampleDialog.editor.commands.vector', icon: 'arrow_forward', action: 'vector', insert: '$\\vec{a}$' },
+        { label: 'exampleDialog.editor.commands.aligned', icon: 'reorder', action: 'aligned', insert: '$$\\begin{aligned} a&=b+c \\ d&=e+f \\end{aligned}$$' },
       ],
     },
   ] as ReadonlyArray<{ label: string; items: ReadonlyArray<EditorToolbarItem> }>;
@@ -346,7 +353,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
           },
           error: () => {
             this.isExampleLoading = false;
-            this.openTranslatedSnack('common.error');
+            this.openTranslatedSnack('dialog.backend.actionFailed');
           }
         });
     } else {
@@ -368,7 +375,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     return this.translate.instant(key, params);
   }
 
-  private openTranslatedSnack(messageKey: string, actionKey = 'common.ok', duration = 3000, params?: Record<string, unknown>): void {
+  openTranslatedSnack(messageKey: string, actionKey = 'common.ok', duration = 3000, params?: Record<string, unknown>): void {
     this.snackBar.open(this.t(messageKey, params), this.t(actionKey), { duration });
   }
 
@@ -393,8 +400,45 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     this.hasUnsavedChanges = true;
   }
 
-  setVariableTarget(target: VariableTarget): void {
+  setVariableTarget(target: VariableTarget, event?: Event): void {
     this.activeVariableTarget = target;
+    this.captureTextSelection(target, event);
+  }
+
+  rememberActiveCursor(event?: Event): void {
+    this.captureTextSelection(this.activeVariableTarget, event);
+  }
+
+  private captureTextSelection(target: VariableTarget, event?: Event): void {
+    if (!target) return;
+
+    const element = (event?.target ?? document.activeElement) as HTMLInputElement | HTMLTextAreaElement | null;
+    const isTextElement = !!element && (element.tagName === 'TEXTAREA' || element.tagName === 'INPUT');
+
+    if (!isTextElement) return;
+
+    this.activeTextSelection = {
+      targetKey: this.getVariableTargetKey(target),
+      start: element.selectionStart ?? 0,
+      end: element.selectionEnd ?? element.selectionStart ?? 0
+    };
+  }
+
+  private getVariableTargetKey(target: VariableTarget): string {
+    if (!target) return 'none';
+
+    switch (target.type) {
+      case 'instruction':
+      case 'question':
+      case 'solution':
+        return target.type;
+      case 'halfOpenAnswer':
+        return `${target.type}:${target.index}:${target.answerIndex}`;
+      case 'gapOption':
+        return `${target.type}:${target.gapIndex}:${target.optionIndex}`;
+      default:
+        return `${target.type}:${(target as { index: number }).index}`;
+    }
   }
 
   private normalizeVariableKey(key: string | null | undefined): string {
@@ -463,13 +507,13 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
         this.wrapSelectionOrInsert('`', '`', 'Text');
         break;
       case 'bulletList':
-        this.insertLineSnippet('- Text');
+        this.applyLinePrefixOrInsert('- ', 'Text');
         break;
       case 'numberedList':
-        this.insertLineSnippet('1. Text');
+        this.applyNumberedListOrInsert();
         break;
       case 'quote':
-        this.insertLineSnippet('> Text');
+        this.applyLinePrefixOrInsert('> ', 'Text');
         break;
       case 'inlineFormula':
         this.insertTextAtActiveTarget('$x$');
@@ -535,33 +579,122 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     this.insertTextAtActiveTarget(`\n${snippet}\n`);
   }
 
-  private wrapSelectionOrInsert(prefix: string, suffix: string, placeholder: string): void {
+  private applyLinePrefixOrInsert(prefix: string, placeholder: string): void {
+    const selection = this.getCurrentSelectionContext();
+
+    if (!selection) {
+      this.insertLineSnippet(`${prefix}${placeholder}`);
+      return;
+    }
+
+    const selectedText = selection.value.slice(selection.start, selection.end) || placeholder;
+    const lineText = selectedText
+      .split('\n')
+      .map(line => line.trim() ? `${prefix}${line}` : prefix.trimEnd())
+      .join('\n');
+
+    this.replaceSelectionContext(selection, lineText, selection.start + lineText.length, selection.start + lineText.length);
+  }
+
+  private applyNumberedListOrInsert(): void {
+    const selection = this.getCurrentSelectionContext();
+
+    if (!selection) {
+      this.insertLineSnippet('1. Text');
+      return;
+    }
+
+    const selectedText = selection.value.slice(selection.start, selection.end) || 'Text';
+    const lineText = selectedText
+      .split('\n')
+      .map((line, index) => `${index + 1}. ${line.trim() || 'Text'}`)
+      .join('\n');
+
+    this.replaceSelectionContext(selection, lineText, selection.start + lineText.length, selection.start + lineText.length);
+  }
+
+  private getCurrentSelectionContext(): {
+    element: HTMLInputElement | HTMLTextAreaElement | null;
+    target: VariableTarget;
+    value: string;
+    start: number;
+    end: number;
+  } | null {
     const activeElement = document.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
     const canUseCursor = !!activeElement && (activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'INPUT');
 
-    if (!canUseCursor) {
+    if (canUseCursor) {
+      return {
+        element: activeElement,
+        target: this.activeVariableTarget,
+        value: activeElement.value ?? '',
+        start: activeElement.selectionStart ?? 0,
+        end: activeElement.selectionEnd ?? activeElement.selectionStart ?? 0,
+      };
+    }
+
+    const target = this.activeVariableTarget;
+    if (!target || !this.activeTextSelection || this.activeTextSelection.targetKey !== this.getVariableTargetKey(target)) {
+      return null;
+    }
+
+    const value = this.getTargetText(target);
+    return {
+      element: null,
+      target,
+      value,
+      start: Math.min(this.activeTextSelection.start, value.length),
+      end: Math.min(this.activeTextSelection.end, value.length),
+    };
+  }
+
+  private replaceSelectionContext(
+    selection: {
+      element: HTMLInputElement | HTMLTextAreaElement | null;
+      target: VariableTarget;
+      value: string;
+      start: number;
+      end: number;
+    },
+    insertText: string,
+    nextStart: number,
+    nextEnd: number
+  ): void {
+    const nextValue = selection.value.slice(0, selection.start) + insertText + selection.value.slice(selection.end);
+
+    if (selection.element) {
+      selection.element.value = nextValue;
+      selection.element.dispatchEvent(new Event('input', { bubbles: true }));
+      requestAnimationFrame(() => {
+        selection.element?.focus();
+        selection.element?.setSelectionRange(nextStart, nextEnd);
+      });
+    } else if (selection.target) {
+      this.setTargetText(selection.target, nextValue);
+      this.activeTextSelection = {
+        targetKey: this.getVariableTargetKey(selection.target),
+        start: nextStart,
+        end: nextEnd
+      };
+    }
+
+    this.afterTextInsertion(selection.target);
+  }
+
+  private wrapSelectionOrInsert(prefix: string, suffix: string, placeholder: string): void {
+    const selection = this.getCurrentSelectionContext();
+
+    if (!selection) {
       this.insertTextAtActiveTarget(`${prefix}${placeholder}${suffix}`);
       return;
     }
 
-    const start = activeElement.selectionStart ?? 0;
-    const end = activeElement.selectionEnd ?? start;
-    const value = activeElement.value ?? '';
-    const selectedText = value.slice(start, end) || placeholder;
+    const selectedText = selection.value.slice(selection.start, selection.end) || placeholder;
     const insertText = `${prefix}${selectedText}${suffix}`;
-
-    activeElement.value = value.slice(0, start) + insertText + value.slice(end);
-    activeElement.dispatchEvent(new Event('input', { bubbles: true }));
-
-    const selectionStart = start + prefix.length;
+    const selectionStart = selection.start + prefix.length;
     const selectionEnd = selectionStart + selectedText.length;
-    requestAnimationFrame(() => {
-      activeElement.focus();
-      activeElement.setSelectionRange(selectionStart, selectionEnd);
-    });
 
-    this.syncVariablesFromContent();
-    this.markDirty();
+    this.replaceSelectionContext(selection, insertText, selectionStart, selectionEnd);
   }
 
   syncVariablesFromContent(): void {
@@ -624,174 +757,105 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   }
 
   private insertTextAtActiveTarget(insertText: string): void {
-    const activeElement = document.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
-    const canUseCursor = !!activeElement && (activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'INPUT');
+    const selection = this.getCurrentSelectionContext();
 
-    if (canUseCursor) {
-      const start = activeElement.selectionStart ?? 0;
-      const end = activeElement.selectionEnd ?? start;
-      const value = activeElement.value ?? '';
-
-      activeElement.value = value.slice(0, start) + insertText + value.slice(end);
-      activeElement.dispatchEvent(new Event('input', { bubbles: true }));
-
-      const nextCursor = start + insertText.length;
-      requestAnimationFrame(() => {
-        activeElement.focus();
-        activeElement.setSelectionRange(nextCursor, nextCursor);
-      });
-
-      this.syncVariablesFromContent();
-      this.markDirty();
+    if (selection) {
+      const nextCursor = selection.start + insertText.length;
+      this.replaceSelectionContext(selection, insertText, nextCursor, nextCursor);
       return;
     }
 
-    switch (this.activeVariableTarget?.type) {
-      case 'instruction':
-        this.example.instruction = this.appendInsertText(this.example.instruction, insertText);
-        break;
-      case 'question':
-        this.example.question = this.appendInsertText(this.example.question, insertText);
-        break;
-      case 'solution':
-        this.example.solution = this.appendInsertText(this.example.solution, insertText);
-        break;
-      case 'halfOpenAnswer': {
-        const row = this.example.answers?.[this.activeVariableTarget.index];
-        if (row) {
-          row[this.activeVariableTarget.answerIndex] = this.appendInsertText(row[this.activeVariableTarget.answerIndex], insertText);
-        }
-        break;
-      }
-      case 'option': {
-        const option = this.example.options?.[this.activeVariableTarget.index];
-        if (option) {
-          option.text = this.appendInsertText(option.text, insertText);
-        }
-        break;
-      }
-      case 'gapSolution': {
-        const gap = this.example.gaps?.[this.activeVariableTarget.index];
-        if (gap) {
-          gap.solution = this.appendInsertText(gap.solution, insertText);
-        }
-        break;
-      }
-      case 'gapOption': {
-        const option = this.example.gaps?.[this.activeVariableTarget.gapIndex]?.options?.[this.activeVariableTarget.optionIndex];
-        if (option) {
-          option.text = this.appendInsertText(option.text, insertText);
-        }
-        break;
-      }
-      case 'assignLeft': {
-        const assign = this.example.assigns?.[this.activeVariableTarget.index];
-        if (assign) {
-          assign.left = this.appendInsertText(assign.left, insertText);
-        }
-        break;
-      }
-      case 'assignRight': {
-        const right = this.example.assignRightItems?.[this.activeVariableTarget.index];
-        if (right != null) {
-          this.example.assignRightItems[this.activeVariableTarget.index] = this.appendInsertText(right, insertText);
-        }
-        break;
-      }
-      default:
-        this.example.question = this.appendInsertText(this.example.question, insertText);
-        break;
-    }
+    const target = this.activeVariableTarget ?? ({ type: 'question' } as VariableTarget);
 
-    this.syncVariablesFromContent();
-    this.markDirty();
+    if (target) {
+      this.setTargetText(target, this.appendInsertText(this.getTargetText(target), insertText));
+      this.afterTextInsertion(target);
+    }
   }
 
   insertVariableAtCursor(): void {
-    const variableText = this.getNextVariablePlaceholder();
-    const activeElement = document.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
-    const canUseCursor = !!activeElement && (activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'INPUT');
+    this.insertTextAtActiveTarget(this.getNextVariablePlaceholder());
+  }
 
-    if (canUseCursor) {
-      const start = activeElement.selectionStart ?? 0;
-      const end = activeElement.selectionEnd ?? start;
-      const value = activeElement.value ?? '';
-
-      activeElement.value = value.slice(0, start) + variableText + value.slice(end);
-      activeElement.dispatchEvent(new Event('input', { bubbles: true }));
-
-      const nextCursor = start + variableText.length;
-      requestAnimationFrame(() => {
-        activeElement.focus();
-        activeElement.setSelectionRange(nextCursor, nextCursor);
-      });
-
-      this.syncVariablesFromContent();
-      this.markDirty();
-      return;
-    }
-
-    switch (this.activeVariableTarget?.type) {
+  private getTargetText(target: VariableTarget): string {
+    switch (target?.type) {
       case 'instruction':
-        this.example.instruction = this.appendInsertText(this.example.instruction, variableText);
+        return this.example.instruction ?? '';
+      case 'question':
+        return this.example.question ?? '';
+      case 'solution':
+        return this.example.solution ?? '';
+      case 'halfOpenAnswer':
+        return this.example.answers?.[target.index]?.[target.answerIndex] ?? '';
+      case 'option':
+        return this.example.options?.[target.index]?.text ?? '';
+      case 'gapSolution':
+        return this.example.gaps?.[target.index]?.solution ?? '';
+      case 'gapOption':
+        return this.example.gaps?.[target.gapIndex]?.options?.[target.optionIndex]?.text ?? '';
+      case 'assignLeft':
+        return this.example.assigns?.[target.index]?.left ?? '';
+      case 'assignRight':
+        return this.example.assignRightItems?.[target.index] ?? '';
+      default:
+        return this.example.question ?? '';
+    }
+  }
+
+  private setTargetText(target: VariableTarget, value: string): void {
+    switch (target?.type) {
+      case 'instruction':
+        this.example.instruction = value;
         break;
       case 'question':
-        this.example.question = this.appendInsertText(this.example.question, variableText);
+        this.example.question = value;
         break;
       case 'solution':
-        this.example.solution = this.appendInsertText(this.example.solution, variableText);
+        this.example.solution = value;
         break;
       case 'halfOpenAnswer': {
-        const row = this.example.answers?.[this.activeVariableTarget.index];
-        if (row) {
-          row[this.activeVariableTarget.answerIndex] = this.appendInsertText(
-            row[this.activeVariableTarget.answerIndex],
-            variableText
-          );
-        }
+        const row = this.example.answers?.[target.index];
+        if (row) row[target.answerIndex] = value;
         break;
       }
       case 'option': {
-        const option = this.example.options?.[this.activeVariableTarget.index];
-        if (option) {
-          option.text = this.appendInsertText(option.text, variableText);
-        }
+        const option = this.example.options?.[target.index];
+        if (option) option.text = value;
         break;
       }
       case 'gapSolution': {
-        const gap = this.example.gaps?.[this.activeVariableTarget.index];
-        if (gap) {
-          gap.solution = this.appendInsertText(gap.solution, variableText);
-        }
+        const gap = this.example.gaps?.[target.index];
+        if (gap) gap.solution = value;
         break;
       }
       case 'gapOption': {
-        const option = this.example.gaps?.[this.activeVariableTarget.gapIndex]?.options?.[this.activeVariableTarget.optionIndex];
-        if (option) {
-          option.text = this.appendInsertText(option.text, variableText);
-        }
+        const option = this.example.gaps?.[target.gapIndex]?.options?.[target.optionIndex];
+        if (option) option.text = value;
         break;
       }
       case 'assignLeft': {
-        const assign = this.example.assigns?.[this.activeVariableTarget.index];
-        if (assign) {
-          assign.left = this.appendInsertText(assign.left, variableText);
-        }
+        const assign = this.example.assigns?.[target.index];
+        if (assign) assign.left = value;
         break;
       }
-      case 'assignRight': {
-        const right = this.example.assignRightItems?.[this.activeVariableTarget.index];
-        if (right != null) {
-          this.example.assignRightItems[this.activeVariableTarget.index] = this.appendInsertText(right, variableText);
+      case 'assignRight':
+        if (this.example.assignRightItems?.[target.index] != null) {
+          this.example.assignRightItems[target.index] = value;
         }
         break;
-      }
       default:
-        this.example.question = this.appendInsertText(this.example.question, variableText);
+        this.example.question = value;
         break;
     }
+  }
 
+  private afterTextInsertion(target: VariableTarget): void {
     this.syncVariablesFromContent();
+
+    if (target?.type === 'question' && this.example.type === ExampleTypes.GAP_FILL) {
+      this.updateGapsFromText();
+    }
+
     this.markDirty();
   }
 
