@@ -774,3 +774,25 @@ select{
   height: 92vh !important;
   max-height: 92vh !important;
 }
+
+/* Collection sort dropdown overlay */
+.sort-panel.mat-mdc-select-panel,
+.sort-panel .mat-mdc-select-panel {
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 14px !important;
+  background: #0f172a !important;
+  padding: 0.35rem !important;
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.35);
+}
+
+.sort-panel .mat-mdc-option {
+  min-height: 38px;
+  border-radius: 10px;
+  color: #e5edf7;
+  font-size: 0.88rem;
+}
+
+.sort-panel .mat-mdc-option:hover,
+.sort-panel .mat-mdc-option.mdc-list-item--selected {
+  background: rgba(59, 130, 246, 0.16) !important;
+}

@@ -1,5 +1,8 @@
 package at.repository;
 
+import at.dtos.Collection.CollectionDTO;
+import at.dtos.Example.ExampleOverviewDTO;
+import at.dtos.Test.TestOverviewDTO;
 import at.dtos.User.*;
 import at.enums.SubscriptionModel;
 import at.model.Collection;
@@ -21,9 +24,11 @@ import org.mindrot.jbcrypt.BCrypt;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.security.SecureRandom;
 
 @ApplicationScoped
 @Transactional
@@ -31,6 +36,8 @@ public class UserRepository {
     private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
     private static final long MAX_PROFILE_IMAGE_SIZE = 2L * 1024L * 1024L;
     private static final Set<String> SUPPORTED_LANGUAGES = Set.of("de", "en");
+    private static final SecureRandom CODE_RANDOM = new SecureRandom();
+    private static final ZoneId APP_ZONE = ZoneId.of("Europe/Vienna");
 
     @Inject
     EntityManager em;
@@ -94,11 +101,45 @@ public class UserRepository {
             return AuthResult.failure("INVALID_PASSWORD");
         }
 
-        if (findByUsername(username) != null) {
-            return AuthResult.failure("USERNAME_TAKEN");
+        User existingByUsername = findByUsername(username);
+        if (existingByUsername != null) {
+            if (existingByUsername.isEmailVerified()) {
+                return AuthResult.failure("USERNAME_TAKEN");
+            }
+
+            if (!BCrypt.checkpw(dto.password(), existingByUsername.getPassword())) {
+                return AuthResult.failure("USERNAME_TAKEN");
+            }
+
+            User existingByEmail = findByEmail(email);
+            if (existingByEmail != null && !existingByEmail.getId().equals(existingByUsername.getId())) {
+                return AuthResult.failure("EMAIL_TAKEN");
+            }
+
+            existingByUsername.setEmail(email);
+            existingByUsername.setEmailVerificationToken(generateSixDigitCode());
+            existingByUsername.setEmailVerificationExpiresAt(now().plusMinutes(15));
+            existingByUsername.setDarkMode(dto.darkMode());
+            existingByUsername.setLanguage(dto.language());
+
+            em.merge(existingByUsername);
+            mailService.sendRegistrationVerification(
+                    existingByUsername.getEmail(),
+                    existingByUsername.getEmailVerificationToken(),
+                    dto.language()
+            );
+
+            return new AuthResult(
+                    true,
+                    "EMAIL_CONFIRMATION_REQUIRED",
+                    "Please enter the 6-digit code we sent to your email address.",
+                    null,
+                    null
+            );
         }
 
-        if (findByEmail(email) != null) {
+        User existingByEmail = findByEmail(email);
+        if (existingByEmail != null) {
             return AuthResult.failure("EMAIL_TAKEN");
         }
 
@@ -107,8 +148,8 @@ public class UserRepository {
         User user = new User(username, email, hashed);
         user.setSubscriptionModel(SubscriptionModel.FREE);
         user.setEmailVerified(false);
-        user.setEmailVerificationToken(UUID.randomUUID().toString());
-        user.setEmailVerificationExpiresAt(LocalDateTime.now().plusHours(24));
+        user.setEmailVerificationToken(generateSixDigitCode());
+        user.setEmailVerificationExpiresAt(now().plusMinutes(15));
         user.setAllowInvitations(true);
         user.setDarkMode(dto.darkMode());
         user.setLanguage(dto.language());
@@ -119,7 +160,7 @@ public class UserRepository {
         return new AuthResult(
                 true,
                 "EMAIL_CONFIRMATION_REQUIRED",
-                "Please confirm your email address to complete registration.",
+                "Please enter the 6-digit code we sent to your email address.",
                 null,
                 null
         );
@@ -163,6 +204,42 @@ public class UserRepository {
         }
     }
 
+    public Response verifyRegistrationCode(String email, String code) {
+        if (email == null || email.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("EMAIL_REQUIRED").build();
+        }
+
+        if (code == null || !code.trim().matches("\\d{6}")) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("INVALID_CODE").build();
+        }
+
+        User user = findByEmail(email);
+        if (user == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("EMAIL_NOT_FOUND").build();
+        }
+
+        if (user.isEmailVerified()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("EMAIL_ALREADY_VERIFIED").build();
+        }
+
+        if (user.getEmailVerificationExpiresAt() == null
+                || user.getEmailVerificationExpiresAt().isBefore(now())) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("CODE_EXPIRED").build();
+        }
+
+        if (user.getEmailVerificationToken() == null
+                || !user.getEmailVerificationToken().equals(code.trim())) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("INVALID_CODE").build();
+        }
+
+        user.setEmailVerified(true);
+        user.setEmailVerificationToken(null);
+        user.setEmailVerificationExpiresAt(null);
+        em.merge(user);
+
+        return Response.ok().build();
+    }
+
     public Response verifyEmail(String token) {
         if (token == null || token.isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Token is required.").build();
@@ -174,7 +251,7 @@ public class UserRepository {
         }
 
         if (user.getEmailVerificationExpiresAt() == null
-                || user.getEmailVerificationExpiresAt().isBefore(LocalDateTime.now())) {
+                || user.getEmailVerificationExpiresAt().isBefore(now())) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Verification token expired.").build();
         }
 
@@ -205,8 +282,8 @@ public class UserRepository {
             return Response.status(Response.Status.BAD_REQUEST).entity("Email is already verified.").build();
         }
 
-        user.setEmailVerificationToken(UUID.randomUUID().toString());
-        user.setEmailVerificationExpiresAt(LocalDateTime.now().plusHours(24));
+        user.setEmailVerificationToken(generateSixDigitCode());
+        user.setEmailVerificationExpiresAt(now().plusMinutes(15));
         em.merge(user);
 
         mailService.sendRegistrationVerification(user.getEmail(), user.getEmailVerificationToken(), language);
@@ -292,7 +369,7 @@ public class UserRepository {
         }
 
         user.setPasswordResetToken(UUID.randomUUID().toString());
-        user.setPasswordResetExpiresAt(LocalDateTime.now().plusHours(2));
+        user.setPasswordResetExpiresAt(now().plusHours(2));
         em.merge(user);
 
         mailService.sendPasswordReset(user.getEmail(), user.getPasswordResetToken(), user.getLanguage());
@@ -308,7 +385,7 @@ public class UserRepository {
         if (user == null) return Response.status(Response.Status.BAD_REQUEST).entity("Invalid password reset token.").build();
 
         if (user.getPasswordResetExpiresAt() == null
-                || user.getPasswordResetExpiresAt().isBefore(LocalDateTime.now())) {
+                || user.getPasswordResetExpiresAt().isBefore(now())) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Password reset token expired.").build();
         }
 
@@ -366,7 +443,7 @@ public class UserRepository {
 
         user.setPendingEmail(normalized);
         user.setEmailVerificationToken(UUID.randomUUID().toString());
-        user.setEmailVerificationExpiresAt(LocalDateTime.now().plusHours(24));
+        user.setEmailVerificationExpiresAt(now().plusHours(24));
         em.merge(user);
 
         mailService.sendEmailChangeVerification(normalized, user.getEmailVerificationToken(), user.getLanguage());
@@ -479,7 +556,7 @@ public class UserRepository {
     }
 
     public Response getAdminDashboard() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = now();
 
         LocalDateTime oneHourAgo = now.minusHours(1);
         LocalDateTime oneDayAgo = now.minusDays(1);
@@ -561,15 +638,90 @@ public class UserRepository {
 
     public Response getUserAdminDashboard(UUID id) {
         User user = em.find(User.class, id);
-        if (user == null) return Response.status(Response.Status.NOT_FOUND).entity("User not found.").build();
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("User not found.")
+                    .build();
+        }
 
         List<Collection> collections = em.createQuery(
-                "SELECT s FROM Collection s WHERE s.admin.id = :userId",
-                Collection.class).setParameter("userId", id).getResultList();
+                """
+                SELECT DISTINCT c
+                FROM Collection c
+                LEFT JOIN FETCH c.users
+                WHERE c.admin.id = :userId
+                ORDER BY c.name
+                """,
+                Collection.class
+        ).setParameter("userId", id).getResultList();
+
+        List<CollectionDTO> collectionDTOs = collections.stream()
+                .map(collection -> {
+                    List<ExampleOverviewDTO> examples = em.createQuery(
+                                    """
+                                    SELECT DISTINCT e
+                                    FROM Example e
+                                    LEFT JOIN FETCH e.focusList
+                                    LEFT JOIN FETCH e.admin
+                                    LEFT JOIN FETCH e.folder
+                                    WHERE e.collection.id = :collectionId
+                                    ORDER BY e.createdAt DESC
+                                    """,
+                                    Example.class
+                            )
+                            .setParameter("collectionId", collection.getId())
+                            .getResultList()
+                            .stream()
+                            .map(e -> new ExampleOverviewDTO(
+                                    e.getId(),
+                                    e.getType(),
+                                    e.getInstruction(),
+                                    e.getQuestion(),
+                                    e.getAdmin() != null ? e.getAdmin().getUsername() : null,
+                                    e.getAdmin() != null ? e.getAdmin().getId() : null,
+                                    e.getFocusList() != null
+                                            ? new java.util.LinkedList<>(e.getFocusList())
+                                            : List.of(),
+                                    e.getFolder() != null ? e.getFolder().getId() : null,
+                                    e.getCreatedAt(),
+                                    e.getUpdatedAt()
+                            ))
+                            .toList();
+
+                    List<TestOverviewDTO> tests = em.createQuery(
+                                    """
+                                    SELECT DISTINCT t
+                                    FROM Test t
+                                    LEFT JOIN FETCH t.admin
+                                    LEFT JOIN FETCH t.folder
+                                    WHERE t.collection.id = :collectionId
+                                    ORDER BY t.createdAt DESC
+                                    """,
+                                    Test.class
+                            )
+                            .setParameter("collectionId", collection.getId())
+                            .getResultList()
+                            .stream()
+                            .map(t -> new TestOverviewDTO(
+                                    t.getId(),
+                                    t.getName(),
+                                    t.getExampleList() != null ? t.getExampleList().size() : 0,
+                                    t.getDuration(),
+                                    t.getAdmin() != null ? t.getAdmin().getUsername() : null,
+                                    t.getAdmin() != null ? t.getAdmin().getId() : null,
+                                    t.getCreatedAt(),
+                                    t.getUpdatedAt(),
+                                    t.getFolder() != null ? t.getFolder().getId() : null
+                            ))
+                            .toList();
+
+                    return collection.toDTOFull(examples, tests);
+                })
+                .toList();
 
         AdminUserDetailDTO dto = new AdminUserDetailDTO(
                 user.getId(),
-                collections.stream().map(Collection::toDTO).collect(java.util.stream.Collectors.toList())
+                collectionDTOs
         );
 
         return Response.ok(dto).build();
@@ -652,6 +804,14 @@ public class UserRepository {
                         user.isAllowInvitations()
                 )
         );
+    }
+
+    private LocalDateTime now() {
+        return LocalDateTime.now(APP_ZONE);
+    }
+
+    private String generateSixDigitCode() {
+        return String.valueOf(100000 + CODE_RANDOM.nextInt(900000));
     }
 
     private boolean isValidEmail(String email) {

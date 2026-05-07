@@ -5,11 +5,14 @@ import at.enums.SubscriptionModel;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 
 @Entity
 @Table(name = "app_user")
 public class User {
+
+    private static final ZoneId APP_ZONE = ZoneId.of("Europe/Vienna");
 
     @Id
     @GeneratedValue
@@ -84,7 +87,7 @@ public class User {
 
     @PrePersist
     public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = now();
         if (this.createdAt == null) {
             this.createdAt = now;
         }
@@ -93,7 +96,7 @@ public class User {
 
     @PreUpdate
     public void preUpdate() {
-        this.lastActivityAt = LocalDateTime.now();
+        this.lastActivityAt = now();
     }
 
     @Override
@@ -121,7 +124,11 @@ public class User {
     }
 
     public void newActivity(){
-        this.setLastActivityAt(LocalDateTime.now());
+        this.setLastActivityAt(now());
+    }
+
+    private static LocalDateTime now() {
+        return LocalDateTime.now(APP_ZONE);
     }
 
     public UUID getId() {

@@ -1,139 +1,147 @@
-<div class="picker-shell">
+<div class="picker-shell" [class.selected-view]="selectionViewMode === 'selected'" (click)="isSortMenuOpen = false; isTypeMenuOpen = false">
   <header class="picker-header">
-    <div>
-      <p class="picker-kicker">{{ 'collection.examples' | translate }}</p>
+    <div class="picker-title-block">
       <h2>{{ 'createTest.examplePicker.title' | translate }}</h2>
     </div>
 
-    <div class="picker-summary">
-      <strong>{{ selectedCount }}</strong>
-      <span>{{ 'createTest.examplePicker.selected' | translate }}</span>
+    <div class="toolbar-actions">
+      <div class="search-wrap outlined-control" [class.open]="isSearchOpen || search.trim()" (click)="$event.stopPropagation(); openSearch()" (focusout)="onSearchFocusOut($event)">
+        <button type="button" class="search-icon-btn" (click)="$event.stopPropagation(); openSearch()">
+          <mat-icon>search</mat-icon>
+        </button>
+        @if (isSearchOpen || search.trim()) {
+          <input
+            #searchInput
+            [(ngModel)]="search"
+            type="text"
+            (click)="$event.stopPropagation()"
+            (keydown.escape)="collapseSearch()"
+            [placeholder]="'createTest.examplePicker.searchPlaceholder' | translate" />
+          @if (search.trim()) {
+            <button type="button" class="search-clear-btn" (click)="$event.stopPropagation(); search = ''">
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+        }
+      </div>
+
+      <div class="filter-popup-wrap picker-dropdown" (click)="$event.stopPropagation()">
+        <button type="button" class="toolbar-pill-btn outlined-control" (click)="toggleTypeMenu()" [class.open]="isTypeMenuOpen">
+          <mat-icon>filter_list</mat-icon>
+          <span>{{ 'common.filter' | translate }}</span>
+          @if (activeFilterCount) {
+            <span class="filter-badge">{{ activeFilterCount }}</span>
+          }
+        </button>
+
+        @if (isTypeMenuOpen) {
+          <div class="filter-popup-panel type-menu">
+            <div class="filter-popup-title">{{ 'common.type' | translate }}</div>
+            @for (type of availableTypes; track type.value) {
+              <button type="button" class="filter-option type-option" [class.checked]="isTypeSelected(type.value)" (click)="toggleType(type.value)">
+                <span class="filter-checkbox" [class.checked]="isTypeSelected(type.value)"><mat-icon>check</mat-icon></span>
+                <mat-icon class="filter-option-icon">{{ getTypeIcon(type.value) }}</mat-icon>
+                <span>{{ type.label }}</span>
+              </button>
+            }
+
+            @if (availableFocuses.length) {
+              <div class="filter-popup-title with-gap">{{ 'collection.focuses' | translate }}</div>
+              @for (focus of availableFocuses; track focus) {
+                <button type="button" class="filter-option" [class.checked]="isFocusSelected(focus)" (click)="toggleFocus(focus)">
+                  <span class="filter-checkbox" [class.checked]="isFocusSelected(focus)"><mat-icon>check</mat-icon></span>
+                  <mat-icon class="filter-option-icon">sell</mat-icon>
+                  <span>{{ focus }}</span>
+                </button>
+              }
+            }
+
+            @if (availableAuthors.length) {
+              <div class="filter-popup-title with-gap">{{ 'collection.author' | translate }}</div>
+              @for (author of availableAuthors; track author) {
+                <button type="button" class="filter-option" [class.checked]="isAuthorSelected(author)" (click)="toggleAuthor(author)">
+                  <span class="filter-checkbox" [class.checked]="isAuthorSelected(author)"><mat-icon>check</mat-icon></span>
+                  <mat-icon class="filter-option-icon">person</mat-icon>
+                  <span>{{ author }}</span>
+                </button>
+              }
+            }
+
+            <div class="filter-popup-actions">
+              <button type="button" class="ghost-btn" (click)="resetFilters()">
+                <mat-icon>restart_alt</mat-icon>
+                {{ 'common.reset' | translate }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="sort-popup-wrap picker-sort" (click)="$event.stopPropagation()">
+        <button type="button" class="toolbar-pill-btn outlined-control" (click)="toggleSortMenu()" [class.open]="isSortMenuOpen">
+          <mat-icon>swap_vert</mat-icon>
+          <span>{{ getSortLabel(sortBy) }}</span>
+        </button>
+
+        @if (isSortMenuOpen) {
+          <div class="sort-popup-panel sort-menu">
+            @for (option of sortOptions; track option.value) {
+              <button type="button" class="sort-option" [class.checked]="sortBy === option.value" (click)="setSort(option.value)">
+                <span>{{ option.labelKey | translate }}</span>
+                <mat-icon>check</mat-icon>
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <mat-button-toggle-group class="selection-toggle" [hideSingleSelectionIndicator]="true" [value]="selectionViewMode">
+        <mat-button-toggle value="all" (click)="setSelectionViewMode('all')">
+          {{ 'createTest.examplePicker.allExamples' | translate }}
+        </mat-button-toggle>
+        <mat-button-toggle value="selected" (click)="setSelectionViewMode('selected')">
+          {{ 'createTest.examplePicker.selectedExamples' | translate }}
+        </mat-button-toggle>
+      </mat-button-toggle-group>
     </div>
   </header>
 
-  <label class="picker-search">
-    <mat-icon>search</mat-icon>
-    <input
-      [(ngModel)]="search"
-      type="text"
-      [placeholder]="'createTest.examplePicker.searchPlaceholder' | translate" />
-
-    @if (search.trim()) {
-      <button type="button" class="icon-clear" (click)="search = ''" [attr.aria-label]="'common.reset' | translate">
-        <mat-icon>close</mat-icon>
-      </button>
-    }
-  </label>
-
-  <section class="picker-toolbar">
-    <div class="filter-card type-filter-card">
-      <div class="filter-card-head">
-        <span>{{ 'common.type' | translate }}</span>
-        @if (selectedTypes.length) {
-          <button type="button" class="filter-reset" (click)="clearTypes()">{{ 'common.reset' | translate }}</button>
-        }
-      </div>
-
-      <div class="picker-filter-group compact">
-        <button
-          type="button"
-          class="picker-filter-chip"
-          [class.active]="selectedTypes.length === 0"
-          (click)="clearTypes()">
-          {{ 'createTest.examplePicker.allTypes' | translate }}
+  @if (activeFilterChips.length) {
+    <div class="chip-strip">
+      @for (chip of activeFilterChips; track chip.key) {
+        <button type="button" class="selected-chip" (click)="chip.action()">
+          <mat-icon class="chip-leading-icon">{{ chip.icon }}</mat-icon>
+          <span>{{ chip.label }}</span>
+          <mat-icon class="chip-close-icon">close</mat-icon>
         </button>
-
-        @for (type of availableTypes; track type.value) {
-          <button
-            type="button"
-            class="picker-filter-chip"
-            [class.active]="isTypeSelected(type.value)"
-            (click)="toggleType(type.value)">
-            {{ type.label }}
-          </button>
-        }
-      </div>
-    </div>
-
-    @if (availableFocuses.length) {
-      <div class="filter-card focus-filter-card">
-        <div class="filter-card-head">
-          <span>{{ 'collection.focuses' | translate }}</span>
-          @if (selectedFocuses.length) {
-            <button type="button" class="filter-reset" (click)="clearFocuses()">{{ 'common.reset' | translate }}</button>
-          }
-        </div>
-
-        <div class="picker-filter-group scrollable">
-          <button
-            type="button"
-            class="picker-filter-chip"
-            [class.active]="selectedFocuses.length === 0"
-            (click)="clearFocuses()">
-            {{ 'createTest.examplePicker.allFocuses' | translate }}
-          </button>
-
-          @for (focus of availableFocuses; track focus) {
-            <button
-              type="button"
-              class="picker-filter-chip"
-              [class.active]="isFocusSelected(focus)"
-              (click)="toggleFocus(focus)">
-              {{ focus }}
-            </button>
-          }
-        </div>
-      </div>
-    }
-
-    <div class="picker-sort" (click)="$event.stopPropagation()">
-      <button type="button" class="sort-trigger" (click)="toggleSortMenu()" [class.open]="isSortMenuOpen">
-        <span>{{ 'common.sort' | translate }}</span>
-        <strong>{{ getSortLabel(sortBy) }}</strong>
-        <mat-icon>expand_more</mat-icon>
-      </button>
-
-      @if (isSortMenuOpen) {
-        <div class="sort-menu">
-          @for (option of sortOptions; track option.value) {
-            <button
-              type="button"
-              class="sort-option"
-              [class.active]="sortBy === option.value"
-              (click)="setSort(option.value)">
-              <span>{{ option.labelKey | translate }}</span>
-              @if (sortBy === option.value) {
-                <mat-icon>check</mat-icon>
-              }
-            </button>
-          }
-        </div>
       }
     </div>
-  </section>
+  }
 
   <div class="picker-layout">
     <aside class="picker-sidebar">
-      <div class="picker-sidebar-head">
-        <div>
-          <div class="picker-sidebar-title">{{ 'collection.folders' | translate }}</div>
-          <p>{{ folderResultCountLabel }}</p>
-        </div>
-
-        @if (selectedFolderId !== null) {
-          <button type="button" class="small-clear" (click)="selectFolder(null)">{{ 'common.reset' | translate }}</button>
-        }
-      </div>
-
-      <label class="folder-search">
-        <mat-icon>search</mat-icon>
-        <input [(ngModel)]="folderSearch" type="text" [placeholder]="'collection.folderPickerSearch' | translate" />
-        @if (folderSearch.trim()) {
-          <button type="button" class="icon-clear" (click)="folderSearch = ''" [attr.aria-label]="'common.reset' | translate">
-            <mat-icon>close</mat-icon>
+      <div class="folder-head-row">
+        <div class="folder-current">{{ 'collection.folderShort' | translate }}</div>
+        <div class="folder-search-wrap outlined-control" [class.open]="isFolderSearchOpen || folderSearch.trim()" (click)="$event.stopPropagation(); openFolderSearch()" (focusout)="onFolderSearchFocusOut($event)">
+          <button type="button" class="search-icon-btn" (click)="$event.stopPropagation(); openFolderSearch()">
+            <mat-icon>search</mat-icon>
           </button>
-        }
-      </label>
+          @if (isFolderSearchOpen || folderSearch.trim()) {
+            <input
+              #folderSearchInput
+              [(ngModel)]="folderSearch"
+              type="text"
+              (click)="$event.stopPropagation()"
+              (keydown.escape)="collapseFolderSearch()"
+              [placeholder]="'collection.folderPickerSearch' | translate" />
+            @if (folderSearch.trim()) {
+              <button type="button" class="search-clear-btn" (click)="$event.stopPropagation(); folderSearch = ''" [attr.aria-label]="'common.reset' | translate">
+                <mat-icon>close</mat-icon>
+              </button>
+            }
+          }
+        </div>
+      </div>
 
       <div class="folder-list">
         <button
@@ -141,12 +149,14 @@
           class="folder-chip all-folders"
           [class.active]="selectedFolderId === null"
           (click)="selectFolder(null)">
-          <span class="folder-icon-wrap"><mat-icon>apps</mat-icon></span>
-          <span class="folder-chip-copy">
-            <span class="folder-chip-name">{{ 'createTest.examplePicker.allFolders' | translate }}</span>
-            <span class="folder-chip-path">{{ rootExampleCount }} {{ 'collection.items' | translate }}</span>
-          </span>
+          <span class="folder-icon-wrap"><mat-icon>inventory_2</mat-icon></span>
+          <span class="folder-chip-name">{{ 'createTest.examplePicker.allFolders' | translate }}</span>
+          <span class="folder-count">{{ rootExampleCount }}</span>
         </button>
+
+        @if (visibleFolderOptions.length) {
+          <div class="folder-divider" aria-hidden="true"></div>
+        }
 
         @for (folder of visibleFolderOptions; track folder.id) {
           <button
@@ -157,104 +167,76 @@
             (click)="selectFolder(folder.id)">
             <span class="folder-tree-line"></span>
             <span class="folder-icon-wrap"><mat-icon>folder</mat-icon></span>
-            <span class="folder-chip-copy">
-              <span class="folder-chip-name">{{ folder.name }}</span>
-              <span class="folder-chip-path">{{ folder.path }}</span>
-            </span>
+            <span class="folder-chip-name">{{ folder.name }}</span>
             <span class="folder-count">{{ folder.count }}</span>
           </button>
         } @empty {
-          <div class="folder-empty">
-            <mat-icon>folder_off</mat-icon>
-            <span>{{ 'createTest.examplePicker.noFoldersFound' | translate }}</span>
-          </div>
+          @if (folderSearch.trim()) {
+            <div class="folder-empty">
+              <mat-icon>folder_off</mat-icon>
+              <span>{{ 'createTest.examplePicker.noFoldersFound' | translate }}</span>
+            </div>
+          }
         }
       </div>
     </aside>
 
     <main class="picker-list-wrap">
-      @if (hasActiveFilters) {
-        <div class="active-filters">
-          @if (selectedFolderId !== null) {
-            <button type="button" class="active-filter" (click)="selectFolder(null)">
-              <span>{{ 'collection.folder' | translate }}: {{ getFolderPathLabel(selectedFolderId) }}</span>
-              <mat-icon>close</mat-icon>
-            </button>
-          }
-
-          @for (type of selectedTypes; track type) {
-            <button type="button" class="active-filter" (click)="toggleType(type)">
-              <span>{{ getTypeLabel(type) }}</span>
-              <mat-icon>close</mat-icon>
-            </button>
-          }
-
-          @for (focus of selectedFocuses; track focus) {
-            <button type="button" class="active-filter" (click)="toggleFocus(focus)">
-              <span>{{ focus }}</span>
-              <mat-icon>close</mat-icon>
-            </button>
-          }
-
-          @if (search.trim()) {
-            <button type="button" class="active-filter" (click)="search = ''">
-              <span>{{ 'createTest.examplePicker.search' | translate }}: {{ search.trim() }}</span>
-              <mat-icon>close</mat-icon>
-            </button>
-          }
-        </div>
-      }
-
       <div class="result-head">
-        <span>{{ filteredExamples.length }} {{ 'collection.examples' | translate }}</span>
+        <span>{{ displayedExamples.length }} {{ 'collection.examples' | translate }}</span>
       </div>
 
       <div class="picker-list">
-        @for (example of filteredExamples; track example.id) {
+        @for (example of displayedExamples; track example.id) {
           <article
             class="picker-row"
-            [class.selected]="isWorkingSelected(example.id)"
+            [class.selected]="isWorkingSelected(example.id) && !isAlreadySelected(example.id)"
+            [class.disabled]="isExampleDisabled(example.id)"
+            [class.already-added]="isAlreadySelected(example.id)"
+            [attr.aria-disabled]="isExampleDisabled(example.id)"
             (click)="toggleExampleRow(example.id)">
-            <mat-checkbox
-              [checked]="isWorkingSelected(example.id)"
-              (click)="$event.stopPropagation()"
-              (change)="toggleExample(example.id, $event.checked)">
-            </mat-checkbox>
+            <span class="example-type-icon">
+              <mat-icon>{{ getTypeIcon(example.type) }}</mat-icon>
+            </span>
 
             <div class="picker-row-copy">
-              <div class="picker-row-head">
-                <strong>{{ getExampleTitle(example) }}</strong>
-
-                <div class="picker-row-meta-right">
-                  <span class="type-badge">{{ getTypeLabel(example.type) }}</span>
-
-                  @if (isAlreadySelected(example.id) && isWorkingSelected(example.id)) {
-                    <span class="state-badge muted">{{ 'createTest.examplePicker.alreadyAdded' | translate }}</span>
-                  } @else if (isWorkingSelected(example.id)) {
-                    <span class="state-badge">{{ 'createTest.examplePicker.chosen' | translate }}</span>
-                  }
-                </div>
-              </div>
-
-              @if (example.question && example.instruction && example.question !== example.instruction) {
-                <p class="picker-row-text muted">{{ example.question }}</p>
-              }
-
-              <div class="picker-row-subline">
-                <span>{{ getExampleFolderPathLabel(example) }}</span>
-                @if (example.admin.username) {
-                  <span>· {{ example.admin.username }}</span>
+              <div class="picker-row-title">
+                <strong [attr.title]="getExampleTitleFull(example)">{{ getExampleTitle(example) }}</strong>
+                @if (isAlreadySelected(example.id)) {
+                  <span class="state-badge muted">{{ 'createTest.examplePicker.alreadyAdded' | translate }}</span>
                 }
               </div>
 
-              @if ((example.focusList).length) {
-                <div class="picker-focus-list">
-                  @for (focus of example.focusList; track focus.label) {
-                    <span class="focus-badge">{{ focus.label }}</span>
-                  }
-                </div>
+              @if (getExampleDescription(example)) {
+                <p class="picker-row-text" [attr.title]="getExampleDescriptionFull(example)">{{ getExampleDescription(example) }}</p>
+              }
+
+            </div>
+
+            <div class="example-meta-column">
+              <span><mat-icon>{{ getTypeIcon(example.type) }}</mat-icon>{{ getTypeLabel(example.type) }}</span>
+              @if (getExampleFolderPathLabel(example)) {
+                <span><mat-icon>folder</mat-icon>{{ getExampleFolderPathLabel(example) }}</span>
+              }
+              @if (example.admin.username) {
+                <span><mat-icon>person</mat-icon>{{ example.admin.username }}</span>
+              }
+              @if (getExampleTagsLabel(example)) {
+                <span><mat-icon>sell</mat-icon>{{ getExampleTagsLabel(example) }}</span>
               }
             </div>
+
+            @if (isAlreadySelected(example.id)) {
+              <span class="row-already" [attr.title]="'createTest.examplePicker.alreadyAdded' | translate">
+                <mat-icon>lock</mat-icon>
+              </span>
+            } @else {
+              <span class="row-check" [class.checked]="isWorkingSelected(example.id)">
+                @if (isWorkingSelected(example.id)) {
+                  <mat-icon>check</mat-icon>
+                }
+              </span>
+            }
           </article>
         } @empty {
           <div class="picker-empty">
@@ -268,6 +250,7 @@
   </div>
 
   <mat-dialog-actions align="end">
+    <span class="dialog-selection-count">{{ 'createTest.examplePicker.selectedExamplesCount' | translate:{ count: selectedCount } }}</span>
     <button mat-stroked-button type="button" (click)="close()">
       {{ 'common.cancel' | translate }}
     </button>

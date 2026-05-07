@@ -3,11 +3,7 @@ package at.model;
 import at.dtos.Example.GapDTO;
 import at.enums.ExampleTypes;
 import at.enums.GapFillType;
-import at.model.helper.Assign;
-import at.model.helper.ExampleVariable;
-import at.model.helper.Focus;
-import at.model.helper.Gap;
-import at.model.helper.Option;
+import at.model.helper.*;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -79,6 +75,9 @@ public class Example {
     @CollectionTable(name = "example_assign_right_items", joinColumns = @JoinColumn(name = "example_id"))
     @Column(name = "right_item")
     private List<String> assignRightItems = new ArrayList<>();
+
+    @Embedded
+    private ExampleDisplaySettings displaySettings = new ExampleDisplaySettings();
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -186,6 +185,14 @@ public class Example {
     public void setCollection(Collection collection) { this.collection = collection; }
     public Folder getFolder() { return folder; }
     public void setFolder(Folder folder) { this.folder = folder; }
+
+    public ExampleDisplaySettings getDisplaySettings() {
+        return displaySettings;
+    }
+
+    public void setDisplaySettings(ExampleDisplaySettings displaySettings) {
+        this.displaySettings = displaySettings;
+    }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;

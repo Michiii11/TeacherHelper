@@ -30,7 +30,7 @@ import {
   Focus,
   Gap,
   Option,
-  ExampleVariable
+  ExampleVariable, ExampleDisplaySettings
 } from '../../model/Example';
 import { HttpService } from '../../service/http.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
@@ -41,6 +41,47 @@ import { ExamplePreviewComponent } from '../example-preview/example-preview.comp
 import { ExampleFocusSelectorComponent } from './example-focus-selector/example-focus-selector.component';
 import { ConstructionImageCardComponent } from './construction-image-card/construction-image-card.component';
 
+type EditorToolbarAction =
+  | 'bold'
+  | 'italic'
+  | 'strike'
+  | 'inlineCode'
+  | 'bulletList'
+  | 'numberedList'
+  | 'inlineFormula'
+  | 'displayFormula'
+  | 'frac'
+  | 'sqrt'
+  | 'nthRoot'
+  | 'power'
+  | 'index'
+  | 'cdot'
+  | 'times'
+  | 'leq'
+  | 'geq'
+  | 'approx'
+  | 'degree'
+  | 'pi'
+  | 'textUnit'
+  | 'sum'
+  | 'integral'
+  | 'vector'
+  | 'aligned';
+
+type EditorToolbarItem = {
+  label: string;
+  icon: string;
+  action: EditorToolbarAction;
+  insert: string;
+  tooltip?: string;
+};
+
+export const defaultExampleDisplaySettings: ExampleDisplaySettings = {
+  showInstructionLabel: false,
+  showQuestionLabel: true,
+  showTaskImageLabel: true
+};
+
 type VariableTarget =
   | { type: 'instruction' | 'question' | 'solution' }
   | { type: 'halfOpenAnswer'; index: number; answerIndex: 0 | 1 }
@@ -50,6 +91,12 @@ type VariableTarget =
   | { type: 'assignLeft'; index: number }
   | { type: 'assignRight'; index: number }
   | null;
+
+type TextSelectionState = {
+  targetKey: string;
+  start: number;
+  end: number;
+};
 
 @Component({
   selector: 'app-create-example',
@@ -107,6 +154,65 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   isDraggingConstructionSolution = false;
 
   activeVariableTarget: VariableTarget = null;
+  private activeTextSelection: TextSelectionState | null = null;
+  previewCollapsed = false;
+  variablesCollapsed = true;
+  editorCollapsed = true;
+  displaySettingsCollapsed = true;
+  activeEditorToolbarGroupIndex = 0;
+  tagsCollapsed = true;
+
+  readonly editorToolbarGroups = [
+    {
+      label: 'exampleDialog.editor.groups.start',
+      items: [
+        { label: 'exampleDialog.editor.commands.bold', icon: 'format_bold', action: 'bold', insert: '**Text**' },
+        { label: 'exampleDialog.editor.commands.italic', icon: 'format_italic', action: 'italic', insert: '*Text*' },
+        { label: 'exampleDialog.editor.commands.strike', icon: 'strikethrough_s', action: 'strike', insert: '~~Text~~' },
+        { label: 'exampleDialog.editor.commands.code', icon: 'code', action: 'inlineCode', insert: '`Text`' },
+        { label: 'exampleDialog.editor.commands.bulletList', icon: 'format_list_bulleted', action: 'bulletList', insert: '- Text' },
+        { label: 'exampleDialog.editor.commands.numberedList', icon: 'format_list_numbered', action: 'numberedList', insert: '1. Text' },
+      ],
+    },
+    {
+      label: 'exampleDialog.editor.groups.formulas',
+      items: [
+        { label: 'exampleDialog.editor.commands.inlineFormula', icon: 'functions', action: 'inlineFormula', insert: '$x$' },
+        { label: 'exampleDialog.editor.commands.displayFormula', icon: 'calculate', action: 'displayFormula', insert: '$$x$$' },
+        { label: 'exampleDialog.editor.commands.frac', icon: 'functions', action: 'frac', insert: '$\\frac{a}{b}$' },
+        { label: 'exampleDialog.editor.commands.sqrt', icon: 'data_object', action: 'sqrt', insert: '$\\sqrt{x}$' },
+        { label: 'exampleDialog.editor.commands.power', icon: 'superscript', action: 'power', insert: '$x^2$' },
+        { label: 'exampleDialog.editor.commands.index', icon: 'subscript', action: 'index', insert: '$x_1$' },
+        { label: 'exampleDialog.editor.commands.textUnit', icon: 'straighten', action: 'textUnit', insert: '$10\\,\\text{mm}$' },
+      ],
+    },
+    {
+      label: 'exampleDialog.editor.groups.symbols',
+      items: [
+        { label: '·', icon: 'close', action: 'cdot', insert: '$a\\cdot b$' },
+        { label: '×', icon: 'close', action: 'times', insert: '$a\\times b$' },
+        { label: '≤', icon: 'keyboard_double_arrow_left', action: 'leq', insert: '$a\\le b$' },
+        { label: '≥', icon: 'keyboard_double_arrow_right', action: 'geq', insert: '$a\\ge b$' },
+        { label: '≈', icon: 'waves', action: 'approx', insert: '$a\\approx b$' },
+        { label: '°', icon: 'radio_button_unchecked', action: 'degree', insert: '$90^\\circ$' },
+        { label: 'π', icon: 'blur_circular', action: 'pi', insert: '$\\pi$' },
+      ],
+    },
+    {
+      label: 'exampleDialog.editor.groups.more',
+      items: [
+        { label: 'n√', icon: 'data_object', action: 'nthRoot', insert: '$\\sqrt[n]{x}$' },
+        { label: 'exampleDialog.editor.commands.sum', icon: 'functions', action: 'sum', insert: '$\\sum_{i=1}^{n} i$' },
+        { label: 'exampleDialog.editor.commands.integral', icon: 'functions', action: 'integral', insert: '$\\int_a^b f(x)\\,dx$' },
+        { label: 'exampleDialog.editor.commands.vector', icon: 'arrow_forward', action: 'vector', insert: '$\\vec{a}$' },
+        { label: 'exampleDialog.editor.commands.aligned', icon: 'reorder', action: 'aligned', insert: '$$\\begin{aligned} a&=b+c \\ d&=e+f \\end{aligned}$$' },
+      ],
+    },
+  ] as ReadonlyArray<{ label: string; items: ReadonlyArray<EditorToolbarItem> }>;
+
+  get activeEditorToolbarItems(): ReadonlyArray<EditorToolbarItem> {
+    return this.editorToolbarGroups[this.activeEditorToolbarGroupIndex]?.items ?? [];
+  }
 
   example: CreateExampleDTO = {
     collectionId: this.data.schoolId,
@@ -126,7 +232,8 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     variables: [],
     imageWidth: this.defaultImageWidth,
     solutionImageWidth: this.defaultImageWidth,
-    folderId: this.data.folderId
+    folderId: this.data.folderId,
+    displaySettings: defaultExampleDisplaySettings
   };
 
   readonly ExampleTypes = ExampleTypes;
@@ -227,7 +334,11 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
               ...response,
               imageWidth: response.imageWidth ?? this.defaultImageWidth,
               solutionImageWidth: response.solutionImageWidth ?? this.defaultImageWidth,
-              variables: response.variables ?? []
+              variables: response.variables ?? [],
+              displaySettings: {
+                ...defaultExampleDisplaySettings,
+                ...(response.displaySettings ?? {})
+              }
             };
             this.isEditMode = true;
 
@@ -252,7 +363,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
           },
           error: () => {
             this.isExampleLoading = false;
-            this.openTranslatedSnack('common.error');
+            this.openTranslatedSnack('dialog.backend.actionFailed');
           }
         });
     } else {
@@ -274,7 +385,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     return this.translate.instant(key, params);
   }
 
-  private openTranslatedSnack(messageKey: string, actionKey = 'common.ok', duration = 3000, params?: Record<string, unknown>): void {
+  openTranslatedSnack(messageKey: string, actionKey = 'common.ok', duration = 3000, params?: Record<string, unknown>): void {
     this.snackBar.open(this.t(messageKey, params), this.t(actionKey), { duration });
   }
 
@@ -299,8 +410,45 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     this.hasUnsavedChanges = true;
   }
 
-  setVariableTarget(target: VariableTarget): void {
+  setVariableTarget(target: VariableTarget, event?: Event): void {
     this.activeVariableTarget = target;
+    this.captureTextSelection(target, event);
+  }
+
+  rememberActiveCursor(event?: Event): void {
+    this.captureTextSelection(this.activeVariableTarget, event);
+  }
+
+  private captureTextSelection(target: VariableTarget, event?: Event): void {
+    if (!target) return;
+
+    const element = (event?.target ?? document.activeElement) as HTMLInputElement | HTMLTextAreaElement | null;
+    const isTextElement = !!element && (element.tagName === 'TEXTAREA' || element.tagName === 'INPUT');
+
+    if (!isTextElement) return;
+
+    this.activeTextSelection = {
+      targetKey: this.getVariableTargetKey(target),
+      start: element.selectionStart ?? 0,
+      end: element.selectionEnd ?? element.selectionStart ?? 0
+    };
+  }
+
+  private getVariableTargetKey(target: VariableTarget): string {
+    if (!target) return 'none';
+
+    switch (target.type) {
+      case 'instruction':
+      case 'question':
+      case 'solution':
+        return target.type;
+      case 'halfOpenAnswer':
+        return `${target.type}:${target.index}:${target.answerIndex}`;
+      case 'gapOption':
+        return `${target.type}:${target.gapIndex}:${target.optionIndex}`;
+      default:
+        return `${target.type}:${(target as { index: number }).index}`;
+    }
   }
 
   private normalizeVariableKey(key: string | null | undefined): string {
@@ -326,6 +474,236 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     return parts.filter(Boolean);
   }
 
+
+  private stripLatexForVariableScan(value: string | null | undefined): string {
+    return String(value ?? '').replace(/\$\$[\s\S]*?\$\$|\$[^$\n]*?\$/g, ' ');
+  }
+
+  private replaceVariablesOutsideLatex(value: string | null | undefined): string {
+    const source = String(value ?? '');
+    const mathPattern = /\$\$[\s\S]*?\$\$|\$[^$\n]*?\$/g;
+    let cursor = 0;
+    let result = '';
+    let match: RegExpExecArray | null;
+
+    const replaceVariables = (text: string): string => text.replace(this.variablePattern, (_match, key: string) => {
+      const variable = (this.example.variables ?? []).find(entry => entry.key === key.trim());
+      return variable?.defaultValue ?? '';
+    });
+
+    while ((match = mathPattern.exec(source)) !== null) {
+      result += replaceVariables(source.slice(cursor, match.index));
+      result += match[0];
+      cursor = match.index + match[0].length;
+    }
+
+    result += replaceVariables(source.slice(cursor));
+    return result;
+  }
+
+
+  runEditorToolbarAction(action: EditorToolbarAction): void {
+    switch (action) {
+      case 'bold':
+        this.wrapSelectionOrInsert('**', '**', 'Text');
+        break;
+      case 'italic':
+        this.wrapSelectionOrInsert('*', '*', 'Text');
+        break;
+      case 'strike':
+        this.wrapSelectionOrInsert('~~', '~~', 'Text');
+        break;
+      case 'inlineCode':
+        this.wrapSelectionOrInsert('`', '`', 'Text');
+        break;
+      case 'bulletList':
+        this.applyLinePrefixOrInsert('- ', 'Text');
+        break;
+      case 'numberedList':
+        this.applyNumberedListOrInsert();
+        break;
+      case 'inlineFormula':
+        this.insertTextAtActiveTarget('$x$');
+        break;
+      case 'displayFormula':
+        this.insertLineSnippet('$$\n\\frac{a}{b}\n$$');
+        break;
+      case 'frac':
+        this.insertTextAtActiveTarget('$\\frac{a}{b}$');
+        break;
+      case 'sqrt':
+        this.insertTextAtActiveTarget('$\\sqrt{x}$');
+        break;
+      case 'nthRoot':
+        this.insertTextAtActiveTarget('$\\sqrt[n]{x}$');
+        break;
+      case 'power':
+        this.insertTextAtActiveTarget('$x^2$');
+        break;
+      case 'index':
+        this.insertTextAtActiveTarget('$x_1$');
+        break;
+      case 'cdot':
+        this.insertTextAtActiveTarget('$a\\cdot b$');
+        break;
+      case 'times':
+        this.insertTextAtActiveTarget('$a\\times b$');
+        break;
+      case 'leq':
+        this.insertTextAtActiveTarget('$a\\le b$');
+        break;
+      case 'geq':
+        this.insertTextAtActiveTarget('$a\\ge b$');
+        break;
+      case 'approx':
+        this.insertTextAtActiveTarget('$a\\approx b$');
+        break;
+      case 'degree':
+        this.insertTextAtActiveTarget('$90^\\circ$');
+        break;
+      case 'pi':
+        this.insertTextAtActiveTarget('$\\pi$');
+        break;
+      case 'textUnit':
+        this.insertTextAtActiveTarget('$10\\,\\text{mm}$');
+        break;
+      case 'sum':
+        this.insertTextAtActiveTarget('$\\sum_{i=1}^{n} i$');
+        break;
+      case 'integral':
+        this.insertTextAtActiveTarget('$\\int_a^b f(x)\\,dx$');
+        break;
+      case 'vector':
+        this.insertTextAtActiveTarget('$\\vec{a}$');
+        break;
+      case 'aligned':
+        this.insertLineSnippet('$$\n\\begin{aligned}\na&=b+c \\\\nd&=e+f\n\\end{aligned}\n$$');
+        break;
+    }
+  }
+
+  private insertLineSnippet(snippet: string): void {
+    this.insertTextAtActiveTarget(`\n${snippet}\n`);
+  }
+
+  private applyLinePrefixOrInsert(prefix: string, placeholder: string): void {
+    const selection = this.getCurrentSelectionContext();
+
+    if (!selection) {
+      this.insertLineSnippet(`${prefix}${placeholder}`);
+      return;
+    }
+
+    const selectedText = selection.value.slice(selection.start, selection.end) || placeholder;
+    const lineText = selectedText
+      .split('\n')
+      .map(line => line.trim() ? `${prefix}${line}` : prefix.trimEnd())
+      .join('\n');
+
+    this.replaceSelectionContext(selection, lineText, selection.start + lineText.length, selection.start + lineText.length);
+  }
+
+  private applyNumberedListOrInsert(): void {
+    const selection = this.getCurrentSelectionContext();
+
+    if (!selection) {
+      this.insertLineSnippet('1. Text');
+      return;
+    }
+
+    const selectedText = selection.value.slice(selection.start, selection.end) || 'Text';
+    const lineText = selectedText
+      .split('\n')
+      .map((line, index) => `${index + 1}. ${line.trim() || 'Text'}`)
+      .join('\n');
+
+    this.replaceSelectionContext(selection, lineText, selection.start + lineText.length, selection.start + lineText.length);
+  }
+
+  private getCurrentSelectionContext(): {
+    element: HTMLInputElement | HTMLTextAreaElement | null;
+    target: VariableTarget;
+    value: string;
+    start: number;
+    end: number;
+  } | null {
+    const activeElement = document.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
+    const canUseCursor = !!activeElement && (activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'INPUT');
+
+    if (canUseCursor) {
+      return {
+        element: activeElement,
+        target: this.activeVariableTarget,
+        value: activeElement.value ?? '',
+        start: activeElement.selectionStart ?? 0,
+        end: activeElement.selectionEnd ?? activeElement.selectionStart ?? 0,
+      };
+    }
+
+    const target = this.activeVariableTarget;
+    if (!target || !this.activeTextSelection || this.activeTextSelection.targetKey !== this.getVariableTargetKey(target)) {
+      return null;
+    }
+
+    const value = this.getTargetText(target);
+    return {
+      element: null,
+      target,
+      value,
+      start: Math.min(this.activeTextSelection.start, value.length),
+      end: Math.min(this.activeTextSelection.end, value.length),
+    };
+  }
+
+  private replaceSelectionContext(
+    selection: {
+      element: HTMLInputElement | HTMLTextAreaElement | null;
+      target: VariableTarget;
+      value: string;
+      start: number;
+      end: number;
+    },
+    insertText: string,
+    nextStart: number,
+    nextEnd: number
+  ): void {
+    const nextValue = selection.value.slice(0, selection.start) + insertText + selection.value.slice(selection.end);
+
+    if (selection.element) {
+      selection.element.value = nextValue;
+      selection.element.dispatchEvent(new Event('input', { bubbles: true }));
+      requestAnimationFrame(() => {
+        selection.element?.focus();
+        selection.element?.setSelectionRange(nextStart, nextEnd);
+      });
+    } else if (selection.target) {
+      this.setTargetText(selection.target, nextValue);
+      this.activeTextSelection = {
+        targetKey: this.getVariableTargetKey(selection.target),
+        start: nextStart,
+        end: nextEnd
+      };
+    }
+
+    this.afterTextInsertion(selection.target);
+  }
+
+  private wrapSelectionOrInsert(prefix: string, suffix: string, placeholder: string): void {
+    const selection = this.getCurrentSelectionContext();
+
+    if (!selection) {
+      this.insertTextAtActiveTarget(`${prefix}${placeholder}${suffix}`);
+      return;
+    }
+
+    const selectedText = selection.value.slice(selection.start, selection.end) || placeholder;
+    const insertText = `${prefix}${selectedText}${suffix}`;
+    const selectionStart = selection.start + prefix.length;
+    const selectionEnd = selectionStart + selectedText.length;
+
+    this.replaceSelectionContext(selection, insertText, selectionStart, selectionEnd);
+  }
+
   syncVariablesFromContent(): void {
     const previousMap = new Map(
       (this.example.variables ?? []).map(variable => [this.normalizeVariableKey(variable.key), variable])
@@ -334,7 +712,9 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     const keysInOrder: string[] = [];
 
     for (const sourceText of this.getVariableSourceTexts()) {
-      for (const match of sourceText.matchAll(this.variablePattern)) {
+      const sourceTextWithoutLatex = this.stripLatexForVariableScan(sourceText);
+
+      for (const match of sourceTextWithoutLatex.matchAll(this.variablePattern)) {
         const normalizedKey = this.normalizeVariableKey(match[1]);
         if (!normalizedKey || keysInOrder.includes(normalizedKey)) {
           continue;
@@ -374,91 +754,115 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     return `${value ?? ''}${insertText}`;
   }
 
-  insertVariableAtCursor(): void {
-    const variableText = this.getNextVariablePlaceholder();
-    const activeElement = document.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
-    const canUseCursor = !!activeElement && (activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'INPUT');
 
-    if (canUseCursor) {
-      const start = activeElement.selectionStart ?? 0;
-      const end = activeElement.selectionEnd ?? start;
-      const value = activeElement.value ?? '';
-
-      activeElement.value = value.slice(0, start) + variableText + value.slice(end);
-      activeElement.dispatchEvent(new Event('input', { bubbles: true }));
-
-      const nextCursor = start + variableText.length;
-      requestAnimationFrame(() => {
-        activeElement.focus();
-        activeElement.setSelectionRange(nextCursor, nextCursor);
-      });
-
-      this.syncVariablesFromContent();
-      this.markDirty();
+  insertExistingVariableAtCursor(variableKey: string): void {
+    if (!variableKey) {
       return;
     }
 
-    switch (this.activeVariableTarget?.type) {
+    this.insertTextAtActiveTarget(`{${variableKey}}`);
+  }
+
+  private insertTextAtActiveTarget(insertText: string): void {
+    const selection = this.getCurrentSelectionContext();
+
+    if (selection) {
+      const nextCursor = selection.start + insertText.length;
+      this.replaceSelectionContext(selection, insertText, nextCursor, nextCursor);
+      return;
+    }
+
+    const target = this.activeVariableTarget ?? ({ type: 'question' } as VariableTarget);
+
+    if (target) {
+      this.setTargetText(target, this.appendInsertText(this.getTargetText(target), insertText));
+      this.afterTextInsertion(target);
+    }
+  }
+
+  insertVariableAtCursor(): void {
+    this.insertTextAtActiveTarget(this.getNextVariablePlaceholder());
+  }
+
+  private getTargetText(target: VariableTarget): string {
+    switch (target?.type) {
       case 'instruction':
-        this.example.instruction = this.appendInsertText(this.example.instruction, variableText);
+        return this.example.instruction ?? '';
+      case 'question':
+        return this.example.question ?? '';
+      case 'solution':
+        return this.example.solution ?? '';
+      case 'halfOpenAnswer':
+        return this.example.answers?.[target.index]?.[target.answerIndex] ?? '';
+      case 'option':
+        return this.example.options?.[target.index]?.text ?? '';
+      case 'gapSolution':
+        return this.example.gaps?.[target.index]?.solution ?? '';
+      case 'gapOption':
+        return this.example.gaps?.[target.gapIndex]?.options?.[target.optionIndex]?.text ?? '';
+      case 'assignLeft':
+        return this.example.assigns?.[target.index]?.left ?? '';
+      case 'assignRight':
+        return this.example.assignRightItems?.[target.index] ?? '';
+      default:
+        return this.example.question ?? '';
+    }
+  }
+
+  private setTargetText(target: VariableTarget, value: string): void {
+    switch (target?.type) {
+      case 'instruction':
+        this.example.instruction = value;
         break;
       case 'question':
-        this.example.question = this.appendInsertText(this.example.question, variableText);
+        this.example.question = value;
         break;
       case 'solution':
-        this.example.solution = this.appendInsertText(this.example.solution, variableText);
+        this.example.solution = value;
         break;
       case 'halfOpenAnswer': {
-        const row = this.example.answers?.[this.activeVariableTarget.index];
-        if (row) {
-          row[this.activeVariableTarget.answerIndex] = this.appendInsertText(
-            row[this.activeVariableTarget.answerIndex],
-            variableText
-          );
-        }
+        const row = this.example.answers?.[target.index];
+        if (row) row[target.answerIndex] = value;
         break;
       }
       case 'option': {
-        const option = this.example.options?.[this.activeVariableTarget.index];
-        if (option) {
-          option.text = this.appendInsertText(option.text, variableText);
-        }
+        const option = this.example.options?.[target.index];
+        if (option) option.text = value;
         break;
       }
       case 'gapSolution': {
-        const gap = this.example.gaps?.[this.activeVariableTarget.index];
-        if (gap) {
-          gap.solution = this.appendInsertText(gap.solution, variableText);
-        }
+        const gap = this.example.gaps?.[target.index];
+        if (gap) gap.solution = value;
         break;
       }
       case 'gapOption': {
-        const option = this.example.gaps?.[this.activeVariableTarget.gapIndex]?.options?.[this.activeVariableTarget.optionIndex];
-        if (option) {
-          option.text = this.appendInsertText(option.text, variableText);
-        }
+        const option = this.example.gaps?.[target.gapIndex]?.options?.[target.optionIndex];
+        if (option) option.text = value;
         break;
       }
       case 'assignLeft': {
-        const assign = this.example.assigns?.[this.activeVariableTarget.index];
-        if (assign) {
-          assign.left = this.appendInsertText(assign.left, variableText);
-        }
+        const assign = this.example.assigns?.[target.index];
+        if (assign) assign.left = value;
         break;
       }
-      case 'assignRight': {
-        const right = this.example.assignRightItems?.[this.activeVariableTarget.index];
-        if (right != null) {
-          this.example.assignRightItems[this.activeVariableTarget.index] = this.appendInsertText(right, variableText);
+      case 'assignRight':
+        if (this.example.assignRightItems?.[target.index] != null) {
+          this.example.assignRightItems[target.index] = value;
         }
         break;
-      }
       default:
-        this.example.question = this.appendInsertText(this.example.question, variableText);
+        this.example.question = value;
         break;
     }
+  }
 
+  private afterTextInsertion(target: VariableTarget): void {
     this.syncVariablesFromContent();
+
+    if (target?.type === 'question' && this.example.type === ExampleTypes.GAP_FILL) {
+      this.updateGapsFromText();
+    }
+
     this.markDirty();
   }
 
@@ -511,10 +915,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   }
 
   getResolvedTextWithDefaults(value: string | null | undefined): string {
-    return (value ?? '').replace(this.variablePattern, (_match, key: string) => {
-      const variable = (this.example.variables ?? []).find(entry => entry.key === key.trim());
-      return variable?.defaultValue ?? '';
-    });
+    return this.replaceVariablesOutsideLatex(value);
   }
 
   addOption(): void {
@@ -936,7 +1337,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   async saveExample(): Promise<void> {
     this.syncVariablesFromContent();
 
-    if (!this.example.instruction.trim() || !this.example.question.trim()) {
+    if (!this.example.instruction.trim()) {
       this.openTranslatedSnack('exampleDialog.snackbar.fillInstructionAndQuestion');
       return;
     }

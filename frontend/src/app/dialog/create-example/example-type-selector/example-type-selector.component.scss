@@ -11,25 +11,30 @@
   grid-template-columns: repeat(6, minmax(150px, 1fr));
   gap: .25rem;
   padding-top: .25rem;
+  align-items: stretch;
 }
 
 .example-type-toggle {
   width: 100%;
   min-height: 104px;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border: 1px solid rgba(15, 23, 42, 0.1);
   border-radius: 18px;
   background: var(--bg-soft);
   text-align: left;
   cursor: pointer;
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  display: grid;
+  grid-template-rows: 28px 1fr;
+  gap: .5rem;
 }
 
-.example-type-toggle:hover, {
+.example-type-toggle:hover {
   border-color: var(--border);
   transform: translateY(-1px);
 }
-.example-type-toggle.active{
+
+.example-type-toggle.active {
   border-color: var(--primary-strong);
   transform: translateY(-1px);
 }
@@ -37,23 +42,30 @@
 .type-card-head {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: .45rem;
+  min-height: 28px;
 }
 
 .type-title {
   margin: 0;
   font-size: 15px;
   font-weight: 700;
+  line-height: 1;
   white-space: nowrap;
 }
 
 .type-icon {
   color: #3f51b5;
   flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  line-height: 20px;
 }
 
 .type-description {
-  margin: 10px 0 0;
+  margin: 0;
   color: #64748b;
   font-size: 13px;
   line-height: 1.35;

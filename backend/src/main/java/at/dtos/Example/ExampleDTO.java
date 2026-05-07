@@ -6,6 +6,7 @@ import at.dtos.User.UserDTO;
 import at.enums.ExampleTypes;
 import at.enums.GapFillType;
 import at.model.helper.Assign;
+import at.model.helper.ExampleDisplaySettings;
 import at.model.helper.Focus;
 import at.model.helper.Option;
 
@@ -32,6 +33,7 @@ public record ExampleDTO(
         GapFillType gapFillType,
         List<GapDTO> gaps,
         List<Assign> assigns,
-        List<String> assignRightItems
+        List<String> assignRightItems,
+        ExampleDisplaySettings displaySettings
 ) {
 }

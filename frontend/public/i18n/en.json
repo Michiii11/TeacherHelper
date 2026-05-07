@@ -101,8 +101,8 @@
       "emptyMessage": "The folder “{{name}}” is empty and can be deleted.",
       "contentMessage": "Deleting “{{name}}” will also permanently remove the content inside it.",
       "confirmationText": "I confirm that the folder and its content should be deleted.",
-      "externalUsageTitle": "Examples used in other tests",
-      "externalUsageText": "Some examples from this folder are also used in other tests. Those test links will be removed during deletion.",
+      "externalUsageTitle": "Exercises used in other tests",
+      "externalUsageText": "Some exercises from this folder are also used in other tests. Those test links will be removed during deletion.",
       "externalLinks": "Links in other tests",
       "deleted": "Folder “{{name}}” was deleted.",
       "deleteError": "Folder could not be deleted."
@@ -112,11 +112,11 @@
       "message": "Do you really want to delete the test “{{name}}”?",
       "confirmationText": "I confirm that this test should be deleted."
     },
-    "exampleDelete": {
-      "title": "Delete example “{{name}}”?",
-      "message": "Do you really want to delete the example “{{name}}”?",
-      "usedInTests": "This example is used in the following tests:",
-      "confirmationText": "I confirm that this example should be deleted."
+    "exerciseDelete": {
+      "title": "Delete exercise “{{name}}”?",
+      "message": "Do you really want to delete the exercise “{{name}}”?",
+      "usedInTests": "This exercise is used in the following tests:",
+      "confirmationText": "I confirm that this exercise should be deleted."
     }
   },
   "navbar": {
@@ -190,7 +190,7 @@
     "createSchool": "New School",
     "labels": {
       "admin": "Admin",
-      "examples": "Examples"
+      "exercises": "Exercises"
     },
     "actions": {
       "openSchool": "Open school",
@@ -217,124 +217,71 @@
     }
   },
   "landing": {
-    "eyebrow": "For teachers and schools",
-    "title": "Less chaos. More teaching.",
-    "description": "TeacherHelper helps you organize examples cleanly, build tests faster and manage teaching content together in everyday school life — modern, clear and without unnecessary clutter.",
-    "start": "Get started",
+    "eyebrow": "TeacherHelper",
+    "title": "Exercises. Tests. Organized.",
+    "description": "Organize teaching exercises in collections, build tests faster from existing material and collaborate with other teachers when needed.",
+    "register": "Register",
     "login": "Login / Register",
+    "loginShort": "Login",
     "dashboard": "Go to dashboard",
-    "points": {
-      "p1": "Build tests from examples in just a few clicks",
-      "p2": "Reuse content over time instead of doing everything twice",
-      "p3": "Manage everything together with colleagues in one school space"
-    },
-    "trust": {
-      "t1": "Faster workflow instead of material chaos",
-      "t2": "Made for teams and schools",
-      "t3": "Built with print, PDF and Word in mind",
-      "t4": "German and English included"
-    },
     "visual": {
-      "live": "Live Preview",
-      "collection": "School",
-      "team": "Team • Admin",
-      "examples": "Examples",
-      "tests": "Tests",
-      "members": "Members",
-      "organized": "Neatly organized",
-      "poolTitle": "Your example pool at a glance",
-      "poolText": "Find tasks faster, combine content in a smart way and create clean tests with only a few clicks.",
-      "new": "New",
-      "recentExamples": "Recent examples",
-      "updatedNow": "Updated just now",
-      "previewTitle": "Print preview",
-      "ready": "Ready",
-      "pdf": "PDF",
-      "word": "Word",
-      "print": "Print",
-      "smart": "Quickly prepared",
-      "collab": "Work together"
-    },
-    "mock": {
-      "type1": "Open",
-      "title1": "Calculate the missing values in the ratio task",
-      "focus1": "Mathematics",
-      "type2": "Multiple Choice",
-      "title2": "Choose the correct physical statement",
-      "focus2": "Physics",
-      "type3": "Match",
-      "title3": "Match the technical terms correctly",
-      "focus3": "German"
+      "label": "Collection screenshot",
+      "alt": "Screenshot of a TeacherHelper collection"
     },
     "features": {
-      "eyebrow": "Why TeacherHelper?",
-      "title": "Built for real lesson preparation",
-      "subtitle": "Not overloaded, but practical. TeacherHelper helps exactly where planning, collecting material and creating tests usually become frustrating."
+      "eyebrow": "Features",
+      "title": "The essentials for your collection"
     },
     "featureCards": {
-      "f1": {
-        "title": "Organize examples centrally",
-        "text": "Store tasks in one place instead of losing them across folders, chats and old files."
+      "collections": {
+        "title": "Collections, folders and tags",
+        "text": "Collect exercises and tests in collections and organize your files cleanly with folders and tags."
       },
-      "f2": {
-        "title": "Filter and find quickly",
-        "text": "Find content by type, topic or focus instantly when you need it for the next test."
+      "variables": {
+        "title": "Flexible variables",
+        "text": "Add variables to exercises and adjust them flexibly later for new tests."
       },
-      "f3": {
-        "title": "Create tests much faster",
-        "text": "Build complete tests from existing examples in just a few steps instead of starting from zero every time."
+      "editor": {
+        "title": "LaTeX and Markdown",
+        "text": "Use built-in LaTeX and Markdown features to keep exercises clean, precise and flexible."
       },
-      "f4": {
-        "title": "Clean preview for export and print",
-        "text": "Check everything before printing and keep a clear output for PDF, Word and print."
+      "team": {
+        "title": "Collaboration",
+        "text": "Work together with other teachers in shared collections."
       },
-      "f5": {
-        "title": "Collaboration inside your school team",
-        "text": "Work with colleagues in a shared school environment and keep content where it is actually needed."
+      "print": {
+        "title": "Ready to print",
+        "text": "Prepare tests so they can be printed or exported in a clear layout."
       },
-      "f6": {
-        "title": "Made for real schools",
-        "text": "No unnecessary feature clutter, just a workflow that actually fits teachers, departments and daily school life."
+      "cloud": {
+        "title": "Cloud based",
+        "text": "Your collections are available online and stay where you need them."
       }
     },
     "pricing": {
-      "eyebrow": "Pricing",
-      "title": "A plan for every stage",
-      "subtitle": "Start for free, work more professionally with Pro or use TeacherHelper as a shared platform for your school."
+      "eyebrow": "Plans",
+      "title": "Choose what fits your workflow"
     },
     "plans": {
       "free": {
-        "subtitle": "Perfect for trying it out and small setups.",
-        "f1": "1 school (no members)",
-        "f2": "50 examples",
-        "f3": "5 tests",
-        "f4": "Free",
-        "cta": "Start free"
+        "subtitle": "Start for free.",
+        "f1": "1 collection (no members)",
+        "f2": "50 exercises",
+        "f3": "5 tests"
       },
       "pro": {
         "badge": "Popular",
-        "chip": "For teachers",
-        "subtitle": "For active teachers who regularly prepare material and tests.",
-        "f1": "5 schools (5 members)",
-        "f2": "500 examples",
-        "f3": "50 tests",
-        "f4": "€5 per month",
-        "cta": "Start Pro"
+        "subtitle": "For individual teachers.",
+        "f1": "5 collections (5 members each)",
+        "f2": "500 exercises",
+        "f3": "50 tests"
       },
-      "collection": {
-        "chip": "For teams",
-        "subtitle": "For schools, departments and shared management across the whole staff.",
-        "f1": "∞ schools (∞ members)",
-        "f2": "∞ examples",
-        "f3": "∞ tests",
-        "f4": "€20 per month",
-        "cta": "Start School"
+      "school": {
+        "subtitle": "For schools and teams.",
+        "f1": "30 collections (∞ members)",
+        "f2": "∞ exercises",
+        "f3": "∞ tests"
       }
-    },
-    "final": {
-      "eyebrow": "Ready to begin?",
-      "title": "Turn material chaos into one clean workflow.",
-      "text": "Start for free and see how much faster lesson preparation can become with a clear interface."
     }
   },
   "collection": {
@@ -343,7 +290,7 @@
     "admin": "Admin",
     "teacher": "Teacher",
     "teachers": "Teachers",
-    "examples": "Examples",
+    "exercises": "Exercises",
     "tests": "Tests",
     "questions": "Questions",
     "open": "Open",
@@ -353,23 +300,24 @@
     "question": "Question",
     "focus": "Focus",
     "adminLabel": "Admin",
-    "createExample": "Create example",
+    "createExercise": "Create exercise",
     "createTest": "Create test",
     "folderShort": "Folder",
     "folders": "Folders",
     "folder": "Folder",
     "newFolder": "Folder",
-    "root": "Root",
+    "newContent": "New content",
+    "root": "Collection",
     "rootLevel": "Top level",
     "parentFolder": "Parent folder",
     "goUp": "Go up one level",
     "subfolders": "Subfolders",
     "items": "Items",
     "entries": "Entries",
-    "example": "Example",
+    "exercise": "Exercise",
     "test": "Test",
     "untitled": "Untitled",
-    "searchExamplesPlaceholder": "Search examples",
+    "searchExercisesPlaceholder": "Search exercises",
     "searchTestsPlaceholder": "Search tests",
     "searchResults": "Search results",
     "searchResultsInAllFolders": "Search results in all folders",
@@ -399,15 +347,15 @@
     "folderPickerSubtitle": "Select the folder the item should be moved to.",
     "folderPickerSearch": "Search folder or path",
     "moveConfirm": "Move",
-    "deleteExampleTitle": "Delete example",
-    "deleteExampleMessage": "Delete example \"{{name}}\"?",
+    "deleteExerciseTitle": "Delete exercise",
+    "deleteExerciseMessage": "Delete exercise \"{{name}}\"?",
     "deleteTestTitle": "Delete test",
     "deleteFolderTitle": "Delete folder",
     "deleteFolderMessage": "Delete folder \"{{name}}\" permanently?",
     "confirmDeleteFolder": "Delete folder permanently?",
     "deleteTestMessage": "Delete test \"{{name}}\"?",
-    "emptyExamplesTitle": "No examples found",
-    "emptyExamplesText": "Create a folder or add an example directly.",
+    "emptyExercisesTitle": "No exercises found",
+    "emptyExercisesText": "Create a folder or add an exercise directly.",
     "emptyTestsTitle": "No tests found",
     "emptyTestsText": "Create a folder or add a test directly.",
     "prompts": {
@@ -417,14 +365,22 @@
       "enterNumber": "Enter number:"
     },
     "createFolderTitle": "Create folder",
-    "createFolderSubtitle": "Create a new folder for examples or tests.",
+    "createFolderSubtitle": "Create a new folder for exercises or tests.",
     "renameFolderTitle": "Rename folder",
     "renameFolderSubtitle": "Adjust the folder name.",
     "folderNameLabel": "Folder name",
     "folderNamePlaceholder": "e.g. Exams / Chapter 1 / Exercises",
     "focuses": "Focuses",
     "author": "Author",
-    "searchPlaceholder": "Search"
+    "searchPlaceholder": "Search",
+    "examples": "Exercises",
+    "example": "Exercise",
+    "createExample": "Create exercise",
+    "searchExamplesPlaceholder": "Search exercises",
+    "emptyExamplesTitle": "No content found",
+    "emptyExamplesText": "Create a folder or add an exercise directly.",
+    "deleteExampleTitle": "Delete exercise",
+    "deleteExampleMessage": "Delete exercise \"{{name}}\"?"
   },
   "schoolSettings": {
     "title": "School settings",
@@ -512,7 +468,7 @@
     "leaveSchoolMessage": "Do you really want to leave the collection “{{name}}”? You will no longer have access to this collection afterwards.",
     "leaveSchoolConfirm": "Leave collection"
   },
-  "exampleDialog": {
+  "exerciseDialog": {
     "tags": "Tags",
     "tagsPlaceholder": "Select or create tags",
     "removeTag": "Remove tag",
@@ -547,7 +503,7 @@
     "dropImageTitle": "Drop image here or click",
     "dropSolutionImageTitle": "Drop solution image here or click",
     "dropImageText": "PNG, JPG or WEBP • Drag and drop supported",
-    "imageWidth": "Image width in example/test",
+    "imageWidth": "Image width in exercise/test",
     "solutionImageWidth": "Solution image width",
     "noTaskImage": "No task image selected.",
     "noSolutionImage": "No solution image selected.",
@@ -594,7 +550,7 @@
     },
     "deleteFocusDialog": {
       "title": "Delete focus?",
-      "message": "Do you really want to delete this focus? It may also be used in other examples.",
+      "message": "Do you really want to delete this focus? It may also be used in other exercises.",
       "confirmationText": "I understand that this action cannot be undone."
     },
     "snackbar": {
@@ -605,9 +561,9 @@
       "taskImageDeleteError": "Task image could not be deleted.",
       "fillInstructionAndQuestion": "Please fill in both the instruction and the question.",
       "selectTaskImageFirst": "Please select a task image first.",
-      "saved": "Example saved successfully.",
-      "created": "Example created successfully.",
-      "saveError": "Example could not be saved.",
+      "saved": "Exercise saved successfully.",
+      "created": "Exercise created successfully.",
+      "saveError": "Exercise could not be saved.",
       "focusDeleted": "The focus \"{{label}}\" was deleted."
     }
   },
@@ -616,9 +572,9 @@
     "titlePlaceholder": "1st test ...",
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "Work neatly, round appropriately, show your calculations ...",
-    "exampleSelectionSubtitle": "Choose tasks in one clear popup with filters and folders.",
+    "exerciseSelectionSubtitle": "Choose tasks in one clear popup with filters and folders.",
     "selectedCount": "selected",
-    "addExamples": "Add examples",
+    "addExercises": "Add exercises",
     "selectedTasksTitle": "Selected tasks",
     "selectedTasksSubtitle": "You can adjust order, points and layout directly here.",
     "taskTitle": "Task title",
@@ -652,8 +608,9 @@
       "achievedPoints": "Achieved points",
       "gradingKey": "Grading key",
       "goodLuck": "Good luck!",
-      "exampleShort": "Ex.",
-      "imagePreviewAlt": "Preview"
+      "exerciseShort": "Ex.",
+      "imagePreviewAlt": "Preview",
+      "exampleShort": "Ex."
     },
     "print": {
       "onlyTest": "Test only",
@@ -664,12 +621,13 @@
       "updated": "Test saved successfully",
       "created": "Test created successfully",
       "saveError": "Saving failed.",
-      "selectExampleFirst": "Please select at least one task first.",
+      "selectExerciseFirst": "Please select at least one task first.",
       "pdfDownloaded": "PDF was downloaded.",
       "pdfError": "PDF export failed.",
       "wordDownloaded": "Word file was downloaded.",
       "wordError": "Word export failed.",
-      "minimumTwoLevels": "At least two grading levels should remain."
+      "minimumTwoLevels": "At least two grading levels should remain.",
+      "selectExampleFirst": "Please select at least one task first."
     },
     "grading": {
       "percentDisplayMode": "Grading scale calculation",
@@ -718,8 +676,8 @@
         "low": "Low"
       }
     },
-    "examplePicker": {
-      "title": "Choose examples",
+    "exercisePicker": {
+      "title": "Choose exercises",
       "subtitle": "Clear selection with folders, filters and multi-select.",
       "available": "available",
       "selected": "selected",
@@ -729,18 +687,48 @@
       "allFocuses": "All focuses",
       "alreadyAdded": "Already added",
       "chosen": "Selected",
-      "emptyTitle": "No examples found",
+      "emptyTitle": "No exercises found",
       "emptyText": "Try other filters, another search or a different folder.",
       "done": "Done",
       "allFolders": "All folders",
-      "noFoldersFound": "No folders found"
+      "noFoldersFound": "No folders found",
+      "createdBy": "Created by",
+      "allExercises": "All",
+      "selectedExercises": "Selected",
+      "selectedExercisesCount": "{{count}} exercises selected"
     },
     "variables": {
       "title": "Text variables",
-      "description": "Default values from the example can be adjusted here for this specific test.",
+      "description": "Default values from the exercise can be adjusted here for this specific test.",
       "valuePlaceholder": "Enter value",
       "preview": "Preview:"
-    }
+    },
+    "examplePicker": {
+      "title": "Choose exercises",
+      "subtitle": "Clear selection with folders, filters and multi-select.",
+      "available": "available",
+      "selected": "selected",
+      "searchPlaceholder": "Search by title, question, focus, type or path",
+      "search": "Search",
+      "allTypes": "All types",
+      "allFocuses": "All focuses",
+      "alreadyAdded": "Already added",
+      "chosen": "Selected",
+      "emptyTitle": "No exercises found",
+      "emptyText": "Try other filters, another search or a different folder.",
+      "done": "Done",
+      "allFolders": "All folders",
+      "noFoldersFound": "No folders found",
+      "createdBy": "Created by",
+      "allExercises": "All",
+      "selectedExercises": "Selected",
+      "selectedExercisesCount": "{{count}} exercises selected",
+      "allExamples": "All",
+      "selectedExamples": "Selected",
+      "selectedExamplesCount": "{{count}} exercises selected"
+    },
+    "exampleSelectionSubtitle": "Choose tasks in one clear popup with filters and folders.",
+    "addExamples": "Add exercises"
   },
   "legalPages": {
     "back": "Back",
@@ -761,7 +749,7 @@
             "heading": "What data may be collected",
             "bullets": [
               "Account data such as username and email address",
-              "School, test, and example content created inside the app",
+              "School, test, and exercise content created inside the app",
               "Authentication-related technical data such as login or session information",
               "Uploaded images or other files you explicitly provide"
             ]
@@ -770,7 +758,7 @@
             "heading": "Why data is used",
             "bullets": [
               "To provide login and account management",
-              "To save and display school, test, and example data",
+              "To save and display school, test, and exercise data",
               "To keep the application secure and stable",
               "To process support or deletion requests"
             ]
@@ -800,7 +788,7 @@
           {
             "heading": "Use of the platform",
             "paragraphs": [
-              "TeacherHelper is provided to help organize educational content such as examples and tests.",
+              "TeacherHelper is provided to help organize educational content such as exercises and tests.",
               "By using the platform, you agree to use it lawfully and responsibly."
             ]
           },
@@ -944,9 +932,9 @@
         "title": "Collection system",
         "text": "Collections give you one clear place for tasks, tests, and shared content, so everything stays organized instead of being scattered around."
       },
-      "examplesTests": {
-        "title": "Examples & tests",
-        "text": "Create strong examples once, reuse them later, and turn them into new tests quickly — that is exactly what TeacherHelper is for."
+      "exercisesTests": {
+        "title": "Exercises & tests",
+        "text": "Create strong exercises once, reuse them later, and turn them into new tests quickly — that is exactly what TeacherHelper is for."
       },
       "searchFilter": {
         "title": "Search & filters",
@@ -968,14 +956,14 @@
         "description": "With 1.0.0, the base was in place: organizing content, managing users, and building the first clean test workflows.",
         "c1": "Created the foundation for the collection system",
         "c2": "Integrated a user system with accounts and management",
-        "c3": "Launched examples and tests as the main core features"
+        "c3": "Launched exercises and tests as the main core features"
       },
       "v110": {
         "title": "More structure in daily use",
         "description": "1.1.0 improves TeacherHelper especially where clarity and speed matter most in everyday work.",
         "c1": "Added a folder system so content can be structured more cleanly",
-        "c2": "Use variables to make examples more flexible and reusable",
-        "c3": "Added filters and search to find examples and tests much faster"
+        "c2": "Use variables to make exercises more flexible and reusable",
+        "c3": "Added filters and search to find exercises and tests much faster"
       }
     },
     "actions": {
@@ -1011,7 +999,7 @@
       "text": "This is already the entry point for the future app walkthrough. Later, it can guide users page by page and explain what they can do there."
     }
   },
-  "exampleTypes": {
+  "exerciseTypes": {
     "open": "Open",
     "halfOpen": "Semi-open",
     "construction": "Image",
@@ -1019,7 +1007,7 @@
     "gapFill": "Gap fill",
     "assign": "Match"
   },
-  "exampleTypeDescriptions": {
+  "exerciseTypeDescriptions": {
     "open": "Answer without fixed options.",
     "halfOpen": "Enter the answer into a predefined structure.",
     "construction": "Task with an image or graphic.",
@@ -1084,7 +1072,10 @@
       "forgotSuccess": "If the email exists, a reset link has been sent.",
       "resetSuccess": "Password was reset successfully.",
       "resendSuccess": "Verification email was sent again.",
-      "verifySuccess": "Email was verified successfully."
+      "verifySuccess": "Email was verified successfully.",
+      "verifyCodeSuccess": "Email verified successfully.",
+      "verifyCodeError": "Code could not be verified.",
+      "resendCodeSuccess": "A new code has been sent."
     },
     "backend": {
       "INVALID_DATA": "Please fill in all required fields.",
@@ -1106,12 +1097,184 @@
       "NEW_PASSWORD_REQUIRED": "New password is required.",
       "PASSWORD_RESET_TOKEN_INVALID": "The reset link is invalid.",
       "PASSWORD_RESET_TOKEN_EXPIRED": "The reset link has expired.",
-      "AUTH_SUCCESS": "Login successful"
+      "AUTH_SUCCESS": "Login successful",
+      "INVALID_CODE": "The code you entered is invalid.",
+      "CODE_EXPIRED": "The code has expired. Please request a new code."
+    },
+    "registerFlow": {
+      "verifyTitle": "Confirm code",
+      "verifySubtitle": "We sent a 6-digit code to {{email}}.",
+      "codeLabel": "Verification code",
+      "codePlaceholder": "123456",
+      "codeError": "Please enter the 6-digit code.",
+      "submitCode": "Confirm code",
+      "resend": "Send code again",
+      "changeEmail": "Change email",
+      "continue": "I already have a code",
+      "resendHint": "The code is valid for 15 minutes. After resending, only the new code works."
     }
   },
   "notFound": {
     "title": "Page not found",
     "text": "The requested page does not exist or has been moved.",
     "backHome": "Back to home"
+  },
+  "exampleTypes": {
+    "open": "Open",
+    "halfOpen": "Semi-open",
+    "construction": "Image",
+    "multipleChoice": "Multiple Choice",
+    "gapFill": "Gap fill",
+    "assign": "Match"
+  },
+  "exampleTypeDescriptions": {
+    "open": "Answer without fixed options.",
+    "halfOpen": "Enter the answer into a predefined structure.",
+    "construction": "Task with an image or graphic.",
+    "multipleChoice": "Choose one or more options.",
+    "gapFill": "Fill the gaps by selecting or typing.",
+    "assign": "Match elements to each other."
+  },
+  "exampleDialog": {
+    "tags": "Tags",
+    "tagsPlaceholder": "Select or create tags",
+    "removeTag": "Remove tag",
+    "deleteTag": "Delete tag",
+    "instructionPlaceholder": "Given is ...",
+    "openQuestionPlaceholder": "Determine ...",
+    "solution": "Solution",
+    "solutionPlaceholder": "Enter the correct answer ...",
+    "halfOpenQuestionPlaceholder": "Enter the answers ...",
+    "answers": "Answers",
+    "answer": "Answer",
+    "correctSolution": "Correct solution",
+    "removeAnswer": "Remove answer",
+    "addAnswer": "Add answer",
+    "multipleChoicePlaceholder": "Choose the correct answer ...",
+    "options": "Options",
+    "option": "Option",
+    "gapFillPlaceholder": "Complete the text gaps ...",
+    "insertGapTooltip": "Insert gap at cursor position",
+    "gap": "Gap",
+    "selection": "Selection",
+    "freeText": "Free text",
+    "gapLabel": "Gap label",
+    "answerOption": "Answer option",
+    "removeOption": "Remove answer option",
+    "addOption": "Add answer option",
+    "correctAnswer": "Correct answer",
+    "constructionPlaceholder": "Draw ...",
+    "assignPlaceholder": "Match ...",
+    "taskImage": "Task image",
+    "solutionImage": "Solution image",
+    "dropImageTitle": "Drop image here or click",
+    "dropSolutionImageTitle": "Drop solution image here or click",
+    "dropImageText": "PNG, JPG or WEBP • Drag and drop supported",
+    "imageWidth": "Image width in exercise/test",
+    "solutionImageWidth": "Solution image width",
+    "noTaskImage": "No task image selected.",
+    "noSolutionImage": "No solution image selected.",
+    "discardSelection": "Discard new selection",
+    "deleteImage": "Delete image",
+    "selectionGapHelp": "For selection gaps, the description is shown directly above the gap – like in a classic gap-fill task.",
+    "freeTextGapHelp": "For free-text gaps, the description is shown small and left-aligned above the line.",
+    "gapLabelPreview": "Label",
+    "gapLabelPlaceholder": "e.g. number type",
+    "gapLabelPlaceholderSmall": "e.g. searched term",
+    "answerOptionPlaceholder": "Enter answer option",
+    "correctAnswerPlaceholder": "Enter correct answer",
+    "markAsCorrect": "Mark as correct answer",
+    "taskImageHelp": "Upload the image for the task here. The preview is shown directly on the right.",
+    "solutionImageHelp": "Optionally, you can also store a solution image.",
+    "replaceImage": "Replace image",
+    "selectImage": "Choose image",
+    "gapWidth": "Gap width in px",
+    "variables": {
+      "title": "Variables",
+      "description": "Detected from placeholders like {number1} or {name}. You can override these default values later in the test.",
+      "insert": "Insert variable",
+      "insertAtCursor": "Insert text variable",
+      "remove": "Remove variable",
+      "defaultValue": "Default value",
+      "defaultValuePlaceholder": "e.g. 4 or Anna",
+      "add": "Add variable",
+      "empty": "No variables yet. Add one here or on the left to insert it into the active field.",
+      "insertShort": "Insert",
+      "name": "Name"
+    },
+    "assignLeftColumn": "Left",
+    "assignRightColumn": "Right",
+    "assignConnection": "Match",
+    "assignNoConnection": "— None —",
+    "assignLeftPlaceholder": "Left statement",
+    "assignRightPlaceholder": "Right statement",
+    "assignRemoveLeft": "Remove left item",
+    "assignRemoveRight": "Remove right item",
+    "addTag": "add",
+    "taskImagePreviewAlt": "Task image preview",
+    "solutionImagePreviewAlt": "Solution image preview",
+    "closeDialog": {
+      "title": "Close dialog?",
+      "message": "Unsaved changes will be lost. Do you really want to close the dialog?",
+      "cancel": "Continue editing",
+      "confirm": "Close"
+    },
+    "deleteFocusDialog": {
+      "title": "Delete focus?",
+      "message": "Do you really want to delete this focus? It may also be used in other exercises.",
+      "confirmationText": "I understand that this action cannot be undone."
+    },
+    "snackbar": {
+      "invalidImageType": "Please upload only JPG, PNG or WEBP.",
+      "solutionImageDeleted": "Solution image deleted.",
+      "solutionImageDeleteError": "Solution image could not be deleted.",
+      "taskImageDeleted": "Task image deleted.",
+      "taskImageDeleteError": "Task image could not be deleted.",
+      "fillInstructionAndQuestion": "Please fill in both the instruction and the question.",
+      "selectTaskImageFirst": "Please select a task image first.",
+      "saved": "Exercise saved successfully.",
+      "created": "Exercise created successfully.",
+      "saveError": "Exercise could not be saved.",
+      "focusDeleted": "The focus \"{{label}}\" was deleted.",
+      "imageSizeError": "The image must not exceed 5 MB."
+    },
+    "preview": "Preview",
+    "editor": {
+      "title": "Editor",
+      "groupsAria": "Editor groups",
+      "toolbarAria": "Editor toolbar",
+      "groups": {
+        "start": "Home",
+        "formulas": "Formulas",
+        "symbols": "Symbols",
+        "more": "More"
+      },
+      "commands": {
+        "bold": "Bold",
+        "italic": "Italic",
+        "strike": "Strike",
+        "code": "Code",
+        "bulletList": "List",
+        "numberedList": "No.",
+        "quote": "Quote",
+        "inlineFormula": "Inline",
+        "displayFormula": "Block",
+        "frac": "Fraction",
+        "sqrt": "Root",
+        "power": "Power",
+        "index": "Index",
+        "textUnit": "Unit",
+        "sum": "Sum",
+        "integral": "Integral",
+        "vector": "Vector",
+        "aligned": "Equations"
+      }
+    },
+    "displaySettings": {
+      "title": "Display",
+      "instructionLabel": "Show “Instruction”",
+      "questionLabel": "Show “Question”",
+      "taskImageLabel": "Show “Task image”"
+    }
   }
 }

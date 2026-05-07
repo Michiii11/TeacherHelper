@@ -7,54 +7,54 @@
     </section>
   </main>
 } @else {
-<main class="test-preview-shell">
-  <mat-dialog-content class="test-preview-layout">
-    <div class="preview-toolbar no-print">
-      <div class="preview-toolbar-text">
-        <h1>{{ test.name || (labels.previewTitle || 'Test preview') }}</h1>
-        <p>{{ labels.previewSubtitle }}</p>
-      </div>
+  <main class="test-preview-shell">
+    <mat-dialog-content class="test-preview-layout">
+      <div class="preview-toolbar no-print">
+        <div class="preview-toolbar-text">
+          <h1>{{ test.name || (labels.previewTitle || 'Test preview') }}</h1>
+          <p>{{ labels.previewSubtitle }}</p>
+        </div>
 
-      <div class="preview-toolbar-actions">
-        <div class="print-controls-grid">
-          <div class="section">
-            <div class="stepper">
-              <button mat-icon-button type="button" (click)="decreaseCount()">
-                <mat-icon>remove</mat-icon>
-              </button>
-              <input type="number" min="1" max="100" [(ngModel)]="printCopies" (ngModelChange)="onPrintCopiesChange($event)">
-              <button mat-icon-button type="button" (click)="increaseCount()">
-                <mat-icon>add</mat-icon>
+        <div class="preview-toolbar-actions">
+          <div class="print-controls-grid">
+            <div class="section">
+              <div class="stepper">
+                <button mat-icon-button type="button" (click)="decreaseCount()">
+                  <mat-icon>remove</mat-icon>
+                </button>
+                <input type="number" min="1" max="100" [(ngModel)]="printCopies" (ngModelChange)="onPrintCopiesChange($event)">
+                <button mat-icon-button type="button" (click)="increaseCount()">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <div class="section">
+              <mat-button-toggle-group [(ngModel)]="includeSolutionSheet" [hideSingleSelectionIndicator]="true">
+                <mat-button-toggle [value]="false" (click)="setIncludeSolutionSheet(false)">
+                  {{ 'createTest.print.onlyTest' | translate }}
+                </mat-button-toggle>
+                <mat-button-toggle [value]="true" (click)="setIncludeSolutionSheet(true)">
+                  {{ 'createTest.print.includeSolutions' | translate }}
+                </mat-button-toggle>
+              </mat-button-toggle-group>
+            </div>
+
+            <div class="section">
+              <button mat-flat-button color="primary" type="button" (click)="printPreview()">
+                {{ 'createTest.print.print' | translate }}
+                <mat-icon>print</mat-icon>
               </button>
             </div>
           </div>
-
-          <div class="section">
-            <mat-button-toggle-group [(ngModel)]="includeSolutionSheet" [hideSingleSelectionIndicator]="true">
-              <mat-button-toggle [value]="false" (click)="setIncludeSolutionSheet(false)">
-                {{ 'createTest.print.onlyTest' | translate }}
-              </mat-button-toggle>
-              <mat-button-toggle [value]="true" (click)="setIncludeSolutionSheet(true)">
-                {{ 'createTest.print.includeSolutions' | translate }}
-              </mat-button-toggle>
-            </mat-button-toggle-group>
-          </div>
-
-          <div class="section">
-            <button mat-flat-button color="primary" type="button" (click)="printPreview()">
-              {{ 'createTest.print.print' | translate }}
-              <mat-icon>print</mat-icon>
-            </button>
-          </div>
         </div>
       </div>
-    </div>
 
-    <div class="print-area preview-surface">
-      <div class="preview-scale">
-        <div class="print-page shared-preview-page" [innerHTML]="previewHtml"></div>
+      <div class="print-area preview-surface">
+        <div class="preview-scale">
+          <div class="print-page shared-preview-page" [innerHTML]="previewHtml"></div>
+        </div>
       </div>
-    </div>
-  </mat-dialog-content>
-</main>
+    </mat-dialog-content>
+  </main>
 }

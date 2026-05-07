@@ -1,5 +1,8 @@
 package at.dtos.Collection;
 
+import at.dtos.Example.ExampleDTO;
+import at.dtos.Example.ExampleOverviewDTO;
+import at.dtos.Test.TestOverviewDTO;
 import at.dtos.User.UserDTO;
 
 import java.util.List;
@@ -10,7 +13,8 @@ public record CollectionDTO(
         String name,
         String logoUrl,
         UserDTO admin,
-        int exampleCount,
+        List<ExampleOverviewDTO> examples,
+        List<TestOverviewDTO> tests,
         List<UserDTO> members
 ) {
 }

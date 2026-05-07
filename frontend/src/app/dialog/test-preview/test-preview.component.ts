@@ -9,7 +9,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { Example, ExampleTypes } from '../../model/Example';
-import { CreateTestDTO, GradingLevel, TestExampleDTO } from '../../model/Test';
+import { CreateTestDTO, GradingLevel, TestExampleDTO, TestExampleVariableValues } from '../../model/Test';
 import { HttpService } from '../../service/http.service';
 import { PersistedTestSettings, TestBranding, TestPrintLabels, TestPrintService } from '../../service/test-print.service';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
@@ -36,7 +36,16 @@ import {MatProgressBar} from '@angular/material/progress-bar'
   styleUrl: './test-preview.component.scss',
 })
 export class TestPreviewComponent implements OnInit, OnDestroy {
-  data = inject<{ schoolId: string; testId: string }>(MAT_DIALOG_DATA);
+  data = inject<{
+    schoolId: string;
+    testId: string;
+    schoolName?: string;
+    schoolLogoUrl?: string;
+    schoolLogo?: string;
+    collectionName?: string;
+    collectionLogoUrl?: string;
+    school?: { name?: string; logoUrl?: string; logo?: string } | null;
+  }>(MAT_DIALOG_DATA);
   private dialogRef = inject(MatDialogRef<TestPreviewComponent>);
   private service = inject(HttpService);
   private snackBar = inject(MatSnackBar);
@@ -95,10 +104,13 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
 
         this.hydratePersistedSettings(response);
         this.test.exampleList = await this.hydrateConstructionImagesForEntries(this.test.exampleList ?? []);
+        await this.loadSchoolBranding();
         this.refreshPreviewHtml();
-        this.loadSchoolBranding();
         this.isLoading = false;
       },
+      error: () => {
+        this.isLoading = false;
+      }
     });
   }
 
@@ -113,33 +125,56 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
     }
   }
 
-  private loadSchoolBranding(): void {
-    const schoolId = String((this.test as any)?.schoolId || this.data.schoolId || '').trim();
+  private async loadSchoolBranding(): Promise<void> {
+    const dialogData = this.data as any;
+    const schoolFromDialog = dialogData?.school ?? null;
+    const schoolId = String(
+      (this.test as any)?.collectionId
+      || (this.test as any)?.schoolId
+      || dialogData?.schoolId
+      || ''
+    ).trim();
 
-    if (!schoolId) {
-      this.refreshPreviewHtml();
-      return;
+    (this.test as any).schoolName =
+      (this.test as any).schoolName
+      || schoolFromDialog?.name
+      || dialogData?.schoolName
+      || dialogData?.collectionName
+      || '';
+
+    (this.test as any).schoolLogoUrl =
+      (this.test as any).schoolLogoUrl
+      || dialogData?.schoolLogoUrl
+      || dialogData?.collectionLogoUrl
+      || dialogData?.schoolLogo
+      || schoolFromDialog?.logoUrl
+      || schoolFromDialog?.logo
+      || '';
+
+    if (schoolFromDialog) {
+      (this.test as any).school = {
+        ...(this.test as any).school,
+        ...schoolFromDialog,
+      };
     }
 
-    this.service.getCollectionById(schoolId).subscribe({
-      next: async (school: any) => {
-        (this.test as any).schoolName = school?.name || (this.test as any).schoolName || '';
-        (this.test as any).school = {
-          ...(this.test as any).school,
-          ...school,
-        };
+    if (!schoolId) return;
 
-        const logoUrl = await this.loadSchoolLogoObjectUrl(schoolId);
-        (this.test as any).schoolLogoUrl = logoUrl || school?.logoUrl || school?.logo || (this.test as any).schoolLogoUrl || '';
+    try {
+      const school = await firstValueFrom(this.service.getCollectionById(schoolId));
 
-        this.refreshPreviewHtml();
-      },
-      error: async () => {
-        const logoUrl = await this.loadSchoolLogoObjectUrl(schoolId);
-        (this.test as any).schoolLogoUrl = logoUrl || (this.test as any).schoolLogoUrl || '';
-        this.refreshPreviewHtml();
-      }
-    });
+      (this.test as any).schoolName = (this.test as any).schoolName || school?.name || '';
+      (this.test as any).school = {
+        ...(this.test as any).school,
+        ...school,
+      };
+
+      const logoUrl = await this.loadSchoolLogoObjectUrl(schoolId);
+      (this.test as any).schoolLogoUrl = logoUrl || (this.test as any).schoolLogoUrl || school?.logoUrl || '';
+    } catch {
+      const logoUrl = await this.loadSchoolLogoObjectUrl(schoolId);
+      (this.test as any).schoolLogoUrl = logoUrl || (this.test as any).schoolLogoUrl || '';
+    }
   }
 
   private async loadSchoolLogoObjectUrl(schoolId: string): Promise<string> {
@@ -176,6 +211,7 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
 
   setIncludeSolutionSheet(value: boolean): void {
     this.includeSolutionSheet = value;
+    this.refreshPreviewHtml();
   }
 
   increaseCount(): void {
@@ -187,7 +223,7 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
   }
 
   printPreview(): void {
-    const success = this.testPrintService.printTest(this.test, this.selectedExamples, {
+    const success = this.testPrintService.printTest(this.test, this.buildResolvedExamplesForPreview(), {
       printCopies: this.printCopies,
       includeSolutionSheet: this.includeSolutionSheet,
       getGradeRangeLabel: (gradeOrIndex) => this.getGradeRangeLabelByIndex(gradeOrIndex - 1),
@@ -237,8 +273,8 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
     const dialogData = this.data as any;
 
     return {
-      schoolName: (this.test as any)?.schoolName || school?.name || dialogData?.schoolName || '',
-      schoolLogoUrl: (this.test as any)?.schoolLogoUrl || school?.logoUrl || school?.logo || dialogData?.schoolLogoUrl || dialogData?.schoolLogo || '',
+      schoolName: (this.test as any)?.schoolName || school?.name || dialogData?.schoolName || dialogData?.collectionName || '',
+      schoolLogoUrl: (this.test as any)?.schoolLogoUrl || school?.logoUrl || school?.logo || dialogData?.schoolLogoUrl || dialogData?.collectionLogoUrl || dialogData?.schoolLogo || '',
       showNameWhenLogoExists: true,
     };
   }
@@ -250,7 +286,7 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
   private refreshPreviewHtml(): void {
     this.labels = this.buildPrintLabels();
 
-    const html = this.testPrintService.buildPreviewHtml(this.test, this.selectedExamples, {
+    const html = this.testPrintService.buildPreviewHtml(this.test, this.buildResolvedExamplesForPreview(), {
       printCopies: 1,
       includeSolutionSheet: this.includeSolutionSheet,
       getGradeRangeLabel: (gradeOrIndex: number) => this.getGradeRangeLabelByIndex(gradeOrIndex - 1),
@@ -264,13 +300,124 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
     this.previewHtml = this.sanitizer.bypassSecurityTrustHtml(html);
   }
 
+  private buildResolvedExamplesForPreview(): TestExampleDTO[] {
+    return this.selectedExamples.map(entry => ({
+      ...entry,
+      variableValues: {
+        ...this.buildDefaultVariableValues(entry.example),
+        ...((entry as any).variableValues ?? {}),
+      },
+      example: this.buildPreviewExample(entry),
+    }));
+  }
+
+  private buildPreviewExample(entry: TestExampleDTO): Example {
+    const example = this.clonePlain(entry.example) as Example;
+    const variableValues = {
+      ...this.buildDefaultVariableValues(entry.example),
+      ...((entry as any).variableValues ?? {}),
+    };
+
+    (example as any).displaySettings = this.normalizeDisplaySettings((example as any).displaySettings);
+    example.variables = this.mergeVariableValuesIntoExampleVariables(example.variables, variableValues) as any;
+
+    return example;
+  }
+
+  private buildDefaultVariableValues(example: Example): TestExampleVariableValues {
+    return Object.fromEntries(
+      (example.variables ?? []).map(variable => [variable.key, variable.defaultValue ?? ''])
+    );
+  }
+
+  private mergeVariableValuesIntoExampleVariables(
+    variables: Example['variables'] | undefined,
+    variableValues: TestExampleVariableValues | null | undefined,
+  ): NonNullable<Example['variables']> {
+    const values = variableValues ?? {};
+    const existingVariables = Array.isArray(variables) ? variables : [];
+    const normalized = existingVariables.map(variable => {
+      const key = String(variable?.key ?? '').trim();
+      return {
+        ...variable,
+        defaultValue: String(key && key in values ? values[key] ?? '' : variable?.defaultValue ?? ''),
+      };
+    });
+
+    const knownKeys = new Set(normalized.map(variable => String(variable?.key ?? '').trim()).filter(Boolean));
+
+    for (const [key, value] of Object.entries(values)) {
+      const normalizedKey = String(key ?? '').trim();
+      if (!normalizedKey || knownKeys.has(normalizedKey)) {
+        continue;
+      }
+
+      normalized.push({
+        id: normalizedKey,
+        key: normalizedKey,
+        defaultValue: String(value ?? ''),
+      } as any);
+    }
+
+    return normalized as NonNullable<Example['variables']>;
+  }
+
+  private normalizeDisplaySettings(value: unknown): { showInstructionLabel: boolean; showQuestionLabel: boolean; showTaskImageLabel: boolean } {
+    let settings: any = value;
+
+    if (typeof settings === 'string') {
+      try {
+        settings = JSON.parse(settings);
+      } catch {
+        settings = {};
+      }
+    }
+
+    if (!settings || typeof settings !== 'object') {
+      settings = {};
+    }
+
+    return {
+      showInstructionLabel: settings.showInstructionLabel !== false,
+      showQuestionLabel: settings.showQuestionLabel !== false,
+      showTaskImageLabel: settings.showTaskImageLabel !== false,
+    };
+  }
+
+  private clonePlain<T>(value: T): T {
+    if (typeof structuredClone === 'function') {
+      return structuredClone(value);
+    }
+
+    return JSON.parse(JSON.stringify(value ?? null));
+  }
+
   getQuestionWithGapLabels(example: Example): string {
     let idx = 0;
-    return (example.question || '').replace(/\{Lücke \d+\}/g, () => {
+    const replaceGapLabels = (text: string): string => text.replace(/\{Lücke \d+\}/g, () => {
       const label = example.gaps?.[idx]?.label?.trim();
       idx++;
       return label ? `_____(${label})_____` : `______________`;
     });
+
+    return this.replaceOutsideLatex(example.question || '', replaceGapLabels);
+  }
+
+  private replaceOutsideLatex(value: string, replacer: (text: string) => string): string {
+    const source = String(value ?? '');
+    const mathPattern = /\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\$[^$]*?\$|\\\([\s\S]*?\\\)/g;
+    let cursor = 0;
+    let result = '';
+    let match: RegExpExecArray | null;
+
+    while ((match = mathPattern.exec(source)) !== null) {
+      result += replacer(source.slice(cursor, match.index));
+      result += match[0];
+      cursor = match.index + match[0].length;
+    }
+
+    result += replacer(source.slice(cursor));
+    return result;
   }
 
   getLetter(i: number): string {

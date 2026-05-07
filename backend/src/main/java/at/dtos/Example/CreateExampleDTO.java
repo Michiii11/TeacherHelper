@@ -3,6 +3,7 @@ package at.dtos.Example;
 import at.enums.ExampleTypes;
 import at.enums.GapFillType;
 import at.model.helper.Assign;
+import at.model.helper.ExampleDisplaySettings;
 import at.model.helper.Focus;
 import at.model.helper.Option;
 
@@ -27,6 +28,7 @@ public record CreateExampleDTO(
         List<ExampleVariableDTO> variables,
         Integer imageWidth,
         Integer solutionImageWidth,
-        UUID folderId
+        UUID folderId,
+        ExampleDisplaySettings displaySettings
 ) {
 }

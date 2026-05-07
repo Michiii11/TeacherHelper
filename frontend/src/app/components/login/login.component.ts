@@ -51,6 +51,7 @@ export class LoginComponent implements OnInit {
   registerForm: FormGroup;
   forgotForm: FormGroup;
   resetForm: FormGroup;
+  verifyCodeForm: FormGroup;
 
   loginMessage = '';
   loginSuccess = false;
@@ -66,6 +67,13 @@ export class LoginComponent implements OnInit {
   verifying = false;
   showForgotPassword = false;
   isLoggingIn = false;
+  isRegistering = false;
+  isVerifyingCode = false;
+  registrationStep: 'form' | 'code' = 'form';
+  verificationEmail = '';
+  pendingRegisterPassword = '';
+  readonly codeLength = 6;
+  private readonly pendingRegistrationEmailKey = 'teacher_pendingRegistrationEmail';
 
   hideLoginPassword = true;
   hideRegisterPassword = true;
@@ -102,6 +110,10 @@ export class LoginComponent implements OnInit {
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required]]
     });
+
+    this.verifyCodeForm = this.fb.group({
+      code: ['', [Validators.required, Validators.pattern('^[0-9]{6}$')]]
+    });
   }
 
   ngOnInit(): void {
@@ -122,13 +134,17 @@ export class LoginComponent implements OnInit {
 
       if (verifyToken) {
         this.handleVerifyEmail(verifyToken);
+        return;
       }
 
       if (resetToken) {
         this.resetToken = resetToken;
         this.showForgotPassword = true;
         this.selectedTab = 0;
+        return;
       }
+
+      this.restorePendingRegistration();
     });
   }
 
@@ -176,6 +192,9 @@ export class LoginComponent implements OnInit {
     this.showForgotPassword = false;
     this.forgotMessage = '';
     this.resetMessage = '';
+    if (this.selectedTab !== 1) {
+      this.registrationStep = 'form';
+    }
   }
 
   onLogin(): void {
@@ -247,50 +266,181 @@ export class LoginComponent implements OnInit {
   }
 
   onRegister(): void {
-    if (this.registerForm.invalid) {
+    if (this.registerForm.invalid || this.isRegistering) {
       this.registerForm.markAllAsTouched();
       return;
     }
 
+    this.isRegistering = true;
+    this.registerMessage = '';
+
     const value = this.registerForm.value;
+    const normalizedEmail = String(value.email ?? '').trim().toLowerCase();
+    this.pendingRegisterPassword = value.password;
+    this.verificationEmail = normalizedEmail;
+
     const hashedPassword = CryptoJS.SHA256(value.password).toString();
     const payload = {
       ...value,
+      email: normalizedEmail,
       password: hashedPassword,
       language: this.selectedLanguage,
       darkMode: this.selectedTheme === 'dark'
     };
 
-    this.http.register(payload).subscribe((result: AuthResult) => {
-      this.registerSuccess = result.success;
-      this.registerMessage = this.translateAuthResult(result);
+    this.http.register(payload)
+      .pipe(finalize(() => this.isRegistering = false))
+      .subscribe({
+        next: (result: AuthResult) => {
+          this.registerSuccess = result.success;
+          this.registerMessage = this.translateAuthResult(result);
 
-      this.snackBar.open(this.registerMessage, '', {
-        duration: 3500,
-        panelClass: result.success ? 'snack-success' : 'snack-error'
-      });
+          this.snackBar.open(this.registerMessage, '', {
+            duration: 3500,
+            panelClass: result.success ? 'snack-success' : 'snack-error'
+          });
 
-      if (result.success && result.token && result.userId !== null) {
-        this.authService.setLogin(result.token, result.userId);
-
-        this.http.getUser().subscribe({
-          next: user => {
-            this.applyResolvedPreferences(user);
-            this.syncGuestPreferencesToBackendIfMissing(user);
-            this.router.navigate(['/home']);
-          },
-          error: () => {
-            this.router.navigate(['/home']);
+          if (result.success && result.token && result.userId !== null) {
+            this.authService.setLogin(result.token, result.userId);
+            this.http.getUser().subscribe({
+              next: user => {
+                this.applyResolvedPreferences(user);
+                this.syncGuestPreferencesToBackendIfMissing(user);
+                this.router.navigate(['/home']);
+              },
+              error: () => this.router.navigate(['/home'])
+            });
+            return;
           }
-        });
 
-        return;
-      }
+          if (result.success) {
+            this.persistPendingRegistrationEmail(this.verificationEmail);
+            this.registrationStep = 'code';
+            this.hideRegisterPassword = true;
+            this.verifyCodeForm.reset();
+          }
+        },
+        error: (err) => {
+          const message = this.translateHttpError(err, 'auth.messages.error');
+          this.registerSuccess = false;
+          this.registerMessage = message;
+          this.snackBar.open(message, '', { duration: 3500, panelClass: 'snack-error' });
+        }
+      });
+  }
 
-      if (result.success) {
-        this.hideRegisterPassword = true;
-      }
-    });
+  onVerifyRegistrationCode(): void {
+    if (this.verifyCodeForm.invalid || this.isVerifyingCode) {
+      this.verifyCodeForm.markAllAsTouched();
+      return;
+    }
+
+    this.isVerifyingCode = true;
+    this.registerMessage = '';
+
+    const payload = {
+      email: this.verificationEmail,
+      code: String(this.verifyCodeForm.value.code ?? '').trim()
+    };
+
+    this.http.verifyRegistrationCode(payload)
+      .pipe(finalize(() => this.isVerifyingCode = false))
+      .subscribe({
+        next: () => {
+          const message = this.translate.instant('auth.messages.verifyCodeSuccess');
+          this.registerSuccess = true;
+          this.registerMessage = message;
+          this.snackBar.open(message, '', { duration: 2500, panelClass: 'snack-success' });
+          this.clearPendingRegistrationEmail();
+          this.loginAfterRegistrationVerification();
+        },
+        error: (err) => {
+          const message = this.translateHttpError(err, 'auth.messages.verifyCodeError');
+          this.registerSuccess = false;
+          this.registerMessage = message;
+          this.snackBar.open(message, '', { duration: 3500, panelClass: 'snack-error' });
+        }
+      });
+  }
+
+  backToRegisterForm(): void {
+    this.registrationStep = 'form';
+    this.registerMessage = '';
+    this.verifyCodeForm.reset();
+    this.clearPendingRegistrationEmail();
+  }
+
+  continueRegistration(): void {
+    const email = String(this.registerForm.get('email')?.value ?? '').trim().toLowerCase();
+
+    if (!email || this.registerForm.get('email')?.invalid) {
+      this.registerForm.get('email')?.markAsTouched();
+      this.registerSuccess = false;
+      this.registerMessage = this.translate.instant('auth.messages.enterRegisterEmailFirst');
+      this.snackBar.open(this.registerMessage, '', { duration: 3000, panelClass: 'snack-error' });
+      return;
+    }
+
+    this.verificationEmail = email;
+    this.persistPendingRegistrationEmail(email);
+    this.verifyCodeForm.reset();
+    this.registrationStep = 'code';
+    this.registerMessage = '';
+  }
+
+  onCodeInput(): void {
+    const control = this.verifyCodeForm.get('code');
+    const sanitized = String(control?.value ?? '').replace(/\D/g, '').slice(0, this.codeLength);
+
+    if (control?.value !== sanitized) {
+      control?.setValue(sanitized, { emitEvent: false });
+    }
+  }
+
+  private loginAfterRegistrationVerification(): void {
+    const email = this.verificationEmail;
+    const password = this.pendingRegisterPassword;
+
+    if (!email || !password) {
+      this.registrationStep = 'form';
+      this.selectedTab = 0;
+      this.loginForm.patchValue({ email });
+      return;
+    }
+
+    const payload = {
+      email,
+      password: CryptoJS.SHA256(password).toString(),
+      language: this.selectedLanguage,
+      darkMode: this.selectedTheme === 'dark'
+    };
+
+    this.isLoggingIn = true;
+    this.http.login(payload)
+      .pipe(finalize(() => this.isLoggingIn = false))
+      .subscribe({
+        next: (result: AuthResult) => {
+          if (result.success && result.token && result.userId !== null) {
+            this.authService.setLogin(result.token, result.userId);
+            this.http.getUser().subscribe({
+              next: user => {
+                this.applyResolvedPreferences(user);
+                this.syncGuestPreferencesToBackendIfMissing(user);
+                this.router.navigate(['/home']);
+              },
+              error: () => this.router.navigate(['/home'])
+            });
+            return;
+          }
+
+          this.selectedTab = 0;
+          this.loginForm.patchValue({ email, password });
+        },
+        error: () => {
+          this.selectedTab = 0;
+          this.loginForm.patchValue({ email, password });
+        }
+      });
   }
 
   onForgotPassword(): void {
@@ -365,7 +515,7 @@ export class LoginComponent implements OnInit {
   }
 
   resendVerificationFromRegister(): void {
-    const email = this.registerForm.value.email;
+    const email = String(this.verificationEmail || this.registerForm.value.email || '').trim().toLowerCase();
 
     if (!email) {
       this.snackBar.open(this.translate.instant('auth.messages.enterRegisterEmailFirst'), '', {
@@ -377,7 +527,9 @@ export class LoginComponent implements OnInit {
 
     this.http.resendVerification(email, this.languageService.getStoredLanguage()).subscribe({
       next: () => {
-        const message = this.translate.instant('auth.messages.resendSuccess');
+        this.verificationEmail = email;
+        this.persistPendingRegistrationEmail(email);
+        const message = this.translate.instant('auth.messages.resendCodeSuccess');
         this.snackBar.open(message, '', { duration: 3500, panelClass: 'snack-success' });
       },
       error: (err) => {
@@ -428,6 +580,32 @@ export class LoginComponent implements OnInit {
     });
   }
 
+
+  private restorePendingRegistration(): void {
+    const email = localStorage.getItem(this.pendingRegistrationEmailKey);
+
+    if (!email) {
+      return;
+    }
+
+    this.verificationEmail = email;
+    this.registerForm.patchValue({ email });
+    this.verifyCodeForm.reset();
+    this.registrationStep = 'code';
+    this.selectedTab = 1;
+  }
+
+  private persistPendingRegistrationEmail(email: string): void {
+    if (!email) {
+      return;
+    }
+
+    localStorage.setItem(this.pendingRegistrationEmailKey, email);
+  }
+
+  private clearPendingRegistrationEmail(): void {
+    localStorage.removeItem(this.pendingRegistrationEmailKey);
+  }
 
   private translateAuthResult(result: AuthResult): string {
     const code = result?.code?.trim();
@@ -495,6 +673,8 @@ export class LoginComponent implements OnInit {
       'token is required.': 'auth.backend.TOKEN_REQUIRED',
       'verification token is invalid.': 'auth.backend.VERIFICATION_TOKEN_INVALID',
       'verification token expired.': 'auth.backend.VERIFICATION_TOKEN_EXPIRED',
+      'invalid_code': 'auth.backend.INVALID_CODE',
+      'code_expired': 'auth.backend.CODE_EXPIRED',
       'email is required.': 'auth.backend.EMAIL_REQUIRED',
       'email not found.': 'auth.backend.EMAIL_NOT_FOUND',
       'email is already verified.': 'auth.backend.EMAIL_ALREADY_VERIFIED',
@@ -538,6 +718,9 @@ export class LoginComponent implements OnInit {
     this.registerMessage = '';
     this.forgotMessage = '';
     this.resetMessage = '';
+    if (this.selectedTab !== 1) {
+      this.registrationStep = 'form';
+    }
   }
 
   getLogo(): string {

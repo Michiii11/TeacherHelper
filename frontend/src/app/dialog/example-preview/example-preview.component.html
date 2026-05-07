@@ -16,19 +16,20 @@
 
     <div class="preview-panel">
       <div>
-        <p class="multiline-text">{{ getResolvedText(example.instruction) }}</p>
+        <p *ngIf="showInstructionLabel()"><strong>{{ 'collection.instruction' | translate }}:</strong></p>
+        <div class="rich-text multiline-text" [innerHTML]="renderMathText(example.instruction)"></div>
       </div>
 
-      <p><strong>{{ 'collection.question' | translate }}:</strong></p>
+      <p *ngIf="showQuestionLabel()"><strong>{{ 'collection.question' | translate }}:</strong></p>
 
       <div>
-        <p class="multiline-text">{{ getQuestionWithGapLabels() }}</p>
+        <div class="rich-text multiline-text" [innerHTML]="renderQuestionWithGapLabels()"></div>
       </div>
 
       @if(example.type === ExampleTypes.HALF_OPEN){
         <div class="half-open-preview">
           @for (ans of example.answers; track ans){
-            <p>{{ getResolvedText(ans[0]) }} = ___________________</p>
+            <p><span [innerHTML]="renderMathText(ans[0])"></span> = ___________________</p>
           }
         </div>
       }
@@ -36,7 +37,7 @@
       @if(example.type === ExampleTypes.CONSTRUCTION){
         <div class="construction-preview">
           <div>
-            <p><strong>{{ 'exampleDialog.taskImage' | translate }}</strong></p>
+            <p *ngIf="showTaskImageLabel()"><strong>{{ 'exampleDialog.taskImage' | translate }}</strong></p>
 
             <div *ngIf="getPreviewImageUrl()" class="image-preview-frame">
               <img
@@ -58,7 +59,7 @@
           <table>
             @for (option of example.options; track option){
               <tr>
-                <td>{{ getResolvedText(option.text) }}</td>
+                <td [innerHTML]="renderMathText(option.text)"></td>
                 <td class="small">
                   <mat-pseudo-checkbox></mat-pseudo-checkbox>
                 </td>
@@ -71,15 +72,15 @@
       @if(example.type === ExampleTypes.GAP_FILL){
         @if(example.gapFillType === 'SELECT'){
           <div class="gap-fill-preview">
-            @for (gap of example.gaps; track gap){
+            @for (gap of example.gaps; track gap; let gapIndex = $index){
               <table>
                 <tr>
-                  <th>({{gap.label}})</th>
+                  <th colspan="2">{{ gapIndex + 1 }}</th>
                 </tr>
 
                 @for(opt of gap.options; track opt){
                   <tr>
-                    <td>{{ getResolvedText(opt.text) }}</td>
+                    <td [innerHTML]="renderMathText(opt.text)"></td>
                     <td class="small">
                       <mat-pseudo-checkbox></mat-pseudo-checkbox>
                     </td>
@@ -96,7 +97,7 @@
           <table class="leftSide">
             @for(assign of example.assigns; track assign){
               <tr>
-                <td>{{ getResolvedText(assign.left) }}</td>
+                <td [innerHTML]="renderMathText(assign.left)"></td>
                 <td class="fill"></td>
               </tr>
             }
@@ -105,7 +106,7 @@
           <table class="rightSide">
             <tr *ngFor="let right of example.assignRightItems; let i = index">
               <td class="fill">{{ getLetter(i) }}</td>
-              <td>{{ getResolvedText(right) }}</td>
+              <td [innerHTML]="renderMathText(right)"></td>
             </tr>
           </table>
         </div>

@@ -75,7 +75,17 @@ type PersistedTestSettings = {
   styleUrl: './create-test.component.scss',
 })
 export class CreateTestComponent implements OnInit, OnDestroy {
-  data = inject<{ schoolId: string; testId?: string; folderId: string | null }>(MAT_DIALOG_DATA);
+  data = inject<{
+    schoolId: string;
+    testId?: string;
+    folderId: string | null;
+    schoolName?: string;
+    schoolLogoUrl?: string;
+    schoolLogo?: string;
+    collectionName?: string;
+    collectionLogoUrl?: string;
+    school?: { name?: string; logoUrl?: string; logo?: string } | null;
+  }>(MAT_DIALOG_DATA);
   private dialogRef = inject(MatDialogRef<CreateTestComponent>);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
@@ -209,6 +219,9 @@ export class CreateTestComponent implements OnInit, OnDestroy {
               ...this.test,
               ...response,
             };
+
+            console.log(this.test)
+
             this.isEditMode = true;
             const hydratedEntries = (await this.hydrateConstructionImagesForEntries(this.test.exampleList ?? [])).map(entry => ({
               ...entry,
@@ -217,6 +230,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
                 ...(entry.variableValues ?? {})
               }
             }));
+
+            console.log(hydratedEntries);
             this.selectedExamplesInternal = hydratedEntries;
             this.test.exampleList = hydratedEntries;
             this.hydratePersistedSettings(response);
@@ -266,7 +281,36 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   private loadSchoolBranding(): void {
     const serviceAny = this.service as any;
-    const request = serviceAny?.getSchool?.(this.data.schoolId) ?? serviceAny?.getSchoolById?.(this.data.schoolId);
+    const dialogData = this.data as any;
+    const schoolFromDialog = dialogData?.school ?? null;
+    const schoolId = String((this.test as any)?.collectionId || dialogData?.schoolId || this.data.schoolId || '').trim();
+
+    (this.test as any).schoolName =
+      (this.test as any).schoolName
+      || schoolFromDialog?.name
+      || dialogData?.schoolName
+      || dialogData?.collectionName
+      || '';
+
+    (this.test as any).schoolLogoUrl =
+      (this.test as any).schoolLogoUrl
+      || dialogData?.schoolLogoUrl
+      || dialogData?.collectionLogoUrl
+      || dialogData?.schoolLogo
+      || schoolFromDialog?.logoUrl
+      || schoolFromDialog?.logo
+      || '';
+
+    if (schoolFromDialog) {
+      (this.test as any).school = {
+        ...(this.test as any).school,
+        ...schoolFromDialog,
+      };
+    }
+
+    const request = serviceAny?.getCollectionById?.(schoolId)
+      ?? serviceAny?.getSchool?.(schoolId)
+      ?? serviceAny?.getSchoolById?.(schoolId);
 
     if (!request?.subscribe) {
       this.refreshPreviewHtml();
@@ -277,17 +321,14 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (school: any) => {
-          if (!school) {
-            this.refreshPreviewHtml();
-            return;
+          if (school) {
+            (this.test as any).schoolName = (this.test as any).schoolName || school?.name || '';
+            (this.test as any).schoolLogoUrl = (this.test as any).schoolLogoUrl || (this.service as any)?.getSchoolLogo?.(school, schoolId) || school?.logoUrl || school?.logo || '';
+            (this.test as any).school = {
+              ...(this.test as any).school,
+              ...school,
+            };
           }
-
-          (this.test as any).schoolName = (this.test as any).schoolName || school?.name || '';
-          (this.test as any).schoolLogoUrl = (this.test as any).schoolLogoUrl || (this.service as any)?.getSchoolLogo?.(school, this.data.schoolId) || school?.logoUrl || school?.logo || '';
-          (this.test as any).school = {
-            ...(this.test as any).school,
-            ...school,
-          };
           this.refreshPreviewHtml();
         },
         error: () => {
@@ -992,8 +1033,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     const logoFromService = (this.service as any)?.getSchoolLogo?.(school, schoolId);
 
     return {
-      schoolName: (this.test as any)?.schoolName || school?.name || dialogData?.schoolName || '',
-      schoolLogoUrl: logoFromService || (this.test as any)?.schoolLogoUrl || school?.logoUrl || school?.logo || dialogData?.schoolLogoUrl || dialogData?.schoolLogo || '',
+      schoolName: (this.test as any)?.schoolName || school?.name || dialogData?.schoolName || dialogData?.collectionName || '',
+      schoolLogoUrl: logoFromService || (this.test as any)?.schoolLogoUrl || school?.logoUrl || school?.logo || dialogData?.schoolLogoUrl || dialogData?.collectionLogoUrl || dialogData?.schoolLogo || '',
       showNameWhenLogoExists: true,
     };
   }
@@ -1030,21 +1071,93 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     return this.selectedExamples.map(entry => ({
       ...entry,
       title: this.getResolvedEntryTitle(entry),
-      example: {
-        ...entry.example,
-        instruction: this.resolveVariables(entry.example.instruction, entry.variableValues, entry.example),
-        question: this.resolveVariables(entry.example.question, entry.variableValues, entry.example),
-        solution: this.resolveVariables((entry.example as any).solution, entry.variableValues, entry.example),
-        answers: (entry.example.answers ?? []).map(answer => [
-          this.resolveVariables(answer?.[0], entry.variableValues, entry.example),
-          this.resolveVariables(answer?.[1], entry.variableValues, entry.example),
-        ]),
-        options: this.resolveOptionList(entry.example.options, entry.variableValues, entry.example),
-        gaps: this.resolveGapList(entry.example.gaps, entry.variableValues, entry.example),
-        assigns: this.resolveAssignList(entry.example.assigns, entry.variableValues, entry.example),
-        assignRightItems: (entry.example.assignRightItems ?? []).map(item => this.resolveVariables(item, entry.variableValues, entry.example)),
-      } as Example
+      variableValues: {
+        ...this.buildDefaultVariableValues(entry.example),
+        ...(entry.variableValues ?? {}),
+      },
+      example: this.buildPreviewExample(entry),
     }));
+  }
+
+  /**
+   * Do not pre-replace variables in instruction/question/options here.
+   * The shared ExamplePreviewRendererService protects LaTeX first and only then
+   * replaces real declared variables. Pre-replacing here breaks formulas such as
+   * $\frac{a}{b}$ when variables named a/b exist.
+   */
+  private buildPreviewExample(entry: TestExampleDTO): Example {
+    const example = this.clonePlain(entry.example) as Example;
+    const variableValues = {
+      ...this.buildDefaultVariableValues(entry.example),
+      ...(entry.variableValues ?? {}),
+    };
+
+    example.displaySettings = this.normalizeDisplaySettings((example as any).displaySettings) as any;
+    example.variables = this.mergeVariableValuesIntoExampleVariables(example.variables, variableValues) as any;
+
+    return example;
+  }
+
+  private mergeVariableValuesIntoExampleVariables(
+    variables: Example['variables'] | undefined,
+    variableValues: TestExampleVariableValues | null | undefined,
+  ): NonNullable<Example['variables']> {
+    const values = variableValues ?? {};
+    const existingVariables = Array.isArray(variables) ? variables : [];
+    const normalized = existingVariables.map(variable => {
+      const key = String(variable?.key ?? '').trim();
+      return {
+        ...variable,
+        defaultValue: String(key && key in values ? values[key] ?? '' : variable?.defaultValue ?? ''),
+      };
+    });
+
+    const knownKeys = new Set(normalized.map(variable => String(variable?.key ?? '').trim()).filter(Boolean));
+
+    for (const [key, value] of Object.entries(values)) {
+      const normalizedKey = String(key ?? '').trim();
+      if (!normalizedKey || knownKeys.has(normalizedKey)) {
+        continue;
+      }
+
+      normalized.push({
+        id: normalizedKey,
+        key: normalizedKey,
+        defaultValue: String(value ?? ''),
+      } as any);
+    }
+
+    return normalized as NonNullable<Example['variables']>;
+  }
+
+  private normalizeDisplaySettings(value: unknown): { showInstructionLabel: boolean; showQuestionLabel: boolean; showTaskImageLabel: boolean } {
+    let settings: any = value;
+
+    if (typeof settings === 'string') {
+      try {
+        settings = JSON.parse(settings);
+      } catch {
+        settings = {};
+      }
+    }
+
+    if (!settings || typeof settings !== 'object') {
+      settings = {};
+    }
+
+    return {
+      showInstructionLabel: settings.showInstructionLabel !== false,
+      showQuestionLabel: settings.showQuestionLabel !== false,
+      showTaskImageLabel: settings.showTaskImageLabel !== false,
+    };
+  }
+
+  private clonePlain<T>(value: T): T {
+    if (typeof structuredClone === 'function') {
+      return structuredClone(value);
+    }
+
+    return JSON.parse(JSON.stringify(value ?? null));
   }
 
   private refreshPreviewHtml(): void {
@@ -1305,10 +1418,12 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   openAddExampleDialog(): void {
     const ref = this.dialog.open(ExamplePickerDialogComponent, {
-      width: 'min(94vw, 1220px)',
-      maxWidth: '94vw',
-      maxHeight: '92vh',
+      width: 'min(1168px, calc(100vw - 48px))',
+      height: 'min(720px, calc(100vh - 48px))',
+      maxWidth: 'calc(100vw - 48px)',
+      maxHeight: 'calc(100vh - 48px)',
       autoFocus: false,
+      restoreFocus: false,
       panelClass: 'example-picker-dialog-panel',
       data: {
         examples: this.allExamples,

@@ -1,5 +1,7 @@
-import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import * as katex from 'katex';
 import { FormsModule } from '@angular/forms';
 import {catchError, finalize, firstValueFrom, forkJoin, of, Subject, Subscription, takeUntil} from 'rxjs';
 
@@ -15,7 +17,7 @@ import { MatIcon } from '@angular/material/icon';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatOption, MatSelect } from '@angular/material/select';
+import {MatOption, MatSelect, MatSelectTrigger} from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { CreateExampleComponent } from '../../dialog/create-example/create-example.component';
@@ -33,7 +35,7 @@ import { NavbarActionsService } from '../navigation/navbar-actions.service';
 import {NgIf} from '@angular/common'
 
 type ExplorerItemType = 'examples' | 'tests';
-type SortOption = 'nameAsc' | 'nameDesc' | 'createdDesc' | 'createdAsc' | 'authorAsc';
+type SortOption = 'nameAsc' | 'nameDesc' | 'createdDesc' | 'createdAsc' | 'authorAsc' | 'typeAsc';
 type ViewMode = 'grid' | 'compact';
 
 interface ExplorerFolder extends FolderDTO {}
@@ -62,7 +64,12 @@ interface DraggedExplorerFolder {
 interface FilterChip {
   key: string;
   label: string;
+  icon: string;
   action: () => void;
+}
+
+interface FolderNavNode extends ExplorerFolder {
+  depth: number;
 }
 
 @Component({
@@ -70,16 +77,12 @@ interface FilterChip {
   standalone: true,
   imports: [
     FormsModule,
-    MatButton,
     MatButtonModule,
     MatIcon,
     MatIconButton,
     TranslatePipe,
-    MatSelect,
-    MatOption,
     MatFormFieldModule,
     MatProgressBarModule,
-    NgIf
   ],
   templateUrl: './collection.component.html',
   styleUrl: './collection.component.scss'
@@ -90,7 +93,12 @@ export class CollectionComponent implements OnInit, OnDestroy {
   translate = inject(TranslateService);
   snack = inject(MatSnackBar);
   navbarActions = inject(NavbarActionsService);
+  private readonly sanitizer = inject(DomSanitizer);
   private readonly destroy$ = new Subject<void>();
+  private readonly previewHtmlCache = new Map<string, SafeHtml>();
+  private readonly collectionStatePrefix = 'collectionExplorerState';
+  private readonly testExampleTypeCache = new Map<string, Set<string>>();
+  private readonly loadingTestExampleTypeIds = new Set<string>();
 
   school: CollectionDTO = {} as CollectionDTO;
   schoolId: string | null = null;
@@ -103,7 +111,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
   logoUrl: string | null = null;
 
   selectedFolderId: string | null = null;
-  search = '';
+  private _search = '';
   sort: SortOption = 'nameAsc';
   currentViewMode: ViewMode = 'grid';
 
@@ -113,6 +121,11 @@ export class CollectionComponent implements OnInit, OnDestroy {
   selectedAuthors: string[] = [];
 
   isFilterPopupOpen = false;
+  isCreateMenuOpen = false;
+  isSortPopupOpen = false;
+  isSearchOpen = false;
+
+  @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
 
   draggedItem: DraggedExplorerItem | null = null;
   draggedFolder: DraggedExplorerFolder | null = null;
@@ -123,6 +136,16 @@ export class CollectionComponent implements OnInit, OnDestroy {
   deletingTestIds = new Set<number | string>();
 
   isSchoolLoading = true;
+
+  get search(): string {
+    return this._search;
+  }
+
+  set search(value: string) {
+    this._search = value ?? '';
+    this.persistExplorerState();
+    this.previewHtmlCache.clear();
+  }
 
   constructor(
     private route: ActivatedRoute,
@@ -137,11 +160,17 @@ export class CollectionComponent implements OnInit, OnDestroy {
       }
 
       localStorage.setItem('lastViewedSchoolId', this.schoolId);
+      this.restoreExplorerState();
+      this.applyFolderFromUrlOrStorage();
       this.reloadAll();
     });
   }
 
   ngOnInit(): void {
+    this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.applyFolderFromUrlOrStorage();
+    });
+
     this.service.getUserId().pipe(takeUntil(this.destroy$)).subscribe(id => {
       this.currentUserId = id;
     });
@@ -167,6 +196,11 @@ export class CollectionComponent implements OnInit, OnDestroy {
   @HostListener('document:click')
   onDocumentClick(): void {
     this.isFilterPopupOpen = false;
+    this.isCreateMenuOpen = false;
+    this.isSortPopupOpen = false;
+    if (!this.isSearching) {
+      this.isSearchOpen = false;
+    }
   }
 
   private reloadAll(): void {
@@ -181,6 +215,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
     this.examples = [];
     this.tests = [];
     this.folders = [];
+    this.previewHtmlCache.clear();
 
     this.service.getCollectionLogo(this.schoolId).subscribe({
       next: (blob) => {
@@ -212,6 +247,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
         this.examples = (examples as ExampleOverviewDTO[]).map(example => ({ ...example, folderId: example.folderId ?? null }));
         this.tests = (tests as TestOverviewDTO[]).map(test => ({ ...test, folderId: test.folderId ?? null }));
         this.ensureSelectedFolderStillExists();
+        this.requestTestExampleTypesForFilters();
         this.setNavbarActions();
       });
   }
@@ -279,7 +315,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
 
       this.socket.onmessage = (event: MessageEvent<string>) => {
         if (event.data == 'update' && !this.isAuthPage()) {
-          this.reloadAll();
+          this.refreshExplorerData();
         }
       };
 
@@ -304,6 +340,30 @@ export class CollectionComponent implements OnInit, OnDestroy {
     }
   }
 
+
+  private refreshExplorerData(): void {
+    if (!this.schoolId) return;
+
+    forkJoin({
+      school: this.service.getCollectionById(this.schoolId).pipe(catchError(() => of(this.school))),
+      folders: this.service.getFolders(this.schoolId).pipe(catchError(() => of(this.folders as FolderDTO[]))),
+      examples: this.service.getExamples(this.schoolId).pipe(catchError(() => of(this.examples))),
+      tests: this.service.getTests(this.schoolId).pipe(catchError(() => of(this.tests)))
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(({ school, folders, examples, tests }) => {
+        if (school) {
+          this.school = school as CollectionDTO;
+        }
+        this.folders = this.normalizeFolders(folders as FolderDTO[]);
+        this.examples = (examples as ExampleOverviewDTO[]).map(example => ({ ...example, folderId: example.folderId ?? null }));
+        this.tests = (tests as TestOverviewDTO[]).map(test => ({ ...test, folderId: test.folderId ?? null }));
+        this.ensureSelectedFolderStillExists();
+        this.requestTestExampleTypesForFilters();
+        this.setNavbarActions();
+      });
+  }
+
   isAuthPage(): boolean {
     return this.router.url.startsWith('/login');
   }
@@ -314,6 +374,35 @@ export class CollectionComponent implements OnInit, OnDestroy {
 
   get isAdmin(): boolean {
     return this.currentUserId === this.school?.admin?.id;
+  }
+
+
+  get folderNavNodes(): FolderNavNode[] {
+    const sorted = [...this.folders].sort((a, b) => a.name.localeCompare(b.name, this.translate.currentLang || 'de', { sensitivity: 'base' }));
+    const result: FolderNavNode[] = [];
+
+    const appendChildren = (parentId: string | null, depth: number) => {
+      for (const folder of sorted.filter(item => (item.parentId ?? null) === parentId)) {
+        result.push({ ...folder, depth });
+        appendChildren(folder.id, depth + 1);
+      }
+    };
+
+    appendChildren(null, 0);
+    return result;
+  }
+
+  isFolderInCurrentPath(folderId: string | null): boolean {
+    if (!folderId || !this.selectedFolderId) return false;
+    return this.currentBreadcrumbs.some(crumb => crumb.id === folderId);
+  }
+
+  get currentFolderLabel(): string {
+    return this.currentFolder?.name || this.t('collection.root');
+  }
+
+  get explorerContextLabel(): string {
+    return this.school?.name || this.t('collection.root');
   }
 
   get currentFolder(): ExplorerFolder | null {
@@ -383,12 +472,26 @@ export class CollectionComponent implements OnInit, OnDestroy {
   get activeFilterChips(): FilterChip[] {
     const chips: FilterChip[] = [];
 
+    const searchTerm = this.search.trim();
+    if (searchTerm) {
+      chips.push({
+        key: 'search',
+        label: `${searchTerm}`,
+        icon: 'search',
+        action: () => {
+          this.search = '';
+          this.isSearchOpen = false;
+        }
+      });
+    }
+
     if (this.selectedItemTypes.length < 2) {
       for (const type of this.selectedItemTypes) {
         chips.push({
           key: `type-${type}`,
           label: this.t(type === 'examples' ? 'collection.examples' : 'collection.tests'),
-          action: () => this.toggleItemType(type)
+          icon: type === 'examples' ? 'post_add' : 'assignment',
+          action: () => this.clearItemTypeFilter()
         });
       }
     }
@@ -397,6 +500,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
       chips.push({
         key: `example-type-${type}`,
         label: this.getExampleTypeLabel(type),
+        icon: this.getExampleTypeIcon(type),
         action: () => this.removeExampleType(type)
       });
     }
@@ -405,6 +509,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
       chips.push({
         key: `focus-${focus}`,
         label: focus,
+        icon: 'sell',
         action: () => this.removeExampleFocus(focus)
       });
     }
@@ -413,6 +518,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
       chips.push({
         key: `author-${author}`,
         label: author,
+        icon: 'person',
         action: () => this.removeAuthor(author)
       });
     }
@@ -422,19 +528,25 @@ export class CollectionComponent implements OnInit, OnDestroy {
 
   get visibleFolders(): ExplorerFolder[] {
     const search = this.search.trim().toLowerCase();
+    const sortFolders = (folders: ExplorerFolder[]) =>
+      folders.sort((a, b) => a.name.localeCompare(b.name, this.translate.currentLang || 'de', { sensitivity: 'base' }));
 
-    if (!search) {
-      return this.folders
-        .filter(folder => folder.parentId === this.selectedFolderId)
-        .sort((a, b) => a.name.localeCompare(b.name, this.translate.currentLang || 'de', { sensitivity: 'base' }));
-    }
-
-    return this.folders
-      .filter(folder =>
+    if (search) {
+      return sortFolders(this.folders.filter(folder =>
         folder.name.toLowerCase().includes(search) ||
         this.getFolderPathLabel(folder.id).toLowerCase().includes(search)
-      )
-      .sort((a, b) => a.name.localeCompare(b.name, this.translate.currentLang || 'de', { sensitivity: 'base' }));
+      ));
+    }
+
+    let folders = this.folders.filter(folder => folder.parentId === this.selectedFolderId);
+
+    // Nur der Beispieltyp-Filter blendet Ordner aus. Suche, Autor, Fokus usw.
+    // sollen die Ordnernavigation nicht künstlich leerräumen.
+    if (this.selectedExampleTypes.length) {
+      folders = folders.filter(folder => this.folderTreeHasSelectedExampleType(folder.id));
+    }
+
+    return sortFolders(folders);
   }
 
   get visibleItems(): ExplorerItem[] {
@@ -464,7 +576,13 @@ export class CollectionComponent implements OnInit, OnDestroy {
     }
 
     if (this.selectedExampleTypes.length) {
-      items = items.filter(item => item.type !== 'examples' || this.selectedExampleTypes.includes(String((item.raw as ExampleOverviewDTO).type)));
+      items = items.filter(item => {
+        if (item.type === 'examples') {
+          return this.selectedExampleTypes.includes(String((item.raw as ExampleOverviewDTO).type));
+        }
+
+        return this.testMatchesSelectedExampleType(item.raw as TestOverviewDTO);
+      });
     }
 
     if (this.selectedExampleFocuses.length) {
@@ -485,6 +603,205 @@ export class CollectionComponent implements OnInit, OnDestroy {
 
   get totalVisibleItemCount(): number {
     return this.visibleItems.length;
+  }
+
+  private get collectionStateStorageKey(): string {
+    return `${this.collectionStatePrefix}:${this.schoolId ?? 'unknown'}`;
+  }
+
+  /**
+   * Restores the lightweight explorer UI state for this collection.
+   * The selected folder is also mirrored in the URL, but localStorage keeps the
+   * rest of the UI comfortable after a reload: search text, filters, sorting
+   * and grid/compact view.
+   */
+  private restoreExplorerState(): void {
+    if (!this.schoolId) return;
+
+    try {
+      const raw = localStorage.getItem(this.collectionStateStorageKey);
+      if (!raw) return;
+      const state = JSON.parse(raw) as Partial<{
+        folderId: string | null;
+        search: string;
+        sort: SortOption;
+        currentViewMode: ViewMode;
+        selectedItemTypes: ExplorerItemType[];
+        selectedExampleTypes: string[];
+        selectedExampleFocuses: string[];
+        selectedAuthors: string[];
+      }>;
+
+      this.selectedFolderId = typeof state.folderId === 'string' ? state.folderId : null;
+      this._search = typeof state.search === 'string' ? state.search : '';
+      this.sort = this.isValidSortOption(state.sort) ? state.sort : 'nameAsc';
+      this.currentViewMode = state.currentViewMode === 'compact' ? 'compact' : 'grid';
+      this.selectedItemTypes = this.normalizeItemTypes(state.selectedItemTypes);
+      this.selectedExampleTypes = Array.isArray(state.selectedExampleTypes) ? state.selectedExampleTypes.map(String) : [];
+      this.selectedExampleFocuses = Array.isArray(state.selectedExampleFocuses) ? state.selectedExampleFocuses.map(String) : [];
+      this.selectedAuthors = Array.isArray(state.selectedAuthors) ? state.selectedAuthors.map(String) : [];
+    } catch {
+      localStorage.removeItem(this.collectionStateStorageKey);
+    }
+  }
+
+  /** Saves only UI state. No collection data is written to localStorage. */
+  private persistExplorerState(): void {
+    if (!this.schoolId) return;
+
+    const state = {
+      folderId: this.selectedFolderId,
+      search: this.search,
+      sort: this.sort,
+      currentViewMode: this.currentViewMode,
+      selectedItemTypes: this.selectedItemTypes,
+      selectedExampleTypes: this.selectedExampleTypes,
+      selectedExampleFocuses: this.selectedExampleFocuses,
+      selectedAuthors: this.selectedAuthors
+    };
+
+    localStorage.setItem(this.collectionStateStorageKey, JSON.stringify(state));
+  }
+
+  /**
+   * URL wins for folder navigation, so links can be shared/bookmarked.
+   * If there is no folder query param, the value restored from localStorage stays.
+   */
+  private applyFolderFromUrlOrStorage(): void {
+    const folderFromUrl = this.route.snapshot.queryParamMap.get('folder');
+    if (folderFromUrl !== null) {
+      this.selectedFolderId = folderFromUrl && folderFromUrl !== 'root' ? folderFromUrl : null;
+      this.persistExplorerState();
+      this.setNavbarActions();
+    }
+  }
+
+  private updateFolderQueryParam(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { folder: this.selectedFolderId || null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
+  }
+
+  private isValidSortOption(value: unknown): value is SortOption {
+    return ['nameAsc', 'nameDesc', 'createdDesc', 'createdAsc', 'authorAsc', 'typeAsc'].includes(String(value));
+  }
+
+  private normalizeItemTypes(value: unknown): ExplorerItemType[] {
+    if (!Array.isArray(value)) return ['examples', 'tests'];
+    const result = value.filter((item): item is ExplorerItemType => item === 'examples' || item === 'tests');
+    return result.length ? [...new Set(result)] : ['examples', 'tests'];
+  }
+
+  /**
+   * Folder visibility for the example-type filter.
+   *
+   * Normal filters such as search, author and focus should not remove folders from
+   * the tree/navigation. Only the example-type filter is special: a folder stays
+   * visible when the folder itself or any child folder contains a matching example.
+   * Tests are checked too, because a test can contain examples of the selected type.
+   */
+  private folderTreeHasSelectedExampleType(folderId: string): boolean {
+    const folderIds = new Set(this.getFolderTreeIds(folderId));
+
+    const hasMatchingExample = this.selectedItemTypes.includes('examples') && this.examples.some(example =>
+      folderIds.has(example.folderId ?? '') && this.exampleMatchesSelectedType(example)
+    );
+
+    const hasMatchingTest = this.selectedItemTypes.includes('tests') && this.tests.some(test =>
+      folderIds.has(test.folderId ?? '') && this.testMatchesSelectedExampleType(test)
+    );
+
+    return hasMatchingExample || hasMatchingTest;
+  }
+
+  private exampleMatchesSelectedType(example: ExampleOverviewDTO): boolean {
+    return !this.selectedExampleTypes.length || this.selectedExampleTypes.includes(String(example.type));
+  }
+
+  /**
+   * Tests only contain all question/example details after loading the full test.
+   * The overview sometimes already has enough data; otherwise we fetch the full
+   * test once, cache its example types and automatically re-render when it arrives.
+   */
+  private testMatchesSelectedExampleType(test: TestOverviewDTO): boolean {
+    if (!this.selectedExampleTypes.length) return true;
+
+    const key = this.getTestIdKey(test);
+    const cached = this.testExampleTypeCache.get(key);
+    if (cached) {
+      return this.selectedExampleTypes.some(type => cached.has(String(type)));
+    }
+
+    const entries = this.extractExampleEntriesFromTest(test);
+    if (entries.length) {
+      const types = this.getExampleTypesFromEntries(entries);
+      this.testExampleTypeCache.set(key, types);
+      return this.selectedExampleTypes.some(type => types.has(String(type)));
+    }
+
+    this.requestTestExampleTypes(test);
+    return false;
+  }
+
+  private requestTestExampleTypesForFilters(): void {
+    if (!this.selectedExampleTypes.length) return;
+    for (const test of this.tests) {
+      this.requestTestExampleTypes(test);
+    }
+  }
+
+  private requestTestExampleTypes(test: TestOverviewDTO): void {
+    const key = this.getTestIdKey(test);
+    if (this.testExampleTypeCache.has(key) || this.loadingTestExampleTypeIds.has(key)) return;
+
+    this.loadingTestExampleTypeIds.add(key);
+    this.service.getTest(test.id).pipe(
+      catchError(() => of(test)),
+      finalize(() => this.loadingTestExampleTypeIds.delete(key)),
+      takeUntil(this.destroy$)
+    ).subscribe(fullTest => {
+      this.testExampleTypeCache.set(key, this.getExampleTypesFromEntries(this.extractExampleEntriesFromTest(fullTest)));
+    });
+  }
+
+  private getExampleTypesFromEntries(entries: any[]): Set<string> {
+    const types = new Set<string>();
+
+    for (const entry of entries) {
+      const directType = this.extractExampleTypeFromEntry(entry);
+      if (directType) {
+        types.add(directType);
+        continue;
+      }
+
+      const exampleId = entry?.example?.id ?? entry?.id ?? entry?.exampleId ?? entry;
+      const knownExample = this.examples.find(example => String(example.id) === String(exampleId));
+      if (knownExample?.type) {
+        types.add(String(knownExample.type));
+      }
+    }
+
+    return types;
+  }
+
+  private extractExampleTypeFromEntry(entry: any): string | null {
+    const candidates = [
+      entry?.example?.type,
+      entry?.exampleType,
+      entry?.type,
+      entry?.question?.example?.type,
+      entry?.question?.type
+    ];
+
+    const value = candidates.find(item => item !== undefined && item !== null && String(item).trim());
+    return value !== undefined && value !== null ? String(value) : null;
+  }
+
+  private getTestIdKey(test: TestOverviewDTO): string {
+    return String(test.id);
   }
 
   private loadSchool(): void {
@@ -519,6 +836,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(tests => {
         this.tests = (tests as TestOverviewDTO[]).map(test => ({ ...test, folderId: test.folderId ?? null }));
+        this.requestTestExampleTypesForFilters();
       });
   }
 
@@ -532,6 +850,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
       .subscribe(folders => {
         this.folders = this.normalizeFolders(folders as FolderDTO[]);
         this.ensureSelectedFolderStillExists();
+        this.requestTestExampleTypesForFilters();
         this.setNavbarActions();
       });
   }
@@ -556,12 +875,92 @@ export class CollectionComponent implements OnInit, OnDestroy {
     if (!this.selectedFolderId) return;
     if (!this.folders.some(folder => folder.id === this.selectedFolderId)) {
       this.selectedFolderId = null;
+      this.persistExplorerState();
+      this.updateFolderQueryParam();
     }
+  }
+
+  private closeFloatingMenus(): void {
+    this.isFilterPopupOpen = false;
+    this.isCreateMenuOpen = false;
+    this.isSortPopupOpen = false;
   }
 
   toggleFilterPopup(event: MouseEvent): void {
     event.stopPropagation();
-    this.isFilterPopupOpen = !this.isFilterPopupOpen;
+    const next = !this.isFilterPopupOpen;
+    this.closeFloatingMenus();
+    this.isFilterPopupOpen = next;
+  }
+
+  toggleSortPopup(event: MouseEvent): void {
+    event.stopPropagation();
+    const next = !this.isSortPopupOpen;
+    this.closeFloatingMenus();
+    this.isSortPopupOpen = next;
+  }
+
+  setSort(sort: SortOption): void {
+    this.sort = sort;
+    this.isSortPopupOpen = false;
+    this.persistExplorerState();
+  }
+
+  toggleCreateMenu(event: MouseEvent): void {
+    event.stopPropagation();
+    const next = !this.isCreateMenuOpen;
+    this.closeFloatingMenus();
+    this.isCreateMenuOpen = next;
+  }
+
+  openSearch(event?: Event): void {
+    event?.stopPropagation();
+    this.closeFloatingMenus();
+    this.isSearchOpen = true;
+    setTimeout(() => this.searchInput?.nativeElement.focus());
+  }
+
+  toggleSearch(event: Event): void {
+    event.stopPropagation();
+    if (this.isSearchOpen || this.isSearching) {
+      if (!this.search.trim()) {
+        this.isSearchOpen = false;
+        return;
+      }
+      this.search = '';
+      this.isSearchOpen = false;
+      return;
+    }
+
+    this.openSearch(event);
+  }
+
+  clearSearch(event: Event): void {
+    event.stopPropagation();
+    this.search = '';
+    this.isSearchOpen = true;
+    setTimeout(() => this.searchInput?.nativeElement.focus());
+  }
+
+  closeSearch(): void {
+    if (!this.search.trim()) {
+      this.isSearchOpen = false;
+    }
+  }
+
+  createFolderFromMenu(): void {
+    this.isCreateMenuOpen = false;
+    this.createFolder();
+  }
+
+  createExampleFromMenu(): void {
+    this.isCreateMenuOpen = false;
+    this.openCreateExample();
+  }
+
+  createTestFromMenu(): void {
+    this.isCreateMenuOpen = false;
+    this.createTest();
   }
 
   stopClick(event: Event): void {
@@ -570,10 +969,13 @@ export class CollectionComponent implements OnInit, OnDestroy {
 
   setCurrentViewMode(mode: ViewMode): void {
     this.currentViewMode = mode;
+    this.persistExplorerState();
   }
 
   selectFolder(folderId: string | null): void {
     this.selectedFolderId = folderId;
+    this.persistExplorerState();
+    this.updateFolderQueryParam();
     this.setNavbarActions();
   }
 
@@ -638,7 +1040,6 @@ export class CollectionComponent implements OnInit, OnDestroy {
         next: folder => {
           this.folders = [...this.folders, folder as ExplorerFolder];
           this.setNavbarActions();
-          this.snack.open(this.t('collection.newFolder'), this.t('common.close'), { duration: 2500 });
         },
         error: err => this.showErrorSnack(err)
       });
@@ -786,6 +1187,12 @@ export class CollectionComponent implements OnInit, OnDestroy {
     this.handleDrop(folderId);
   }
 
+  onDropToRoot(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.handleDrop(null);
+  }
+
   private handleDrop(folderId: string | null): void {
     if (this.draggedItem) {
       if (this.draggedItem.type === 'examples') {
@@ -835,10 +1242,18 @@ export class CollectionComponent implements OnInit, OnDestroy {
     if (this.selectedItemTypes.includes(type)) {
       if (this.selectedItemTypes.length === 1) return;
       this.selectedItemTypes = this.selectedItemTypes.filter(item => item !== type);
+      this.persistExplorerState();
       return;
     }
 
     this.selectedItemTypes = [...this.selectedItemTypes, type];
+    this.persistExplorerState();
+  }
+
+
+  clearItemTypeFilter(): void {
+    this.selectedItemTypes = ['examples', 'tests'];
+    this.persistExplorerState();
   }
 
   isItemTypeSelected(type: ExplorerItemType): boolean {
@@ -849,6 +1264,8 @@ export class CollectionComponent implements OnInit, OnDestroy {
     this.selectedExampleTypes = this.selectedExampleTypes.includes(type)
       ? this.selectedExampleTypes.filter(item => item !== type)
       : [...this.selectedExampleTypes, type];
+    this.persistExplorerState();
+    this.requestTestExampleTypesForFilters();
   }
 
   isExampleTypeSelected(type: string): boolean {
@@ -857,12 +1274,15 @@ export class CollectionComponent implements OnInit, OnDestroy {
 
   removeExampleType(type: string): void {
     this.selectedExampleTypes = this.selectedExampleTypes.filter(item => item !== type);
+    this.persistExplorerState();
+    this.requestTestExampleTypesForFilters();
   }
 
   toggleExampleFocus(focus: string): void {
     this.selectedExampleFocuses = this.selectedExampleFocuses.includes(focus)
       ? this.selectedExampleFocuses.filter(item => item !== focus)
       : [...this.selectedExampleFocuses, focus];
+    this.persistExplorerState();
   }
 
   isExampleFocusSelected(focus: string): boolean {
@@ -871,12 +1291,14 @@ export class CollectionComponent implements OnInit, OnDestroy {
 
   removeExampleFocus(focus: string): void {
     this.selectedExampleFocuses = this.selectedExampleFocuses.filter(item => item !== focus);
+    this.persistExplorerState();
   }
 
   toggleAuthor(author: string): void {
     this.selectedAuthors = this.selectedAuthors.includes(author)
       ? this.selectedAuthors.filter(item => item !== author)
       : [...this.selectedAuthors, author];
+    this.persistExplorerState();
   }
 
   isAuthorSelected(author: string): boolean {
@@ -885,6 +1307,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
 
   removeAuthor(author: string): void {
     this.selectedAuthors = this.selectedAuthors.filter(item => item !== author);
+    this.persistExplorerState();
   }
 
   resetFilters(): void {
@@ -892,6 +1315,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
     this.selectedExampleTypes = [];
     this.selectedExampleFocuses = [];
     this.selectedAuthors = [];
+    this.persistExplorerState();
   }
 
   private getExampleSearchHaystack(example: ExampleOverviewDTO): string {
@@ -948,6 +1372,11 @@ export class CollectionComponent implements OnInit, OnDestroy {
           return getDate(a.updatedAt || a.createdAt) - getDate(b.updatedAt || b.createdAt);
         case 'authorAsc':
           return a.author.localeCompare(b.author, this.translate.currentLang || 'de', { sensitivity: 'base' });
+        case 'typeAsc': {
+          const typeOrder: Record<ExplorerItemType, number> = { examples: 0, tests: 1 };
+          const typeCompare = typeOrder[a.type] - typeOrder[b.type];
+          return typeCompare || a.title.localeCompare(b.title, this.translate.currentLang || 'de', { sensitivity: 'base' });
+        }
         case 'nameAsc':
         default:
           return a.title.localeCompare(b.title, this.translate.currentLang || 'de', { sensitivity: 'base' });
@@ -978,6 +1407,184 @@ export class CollectionComponent implements OnInit, OnDestroy {
     return type;
   }
 
+
+  getRenderedPreviewTitle(item: ExplorerItem): SafeHtml {
+    const fallbackTitle = this.t('collection.untitled') || 'Unbenannt';
+
+    // Cards are intentionally a one-line preview. We cut the raw title before
+    // rendering so multi-line Markdown/LaTeX cannot create hidden second rows.
+    const title = this.getFirstDisplayLine(item.title || fallbackTitle);
+    const cacheKey = `${item.type}-${item.id}-${title}`;
+    const cached = this.previewHtmlCache.get(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
+    const rendered = this.sanitizer.bypassSecurityTrustHtml(this.renderPreviewTitleHtml(title));
+    this.previewHtmlCache.set(cacheKey, rendered);
+    return rendered;
+  }
+
+  private getFirstDisplayLine(value: string | null | undefined): string {
+    const source = String(value ?? '').replace(/\r\n?/g, '\n');
+    const firstNonEmpty = source.split('\n').find(line => line.trim().length > 0);
+    return (firstNonEmpty ?? source.split('\n')[0] ?? '').trim();
+  }
+
+  /**
+   * Renders the collection-card title as inline content only.
+   *
+   * This deliberately does NOT call renderMarkdownHtml(), because block Markdown
+   * would interpret titles like "1. Test" as an ordered list and indent them.
+   * For cards we only want inline formatting (bold/italic/code/strike) plus the
+   * same dollar-delimited KaTeX replacement that the example preview uses.
+   */
+  private renderPreviewTitleHtml(value: string | null | undefined): string {
+    const source = String(value ?? '');
+    const mathTokens: string[] = [];
+    const mathPattern = /\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g;
+
+    const textWithMathTokens = source.replace(mathPattern, (_fullMatch, displayFormula, inlineFormula) => {
+      const isDisplay = displayFormula !== undefined;
+      const formula = isDisplay ? displayFormula : inlineFormula;
+      const token = `@@MATH_TOKEN_${mathTokens.length}@@`;
+      mathTokens.push(this.renderFormula(formula, isDisplay));
+      return token;
+    });
+
+    let html = this.renderInlineMarkdown(textWithMathTokens);
+    mathTokens.forEach((formulaHtml, index) => {
+      html = html.replace(new RegExp(`@@MATH_TOKEN_${index}@@`, 'g'), formulaHtml);
+    });
+
+    return html;
+  }
+
+  private renderMarkdownHtml(value: string | number | null | undefined): string {
+    const source = String(value ?? '').replace(/\r\n?/g, '\n');
+    if (!source.trim()) {
+      return '';
+    }
+
+    const lines = source.split('\n');
+    const blocks: string[] = [];
+    let index = 0;
+
+    while (index < lines.length) {
+      const line = lines[index];
+
+      if (!line.trim()) {
+        blocks.push('<p><br></p>');
+        index += 1;
+        continue;
+      }
+
+      if (/^\s*```/.test(line)) {
+        const codeLines: string[] = [];
+        index += 1;
+        while (index < lines.length && !/^\s*```/.test(lines[index])) {
+          codeLines.push(lines[index]);
+          index += 1;
+        }
+        if (index < lines.length) {
+          index += 1;
+        }
+        blocks.push(`<pre><code>${this.escapeHtml(codeLines.join('\n'))}</code></pre>`);
+        continue;
+      }
+
+      if (/^\s*>\s?/.test(line)) {
+        const quoteLines: string[] = [];
+        while (index < lines.length && /^\s*>\s?/.test(lines[index])) {
+          quoteLines.push(lines[index].replace(/^\s*>\s?/, ''));
+          index += 1;
+        }
+        blocks.push(`<blockquote>${quoteLines.map(item => this.renderInlineMarkdown(item)).join('<br>')}</blockquote>`);
+        continue;
+      }
+
+      if (/^\s*[-*+]\s+/.test(line)) {
+        const items: string[] = [];
+        while (index < lines.length && /^\s*[-*+]\s+/.test(lines[index])) {
+          items.push(lines[index].replace(/^\s*[-*+]\s+/, ''));
+          index += 1;
+        }
+        blocks.push(`<ul>${items.map(item => `<li>${this.renderInlineMarkdown(item)}</li>`).join('')}</ul>`);
+        continue;
+      }
+
+      if (/^\s*\d+[.)]\s+/.test(line)) {
+        const items: string[] = [];
+        while (index < lines.length && /^\s*\d+[.)]\s+/.test(lines[index])) {
+          items.push(lines[index].replace(/^\s*\d+[.)]\s+/, ''));
+          index += 1;
+        }
+        blocks.push(`<ol>${items.map(item => `<li>${this.renderInlineMarkdown(item)}</li>`).join('')}</ol>`);
+        continue;
+      }
+
+      const paragraphLines: string[] = [];
+      while (
+        index < lines.length
+        && lines[index].trim()
+        && !/^\s*```/.test(lines[index])
+        && !/^\s*>\s?/.test(lines[index])
+        && !/^\s*[-*+]\s+/.test(lines[index])
+        && !/^\s*\d+[.)]\s+/.test(lines[index])
+        ) {
+        paragraphLines.push(lines[index]);
+        index += 1;
+      }
+      blocks.push(`<p>${paragraphLines.map(item => this.renderInlineMarkdown(item)).join('<br>')}</p>`);
+    }
+
+    return blocks.join('');
+  }
+
+  private renderInlineMarkdown(value: string | number | null | undefined): string {
+    return this.escapeHtml(value)
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/~~([^~]+)~~/g, '<del>$1</del>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+      .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
+  }
+
+  private renderFormula(formula: string, displayMode: boolean): string {
+    try {
+      return katex.renderToString(formula.trim(), {
+        displayMode,
+        output: 'mathml',
+        throwOnError: false,
+        strict: 'ignore',
+      });
+    } catch {
+      return this.escapeHtml(displayMode ? `$$${formula}$$` : `$${formula}$`);
+    }
+  }
+
+  private escapeHtml(value: string | number | null | undefined): string {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+
+  getItemTags(item: ExplorerItem): string[] {
+    if (item.type !== 'examples') {
+      return [];
+    }
+
+    return ((item.raw as ExampleOverviewDTO).focusList ?? [])
+      .map(focus => (focus.label ?? '').trim())
+      .filter(Boolean)
+      .slice(0, 4);
+  }
+
   getItemMeta(item: ExplorerItem): string {
     return [this.getItemTypeLabel(item), item.author, item.subtitle]
       .map(part => (part ?? '').trim())
@@ -992,8 +1599,57 @@ export class CollectionComponent implements OnInit, OnDestroy {
     return this.t('collection.test');
   }
 
+  getExampleTypeIcon(type: string | ExampleTypes | null | undefined): string {
+    const normalized = String(type ?? '').toLowerCase();
+
+    switch (normalized) {
+      case String(ExampleTypes.OPEN).toLowerCase():
+        return 'notes';
+      case String(ExampleTypes.HALF_OPEN).toLowerCase():
+        return 'short_text';
+      case String(ExampleTypes.CONSTRUCTION).toLowerCase():
+        return 'architecture';
+      case String(ExampleTypes.MULTIPLE_CHOICE).toLowerCase():
+        return 'checklist';
+      case String(ExampleTypes.GAP_FILL).toLowerCase():
+        return 'format_color_text';
+      case String(ExampleTypes.ASSIGN).toLowerCase():
+        return 'device_hub';
+      default:
+        if (normalized.includes('gap') || normalized.includes('luecke') || normalized.includes('lücke')) {
+          return 'format_color_text';
+        }
+
+        if (normalized.includes('match') || normalized.includes('assign') || normalized.includes('zuord')) {
+          return 'device_hub';
+        }
+
+        if (normalized.includes('multiple') || normalized.includes('choice') || normalized.includes('auswahl')) {
+          return 'checklist';
+        }
+
+        if (normalized.includes('half') || normalized.includes('halb')) {
+          return 'short_text';
+        }
+
+        if (normalized.includes('construction') || normalized.includes('construct') || normalized.includes('konstruk')) {
+          return 'architecture';
+        }
+
+        if (normalized.includes('open') || normalized.includes('offen')) {
+          return 'notes';
+        }
+
+        return 'post_add';
+    }
+  }
+
   getItemIcon(item: ExplorerItem): string {
-    return item.type === 'examples' ? 'article' : 'quiz';
+    if (item.type === 'examples') {
+      return this.getExampleTypeIcon(String((item.raw as ExampleOverviewDTO).type));
+    }
+
+    return 'quiz';
   }
 
   canManageItem(item: ExplorerItem): boolean {
@@ -1019,6 +1675,21 @@ export class CollectionComponent implements OnInit, OnDestroy {
     return crumbs.map(crumb => crumb.name).join(' / ');
   }
 
+  private buildSchoolDialogData(extra: Record<string, unknown> = {}): Record<string, unknown> {
+    const collectionName = this.school?.name || '';
+    const collectionLogoUrl = this.logoUrl || '';
+
+    return {
+      schoolId: this.schoolId,
+      schoolName: collectionName,
+      collectionName,
+      schoolLogoUrl: collectionLogoUrl,
+      collectionLogoUrl,
+      school: this.school,
+      ...extra,
+    };
+  }
+
   openCreateExample(): void {
     const isMobile = window.innerWidth <= 768;
 
@@ -1027,10 +1698,9 @@ export class CollectionComponent implements OnInit, OnDestroy {
       maxWidth: isMobile ? '100vw' : '70vw',
       maxHeight: isMobile ? '100dvh' : '90vh',
       panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-example-dialog-panel',
-      data: {
-        schoolId: this.schoolId,
+      data: this.buildSchoolDialogData({
         folderId: this.selectedFolderId
-      },
+      }),
       autoFocus: false
     }).afterClosed().subscribe(() => {
       this.loadExamples();
@@ -1076,10 +1746,9 @@ export class CollectionComponent implements OnInit, OnDestroy {
       height: isMobile ? '100dvh' : '90vh',
       maxHeight: isMobile ? '100dvh' : '90vh',
       panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-test-dialog-panel',
-      data: {
-        schoolId: this.schoolId,
+      data: this.buildSchoolDialogData({
         folderId: this.selectedFolderId
-      }
+      })
     }).afterClosed().subscribe(() => {
       this.loadTests();
     });
@@ -1094,7 +1763,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
       height: isMobile ? '100dvh' : '90vh',
       maxHeight: isMobile ? '100dvh' : '90vh',
       panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-test-dialog-panel',
-      data: { schoolId: this.schoolId, testId: test.id, folderId: test.folderId ?? null }
+      data: this.buildSchoolDialogData({ testId: test.id, folderId: test.folderId ?? null })
     }).afterClosed().subscribe(() => {
       this.loadTests();
     });
@@ -1107,7 +1776,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
       height: '92vh',
       maxHeight: '92vh',
       panelClass: 'test-preview-dialog',
-      data: { schoolId: this.schoolId, testId: test.id }
+      data: this.buildSchoolDialogData({ testId: test.id })
     }).afterClosed().subscribe(() => {
       this.loadTests();
     });
@@ -1515,4 +2184,22 @@ export class CollectionComponent implements OnInit, OnDestroy {
       }
     }).afterClosed();
   }
+
+  getSortLabel(sort: string): string {
+    switch (sort) {
+      case 'nameAsc':
+        return this.t('collection.sort.nameAsc');
+      case 'nameDesc':
+        return this.t('collection.sort.nameDesc');
+      case 'createdDesc':
+        return this.t('collection.sort.updatedDesc');
+      case 'createdAsc':
+        return this.t('collection.sort.updatedAsc');
+      case 'authorAsc':
+        return this.t('collection.sort.authorAsc');
+      default:
+        return this.t('common.sort');
+    }
+  }
+
 }

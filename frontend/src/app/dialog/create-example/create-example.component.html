@@ -19,36 +19,41 @@
     <div class="grid">
       <div class="create-example-dialog">
         <form class="example-form">
-          <div class="variable-toolbar">
-            <button mat-stroked-button type="button" (click)="insertVariableAtCursor()">
-              <mat-icon>code</mat-icon>
-              {{ 'exampleDialog.variables.insert' | translate }}
-            </button>
-          </div>
-
-          <section class="panel-box variable-panel" *ngIf="example.variables?.length">
-            <div class="variable-panel-head">
-              <div>
-                <div class="panel-title">{{ 'exampleDialog.variables.title' | translate }}</div>
-                <p>{{ 'exampleDialog.variables.description' | translate }}</p>
-              </div>
+          <section class="panel-box side-collapsible editor-ribbon-panel" [class.collapsed]="editorCollapsed">
+            <div class="side-collapse-head" role="button" tabindex="0" (click)="editorCollapsed = !editorCollapsed">
+              <mat-icon class="collapse-icon">{{ editorCollapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
+              <span class="panel-title">{{ 'exampleDialog.editor.title' | translate }}</span>
+              <span class="collapse-head-spacer"></span>
             </div>
 
-            <div class="variable-grid">
-              <div class="variable-card" *ngFor="let variable of example.variables; trackBy: trackByVariableKey">
-                <div class="variable-key-row">
-                  <div class="variable-key">{{ '{' }}{{ variable.key }}{{ '}' }}</div>
-                </div>
+            <div class="side-collapse-body editor-ribbon-body" *ngIf="!editorCollapsed">
+              <div class="editor-ribbon-tabs" [attr.aria-label]="'exampleDialog.editor.groupsAria' | translate">
+                <button
+                  mat-button
+                  type="button"
+                  class="editor-ribbon-tab"
+                  *ngFor="let group of editorToolbarGroups; let groupIndex = index"
+                  [class.active]="activeEditorToolbarGroupIndex === groupIndex"
+                  (mousedown)="$event.preventDefault()"
+                  (click)="activeEditorToolbarGroupIndex = groupIndex"
+                >
+                  {{ group.label | translate }}
+                </button>
+              </div>
 
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>{{ 'exampleDialog.variables.defaultValue' | translate }}</mat-label>
-                  <input
-                    matInput
-                    [(ngModel)]="variable.defaultValue"
-                    name="variableDefault-{{ variable.key }}"
-                    (ngModelChange)="markDirty()"
-                    [placeholder]="'exampleDialog.variables.defaultValuePlaceholder' | translate" />
-                </mat-form-field>
+              <div class="editor-ribbon-toolbar" [attr.aria-label]="'exampleDialog.editor.toolbarAria' | translate">
+                <button
+                  mat-button
+                  type="button"
+                  class="editor-ribbon-command"
+                  *ngFor="let item of activeEditorToolbarItems"
+                  (mousedown)="$event.preventDefault()"
+                  (click)="runEditorToolbarAction(item.action)"
+                  [matTooltip]="(item.tooltip || item.label) | translate"
+                >
+                  <mat-icon>{{ item.icon }}</mat-icon>
+                  <span>{{ item.label | translate }}</span>
+                </button>
               </div>
             </div>
           </section>
@@ -60,8 +65,11 @@
                 matInput
                 [(ngModel)]="example.instruction"
                 name="instruction"
-                (focus)="setVariableTarget({ type: 'instruction' })"
-                (input)="syncVariablesFromContent(); markDirty()"
+                (focus)="setVariableTarget({ type: 'instruction' }, $event)"
+                (click)="setVariableTarget({ type: 'instruction' }, $event)"
+                (keyup)="setVariableTarget({ type: 'instruction' }, $event)"
+                (select)="setVariableTarget({ type: 'instruction' }, $event)"
+                (input)="setVariableTarget({ type: 'instruction' }, $event); syncVariablesFromContent(); markDirty()"
                 placeholder="{{ 'exampleDialog.instructionPlaceholder' | translate }}"
                 cdkTextareaAutosize
                 cdkAutosizeMinRows="2"
@@ -78,7 +86,11 @@
                   matInput
                   [(ngModel)]="example.question"
                   name="question"
-                  (input)="syncVariablesFromContent(); markDirty()"
+                  (focus)="setVariableTarget({ type: 'question' }, $event)"
+                  (click)="setVariableTarget({ type: 'question' }, $event)"
+                  (keyup)="setVariableTarget({ type: 'question' }, $event)"
+                  (select)="setVariableTarget({ type: 'question' }, $event)"
+                  (input)="setVariableTarget({ type: 'question' }, $event); syncVariablesFromContent(); markDirty()"
                   placeholder="{{ 'exampleDialog.openQuestionPlaceholder' | translate }}"
                   cdkTextareaAutosize
                   cdkAutosizeMinRows="2"
@@ -94,7 +106,11 @@
                   matInput
                   [(ngModel)]="example.solution"
                   name="solution"
-                  (input)="syncVariablesFromContent(); markDirty()"
+                  (focus)="setVariableTarget({ type: 'solution' }, $event)"
+                  (click)="setVariableTarget({ type: 'solution' }, $event)"
+                  (keyup)="setVariableTarget({ type: 'solution' }, $event)"
+                  (select)="setVariableTarget({ type: 'solution' }, $event)"
+                  (input)="setVariableTarget({ type: 'solution' }, $event); syncVariablesFromContent(); markDirty()"
                   placeholder="{{ 'exampleDialog.solutionPlaceholder' | translate }}"
                   cdkTextareaAutosize
                   cdkAutosizeMinRows="2"
@@ -106,7 +122,7 @@
             <ng-container *ngIf="example.type === ExampleTypes.HALF_OPEN">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>{{ 'collection.question' | translate }}</mat-label>
-                <textarea matInput [(ngModel)]="example.question" name="question" (input)="syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.halfOpenQuestionPlaceholder' | translate }}"
+                <textarea matInput [(ngModel)]="example.question" name="question" (focus)="setVariableTarget({ type: 'question' }, $event)" (click)="setVariableTarget({ type: 'question' }, $event)" (keyup)="setVariableTarget({ type: 'question' }, $event)" (select)="setVariableTarget({ type: 'question' }, $event)" (input)="setVariableTarget({ type: 'question' }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.halfOpenQuestionPlaceholder' | translate }}"
                           cdkTextareaAutosize
                           cdkAutosizeMinRows="2"
                           cdkAutosizeMaxRows="10"></textarea>
@@ -116,10 +132,10 @@
                 <div class="panel-title">{{ 'exampleDialog.answers' | translate }}</div>
                 <div *ngFor="let a of example.answers; let i = index; trackBy: trackByIndex" class="item-row">
                   <mat-form-field appearance="outline" class="item-input">
-                    <input matInput [(ngModel)]="example.answers[i][0]" name="halfOpenAnswer{{i}}" (input)="markDirty()" placeholder="{{ ('exampleDialog.answer' | translate) + ' ' + (i + 1) }}">
+                    <input matInput [(ngModel)]="example.answers[i][0]" name="halfOpenAnswer{{i}}" (focus)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event)" (click)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event)" (keyup)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event)" (select)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event)" (input)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ ('exampleDialog.answer' | translate) + ' ' + (i + 1) }}">
                   </mat-form-field>
                   <mat-form-field appearance="outline" class="item-input">
-                    <input matInput [(ngModel)]="example.answers[i][1]" name="halfOpenCorrectAnswer{{i}}" (input)="markDirty()" placeholder="{{ ('exampleDialog.correctSolution' | translate) + ' ' + (i + 1) }}">
+                    <input matInput [(ngModel)]="example.answers[i][1]" name="halfOpenCorrectAnswer{{i}}" (focus)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (click)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (keyup)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (select)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (input)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ ('exampleDialog.correctSolution' | translate) + ' ' + (i + 1) }}">
                   </mat-form-field>
                   <button mat-icon-button color="warn" type="button" (click)="removeHalfOpenAnswer(i)" [attr.aria-label]="'exampleDialog.removeAnswer' | translate">
                     <mat-icon>delete</mat-icon>
@@ -132,7 +148,7 @@
             <ng-container *ngIf="example.type === ExampleTypes.MULTIPLE_CHOICE">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>{{ 'collection.question' | translate }}</mat-label>
-                <textarea matInput [(ngModel)]="example.question" name="question" (input)="syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.multipleChoicePlaceholder' | translate }}"
+                <textarea matInput [(ngModel)]="example.question" name="question" (focus)="setVariableTarget({ type: 'question' }, $event)" (click)="setVariableTarget({ type: 'question' }, $event)" (keyup)="setVariableTarget({ type: 'question' }, $event)" (select)="setVariableTarget({ type: 'question' }, $event)" (input)="setVariableTarget({ type: 'question' }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.multipleChoicePlaceholder' | translate }}"
                           cdkTextareaAutosize
                           cdkAutosizeMinRows="2"
                           cdkAutosizeMaxRows="10"></textarea>
@@ -147,7 +163,7 @@
                   </mat-checkbox>
 
                   <mat-form-field appearance="outline" class="item-input">
-                    <input matInput [(ngModel)]="opt.text" name="option{{i}}" (input)="markDirty()" placeholder="{{ ('exampleDialog.option' | translate) + ' ' + (i + 1) }}">
+                    <input matInput [(ngModel)]="opt.text" name="option{{i}}" (focus)="setVariableTarget({ type: 'option', index: i }, $event)" (click)="setVariableTarget({ type: 'option', index: i }, $event)" (keyup)="setVariableTarget({ type: 'option', index: i }, $event)" (select)="setVariableTarget({ type: 'option', index: i }, $event)" (input)="setVariableTarget({ type: 'option', index: i }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ ('exampleDialog.option' | translate) + ' ' + (i + 1) }}">
                   </mat-form-field>
 
                   <button mat-icon-button color="warn" (click)="removeOption(i)" type="button" [attr.aria-label]="'exampleDialog.removeOption' | translate">
@@ -164,7 +180,7 @@
             <ng-container *ngIf="example.type === ExampleTypes.GAP_FILL">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>{{ 'collection.question' | translate }}</mat-label>
-                <textarea matInput [(ngModel)]="example.question" name="question" (input)="syncVariablesFromContent(); updateGapsFromText(); markDirty()" placeholder="{{ 'exampleDialog.gapFillPlaceholder' | translate }}"
+                <textarea matInput [(ngModel)]="example.question" name="question" (focus)="setVariableTarget({ type: 'question' }, $event)" (click)="setVariableTarget({ type: 'question' }, $event)" (keyup)="setVariableTarget({ type: 'question' }, $event)" (select)="setVariableTarget({ type: 'question' }, $event)" (input)="setVariableTarget({ type: 'question' }, $event); syncVariablesFromContent(); updateGapsFromText(); markDirty()" placeholder="{{ 'exampleDialog.gapFillPlaceholder' | translate }}"
                           cdkTextareaAutosize
                           cdkAutosizeMinRows="2"
                           cdkAutosizeMaxRows="10"></textarea>
@@ -202,7 +218,7 @@
 
                       <mat-form-field appearance="outline" class="option-input">
                         <mat-label>{{ ('exampleDialog.answerOption' | translate) + ' ' + (oi + 1) }}</mat-label>
-                        <input matInput [(ngModel)]="gap.options[oi].text" name="gapOption{{gi}}_{{oi}}" (input)="markDirty()" placeholder="{{ 'exampleDialog.answerOptionPlaceholder' | translate }}">
+                        <input matInput [(ngModel)]="gap.options[oi].text" name="gapOption{{gi}}_{{oi}}" (focus)="setVariableTarget({ type: 'gapOption', gapIndex: gi, optionIndex: oi }, $event)" (click)="setVariableTarget({ type: 'gapOption', gapIndex: gi, optionIndex: oi }, $event)" (keyup)="setVariableTarget({ type: 'gapOption', gapIndex: gi, optionIndex: oi }, $event)" (select)="setVariableTarget({ type: 'gapOption', gapIndex: gi, optionIndex: oi }, $event)" (input)="setVariableTarget({ type: 'gapOption', gapIndex: gi, optionIndex: oi }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.answerOptionPlaceholder' | translate }}">
                       </mat-form-field>
 
                       <button mat-icon-button color="warn" type="button" (click)="removeGapOption(gi, oi)" [attr.aria-label]="'exampleDialog.removeOption' | translate">
@@ -227,7 +243,7 @@
                   <div>
                     <mat-form-field appearance="outline" class="item-input">
                       <mat-label>{{ 'exampleDialog.correctAnswer' | translate }}</mat-label>
-                      <input matInput [(ngModel)]="gap.solution" name="gapCorrectAnswer{{gi}}" (input)="onGapSolutionChange(gap)" placeholder="{{ 'exampleDialog.correctAnswerPlaceholder' | translate }}">
+                      <input matInput [(ngModel)]="gap.solution" name="gapCorrectAnswer{{gi}}" (focus)="setVariableTarget({ type: 'gapSolution', index: gi }, $event)" (click)="setVariableTarget({ type: 'gapSolution', index: gi }, $event)" (keyup)="setVariableTarget({ type: 'gapSolution', index: gi }, $event)" (select)="setVariableTarget({ type: 'gapSolution', index: gi }, $event)" (input)="setVariableTarget({ type: 'gapSolution', index: gi }, $event); onGapSolutionChange(gap)" placeholder="{{ 'exampleDialog.correctAnswerPlaceholder' | translate }}">
                     </mat-form-field>
 
                     <mat-form-field appearance="outline" class="gap-width-input-field">
@@ -261,7 +277,7 @@
             <ng-container *ngIf="example.type === ExampleTypes.CONSTRUCTION">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>{{ 'collection.question' | translate }}</mat-label>
-                <textarea matInput [(ngModel)]="example.question" name="question" (input)="syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.constructionPlaceholder' | translate }}"
+                <textarea matInput [(ngModel)]="example.question" name="question" (focus)="setVariableTarget({ type: 'question' }, $event)" (click)="setVariableTarget({ type: 'question' }, $event)" (keyup)="setVariableTarget({ type: 'question' }, $event)" (select)="setVariableTarget({ type: 'question' }, $event)" (input)="setVariableTarget({ type: 'question' }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.constructionPlaceholder' | translate }}"
                           cdkTextareaAutosize
                           cdkAutosizeMinRows="2"
                           cdkAutosizeMaxRows="10"></textarea>
@@ -281,7 +297,7 @@
                 (imageSelected)="onImageSelected($event.event, $event.kind)"
                 (imageRemoved)="removeSelectedImage($event)"
                 (widthChange)="example.imageWidth = $event; markDirty()"
-                (fileTooLarge)="snackBar.open('Maximale Dateigröße ist 2 MB', 'OK', { duration: 3000 })"
+                (fileTooLarge)="openTranslatedSnack('exampleDialog.snackbar.imageSizeError')"
               ></app-construction-image-card>
 
               <mat-divider></mat-divider>
@@ -306,7 +322,7 @@
             <ng-container *ngIf="example.type === ExampleTypes.ASSIGN">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>{{ 'collection.question' | translate }}</mat-label>
-                <textarea matInput [(ngModel)]="example.question" name="question" (input)="syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.assignPlaceholder' | translate }}"
+                <textarea matInput [(ngModel)]="example.question" name="question" (focus)="setVariableTarget({ type: 'question' }, $event)" (click)="setVariableTarget({ type: 'question' }, $event)" (keyup)="setVariableTarget({ type: 'question' }, $event)" (select)="setVariableTarget({ type: 'question' }, $event)" (input)="setVariableTarget({ type: 'question' }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.assignPlaceholder' | translate }}"
                           cdkTextareaAutosize
                           cdkAutosizeMinRows="2"
                           cdkAutosizeMaxRows="10"></textarea>
@@ -317,7 +333,7 @@
                   <div class="column-title">{{ 'exampleDialog.assignLeftColumn' | translate }}</div>
                   <div *ngFor="let assign of example.assigns; let li = index; trackBy: trackByIndex" class="assign-row">
                     <mat-form-field appearance="outline" class="item-input">
-                      <input matInput [(ngModel)]="assign.left" name="assignLeft{{li}}" (input)="markDirty()" placeholder="{{ 'exampleDialog.assignLeftPlaceholder' | translate }}">
+                      <input matInput [(ngModel)]="assign.left" name="assignLeft{{li}}" (focus)="setVariableTarget({ type: 'assignLeft', index: li }, $event)" (click)="setVariableTarget({ type: 'assignLeft', index: li }, $event)" (keyup)="setVariableTarget({ type: 'assignLeft', index: li }, $event)" (select)="setVariableTarget({ type: 'assignLeft', index: li }, $event)" (input)="setVariableTarget({ type: 'assignLeft', index: li }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.assignLeftPlaceholder' | translate }}">
                     </mat-form-field>
 
                     <mat-form-field appearance="outline" class="assign-select">
@@ -340,7 +356,7 @@
                   <div class="column-title">{{ 'exampleDialog.assignRightColumn' | translate }}</div>
                   <div *ngFor="let right of example.assignRightItems; let ri = index; trackBy: trackByIndex" class="assign-row">
                     <mat-form-field appearance="outline" class="item-input">
-                      <input matInput [(ngModel)]="example.assignRightItems[ri]" name="assignRight{{ri}}" (input)="markDirty()" placeholder="{{ 'exampleDialog.assignRightPlaceholder' | translate }}">
+                      <input matInput [(ngModel)]="example.assignRightItems[ri]" name="assignRight{{ri}}" (focus)="setVariableTarget({ type: 'assignRight', index: ri }, $event)" (click)="setVariableTarget({ type: 'assignRight', index: ri }, $event)" (keyup)="setVariableTarget({ type: 'assignRight', index: ri }, $event)" (select)="setVariableTarget({ type: 'assignRight', index: ri }, $event)" (input)="setVariableTarget({ type: 'assignRight', index: ri }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.assignRightPlaceholder' | translate }}">
                     </mat-form-field>
 
                     <button mat-icon-button color="warn" (click)="removeAssignRightItem(ri)" type="button" [attr.aria-label]="'exampleDialog.assignRemoveRight' | translate"><mat-icon>delete</mat-icon></button>
@@ -356,28 +372,166 @@
             </ng-container>
           </section>
 
-          <mat-divider></mat-divider>
+          <section class="panel-box side-collapsible display-settings-panel" [class.collapsed]="displaySettingsCollapsed">
+            <div class="side-collapse-head" role="button" tabindex="0" (click)="displaySettingsCollapsed = !displaySettingsCollapsed">
+              <mat-icon class="collapse-icon">{{ displaySettingsCollapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
+              <span class="panel-title">{{ 'exampleDialog.displaySettings.title' | translate }}</span>
+            </div>
 
-          <app-example-focus-selector
-            [focuses]="example.focusList"
-            [inputCtrl]="inputCtrl"
-            [filteredFocusList]="filteredFocusList"
-            [showCreateOption]="showCreateOption.bind(this)"
-            (focusRemoved)="remove($event)"
-            (focusDeleted)="deleteFocus($event.focus, $event.event)"
-            (focusSelected)="selected($event)"
-            (focusInputTokenEnd)="addFromInput($event)"
-          ></app-example-focus-selector>
+            <div class="side-collapse-body" *ngIf="!displaySettingsCollapsed">
+              <div class="display-settings-list">
+                <div class="display-setting-card">
+                  <div class="setting-copy">
+                    <div class="setting-title">{{ 'exampleDialog.displaySettings.instructionLabel' | translate }}</div>
+                  </div>
+
+                  <label class="switch" [attr.aria-label]="'exampleDialog.displaySettings.instructionLabel' | translate">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="example.displaySettings.showInstructionLabel"
+                      name="showInstructionLabel"
+                      (change)="markDirty()"
+                    >
+                    <span class="switch-track">
+                      <span class="switch-thumb"></span>
+                    </span>
+                  </label>
+                </div>
+
+                <div class="display-setting-card">
+                  <div class="setting-copy">
+                    <div class="setting-title">{{ 'exampleDialog.displaySettings.questionLabel' | translate }}</div>
+                  </div>
+
+                  <label class="switch" [attr.aria-label]="'exampleDialog.displaySettings.questionLabel' | translate">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="example.displaySettings.showQuestionLabel"
+                      name="showQuestionLabel"
+                      (change)="markDirty()"
+                    >
+                    <span class="switch-track">
+                      <span class="switch-thumb"></span>
+                    </span>
+                  </label>
+                </div>
+
+                <div class="display-setting-card" *ngIf="example.type === ExampleTypes.CONSTRUCTION">
+                  <div class="setting-copy">
+                    <div class="setting-title">{{ 'exampleDialog.displaySettings.taskImageLabel' | translate }}</div>
+                  </div>
+
+                  <label class="switch" [attr.aria-label]="'exampleDialog.displaySettings.taskImageLabel' | translate">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="example.displaySettings.showTaskImageLabel"
+                      name="showTaskImageLabel"
+                      (change)="markDirty()"
+                    >
+                    <span class="switch-track">
+                      <span class="switch-thumb"></span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </section>
         </form>
       </div>
 
       <div class="create-example-layout">
-        <app-example-preview
-          [example]="example"
-          [constructionImagePreviewUrl]="constructionImagePreviewUrl"
-          [constructionSolutionPreviewUrl]="constructionSolutionPreviewUrl"
-          [showHeader]="false"
-        ></app-example-preview>
+        <section class="panel-box side-collapsible preview-panel" [class.collapsed]="previewCollapsed">
+          <div class="side-collapse-head" role="button" tabindex="0" (click)="previewCollapsed = !previewCollapsed">
+            <mat-icon class="collapse-icon">{{ previewCollapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
+            <span class="panel-title">{{ 'exampleDialog.preview' | translate }}</span>
+          </div>
+
+          <div class="side-collapse-body" *ngIf="!previewCollapsed">
+            <app-example-preview
+              [example]="example"
+              [constructionImagePreviewUrl]="constructionImagePreviewUrl"
+              [constructionSolutionPreviewUrl]="constructionSolutionPreviewUrl"
+              [showHeader]="false"
+            ></app-example-preview>
+          </div>
+        </section>
+
+        <section class="panel-box side-collapsible compact-variable-table" [class.collapsed]="variablesCollapsed">
+          <div class="side-collapse-head" role="button" tabindex="0" (click)="variablesCollapsed = !variablesCollapsed">
+            <mat-icon class="collapse-icon">{{ variablesCollapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
+            <span class="panel-title">{{ 'exampleDialog.variables.title' | translate }}</span>
+            <span class="collapse-head-spacer"></span>
+            <button
+              mat-stroked-button
+              class="collapse-head-action"
+              type="button"
+              (click)="$event.stopPropagation(); insertVariableAtCursor(); variablesCollapsed = false"
+            >
+              <mat-icon>add</mat-icon>
+              {{ 'exampleDialog.variables.add' | translate }}
+            </button>
+          </div>
+
+          <div class="side-collapse-body" *ngIf="!variablesCollapsed">
+            <div class="empty-meta-state" *ngIf="!example.variables?.length">
+              {{ 'exampleDialog.variables.empty' | translate }}
+            </div>
+
+            <table [attr.aria-label]="'exampleDialog.variables.title' | translate" *ngIf="example.variables?.length">
+              <thead>
+              <tr>
+                <th>{{ 'exampleDialog.variables.name' | translate }}</th>
+                <th>{{ 'exampleDialog.variables.defaultValue' | translate }}</th>
+                <th class="insert-col"></th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr *ngFor="let variable of example.variables; trackBy: trackByVariableKey">
+                <td class="variable-name">{{ variable.key }}</td>
+                <td>
+                  <input
+                    [(ngModel)]="variable.defaultValue"
+                    name="variableDefault-{{ variable.key }}"
+                    (ngModelChange)="markDirty()"
+                    [placeholder]="'exampleDialog.variables.defaultValuePlaceholder' | translate" />
+                </td>
+                <td class="insert-col">
+                  <button
+                    mat-icon-button
+                    class="table-insert-btn"
+                    type="button"
+                    (click)="insertExistingVariableAtCursor(variable.key)"
+                    [attr.aria-label]="'exampleDialog.variables.insertShort' | translate"
+                    [matTooltip]="'exampleDialog.variables.insertShort' | translate"
+                  >
+                    <mat-icon>keyboard_return</mat-icon>
+                  </button>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel-box side-collapsible tag-meta-panel" [class.collapsed]="tagsCollapsed">
+          <div class="side-collapse-head" role="button" tabindex="0" (click)="tagsCollapsed = !tagsCollapsed">
+            <mat-icon class="collapse-icon">{{ tagsCollapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
+            <span class="panel-title">{{ 'exampleDialog.tags' | translate }}</span>
+          </div>
+
+          <div class="side-collapse-body" *ngIf="!tagsCollapsed">
+            <app-example-focus-selector
+              [focuses]="example.focusList"
+              [inputCtrl]="inputCtrl"
+              [filteredFocusList]="filteredFocusList"
+              [showCreateOption]="showCreateOption.bind(this)"
+              (focusRemoved)="remove($event)"
+              (focusDeleted)="deleteFocus($event.focus, $event.event)"
+              (focusSelected)="selected($event)"
+              (focusInputTokenEnd)="addFromInput($event)"
+            ></app-example-focus-selector>
+          </div>
+        </section>
 
         <mat-dialog-actions>
           <button

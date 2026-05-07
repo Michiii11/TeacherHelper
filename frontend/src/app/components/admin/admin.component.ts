@@ -1,29 +1,48 @@
-import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { NavbarActionsService } from '../navigation/navbar-actions.service';
-import { HttpService } from '../../service/http.service';
-import { AdminCountPeriodDTO, AdminDashboardDTO, AdminUserDashboardDTO } from '../../model/User';
-import {CollectionDTO} from '../../model/Collection'
+import { CommonModule, DatePipe } from "@angular/common";
+import { Component, OnDestroy, OnInit, inject } from "@angular/core";
+import { FormsModule } from "@angular/forms";
+import { MatButtonModule } from "@angular/material/button";
+import { MatCardModule } from "@angular/material/card";
+import { MatIconModule } from "@angular/material/icon";
+import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
+import { NavbarActionsService } from "../navigation/navbar-actions.service";
+import { HttpService } from "../../service/http.service";
+import {
+  AdminCountPeriodDTO,
+  AdminDashboardDTO,
+  AdminUserDashboardDTO,
+  UserDTO,
+} from "../../model/User";
+import { CollectionDTO } from "../../model/Collection";
+import { ExampleOverviewDTO } from "../../model/Example";
+import { TestOverviewDTO } from "../../model/Test";
 
-type AdminSortKey = 'newest' | 'oldest' | 'lastActive' | 'nameAsc' | 'nameDesc';
+type AdminSortKey = "newest" | "oldest" | "lastActive" | "nameAsc" | "nameDesc";
+type CollectionSortKey =
+  | "nameAsc"
+  | "nameDesc"
+  | "membersDesc"
+  | "examplesDesc"
+  | "testsDesc";
 type AdminDashboardKey = keyof Pick<
   AdminDashboardDTO,
-  | 'amountUsers'
-  | 'activeUsersMonth'
-  | 'activeUsersWeek'
-  | 'newUsersMonth'
-  | 'freeAbos'
-  | 'proAbos'
-  | 'schoolAbos'
-  | 'cashflow'
+  | "amountUsers"
+  | "activeUsersMonth"
+  | "activeUsersWeek"
+  | "newUsersMonth"
+  | "freeAbos"
+  | "proAbos"
+  | "schoolAbos"
+  | "cashflow"
 >;
-type AdminPeriodKey = keyof Pick<AdminDashboardDTO, 'collections' | 'examples' | 'tests'>;
-type AdminUserMetricKey = keyof Pick<AdminUserDashboardDTO, 'collections' | 'examples' | 'tests'>;
+type AdminPeriodKey = keyof Pick<
+  AdminDashboardDTO,
+  "collections" | "examples" | "tests"
+>;
+type AdminUserMetricKey = keyof Pick<
+  AdminUserDashboardDTO,
+  "collections" | "examples" | "tests"
+>;
 
 interface StatCardConfig {
   label: string;
@@ -47,34 +66,23 @@ interface SortOption {
   value: AdminSortKey;
 }
 
+interface CollectionSortOption {
+  label: string;
+  value: CollectionSortKey;
+}
+
 interface UserMetricConfig {
   label: string;
   key: AdminUserMetricKey;
 }
 
-interface AdminCollectionOverviewDTO {
-  id?: string;
-  name?: string;
-  title?: string;
-  members?: unknown[] | number;
-  memberCount?: number;
-  users?: unknown[] | number;
-  userCount?: number;
-  examples?: unknown[] | number;
-  exampleCount?: number;
-  tests?: unknown[] | number;
-  testCount?: number;
+interface AdminUserDetailDTO {
+  id: string;
+  collections: CollectionDTO[];
 }
 
-type AdminUserWithCollections = AdminUserDashboardDTO & {
-  collectionList?: AdminCollectionOverviewDTO[];
-  collectionOverviews?: AdminCollectionOverviewDTO[];
-  collectionsOverview?: AdminCollectionOverviewDTO[];
-  ownedCollections?: AdminCollectionOverviewDTO[];
-};
-
 @Component({
-  selector: 'app-admin',
+  selector: "app-admin",
   standalone: true,
   imports: [
     CommonModule,
@@ -83,10 +91,10 @@ type AdminUserWithCollections = AdminUserDashboardDTO & {
     MatButtonModule,
     MatCardModule,
     MatIconModule,
-    MatSnackBarModule
+    MatSnackBarModule,
   ],
-  templateUrl: './admin.component.html',
-  styleUrl: './admin.component.scss'
+  templateUrl: "./admin.component.html",
+  styleUrl: "./admin.component.scss",
 })
 export class AdminComponent implements OnInit, OnDestroy {
   private readonly navbarActions = inject(NavbarActionsService);
@@ -94,52 +102,65 @@ export class AdminComponent implements OnInit, OnDestroy {
   private readonly service = inject(HttpService);
 
   readonly userStatCards: StatCardConfig[] = [
-    { label: 'User gesamt', key: 'amountUsers', toneClass: 'tone-users' },
-    { label: 'Aktiv im Monat', key: 'activeUsersMonth', toneClass: 'tone-active-month' },
-    { label: 'Aktiv in der Woche', key: 'activeUsersWeek', toneClass: 'tone-active-week' },
-    { label: 'Neue User im Monat', key: 'newUsersMonth', toneClass: 'tone-new-users' }
+    { label: "User gesamt", key: "amountUsers", toneClass: "tone-users" },
+    { label: "Aktiv im Monat", key: "activeUsersMonth", toneClass: "tone-active-month" },
+    { label: "Aktiv in der Woche", key: "activeUsersWeek", toneClass: "tone-active-week" },
+    { label: "Neue User im Monat", key: "newUsersMonth", toneClass: "tone-new-users" },
   ];
 
   readonly aboStatCards: StatCardConfig[] = [
-    { label: 'Free Abos', key: 'freeAbos', toneClass: 'tone-free' },
-    { label: 'Pro Abos', key: 'proAbos', toneClass: 'tone-pro' },
-    { label: 'Collection Abos', key: 'schoolAbos', toneClass: 'tone-collection' },
-    { label: 'Geschätzter Umsatz / Monat', key: 'cashflow', toneClass: 'tone-revenue' }
+    { label: "Free Abos", key: "freeAbos", toneClass: "tone-free" },
+    { label: "Pro Abos", key: "proAbos", toneClass: "tone-pro" },
+    { label: "Collection Abos", key: "schoolAbos", toneClass: "tone-collection" },
+    { label: "Geschätzter Umsatz / Monat", key: "cashflow", toneClass: "tone-revenue" },
   ];
 
   readonly metricPanels: MetricPanelConfig[] = [
-    { label: 'Collections', icon: 'folder', key: 'collections' },
-    { label: 'Examples', icon: 'post_add', key: 'examples' },
-    { label: 'Tests', icon: 'assignment', key: 'tests' }
+    { label: "Collections", icon: "folder", key: "collections" },
+    { label: "Examples", icon: "post_add", key: "examples" },
+    { label: "Tests", icon: "assignment", key: "tests" },
   ];
 
   readonly periods: PeriodConfig[] = [
-    { label: 'Stunde', key: 'hour' },
-    { label: 'Tag', key: 'day' },
-    { label: 'Woche', key: 'week' },
-    { label: 'Monat', key: 'month' },
-    { label: 'Jahr', key: 'year' }
+    { label: "Stunde", key: "hour" },
+    { label: "Tag", key: "day" },
+    { label: "Woche", key: "week" },
+    { label: "Monat", key: "month" },
+    { label: "Jahr", key: "year" },
   ];
 
   readonly sortOptions: SortOption[] = [
-    { value: 'lastActive', label: 'Zuletzt aktiv' },
-    { value: 'newest', label: 'Neueste zuerst' },
-    { value: 'oldest', label: 'Älteste zuerst' },
-    { value: 'nameAsc', label: 'Name A–Z' },
-    { value: 'nameDesc', label: 'Name Z–A' }
+    { value: "lastActive", label: "Zuletzt aktiv" },
+    { value: "newest", label: "Neueste zuerst" },
+    { value: "oldest", label: "Älteste zuerst" },
+    { value: "nameAsc", label: "Name A–Z" },
+    { value: "nameDesc", label: "Name Z–A" },
   ];
 
   readonly userMetrics: UserMetricConfig[] = [
-    { label: 'Collections', key: 'collections' },
-    { label: 'Examples', key: 'examples' },
-    { label: 'Tests', key: 'tests' }
+    { label: "Collections", key: "collections" },
+    { label: "Examples", key: "examples" },
+    { label: "Tests", key: "tests" },
   ];
 
-  search = '';
-  sort: AdminSortKey = 'lastActive';
+  readonly collectionSortOptions: CollectionSortOption[] = [
+    { value: "nameAsc", label: "Name A–Z" },
+    { value: "nameDesc", label: "Name Z–A" },
+    { value: "membersDesc", label: "Meiste Mitglieder" },
+    { value: "examplesDesc", label: "Meiste Beispiele" },
+    { value: "testsDesc", label: "Meiste Tests" },
+  ];
+
+  search = "";
+  sort: AdminSortKey = "lastActive";
+  collectionSearch = "";
+  collectionSort: CollectionSortKey = "nameAsc";
   selectedUserId: string | null = null;
-  selectedUserDTO: { id: string; schools: CollectionDTO[] } = { id: '', schools: [] };
+  expandedCollectionId: string | null = null;
+  selectedUserDTO: AdminUserDetailDTO = { id: "", collections: [] };
   dash: AdminDashboardDTO = this.createEmptyDashboard();
+  isDashboardLoading = false;
+  isUserLoading = false;
 
   ngOnInit(): void {
     this.setNavbar();
@@ -166,36 +187,94 @@ export class AdminComponent implements OnInit, OnDestroy {
     return this.dash.users.find((user) => user.id === this.selectedUserId) ?? null;
   }
 
+  get visibleCollections(): CollectionDTO[] {
+    const query = this.normalizedCollectionSearch;
+
+    return [...this.selectedUserDTO.collections]
+      .filter((collection) => this.matchesCollectionSearch(collection, query))
+      .sort((a, b) => this.compareCollections(a, b));
+  }
+
   loadDashboard(): void {
+    this.isDashboardLoading = true;
+
     this.service.getAdminDashboard().subscribe({
       next: (data) => {
         this.dash = this.normalizeDashboard(data);
 
-        if (this.selectedUserId && !this.dash.users.some((user) => user.id === this.selectedUserId)) {
+        if (
+          this.selectedUserId &&
+          !this.dash.users.some((user) => user.id === this.selectedUserId)
+        ) {
           this.selectedUserId = null;
+          this.expandedCollectionId = null;
+          this.selectedUserDTO = { id: "", collections: [] };
         }
       },
-      error: () => this.showMessage('Admin Dashboard konnte nicht geladen werden.', 3000)
+      error: () => {
+        this.isDashboardLoading = false;
+        this.showMessage("Admin Dashboard konnte nicht geladen werden.", 3000);
+      },
+      complete: () => (this.isDashboardLoading = false),
     });
   }
 
   selectUser(user: AdminUserDashboardDTO): void {
     this.selectedUserId = user.id;
+    this.expandedCollectionId = null;
+    this.collectionSearch = "";
+    this.selectedUserDTO = { id: user.id, collections: [] };
+    this.isUserLoading = true;
 
     this.service.getUserAdminDashboard(user.id).subscribe({
       next: (data) => {
-        this.selectedUserDTO = data as { id: string; schools: CollectionDTO[] }
-        console.log(this.selectedUserDTO)
-      }
-    })
+        if (this.selectedUserId !== user.id) {
+          return;
+        }
+
+        const dto = data as Partial<AdminUserDetailDTO> & { schools?: CollectionDTO[] };
+        const collections = Array.isArray(dto.collections)
+          ? dto.collections
+          : Array.isArray(dto.schools)
+            ? dto.schools
+            : [];
+
+        this.selectedUserDTO = {
+          id: dto.id ?? user.id,
+          collections: collections.map((collection) => this.normalizeCollection(collection)),
+        };
+      },
+      error: () => {
+        if (this.selectedUserId === user.id) {
+          this.selectedUserDTO = { id: user.id, collections: [] };
+          this.isUserLoading = false;
+        }
+
+        this.showMessage("User-Collections konnten nicht geladen werden.", 3000);
+      },
+      complete: () => {
+        if (this.selectedUserId === user.id) {
+          this.isUserLoading = false;
+        }
+      },
+    });
+  }
+
+  toggleCollectionDetails(collection: CollectionDTO): void {
+    this.expandedCollectionId = this.isCollectionExpanded(collection) ? null : collection.id;
+  }
+
+  isCollectionExpanded(collection: CollectionDTO): boolean {
+    return this.expandedCollectionId === collection.id;
   }
 
   copyUserId(user: AdminUserDashboardDTO, event?: MouseEvent): void {
     event?.stopPropagation();
 
-    navigator.clipboard.writeText(String(user.id))
+    navigator.clipboard
+      .writeText(String(user.id))
       .then(() => this.showMessage(`User-ID ${user.id} kopiert`))
-      .catch(() => this.showMessage('Konnte User-ID nicht kopieren'));
+      .catch(() => this.showMessage("Konnte User-ID nicht kopieren"));
   }
 
   getPeriodValue(period: AdminPeriodKey, key: keyof AdminCountPeriodDTO): number {
@@ -212,20 +291,20 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   getUserInitials(username: string): string {
     const normalized = username?.trim();
-    return normalized ? normalized.slice(0, 2).toUpperCase() : '--';
+    return normalized ? normalized.slice(0, 2).toUpperCase() : "--";
   }
 
   getLastActiveLabel(value: string): string {
     const date = this.parseDate(value);
 
     if (!date) {
-      return 'Unbekannt';
+      return "Unbekannt";
     }
 
     const diffHours = Math.max(0, Math.floor((Date.now() - date.getTime()) / 3_600_000));
 
     if (diffHours < 1) {
-      return 'Gerade eben';
+      return "Gerade eben";
     }
 
     if (diffHours < 24) {
@@ -241,56 +320,72 @@ export class AdminComponent implements OnInit, OnDestroy {
     return `vor ${Math.floor(diffDays / 30)} Monaten`;
   }
 
-  getUserCollections(user: AdminUserDashboardDTO | null): AdminCollectionOverviewDTO[] {
-    if (!user) {
-      return [];
-    }
-
-    const userWithCollections = user as AdminUserWithCollections;
-    const possibleCollections = [
-      userWithCollections.collectionList,
-      userWithCollections.collectionOverviews,
-      userWithCollections.collectionsOverview,
-      userWithCollections.ownedCollections,
-      (userWithCollections as any).collections
-    ];
-
-    return possibleCollections.find(Array.isArray) ?? [];
+  getCollectionName(collection: CollectionDTO): string {
+    return collection.name || "Unbenannte Collection";
   }
 
-  getCollectionName(collection: AdminCollectionOverviewDTO): string {
-    return collection.name || collection.title || 'Unbenannte Collection';
+  getCollectionMemberCount(collection: CollectionDTO): number {
+    return this.getCollectionMembers(collection).length;
   }
 
-  getCollectionMemberCount(collection: AdminCollectionOverviewDTO): number {
-    return this.readCount(collection.members, collection.memberCount, collection.users, collection.userCount);
+  getCollectionExampleCount(collection: CollectionDTO): number {
+    return this.getCollectionExamples(collection).length;
   }
 
-  getCollectionExampleCount(collection: AdminCollectionOverviewDTO): number {
-    return this.readCount(collection.examples, collection.exampleCount);
+  getCollectionTestCount(collection: CollectionDTO): number {
+    return this.getCollectionTests(collection).length;
   }
 
-  getCollectionTestCount(collection: AdminCollectionOverviewDTO): number {
-    return this.readCount(collection.tests, collection.testCount);
+  getCollectionMembers(collection: CollectionDTO): UserDTO[] {
+    return Array.isArray(collection.members) ? collection.members : [];
+  }
+
+  getCollectionExamples(collection: CollectionDTO): ExampleOverviewDTO[] {
+    return Array.isArray(collection.examples) ? collection.examples : [];
+  }
+
+  getCollectionTests(collection: CollectionDTO): TestOverviewDTO[] {
+    return Array.isArray(collection.tests) ? collection.tests : [];
+  }
+
+  getExampleTitle(example: ExampleOverviewDTO): string {
+    return example.question || example.instruction || "Unbenanntes Beispiel";
+  }
+
+  getTestTitle(test: TestOverviewDTO): string {
+    return test.name || "Unbenannter Test";
   }
 
   trackByUserId(_: number, user: AdminUserDashboardDTO): string {
     return user.id;
   }
 
-  trackByCollection(index: number, collection: AdminCollectionOverviewDTO): string {
+  trackByCollection(index: number, collection: CollectionDTO): string {
     return collection.id ?? `${this.getCollectionName(collection)}-${index}`;
+  }
+
+  trackByMember(index: number, member: UserDTO): string {
+    return member.id ?? `${member.username}-${index}`;
+  }
+
+  trackByExample(index: number, example: ExampleOverviewDTO): string {
+    return example.id ?? `${this.getExampleTitle(example)}-${index}`;
+  }
+
+  trackByTest(index: number, test: TestOverviewDTO): string {
+    return test.id ?? `${this.getTestTitle(test)}-${index}`;
   }
 
   private get normalizedSearch(): string {
     return this.search.trim().toLowerCase();
   }
 
-  private setNavbar(): void {
-    this.navbarActions.setBreadcrumbs([
-      { label: 'Admin Dashboard', route: ['/admin'] }
-    ] as any);
+  private get normalizedCollectionSearch(): string {
+    return this.collectionSearch.trim().toLowerCase();
+  }
 
+  private setNavbar(): void {
+    this.navbarActions.setBreadcrumbs([{ label: "Admin Dashboard", route: ["/admin"] }] as any);
     this.navbarActions.setActions([]);
   }
 
@@ -304,17 +399,43 @@ export class AdminComponent implements OnInit, OnDestroy {
       .some((value) => value.includes(query));
   }
 
+  private matchesCollectionSearch(collection: CollectionDTO, query: string): boolean {
+    if (!query) {
+      return true;
+    }
+
+    return [collection.id, this.getCollectionName(collection)]
+      .map((value) => String(value ?? "").toLowerCase())
+      .some((value) => value.includes(query));
+  }
+
+  private compareCollections(a: CollectionDTO, b: CollectionDTO): number {
+    switch (this.collectionSort) {
+      case "nameDesc":
+        return this.getCollectionName(b).localeCompare(this.getCollectionName(a));
+      case "membersDesc":
+        return this.getCollectionMemberCount(b) - this.getCollectionMemberCount(a);
+      case "examplesDesc":
+        return this.getCollectionExampleCount(b) - this.getCollectionExampleCount(a);
+      case "testsDesc":
+        return this.getCollectionTestCount(b) - this.getCollectionTestCount(a);
+      case "nameAsc":
+      default:
+        return this.getCollectionName(a).localeCompare(this.getCollectionName(b));
+    }
+  }
+
   private compareUsers(a: AdminUserDashboardDTO, b: AdminUserDashboardDTO): number {
     switch (this.sort) {
-      case 'newest':
+      case "newest":
         return this.dateTime(b.createdAt) - this.dateTime(a.createdAt);
-      case 'oldest':
+      case "oldest":
         return this.dateTime(a.createdAt) - this.dateTime(b.createdAt);
-      case 'nameAsc':
+      case "nameAsc":
         return a.username.localeCompare(b.username);
-      case 'nameDesc':
+      case "nameDesc":
         return b.username.localeCompare(a.username);
-      case 'lastActive':
+      case "lastActive":
       default:
         return this.dateTime(b.lastActive) - this.dateTime(a.lastActive);
     }
@@ -324,10 +445,19 @@ export class AdminComponent implements OnInit, OnDestroy {
     return {
       ...this.createEmptyDashboard(),
       ...data,
-      users: Array.isArray(data.users) ? data.users : [],
-      collections: data.collections ?? this.emptyPeriod(),
-      examples: data.examples ?? this.emptyPeriod(),
-      tests: data.tests ?? this.emptyPeriod()
+      users: Array.isArray(data?.users) ? data.users : [],
+      collections: data?.collections ?? this.emptyPeriod(),
+      examples: data?.examples ?? this.emptyPeriod(),
+      tests: data?.tests ?? this.emptyPeriod(),
+    };
+  }
+
+  private normalizeCollection(collection: CollectionDTO): CollectionDTO {
+    return {
+      ...collection,
+      examples: Array.isArray(collection.examples) ? collection.examples : [],
+      tests: Array.isArray(collection.tests) ? collection.tests : [],
+      members: Array.isArray(collection.members) ? collection.members : [],
     };
   }
 
@@ -344,7 +474,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       collections: this.emptyPeriod(),
       examples: this.emptyPeriod(),
       tests: this.emptyPeriod(),
-      users: []
+      users: [],
     };
   }
 
@@ -354,22 +484,8 @@ export class AdminComponent implements OnInit, OnDestroy {
       day: 0,
       week: 0,
       month: 0,
-      year: 0
+      year: 0,
     };
-  }
-
-  private readCount(...values: Array<unknown[] | number | undefined>): number {
-    for (const value of values) {
-      if (Array.isArray(value)) {
-        return value.length;
-      }
-
-      if (typeof value === 'number') {
-        return value;
-      }
-    }
-
-    return 0;
   }
 
   private dateTime(value: string): number {
@@ -386,6 +502,6 @@ export class AdminComponent implements OnInit, OnDestroy {
   }
 
   private showMessage(message: string, duration = 2200): void {
-    this.snack.open(message, 'OK', { duration });
+    this.snack.open(message, "OK", { duration });
   }
 }

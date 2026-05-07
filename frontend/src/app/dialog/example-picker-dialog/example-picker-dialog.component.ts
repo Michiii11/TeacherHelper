@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, ElementRef, Inject, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { ExampleDTO, ExampleTypeLabels, ExampleTypes } from '../../model/Example';
@@ -58,7 +58,7 @@ type SortOption = {
     MatDialogActions,
     MatButtonModule,
     MatIconModule,
-    MatCheckboxModule,
+    MatButtonToggleModule,
     TranslateModule,
   ],
   templateUrl: './example-picker-dialog.component.html',
@@ -72,9 +72,17 @@ export class ExamplePickerDialogComponent implements OnInit {
   selectedFolderId: string | null = null;
   selectedTypes: string[] = [];
   selectedFocuses: string[] = [];
+  selectedAuthors: string[] = [];
   sortBy: ExampleSortKey = 'folder_title';
   folderSearch = '';
   isSortMenuOpen = false;
+  isTypeMenuOpen = false;
+  isSearchOpen = false;
+  isFolderSearchOpen = false;
+  selectionViewMode: 'all' | 'selected' = 'all';
+
+  @ViewChild('searchInput') private searchInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('folderSearchInput') private folderSearchInput?: ElementRef<HTMLInputElement>;
 
   readonly sortOptions: SortOption[] = [
     { value: 'folder_title', labelKey: 'createTest.sort.folderTitle' },
@@ -85,6 +93,8 @@ export class ExamplePickerDialogComponent implements OnInit {
     { value: 'oldest', labelKey: 'createTest.sort.oldest' },
   ];
 
+  private readonly titleMaxLength = 25;
+  private readonly descriptionMaxLength = 55;
   private readonly folderPathCache = new Map<string | null, string>();
 
   constructor(
@@ -121,7 +131,7 @@ export class ExamplePickerDialogComponent implements OnInit {
   }
 
   get rootExampleCount(): number {
-    return this.examples.length;
+    return this.selectableExamples.length;
   }
 
   get folderResultCountLabel(): string {
@@ -132,7 +142,7 @@ export class ExamplePickerDialogComponent implements OnInit {
   get availableTypes(): PickerOption[] {
     const typeValues = new Set<string>();
 
-    for (const example of this.examples) {
+    for (const example of this.selectableExamples) {
       if (example.type != null) {
         typeValues.add(String(example.type));
       }
@@ -146,7 +156,7 @@ export class ExamplePickerDialogComponent implements OnInit {
   get availableFocuses(): string[] {
     const focusLabels = new Set<string>();
 
-    for (const example of this.examples) {
+    for (const example of this.selectableExamples) {
       for (const focus of example.focusList ?? []) {
         const label = this.cleanText(focus.label);
 
@@ -159,23 +169,131 @@ export class ExamplePickerDialogComponent implements OnInit {
     return [...focusLabels].sort((a, b) => this.compareText(a, b));
   }
 
+  get availableAuthors(): string[] {
+    const authors = new Set<string>();
+
+    for (const example of this.selectableExamples) {
+      const author = this.cleanText(example.admin?.username);
+
+      if (author) {
+        authors.add(author);
+      }
+    }
+
+    return [...authors].sort((a, b) => this.compareText(a, b));
+  }
+
+  get activeFilterCount(): number {
+    return this.selectedTypes.length + this.selectedFocuses.length + this.selectedAuthors.length;
+  }
+
   get filteredExamples(): ExampleDTO[] {
     const query = this.normalize(this.search);
 
-    return this.examples
+    return this.selectableExamples
       .filter(example => this.matchesFolderFilter(example))
       .filter(example => this.matchesTypeFilter(example))
       .filter(example => this.matchesFocusFilter(example))
+      .filter(example => this.matchesAuthorFilter(example))
       .filter(example => !query || this.matchesQuery(example, query))
       .sort((a, b) => this.compareExamples(a, b));
+  }
+
+  get displayedExamples(): ExampleDTO[] {
+    if (this.selectionViewMode === 'selected') {
+      return this.examples
+        .filter(example => this.isWorkingSelected(example.id))
+        .sort((a, b) => this.compareExamples(a, b));
+    }
+
+    return this.filteredExamples;
   }
 
   get selectedCount(): number {
     return this.workingSelection.size;
   }
 
+  get typeFilterLabel(): string {
+    if (!this.activeFilterCount) {
+      return this.translate.instant('common.filter');
+    }
+
+    if (!this.selectedTypes.length) {
+      return `${this.translate.instant('common.filter')} (${this.activeFilterCount})`;
+    }
+
+    if (this.selectedTypes.length === 1) {
+      return this.getTypeLabel(this.selectedTypes[0]);
+    }
+
+    return `${this.translate.instant('common.type')} (${this.selectedTypes.length})`;
+  }
+
+
+  get activeFilterChips(): Array<{ key: string; label: string; icon: string; action: () => void }> {
+    const chips: Array<{ key: string; label: string; icon: string; action: () => void }> = [];
+
+    if (this.selectedFolderId !== null) {
+      chips.push({
+        key: `folder-${this.selectedFolderId}`,
+        label: this.getFolderPathLabel(this.selectedFolderId),
+        icon: 'folder',
+        action: () => this.selectFolder(null),
+      });
+    }
+
+    for (const type of this.selectedTypes) {
+      chips.push({
+        key: `type-${type}`,
+        label: this.getTypeLabel(type),
+        icon: this.getTypeIcon(type),
+        action: () => this.toggleType(type),
+      });
+    }
+
+    for (const focus of this.selectedFocuses) {
+      chips.push({
+        key: `focus-${focus}`,
+        label: focus,
+        icon: 'sell',
+        action: () => this.toggleFocus(focus),
+      });
+    }
+
+    for (const author of this.selectedAuthors) {
+      chips.push({
+        key: `author-${author}`,
+        label: `${this.translate.instant('collection.author')}: ${author}`,
+        icon: 'person',
+        action: () => this.toggleAuthor(author),
+      });
+    }
+
+    const query = this.search.trim();
+    if (query) {
+      chips.push({
+        key: 'search',
+        label: query,
+        icon: 'search',
+        action: () => {
+          this.search = '';
+          this.isSearchOpen = true;
+        },
+      });
+    }
+
+
+    return chips;
+  }
+
+  get currentFolderLabel(): string {
+    return this.selectedFolderId === null
+      ? ''
+      : this.getFolderPathLabel(this.selectedFolderId);
+  }
+
   get hasActiveFilters(): boolean {
-    return Boolean(this.selectedTypes.length || this.selectedFocuses.length || this.selectedFolderId !== null || this.search.trim());
+    return Boolean(this.selectedTypes.length || this.selectedFocuses.length || this.selectedAuthors.length || this.selectedFolderId !== null || this.search.trim());
   }
 
   selectFolder(folderId: string | null): void {
@@ -190,8 +308,80 @@ export class ExamplePickerDialogComponent implements OnInit {
     this.selectedFocuses = [];
   }
 
+  clearAuthors(): void {
+    this.selectedAuthors = [];
+  }
+
+  resetFilters(): void {
+    this.selectedTypes = [];
+    this.selectedFocuses = [];
+    this.selectedAuthors = [];
+  }
+
   toggleSortMenu(): void {
     this.isSortMenuOpen = !this.isSortMenuOpen;
+    this.isTypeMenuOpen = false;
+  }
+
+  toggleTypeMenu(): void {
+    this.isTypeMenuOpen = !this.isTypeMenuOpen;
+    this.isSortMenuOpen = false;
+  }
+
+  openSearch(): void {
+    this.isSearchOpen = true;
+    this.isSortMenuOpen = false;
+    this.isTypeMenuOpen = false;
+    window.setTimeout(() => this.searchInput?.nativeElement.focus());
+  }
+
+  openFolderSearch(): void {
+    this.isFolderSearchOpen = true;
+    window.setTimeout(() => this.folderSearchInput?.nativeElement.focus());
+  }
+
+  collapseFolderSearch(): void {
+    if (!this.folderSearch.trim()) {
+      this.isFolderSearchOpen = false;
+    }
+  }
+
+  onFolderSearchFocusOut(event: FocusEvent): void {
+    const nextTarget = event.relatedTarget as Node | null;
+    const currentTarget = event.currentTarget as HTMLElement | null;
+
+    window.setTimeout(() => {
+      if (!currentTarget || !nextTarget || !currentTarget.contains(nextTarget)) {
+        this.collapseFolderSearch();
+      }
+    });
+  }
+
+
+  collapseSearch(): void {
+    if (!this.search.trim()) {
+      this.isSearchOpen = false;
+    }
+  }
+
+  onSearchFocusOut(event: FocusEvent): void {
+    const nextTarget = event.relatedTarget as Node | null;
+    const currentTarget = event.currentTarget as HTMLElement | null;
+
+    window.setTimeout(() => {
+      if (!currentTarget || !nextTarget || !currentTarget.contains(nextTarget)) {
+        this.collapseSearch();
+      }
+    });
+  }
+
+  closeSearch(): void {
+    this.search = '';
+    this.collapseSearch();
+  }
+
+  setSelectionViewMode(value: 'all' | 'selected'): void {
+    this.selectionViewMode = value;
   }
 
   setSort(value: ExampleSortKey): void {
@@ -212,7 +402,15 @@ export class ExamplePickerDialogComponent implements OnInit {
     this.selectedFocuses = this.toggleSelectionValue(this.selectedFocuses, focus);
   }
 
+  toggleAuthor(author: string): void {
+    this.selectedAuthors = this.toggleSelectionValue(this.selectedAuthors, author);
+  }
+
   toggleExample(exampleId: string, checked: boolean): void {
+    if (this.isAlreadySelected(exampleId)) {
+      return;
+    }
+
     if (checked) {
       this.workingSelection.add(exampleId);
       return;
@@ -222,11 +420,19 @@ export class ExamplePickerDialogComponent implements OnInit {
   }
 
   toggleExampleRow(exampleId: string): void {
+    if (this.isAlreadySelected(exampleId)) {
+      return;
+    }
+
     this.toggleExample(exampleId, !this.isWorkingSelected(exampleId));
   }
 
   isAlreadySelected(exampleId: string): boolean {
     return this.initiallySelected.has(exampleId);
+  }
+
+  isExampleDisabled(exampleId: string): boolean {
+    return this.isAlreadySelected(exampleId);
   }
 
   isWorkingSelected(exampleId: string): boolean {
@@ -241,11 +447,93 @@ export class ExamplePickerDialogComponent implements OnInit {
     return this.selectedFocuses.includes(focus);
   }
 
+  isAuthorSelected(author: string): boolean {
+    return this.selectedAuthors.includes(author);
+  }
+
   getExampleTitle(example: ExampleDTO): string {
+    return this.truncateText(this.getExampleTitleFull(example), this.titleMaxLength);
+  }
+
+  getExampleTitleFull(example: ExampleDTO): string {
     const instruction = this.cleanText(example.instruction);
     const question = this.cleanText(example.question);
 
-    return instruction || question || `Example #${example.id}`;
+    return instruction || question || `${this.translate.instant('collection.example')} #${example.id}`;
+  }
+
+  getExampleDescription(example: ExampleDTO): string {
+    return this.truncateText(this.getExampleDescriptionFull(example), this.descriptionMaxLength);
+  }
+
+  getExampleDescriptionFull(example: ExampleDTO): string {
+    const title = this.getExampleTitleFull(example);
+    const question = this.cleanText(example.question);
+    const instruction = this.cleanText(example.instruction);
+    const description = question && question !== title ? question : instruction && instruction !== title ? instruction : '';
+
+    return description;
+  }
+
+  getTypeIcon(type: ExampleTypes | string | null | undefined): string {
+    const normalized = String(type ?? '').toLowerCase();
+
+    switch (normalized) {
+      case String(ExampleTypes.OPEN).toLowerCase():
+        return 'notes';
+      case String(ExampleTypes.HALF_OPEN).toLowerCase():
+        return 'short_text';
+      case String(ExampleTypes.CONSTRUCTION).toLowerCase():
+        return 'architecture';
+      case String(ExampleTypes.MULTIPLE_CHOICE).toLowerCase():
+        return 'checklist';
+      case String(ExampleTypes.GAP_FILL).toLowerCase():
+        return 'format_color_text';
+      case String(ExampleTypes.ASSIGN).toLowerCase():
+        return 'device_hub';
+      default:
+        if (normalized.includes('gap') || normalized.includes('luecke') || normalized.includes('lücke')) {
+          return 'format_color_text';
+        }
+
+        if (normalized.includes('match') || normalized.includes('assign') || normalized.includes('zuord')) {
+          return 'device_hub';
+        }
+
+        if (normalized.includes('multiple') || normalized.includes('choice') || normalized.includes('auswahl')) {
+          return 'checklist';
+        }
+
+        if (normalized.includes('half') || normalized.includes('halb')) {
+          return 'short_text';
+        }
+
+        if (normalized.includes('construction') || normalized.includes('construct') || normalized.includes('konstruk')) {
+          return 'architecture';
+        }
+
+        if (normalized.includes('open') || normalized.includes('offen')) {
+          return 'notes';
+        }
+
+        if (normalized.includes('image') || normalized.includes('bild')) {
+          return 'image';
+        }
+
+        if (normalized.includes('audio') || normalized.includes('sound')) {
+          return 'graphic_eq';
+        }
+
+        if (normalized.includes('video')) {
+          return 'movie';
+        }
+
+        if (normalized.includes('code')) {
+          return 'code';
+        }
+
+        return 'post_add';
+    }
   }
 
   getTypeLabel(type: ExampleTypes | string | null | undefined): string {
@@ -256,11 +544,39 @@ export class ExamplePickerDialogComponent implements OnInit {
     const typeKey = String(type) as ExampleTypes;
     const translationKey = ExampleTypeLabels[typeKey];
 
-    return translationKey ? this.translate.instant(translationKey) : this.prettyEnumLabel(String(type));
+    if (!translationKey) {
+      return this.prettyEnumLabel(String(type));
+    }
+
+    const exerciseTranslationKey = translationKey.replace('exampleTypes.', 'exerciseTypes.');
+    const exerciseLabel = this.translate.instant(exerciseTranslationKey);
+
+    if (exerciseLabel && exerciseLabel !== exerciseTranslationKey) {
+      return exerciseLabel;
+    }
+
+    return this.translate.instant(translationKey);
   }
 
   getExampleFolderPathLabel(example: ExampleDTO): string {
     return this.getFolderPathLabel(this.getExampleFolderId(example));
+  }
+
+  getExampleFolderNameLabel(example: ExampleDTO): string {
+    const folderId = this.getExampleFolderId(example);
+
+    if (folderId === null) {
+      return '';
+    }
+
+    return this.folders.find(folder => folder.id === folderId)?.name ?? this.getFolderPathLabel(folderId);
+  }
+
+  getExampleTagsLabel(example: ExampleDTO): string {
+    return (example.focusList ?? [])
+      .map(focus => this.cleanText(focus.label))
+      .filter(Boolean)
+      .join(', ');
   }
 
   getFolderPathLabel(folderId: string | null): string {
@@ -268,14 +584,12 @@ export class ExamplePickerDialogComponent implements OnInit {
       return this.folderPathCache.get(folderId)!;
     }
 
-    const rootLabel = this.translate.instant('collection.root');
-
     if (folderId === null) {
-      this.folderPathCache.set(folderId, rootLabel);
-      return rootLabel;
+      this.folderPathCache.set(folderId, '');
+      return '';
     }
 
-    const path = this.buildFolderPath(folderId, rootLabel);
+    const path = this.buildFolderPath(folderId);
     this.folderPathCache.set(folderId, path);
 
     return path;
@@ -293,6 +607,10 @@ export class ExamplePickerDialogComponent implements OnInit {
     return this.data.examples ?? [];
   }
 
+  private get selectableExamples(): ExampleDTO[] {
+    return this.examples.filter(example => !this.isAlreadySelected(example.id));
+  }
+
   private get folders(): ExplorerFolder[] {
     return this.data.folders ?? [];
   }
@@ -306,7 +624,7 @@ export class ExamplePickerDialogComponent implements OnInit {
   }
 
   private getDirectExampleCount(folderId: string): number {
-    return this.examples.filter(example => this.getExampleFolderId(example) === folderId).length;
+    return this.selectableExamples.filter(example => this.getExampleFolderId(example) === folderId).length;
   }
 
   private getFolderDepth(folderId: string): number {
@@ -341,6 +659,16 @@ export class ExamplePickerDialogComponent implements OnInit {
     return this.selectedFocuses.some(focus => exampleFocuses.has(this.normalize(focus)));
   }
 
+  private matchesAuthorFilter(example: ExampleDTO): boolean {
+    if (!this.selectedAuthors.length) {
+      return true;
+    }
+
+    const author = this.normalize(example.admin?.username ?? '');
+
+    return this.selectedAuthors.some(selectedAuthor => author === this.normalize(selectedAuthor));
+  }
+
   private matchesQuery(example: ExampleDTO, query: string): boolean {
     const focusLabels = (example.focusList ?? []).map(focus => focus.label ?? '').join(' ');
 
@@ -358,8 +686,8 @@ export class ExamplePickerDialogComponent implements OnInit {
   }
 
   private compareExamples(a: ExampleDTO, b: ExampleDTO): number {
-    const titleA = this.getExampleTitle(a);
-    const titleB = this.getExampleTitle(b);
+    const titleA = this.getExampleTitleFull(a);
+    const titleB = this.getExampleTitleFull(b);
     const folderA = this.getExampleFolderPathLabel(a);
     const folderB = this.getExampleFolderPathLabel(b);
     const typeA = this.getTypeLabel(a.type);
@@ -403,7 +731,7 @@ export class ExamplePickerDialogComponent implements OnInit {
     return Number.isFinite(timestamp) ? timestamp : 0;
   }
 
-  private buildFolderPath(folderId: string, rootLabel: string): string {
+  private buildFolderPath(folderId: string): string {
     const crumbs: string[] = [];
     const visitedFolderIds = new Set<string>();
     let current = this.folders.find(folder => folder.id === folderId) ?? null;
@@ -414,7 +742,7 @@ export class ExamplePickerDialogComponent implements OnInit {
       current = current.parentId ? this.folders.find(folder => folder.id === current?.parentId) ?? null : null;
     }
 
-    return crumbs.length ? [rootLabel, ...crumbs].join(' / ') : rootLabel;
+    return crumbs.join(' / ');
   }
 
   private toggleSelectionValue(values: string[], value: string): string[] {
@@ -432,6 +760,16 @@ export class ExamplePickerDialogComponent implements OnInit {
 
   private cleanText(value: string | null | undefined): string {
     return (value ?? '').trim();
+  }
+
+  private truncateText(value: string, maxLength: number): string {
+    const text = this.cleanText(value);
+
+    if (text.length <= maxLength) {
+      return text;
+    }
+
+    return `${text.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
   }
 
   private normalize(value: string): string {

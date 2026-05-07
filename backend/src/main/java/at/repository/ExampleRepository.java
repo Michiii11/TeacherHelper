@@ -109,7 +109,8 @@ public class ExampleRepository {
                         example.getGapFillType(),
                         new LinkedList<>(example.getGapDTO()),
                         new LinkedList<>(example.getAssigns()),
-                        new LinkedList<>(example.getAssignRightItems())
+                        new LinkedList<>(example.getAssignRightItems()),
+                        example.getDisplaySettings()
                 )
         ).collect(Collectors.toList());
 
@@ -145,7 +146,8 @@ public class ExampleRepository {
                 mapVariables(e.getVariables()),
                 e.getImageWidth(),
                 e.getSolutionImageWidth(),
-                e.getFolder() != null ? e.getFolder().getId() : null
+                e.getFolder() != null ? e.getFolder().getId() : null,
+                e.getDisplaySettings()
         );
 
         return Response.ok(dto).build();
@@ -176,6 +178,7 @@ public class ExampleRepository {
         example.getFocusList().clear();
         example.getFocusList().addAll(dto.focusList());
         example.setVariables(mapVariableEntities(dto.variables()));
+        example.setDisplaySettings(dto.displaySettings());
 
         clearTypeSpecificFields(example);
 
@@ -284,6 +287,7 @@ public class ExampleRepository {
         example.getFocusList().clear();
         example.getFocusList().addAll(dto.focusList());
         example.setVariables(mapVariableEntities(dto.variables()));
+        example.setDisplaySettings(dto.displaySettings());
 
         clearTypeSpecificFields(example);
 

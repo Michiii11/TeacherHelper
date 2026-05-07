@@ -159,11 +159,11 @@ export interface ConfirmDialogData {
 
     .confirm-dialog-shell {
       padding: 1.35rem;
-      background: var(--confirm-dialog-bg, var(--surface));
       color: var(--text);
       border-radius: 22px;
-      border: 1px solid var(--confirm-dialog-border, var(--border));
+      border: 1px solid var(--border);
       box-shadow: var(--shadow-lg);
+      background: var(--surface);
     }
 
     .confirm-dialog-header {
@@ -180,9 +180,9 @@ export interface ConfirmDialogData {
       display: grid;
       place-items: center;
       border-radius: 15px;
-      color: var(--confirm-icon-color, var(--primary));
-      background: var(--confirm-icon-bg, var(--primary-soft));
-      border: 1px solid var(--confirm-icon-border, var(--primary-border-medium));
+      color: var(--primary);
+      background: var(--primary-soft);
+      border: 1px solid var(--primary-border-medium);
     }
 
     .confirm-dialog-icon mat-icon {
@@ -220,9 +220,9 @@ export interface ConfirmDialogData {
       align-items: center;
       gap: .7rem;
       padding: .72rem .78rem;
-      border: 1px solid var(--confirm-card-border, var(--border));
+      border: 1px solid var(--border);
       border-radius: 14px;
-      background: var(--confirm-card-bg, var(--surface-muted));
+      background: var(--surface-soft);
     }
 
     .confirm-summary-icon {
@@ -231,8 +231,8 @@ export interface ConfirmDialogData {
       display: grid;
       place-items: center;
       border-radius: 10px;
-      background: var(--confirm-mini-icon-bg, var(--primary-soft));
-      color: var(--confirm-icon-color, var(--primary));
+      background: var(--primary-soft);
+      color: var(--primary);
       flex: 0 0 auto;
     }
 
@@ -270,8 +270,8 @@ export interface ConfirmDialogData {
     .confirm-section {
       padding: .82rem;
       border-radius: 14px;
-      border: 1px solid var(--confirm-card-border, var(--border));
-      background: var(--confirm-card-bg, var(--surface-muted));
+      border: 1px solid var(--border);
+      background: var(--surface-soft);
     }
 
     .confirm-section-head {
@@ -306,17 +306,14 @@ export interface ConfirmDialogData {
     }
 
     .confirm-section li {
-      min-height: 34px;
       display: flex;
       align-items: center;
-      padding: .42rem .58rem;
-      border-radius: 10px;
-      background: var(--confirm-item-bg, var(--surface));
-      border: 1px solid var(--confirm-item-border, var(--border-soft));
       color: var(--text);
-      font-weight: 650;
       line-height: 1.25;
       min-width: 0;
+      padding-inline: .5rem;
+      padding-block: .25rem;
+      border-top: 1px solid var(--border);
     }
 
     .confirm-section li span {
@@ -373,9 +370,9 @@ export interface ConfirmDialogData {
       align-items: center;
       gap: .75rem;
       padding: .86rem 1rem;
-      border: 1px solid var(--confirm-card-border, var(--border));
+      border: 1px solid var(--border);
       border-radius: 14px;
-      background: var(--confirm-card-bg, var(--surface-muted));
+      background: var(--surface-soft);
       color: var(--text);
       text-align: left;
       cursor: pointer;
@@ -394,7 +391,6 @@ export interface ConfirmDialogData {
       display: grid;
       place-items: center;
       flex: 0 0 auto;
-      background: var(--confirm-item-bg, var(--surface));
       color: white;
     }
 

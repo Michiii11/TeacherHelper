@@ -209,124 +209,71 @@
     }
   },
   "landing": {
-    "eyebrow": "Für Lehrkräfte und Sammlungen",
-    "title": "Weniger Chaos. Mehr Unterricht.",
-    "description": "TeacherHelper hilft dir, Beispiele sauber zu organisieren, Tests schneller zu bauen und Inhalte gemeinsam im Schulalltag zu verwalten — modern, klar und ohne unnötigen Overkill.",
-    "start": "Jetzt starten",
+    "eyebrow": "TeacherHelper",
+    "title": "Beispiele. Tests. Ordnung.",
+    "description": "Organisiere Unterrichtsbeispiele in Sammlungen, baue Tests schneller daraus und arbeite bei Bedarf gemeinsam mit anderen Lehrkräften.",
+    "register": "Registrieren",
     "login": "Login / Registrieren",
+    "loginShort": "Login",
     "dashboard": "Zum Dashboard",
-    "points": {
-      "p1": "Tests in wenigen Klicks aus Beispielen zusammenstellen",
-      "p2": "Inhalte langfristig wiederverwenden statt doppelt arbeiten",
-      "p3": "Mit Kolleg:innen in Sammlungen gemeinsam verwalten"
-    },
-    "trust": {
-      "t1": "Schneller Workflow statt Zettelchaos",
-      "t2": "Gemacht für Teams und Sammlungen",
-      "t3": "Druck, PDF und Word im Fokus",
-      "t4": "Deutsch und Englisch integriert"
-    },
     "visual": {
-      "live": "Live Preview",
-      "collection": "Sammlung",
-      "team": "Team • Admin",
-      "examples": "Beispiele",
-      "tests": "Tests",
-      "members": "Mitglieder",
-      "organized": "Sauber organisiert",
-      "poolTitle": "Dein Beispielpool auf einen Blick",
-      "poolText": "Finde Aufgaben schneller, kombiniere Inhalte sinnvoll und erstelle mit wenigen Klicks saubere Tests.",
-      "new": "Neu",
-      "recentExamples": "Letzte Beispiele",
-      "updatedNow": "Gerade aktualisiert",
-      "previewTitle": "Druckvorschau",
-      "ready": "Bereit",
-      "pdf": "PDF",
-      "word": "Word",
-      "print": "Print",
-      "smart": "Schnell vorbereitet",
-      "collab": "Gemeinsam im Team"
-    },
-    "mock": {
-      "type1": "Offen",
-      "title1": "Berechne die fehlenden Werte im Dreisatz",
-      "focus1": "Mathematik",
-      "type2": "Multiple Choice",
-      "title2": "Wähle die richtige physikalische Aussage",
-      "focus2": "Physik",
-      "type3": "Zuordnen",
-      "title3": "Ordne die Fachbegriffe korrekt zu",
-      "focus3": "Deutsch"
+      "label": "Collection Screenshot",
+      "alt": "Screenshot einer TeacherHelper Collection"
     },
     "features": {
-      "eyebrow": "Warum TeacherHelper?",
-      "title": "Gebaut für echte Unterrichtsvorbereitung",
-      "subtitle": "Nicht überladen, sondern praktisch. TeacherHelper hilft genau dort, wo Planung, Materialsammlung und Test-Erstellung sonst mühsam werden."
+      "eyebrow": "Features",
+      "title": "Alles Wichtige für deine Sammlung"
     },
     "featureCards": {
-      "f1": {
-        "title": "Beispiele zentral organisieren",
-        "text": "Speichere Aufgaben an einem Ort, statt sie in Ordnern, Chats und alten Dateien zu verlieren."
+      "collections": {
+        "title": "Sammlungen, Ordner und Tags",
+        "text": "Sammle Beispiele und Tests in Collections und organisiere deine Dateien sauber mit Ordnern und Tags."
       },
-      "f2": {
-        "title": "Schnell filtern und wiederfinden",
-        "text": "Finde Inhalte nach Typ, Thema oder Fokus sofort wieder, wenn du sie für den nächsten Test brauchst."
+      "variables": {
+        "title": "Flexible Variablen",
+        "text": "Ergänze Variablen in Beispielen und passe sie später flexibel für neue Tests an."
       },
-      "f3": {
-        "title": "Tests deutlich schneller erstellen",
-        "text": "Baue aus vorhandenen Beispielen in wenigen Schritten komplette Tests statt jedes Mal bei null zu starten."
+      "editor": {
+        "title": "LaTeX und Markdown",
+        "text": "Nutze integrierte LaTeX- und Markdown-Funktionen, damit Beispiele fachlich sauber und flexibel bleiben."
       },
-      "f4": {
-        "title": "Saubere Vorschau für Export und Druck",
-        "text": "Kontrolliere alles vor dem Druck und behalte eine klare, übersichtliche Ausgabe für PDF, Word und Print."
+      "team": {
+        "title": "Kooperation",
+        "text": "Arbeite mit anderen Lehrkräften in gemeinsamen Sammlungen zusammen."
       },
-      "f5": {
-        "title": "Zusammenarbeit im Schulteam",
-        "text": "Arbeite mit Kolleg:innen in einer gemeinsamen Schulumgebung und teile Inhalte dort, wo sie gebraucht werden."
+      "print": {
+        "title": "Ready to Print",
+        "text": "Bereite Tests so vor, dass sie direkt übersichtlich gedruckt oder exportiert werden können."
       },
-      "f6": {
-        "title": "Für echte Sammlungen gemacht",
-        "text": "Kein unnötiger Feature-Müll, sondern ein Workflow, der für Lehrkräfte, Fachgruppen und Schulalltag wirklich passt."
+      "cloud": {
+        "title": "Cloud Based",
+        "text": "Deine Sammlungen sind online verfügbar und bleiben dort, wo du sie brauchst."
       }
     },
     "pricing": {
       "eyebrow": "Abo-Modelle",
-      "title": "Ein Modell für jeden Einstieg",
-      "subtitle": "Starte gratis, arbeite professioneller mit Pro oder nutze TeacherHelper als gemeinsame Plattform für deine Schule."
+      "title": "Wähle, was zu dir passt"
     },
     "plans": {
       "free": {
-        "subtitle": "Perfekt zum Kennenlernen und für kleine Setups.",
+        "subtitle": "Gratis starten.",
         "f1": "1 Sammlung (keine Mitglieder)",
         "f2": "50 Beispiele",
-        "f3": "5 Tests",
-        "f4": "Gratis",
-        "cta": "Kostenlos starten"
+        "f3": "5 Tests"
       },
       "pro": {
         "badge": "Beliebt",
-        "chip": "Für Lehrkräfte",
-        "subtitle": "Für aktive Lehrkräfte, die regelmäßig Material und Tests vorbereiten.",
-        "f1": "5 Sammlungen (5 Mitglieder)",
+        "subtitle": "Für einzelne Lehrkräfte.",
+        "f1": "5 Sammlungen (je 5 Mitglieder)",
         "f2": "500 Beispiele",
-        "f3": "50 Tests",
-        "f4": "5€ pro Monat",
-        "cta": "Pro starten"
+        "f3": "50 Tests"
       },
-      "collection": {
-        "chip": "Für Teams",
-        "subtitle": "Für Schulen, Fachgruppen und gemeinsame Verwaltung im Kollegium.",
-        "f1": "∞ Sammlungen (∞ Mitglieder)",
+      "school": {
+        "subtitle": "Für Schulen und Teams.",
+        "f1": "30 Sammlungen (∞ Mitglieder)",
         "f2": "∞ Beispiele",
-        "f3": "∞ Tests",
-        "f4": "20€ pro Monat",
-        "cta": "School starten"
+        "f3": "∞ Tests"
       }
-    },
-    "final": {
-      "eyebrow": "Bereit zum Start?",
-      "title": "Mach aus Materialchaos endlich einen sauberen Workflow.",
-      "text": "Starte kostenlos und schau dir an, wie viel schneller Unterrichtsvorbereitung mit einer klaren Oberfläche wirklich werden kann."
     }
   },
   "collection": {
@@ -351,7 +298,8 @@
     "folders": "Ordner",
     "folder": "Ordner",
     "newFolder": "Ordner",
-    "root": "Root",
+    "newContent": "Neuer Inhalt",
+    "root": "Sammlung",
     "rootLevel": "Oberste Ebene",
     "parentFolder": "Übergeordneter Ordner",
     "goUp": "Eine Ebene hoch",
@@ -416,7 +364,13 @@
     "folderNamePlaceholder": "z. B. Schularbeiten / Kapitel 1 / Übungen",
     "focuses": "Schwerpunkte",
     "author": "Autor",
-    "searchPlaceholder": "Suche"
+    "searchPlaceholder": "Suche",
+    "exercises": "Beispiele",
+    "exercise": "Beispiel",
+    "createExercise": "Neues Beispiel",
+    "searchExercisesPlaceholder": "Beispiele durchsuchen",
+    "emptyExercisesTitle": "Keine Beispiele gefunden",
+    "emptyExercisesText": "Erstelle einen Ordner oder lege direkt ein Beispiel an."
   },
   "schoolSettings": {
     "title": "Schul-Einstellungen",
@@ -565,7 +519,11 @@
       "insertAtCursor": "Text-Variable einfügen",
       "remove": "Variable löschen",
       "defaultValue": "Standardwert",
-      "defaultValuePlaceholder": "z. B. 4 oder Anna"
+      "defaultValuePlaceholder": "z. B. 4 oder Anna",
+      "add": "Variable hinzufügen",
+      "empty": "Noch keine Variablen. Füge links oder hier eine Variable in das aktive Feld ein.",
+      "insertShort": "Einfügen",
+      "name": "Name"
     },
     "assignLeftColumn": "Links",
     "assignRightColumn": "Rechts",
@@ -600,7 +558,46 @@
       "saved": "Beispiel erfolgreich gespeichert.",
       "created": "Beispiel erfolgreich erstellt.",
       "saveError": "Beispiel konnte nicht gespeichert werden.",
-      "focusDeleted": "Der Schwerpunkt \"{{label}}\" wurde gelöscht."
+      "focusDeleted": "Der Schwerpunkt \"{{label}}\" wurde gelöscht.",
+      "imageSizeError": "Das Bild darf maximal 5 MB groß sein."
+    },
+    "preview": "Vorschau",
+    "editor": {
+      "title": "Editor",
+      "groupsAria": "Editor-Gruppen",
+      "toolbarAria": "Editor-Werkzeugleiste",
+      "groups": {
+        "start": "Start",
+        "formulas": "Formeln",
+        "symbols": "Zeichen",
+        "more": "Mehr"
+      },
+      "commands": {
+        "bold": "Fett",
+        "italic": "Kursiv",
+        "strike": "Durchstr.",
+        "code": "Code",
+        "bulletList": "Liste",
+        "numberedList": "Nr.",
+        "quote": "Zitat",
+        "inlineFormula": "Inline",
+        "displayFormula": "Block",
+        "frac": "Bruch",
+        "sqrt": "Wurzel",
+        "power": "Potenz",
+        "index": "Index",
+        "textUnit": "Einheit",
+        "sum": "Summe",
+        "integral": "Integral",
+        "vector": "Vektor",
+        "aligned": "Gleichungen"
+      }
+    },
+    "displaySettings": {
+      "title": "Anzeige",
+      "instructionLabel": "„Angabe“ anzeigen",
+      "questionLabel": "„Aufgabenstellung“ anzeigen",
+      "taskImageLabel": "„Aufgabenbild“ anzeigen"
     }
   },
   "createTest": {
@@ -725,13 +722,38 @@
       "emptyText": "Probier andere Filter, eine andere Suche oder einen anderen Ordner.",
       "done": "Fertig",
       "allFolders": "Alle Ordner",
-      "noFoldersFound": "Keine Ordner gefunden"
+      "noFoldersFound": "Keine Ordner gefunden",
+      "createdBy": "Erstellt von",
+      "allExamples": "Alle",
+      "selectedExamples": "Ausgewählt",
+      "selectedExamplesCount": "{{count}} Beispiele ausgewählt"
     },
     "variables": {
       "title": "Text-Variablen",
       "description": "Standardwerte aus dem Beispiel können hier pro Test angepasst werden.",
       "valuePlaceholder": "Wert eingeben",
       "preview": "Vorschau:"
+    },
+    "exercisePicker": {
+      "title": "Beispiele auswählen",
+      "subtitle": "Übersichtliche Auswahl mit Ordnern, Filtern und Mehrfachauswahl.",
+      "available": "verfügbar",
+      "selected": "markiert",
+      "searchPlaceholder": "Nach Titel, Frage, Fokus, Typ oder Pfad suchen",
+      "search": "Suche",
+      "allTypes": "Alle Typen",
+      "allFocuses": "Alle Schwerpunkte",
+      "alreadyAdded": "Schon hinzugefügt",
+      "chosen": "Ausgewählt",
+      "emptyTitle": "Keine Beispiele gefunden",
+      "emptyText": "Probier andere Filter, eine andere Suche oder einen anderen Ordner.",
+      "done": "Fertig",
+      "allFolders": "Alle Ordner",
+      "noFoldersFound": "Keine Ordner gefunden",
+      "createdBy": "Erstellt von",
+      "allExamples": "Alle",
+      "selectedExamples": "Ausgewählt",
+      "selectedExamplesCount": "{{count}} Beispiele ausgewählt"
     }
   },
   "legalPages": {
@@ -1076,7 +1098,10 @@
       "forgotSuccess": "Falls die E-Mail existiert, wurde ein Reset-Link gesendet.",
       "resetSuccess": "Passwort wurde erfolgreich zurückgesetzt.",
       "resendSuccess": "Bestätigungs-Mail wurde erneut gesendet.",
-      "verifySuccess": "E-Mail wurde erfolgreich bestätigt."
+      "verifySuccess": "E-Mail wurde erfolgreich bestätigt.",
+      "verifyCodeSuccess": "E-Mail wurde erfolgreich bestätigt.",
+      "verifyCodeError": "Code konnte nicht bestätigt werden.",
+      "resendCodeSuccess": "Ein neuer Code wurde gesendet."
     },
     "backend": {
       "INVALID_DATA": "Bitte fülle alle erforderlichen Felder aus.",
@@ -1098,12 +1123,42 @@
       "NEW_PASSWORD_REQUIRED": "Neues Passwort ist erforderlich.",
       "PASSWORD_RESET_TOKEN_INVALID": "Der Reset-Link ist ungültig.",
       "PASSWORD_RESET_TOKEN_EXPIRED": "Der Reset-Link ist abgelaufen.",
-      "AUTH_SUCCESS": "Login erfolgreich"
+      "AUTH_SUCCESS": "Login erfolgreich",
+      "INVALID_CODE": "Der eingegebene Code ist ungültig.",
+      "CODE_EXPIRED": "Der Code ist abgelaufen. Bitte fordere einen neuen Code an."
+    },
+    "registerFlow": {
+      "verifyTitle": "Code bestätigen",
+      "verifySubtitle": "Wir haben einen 6-stelligen Code an {{email}} gesendet.",
+      "codeLabel": "Bestätigungscode",
+      "codePlaceholder": "123456",
+      "codeError": "Bitte gib den 6-stelligen Code ein.",
+      "submitCode": "Code bestätigen",
+      "resend": "Code erneut senden",
+      "changeEmail": "E-Mail ändern",
+      "continue": "Ich habe schon einen Code",
+      "resendHint": "Der Code ist 15 Minuten gültig. Nach dem erneuten Senden gilt nur der neue Code."
     }
   },
   "notFound": {
     "title": "Seite nicht gefunden",
     "text": "Die angeforderte Seite existiert leider nicht oder wurde verschoben.",
     "backHome": "Zur Startseite"
+  },
+  "exerciseTypes": {
+    "open": "Offen",
+    "halfOpen": "Halb offen",
+    "construction": "Bild",
+    "multipleChoice": "Multiple-Choice",
+    "gapFill": "Lückentext",
+    "assign": "Zuordnen"
+  },
+  "exerciseTypeDescriptions": {
+    "open": "Antwort ohne Vorgaben.",
+    "halfOpen": "Antwort in Struktur eintragen.",
+    "construction": "Aufgabe mit Bild oder Grafik.",
+    "multipleChoice": "Eine oder mehrere Optionen auswählen.",
+    "gapFill": "Lücken durch Auswahl oder Eingabe füllen.",
+    "assign": "Elemente einander zuordnen."
   }
 }

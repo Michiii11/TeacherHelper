@@ -304,7 +304,9 @@
 .task-instruction,
 .task-question,
 .preline {
-  white-space: pre-line;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .free-space.large {
@@ -455,4 +457,145 @@
   width: 52px;
   height: 52px;
   color: var(--primary);
+}
+
+/* Styles for HTML injected by TestPrintService via [innerHTML].
+   ::ng-deep is needed because Angular does not add component scope attributes
+   to nodes created from innerHTML. */
+::ng-deep .shared-preview-page .test-print-root,
+::ng-deep .shared-preview-page .preview-panel,
+::ng-deep .shared-preview-page .task-instruction,
+::ng-deep .shared-preview-page .task-question,
+::ng-deep .shared-preview-page .solution-box {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+::ng-deep .shared-preview-page .task-instruction,
+::ng-deep .shared-preview-page .task-question,
+::ng-deep .shared-preview-page .solution-box,
+::ng-deep .shared-preview-page .teacher-note {
+  white-space: normal;
+}
+
+::ng-deep .shared-preview-page .task-instruction math,
+::ng-deep .shared-preview-page .task-question math,
+::ng-deep .shared-preview-page .solution-box math,
+::ng-deep .shared-preview-page .task-instruction code,
+::ng-deep .shared-preview-page .task-question code,
+::ng-deep .shared-preview-page .solution-box code,
+::ng-deep .shared-preview-page .gap-inline,
+::ng-deep .shared-preview-page .gap-inline * {
+  white-space: nowrap;
+}
+
+::ng-deep .shared-preview-page .task-instruction p,
+::ng-deep .shared-preview-page .task-question p,
+::ng-deep .shared-preview-page .solution-box p,
+::ng-deep .shared-preview-page .teacher-note p,
+::ng-deep .shared-preview-page .task-instruction ul,
+::ng-deep .shared-preview-page .task-question ul,
+::ng-deep .shared-preview-page .solution-box ul,
+::ng-deep .shared-preview-page .teacher-note ul,
+::ng-deep .shared-preview-page .task-instruction ol,
+::ng-deep .shared-preview-page .task-question ol,
+::ng-deep .shared-preview-page .solution-box ol,
+::ng-deep .shared-preview-page .teacher-note ol,
+::ng-deep .shared-preview-page .task-instruction blockquote,
+::ng-deep .shared-preview-page .task-question blockquote,
+::ng-deep .shared-preview-page .solution-box blockquote,
+::ng-deep .shared-preview-page .teacher-note blockquote,
+::ng-deep .shared-preview-page .task-instruction pre,
+::ng-deep .shared-preview-page .task-question pre,
+::ng-deep .shared-preview-page .solution-box pre,
+::ng-deep .shared-preview-page .teacher-note pre {
+  margin: 0 0 8px;
+}
+
+::ng-deep .shared-preview-page .task-instruction p:last-child,
+::ng-deep .shared-preview-page .task-question p:last-child,
+::ng-deep .shared-preview-page .solution-box p:last-child,
+::ng-deep .shared-preview-page .teacher-note p:last-child,
+::ng-deep .shared-preview-page .task-instruction ul:last-child,
+::ng-deep .shared-preview-page .task-question ul:last-child,
+::ng-deep .shared-preview-page .solution-box ul:last-child,
+::ng-deep .shared-preview-page .teacher-note ul:last-child,
+::ng-deep .shared-preview-page .task-instruction ol:last-child,
+::ng-deep .shared-preview-page .task-question ol:last-child,
+::ng-deep .shared-preview-page .solution-box ol:last-child,
+::ng-deep .shared-preview-page .teacher-note ol:last-child,
+::ng-deep .shared-preview-page .task-instruction blockquote:last-child,
+::ng-deep .shared-preview-page .task-question blockquote:last-child,
+::ng-deep .shared-preview-page .solution-box blockquote:last-child,
+::ng-deep .shared-preview-page .teacher-note blockquote:last-child,
+::ng-deep .shared-preview-page .task-instruction pre:last-child,
+::ng-deep .shared-preview-page .task-question pre:last-child,
+::ng-deep .shared-preview-page .solution-box pre:last-child,
+::ng-deep .shared-preview-page .teacher-note pre:last-child {
+  margin-bottom: 0;
+}
+
+::ng-deep .shared-preview-page .gap-inline {
+  display: inline-flex;
+  vertical-align: middle;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0.2rem;
+  white-space: nowrap;
+}
+
+::ng-deep .shared-preview-page .gap-inline-select {
+  min-width: 3.1rem;
+}
+
+::ng-deep .shared-preview-page .gap-inline-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.8rem;
+  min-height: 2.2rem;
+  padding: 0.28rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--text-soft) 55%, #6b7280);
+  background: color-mix(in srgb, var(--surface) 82%, var(--primary) 18%);
+  color: color-mix(in srgb, var(--text) 94%, transparent);
+  font-weight: 700;
+  line-height: 1;
+}
+
+::ng-deep .shared-preview-page .gap-inline-pill-number {
+  font-size: 0.95rem;
+}
+
+::ng-deep .shared-preview-page .gap-inline-input {
+  position: relative;
+  min-height: 2rem;
+  justify-content: flex-start;
+  padding-left: 1.6rem;
+  border-bottom: 2px solid color-mix(in srgb, var(--text-soft) 70%, #64748b);
+}
+
+::ng-deep .shared-preview-page .gap-inline-label {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: color-mix(in srgb, var(--text-soft) 85%, #475569);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+::ng-deep .shared-preview-page .gap-inline-line {
+  display: inline-block;
+  width: 100%;
+  height: 1px;
+}
+
+::ng-deep .shared-preview-page .gap-inline-solution {
+  display: inline-block;
+  width: 100%;
+  padding-right: 0.3rem;
+  font-weight: 600;
+  line-height: 1.2;
 }

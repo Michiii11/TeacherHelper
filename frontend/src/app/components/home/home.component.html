@@ -43,11 +43,15 @@
           <div class="school-info-list">
             <div class="info-row">
               <mat-icon>person</mat-icon>
-              <span>{{ 'home.labels.admin' | translate }}: {{ school.admin.username }}</span>
+              <span>{{ 'home.labels.admin' | translate }}: {{ school.admin?.username }}</span>
             </div>
             <div class="info-row">
-              <mat-icon>auto_stories</mat-icon>
-              <span>{{ 'home.labels.examples' | translate }}: {{ school.exampleCount }}</span>
+              <mat-icon>post_add</mat-icon>
+              <span>{{ 'home.labels.examples' | translate }}: {{ school.examples.length }}</span>
+            </div>
+            <div class="info-row">
+              <mat-icon>assignment</mat-icon>
+              <span>{{ 'collection.test' | translate}}s: {{ school.tests.length }}</span>
             </div>
           </div>
 
