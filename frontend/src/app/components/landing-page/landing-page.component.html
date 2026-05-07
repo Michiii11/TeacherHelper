@@ -1,18 +1,18 @@
 <main class="landing-page">
   <section class="landing-shell">
     <header class="landing-topbar">
-      <a class="brand" routerLink="/">
+      <a class="brand" routerLink="/" aria-label="TeacherHelper">
         <img [src]="getLogo()" alt="TeacherHelper Logo" class="brand-logo-image">
       </a>
 
       <div class="topbar-actions">
         @if (isLoggedIn) {
-          <a mat-stroked-button class="topbar-button secondary" routerLink="/home">
+          <a mat-stroked-button class="topbar-button" routerLink="/home">
             <mat-icon>dashboard</mat-icon>
             {{ 'landing.dashboard' | translate }}
           </a>
         } @else {
-          <a mat-stroked-button class="topbar-button secondary" routerLink="/login">
+          <a mat-stroked-button class="topbar-button" routerLink="/login">
             <mat-icon>login</mat-icon>
             {{ 'landing.login' | translate }}
           </a>
@@ -20,100 +20,66 @@
       </div>
     </header>
 
-    <section class="hero">
+    <section class="hero" aria-labelledby="landing-title">
       <div class="hero-copy">
-        <div class="hero-chip">
-          <span class="hero-chip-dot"></span>
-          {{ 'landing.eyebrow' | translate }}
-        </div>
-
-        <h1>{{ 'landing.title' | translate }}</h1>
-
-        <p class="hero-text">
-          {{ 'landing.description' | translate }}
-        </p>
+        <p class="eyebrow">{{ 'landing.eyebrow' | translate }}</p>
+        <h1 id="landing-title">{{ 'landing.title' | translate }}</h1>
+        <p class="hero-text">{{ 'landing.description' | translate }}</p>
 
         <div class="hero-actions">
           @if (isLoggedIn) {
-            <a mat-flat-button color="primary" class="hero-button primary" routerLink="/home">
+            <a mat-flat-button color="primary" class="main-button" routerLink="/home">
               <mat-icon>arrow_forward</mat-icon>
               {{ 'landing.dashboard' | translate }}
             </a>
           } @else {
-            <a mat-flat-button color="primary" class="hero-button primary" routerLink="/login">
-              <mat-icon>rocket_launch</mat-icon>
-              {{ 'landing.start' | translate }}
+            <a mat-flat-button color="primary" class="main-button" routerLink="/login">
+              <mat-icon>person_add</mat-icon>
+              {{ 'landing.register' | translate }}
             </a>
 
-            <a mat-stroked-button class="hero-button secondary" routerLink="/login">
-              <mat-icon>person</mat-icon>
-              {{ 'landing.login' | translate }}
+            <a mat-stroked-button class="main-button secondary" routerLink="/login">
+              <mat-icon>login</mat-icon>
+              {{ 'landing.loginShort' | translate }}
             </a>
           }
-        </div>
-
-        <div class="hero-points">
-          <div class="hero-point" *ngFor="let point of heroPoints; trackBy: trackByValue">
-            <mat-icon>check_circle</mat-icon>
-            <span>{{ point | translate }}</span>
-          </div>
         </div>
       </div>
 
       <div class="hero-visual">
-        <div class="preview-frame">
-          <div class="preview-frame-top">
-            <div class="mock-dots">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-
-            <div class="preview-frame-title">Live Preview</div>
+        <div class="screenshot-card">
+          <div class="screenshot-card-head">
+            <span>{{ 'landing.visual.label' | translate }}</span>
           </div>
 
-          <div class="preview-image-wrap">
-            <img
-              class="preview-image"
-              [src]="getImage()"
-              alt="TeacherHelper Live Preview"
-            >
-          </div>
+          <img
+            class="screenshot-image"
+            [src]="getImage()"
+            [alt]="'landing.visual.alt' | translate"
+          >
         </div>
       </div>
     </section>
 
-    <section class="trust-strip">
-      <div class="trust-item" *ngFor="let item of trustItems; trackBy: trackByTrustItem">
-        <mat-icon>{{ item.icon }}</mat-icon>
-        <span>{{ item.label | translate }}</span>
-      </div>
-    </section>
-
-    <section class="features">
+    <section class="features" aria-labelledby="features-title">
       <div class="section-head">
         <p class="eyebrow">{{ 'landing.features.eyebrow' | translate }}</p>
-        <h2>{{ 'landing.features.title' | translate }}</h2>
-        <p>{{ 'landing.features.subtitle' | translate }}</p>
+        <h2 id="features-title">{{ 'landing.features.title' | translate }}</h2>
       </div>
 
       <div class="feature-grid">
         <article class="feature-card" *ngFor="let feature of features; trackBy: trackByFeature">
-          <div class="feature-icon">
-            <mat-icon>{{ feature.icon }}</mat-icon>
-          </div>
-
+          <mat-icon>{{ feature.icon }}</mat-icon>
           <h3>{{ feature.title | translate }}</h3>
           <p>{{ feature.text | translate }}</p>
         </article>
       </div>
     </section>
 
-    <section class="plans">
+    <section class="pricing" aria-labelledby="pricing-title">
       <div class="section-head">
         <p class="eyebrow">{{ 'landing.pricing.eyebrow' | translate }}</p>
-        <h2>{{ 'landing.pricing.title' | translate }}</h2>
-        <p>{{ 'landing.pricing.subtitle' | translate }}</p>
+        <h2 id="pricing-title">{{ 'landing.pricing.title' | translate }}</h2>
       </div>
 
       <div class="plan-grid">
@@ -121,11 +87,7 @@
           <div class="plan-badge" *ngIf="plan.badge">{{ plan.badge | translate }}</div>
 
           <div class="plan-head">
-            <div class="plan-name-row">
-              <h3>{{ plan.name }}</h3>
-              <span class="plan-chip" *ngIf="plan.chip">{{ plan.chip | translate }}</span>
-            </div>
-
+            <h3>{{ plan.name }}</h3>
             <div class="plan-price">{{ plan.price }}</div>
             <p>{{ plan.subtitle | translate }}</p>
           </div>
@@ -136,43 +98,7 @@
               <span>{{ item | translate }}</span>
             </div>
           </div>
-
-          <div class="plan-actions">
-            @if (isLoggedIn) {
-              <a mat-stroked-button class="plan-button secondary" routerLink="/home">
-                {{ 'landing.dashboard' | translate }}
-              </a>
-            } @else {
-              <a mat-flat-button color="primary" class="plan-button primary" routerLink="/login">
-                {{ plan.cta | translate }}
-              </a>
-            }
-          </div>
         </article>
-      </div>
-    </section>
-
-    <section class="final-cta">
-      <div class="final-cta-card">
-        <div class="final-cta-copy">
-          <p class="eyebrow">{{ 'landing.final.eyebrow' | translate }}</p>
-          <h2>{{ 'landing.final.title' | translate }}</h2>
-          <p>{{ 'landing.final.text' | translate }}</p>
-        </div>
-
-        <div class="final-cta-actions">
-          @if (isLoggedIn) {
-            <a mat-flat-button color="primary" class="hero-button primary" routerLink="/home">
-              <mat-icon>dashboard</mat-icon>
-              {{ 'landing.dashboard' | translate }}
-            </a>
-          } @else {
-            <a mat-flat-button color="primary" class="hero-button primary" routerLink="/login">
-              <mat-icon>rocket_launch</mat-icon>
-              {{ 'landing.start' | translate }}
-            </a>
-          }
-        </div>
       </div>
     </section>
   </section>

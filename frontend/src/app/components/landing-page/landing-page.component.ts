@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { NgFor, NgIf } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -13,30 +13,17 @@ type Feature = {
 
 type Plan = {
   name: string;
-  badge?: string;
-  chip?: string;
   price: string;
   subtitle: string;
   features: string[];
+  badge?: string;
   highlight?: boolean;
-  cta: string;
-};
-
-type TrustItem = {
-  icon: string;
-  label: string;
-};
-
-type MockExample = {
-  type: string;
-  title: string;
-  focus: string;
 };
 
 @Component({
   selector: 'app-landing-page',
   standalone: true,
-  imports: [RouterLink, NgFor, NgIf, MatButtonModule, MatIconModule, TranslatePipe],
+  imports: [NgFor, NgIf, RouterLink, MatButtonModule, MatIconModule, TranslatePipe],
   templateUrl: './landing-page.component.html',
   styleUrl: './landing-page.component.scss'
 })
@@ -45,49 +32,36 @@ export class LandingPageComponent {
     !!localStorage.getItem('teacher_authToken') &&
     !!localStorage.getItem('teacher_userId');
 
-  readonly heroPoints: string[] = [
-    'landing.points.p1',
-    'landing.points.p2',
-    'landing.points.p3'
-  ];
-
-  readonly trustItems: TrustItem[] = [
-    { icon: 'bolt', label: 'landing.trust.t1' },
-    { icon: 'groups', label: 'landing.trust.t2' },
-    { icon: 'print', label: 'landing.trust.t3' },
-    { icon: 'translate', label: 'landing.trust.t4' }
-  ];
-
   readonly features: Feature[] = [
     {
-      icon: 'library_books',
-      title: 'landing.featureCards.f1.title',
-      text: 'landing.featureCards.f1.text'
+      icon: 'inventory_2',
+      title: 'landing.featureCards.collections.title',
+      text: 'landing.featureCards.collections.text'
     },
     {
-      icon: 'filter_alt',
-      title: 'landing.featureCards.f2.title',
-      text: 'landing.featureCards.f2.text'
+      icon: 'account_tree',
+      title: 'landing.featureCards.variables.title',
+      text: 'landing.featureCards.variables.text'
     },
     {
-      icon: 'assignment',
-      title: 'landing.featureCards.f3.title',
-      text: 'landing.featureCards.f3.text'
-    },
-    {
-      icon: 'description',
-      title: 'landing.featureCards.f4.title',
-      text: 'landing.featureCards.f4.text'
+      icon: 'functions',
+      title: 'landing.featureCards.editor.title',
+      text: 'landing.featureCards.editor.text'
     },
     {
       icon: 'groups',
-      title: 'landing.featureCards.f5.title',
-      text: 'landing.featureCards.f5.text'
+      title: 'landing.featureCards.team.title',
+      text: 'landing.featureCards.team.text'
     },
     {
-      icon: 'school',
-      title: 'landing.featureCards.f6.title',
-      text: 'landing.featureCards.f6.text'
+      icon: 'print',
+      title: 'landing.featureCards.print.title',
+      text: 'landing.featureCards.print.text'
+    },
+    {
+      icon: 'cloud_done',
+      title: 'landing.featureCards.cloud.title',
+      text: 'landing.featureCards.cloud.text'
     }
   ];
 
@@ -99,56 +73,30 @@ export class LandingPageComponent {
       features: [
         'landing.plans.free.f1',
         'landing.plans.free.f2',
-        'landing.plans.free.f3',
-        'landing.plans.free.f4'
-      ],
-      cta: 'landing.plans.free.cta'
+        'landing.plans.free.f3'
+      ]
     },
     {
       name: 'Pro',
-      badge: 'landing.plans.pro.badge',
-      chip: 'landing.plans.pro.chip',
       price: '5€ / Monat',
       subtitle: 'landing.plans.pro.subtitle',
+      badge: 'landing.plans.pro.badge',
+      highlight: true,
       features: [
         'landing.plans.pro.f1',
         'landing.plans.pro.f2',
-        'landing.plans.pro.f3',
-        'landing.plans.pro.f4'
-      ],
-      highlight: true,
-      cta: 'landing.plans.pro.cta'
+        'landing.plans.pro.f3'
+      ]
     },
     {
-      name: 'Collection',
-      chip: 'landing.plans.collection.chip',
-      price: '20€ / Monat',
-      subtitle: 'landing.plans.collection.subtitle',
+      name: 'School',
+      price: '30€ / Monat',
+      subtitle: 'landing.plans.school.subtitle',
       features: [
-        'landing.plans.collection.f1',
-        'landing.plans.collection.f2',
-        'landing.plans.collection.f3',
-        'landing.plans.collection.f4'
-      ],
-      cta: 'landing.plans.collection.cta'
-    }
-  ];
-
-  readonly mockExamples: MockExample[] = [
-    {
-      type: 'landing.mock.type1',
-      title: 'landing.mock.title1',
-      focus: 'landing.mock.focus1'
-    },
-    {
-      type: 'landing.mock.type2',
-      title: 'landing.mock.title2',
-      focus: 'landing.mock.focus2'
-    },
-    {
-      type: 'landing.mock.type3',
-      title: 'landing.mock.title3',
-      focus: 'landing.mock.focus3'
+        'landing.plans.school.f1',
+        'landing.plans.school.f2',
+        'landing.plans.school.f3'
+      ]
     }
   ];
 
@@ -164,10 +112,6 @@ export class LandingPageComponent {
 
   trackByValue(_: number, value: string): string {
     return value;
-  }
-
-  trackByTrustItem(_: number, item: TrustItem): string {
-    return item.label;
   }
 
   trackByFeature(_: number, feature: Feature): string {

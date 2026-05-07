@@ -11,7 +11,6 @@ import { MatIcon } from '@angular/material/icon';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { TranslatePipe } from '@ngx-translate/core';
 import { NavbarActionsService } from '../navigation/navbar-actions.service';
-import * as console from 'node:console'
 
 @Component({
   selector: 'app-home',
@@ -120,17 +119,45 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
 
     dialogRef.afterClosed().subscribe(schoolName => {
-      if (schoolName) {
-        this.http.addCollection(schoolName).subscribe({
-          next: (id: string) => {
-            this.router.navigate(['/collection', id]);
-          },
-          error: (err) => {
-            console.log('Fehler beim Hinzufügen:', err.error);
+      const trimmedName = typeof schoolName === 'string' ? schoolName.trim() : '';
+      if (!trimmedName) return;
+
+      this.http.addCollection(trimmedName).subscribe({
+        next: (response: string | CollectionDTO | { id?: string | number; collectionId?: string | number }) => {
+          const createdId = this.getCreatedCollectionId(response);
+
+          if (!createdId) {
+            console.error('Collection wurde erstellt, aber keine ID wurde zurückgegeben:', response);
+            this.loadSchools();
+            return;
           }
-        });
-      }
+
+          this.router.navigate(['/collection', createdId]);
+        },
+        error: (err) => {
+          console.error('Fehler beim Hinzufügen:', err?.error ?? err);
+        }
+      });
     });
+  }
+
+  private getCreatedCollectionId(response: unknown): string | null {
+    if (typeof response === 'string' || typeof response === 'number') {
+      const value = String(response).trim();
+      return value || null;
+    }
+
+    if (response && typeof response === 'object') {
+      const item = response as { id?: unknown; collectionId?: unknown };
+      const rawId = item.id ?? item.collectionId;
+
+      if (typeof rawId === 'string' || typeof rawId === 'number') {
+        const value = String(rawId).trim();
+        return value || null;
+      }
+    }
+
+    return null;
   }
 
   openSchool(school: CollectionDTO): void {
