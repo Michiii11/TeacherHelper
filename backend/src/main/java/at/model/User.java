@@ -19,14 +19,14 @@ public class User {
     @Column(columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
 
+    @Column(name = "auth0_id", unique = true, length = 255)
+    private String auth0Id;
+
     @Column(nullable = false, unique = true, length = 40)
     private String username;
 
     @Column(nullable = false, unique = true, length = 120)
     private String email;
-
-    @Column(nullable = false, length = 255)
-    private String password;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "subscription_model", nullable = false, length = 40)
@@ -34,24 +34,6 @@ public class User {
 
     @Column(name = "profile_image_url", length = 500)
     private String profileImageUrl;
-
-    @Column(name = "email_verified", nullable = false)
-    private boolean emailVerified = false;
-
-    @Column(name = "pending_email", length = 120)
-    private String pendingEmail;
-
-    @Column(name = "email_verification_token", length = 120, unique = true)
-    private String emailVerificationToken;
-
-    @Column(name = "email_verification_expires_at")
-    private LocalDateTime emailVerificationExpiresAt;
-
-    @Column(name = "password_reset_token", length = 120, unique = true)
-    private String passwordResetToken;
-
-    @Column(name = "password_reset_expires_at")
-    private LocalDateTime passwordResetExpiresAt;
 
     @Column(name = "allow_invitations", nullable = false)
     private Boolean allowInvitations = true;
@@ -75,11 +57,9 @@ public class User {
     public User() {
     }
 
-    public User(String username, String email, String password) {
+    public User(String username, String email) {
         this.username = username;
         this.email = email;
-        this.password = password;
-        this.emailVerified = false;
         this.darkMode = null;
         this.language = null;
         this.locked = false;
@@ -103,17 +83,11 @@ public class User {
     public String toString() {
         return "User{" +
                 "id=" + id +
+                ", auth0Id='" + auth0Id + '\'' +
                 ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
                 ", subscriptionModel=" + subscriptionModel +
                 ", profileImageUrl='" + profileImageUrl + '\'' +
-                ", emailVerified=" + emailVerified +
-                ", pendingEmail='" + pendingEmail + '\'' +
-                ", emailVerificationToken='" + emailVerificationToken + '\'' +
-                ", emailVerificationExpiresAt=" + emailVerificationExpiresAt +
-                ", passwordResetToken='" + passwordResetToken + '\'' +
-                ", passwordResetExpiresAt=" + passwordResetExpiresAt +
                 ", allowInvitations=" + allowInvitations +
                 ", darkMode=" + darkMode +
                 ", language='" + language + '\'' +
@@ -137,6 +111,14 @@ public class User {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public String getAuth0Id() {
+        return auth0Id;
+    }
+
+    public void setAuth0Id(String auth0Id) {
+        this.auth0Id = auth0Id;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -175,14 +157,6 @@ public class User {
         this.email = email;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public SubscriptionModel getSubscriptionModel() {
         return subscriptionModel;
     }
@@ -197,54 +171,6 @@ public class User {
 
     public void setProfileImageUrl(String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
-    }
-
-    public Boolean isEmailVerified() {
-        return emailVerified;
-    }
-
-    public void setEmailVerified(Boolean emailVerified) {
-        this.emailVerified = emailVerified;
-    }
-
-    public String getPendingEmail() {
-        return pendingEmail;
-    }
-
-    public void setPendingEmail(String pendingEmail) {
-        this.pendingEmail = pendingEmail;
-    }
-
-    public String getEmailVerificationToken() {
-        return emailVerificationToken;
-    }
-
-    public void setEmailVerificationToken(String emailVerificationToken) {
-        this.emailVerificationToken = emailVerificationToken;
-    }
-
-    public LocalDateTime getEmailVerificationExpiresAt() {
-        return emailVerificationExpiresAt;
-    }
-
-    public void setEmailVerificationExpiresAt(LocalDateTime emailVerificationExpiresAt) {
-        this.emailVerificationExpiresAt = emailVerificationExpiresAt;
-    }
-
-    public String getPasswordResetToken() {
-        return passwordResetToken;
-    }
-
-    public void setPasswordResetToken(String passwordResetToken) {
-        this.passwordResetToken = passwordResetToken;
-    }
-
-    public LocalDateTime getPasswordResetExpiresAt() {
-        return passwordResetExpiresAt;
-    }
-
-    public void setPasswordResetExpiresAt(LocalDateTime passwordResetExpiresAt) {
-        this.passwordResetExpiresAt = passwordResetExpiresAt;
     }
 
     public Boolean isAllowInvitations() {
@@ -277,10 +203,6 @@ public class User {
 
     public Boolean isAdmin() {
         return subscriptionModel == SubscriptionModel.ADMIN;
-    }
-
-    public void setEmailVerified(boolean emailVerified) {
-        this.emailVerified = emailVerified;
     }
 
     public Boolean getAllowInvitations() {

@@ -49,19 +49,29 @@ export class HelpComponent implements OnInit, OnDestroy {
       textKey: 'help.docs.collections.text'
     },
     {
-      icon: 'assignment',
-      titleKey: 'help.docs.examplesTests.title',
-      textKey: 'help.docs.examplesTests.text'
+      icon: 'data_object',
+      titleKey: 'help.docs.variables.title',
+      textKey: 'help.docs.variables.text'
     },
     {
-      icon: 'manage_search',
-      titleKey: 'help.docs.searchFilter.title',
-      textKey: 'help.docs.searchFilter.text'
+      icon: 'functions',
+      titleKey: 'help.docs.editor.title',
+      textKey: 'help.docs.editor.text'
     },
     {
-      icon: 'outgoing_mail',
-      titleKey: 'help.docs.invites.title',
-      textKey: 'help.docs.invites.text'
+      icon: 'groups',
+      titleKey: 'help.docs.team.title',
+      textKey: 'help.docs.team.text'
+    },
+    {
+      icon: 'print',
+      titleKey: 'help.docs.print.title',
+      textKey: 'help.docs.print.text'
+    },
+    {
+      icon: 'cloud_done',
+      titleKey: 'help.docs.cloud.title',
+      textKey: 'help.docs.cloud.text'
     }
   ];
 

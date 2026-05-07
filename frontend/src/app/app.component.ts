@@ -24,7 +24,7 @@ import { Config } from './config';
 })
 export class AppComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
-  protected readonly Config = Config
+  protected readonly Config = Config;
 
   themeService = inject(ThemeService);
   languageService = inject(LanguageService);
@@ -41,7 +41,8 @@ export class AppComponent implements OnInit, OnDestroy {
     this.themeService.init();
     this.languageService.init();
 
-    this.authService.loggedIn$.pipe(distinctUntilChanged(), takeUntil(this.destroy$))
+    this.authService.loggedIn$
+      .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe(status => {
         this.isLoggedIn = status;
 
@@ -52,8 +53,11 @@ export class AppComponent implements OnInit, OnDestroy {
         }
       });
 
-    this.router.events.pipe(filter(event => event instanceof NavigationEnd),
-        takeUntil(this.destroy$))
+    this.router.events
+      .pipe(
+        filter(event => event instanceof NavigationEnd),
+        takeUntil(this.destroy$)
+      )
       .subscribe((event: NavigationEnd) => {
         this.currentUrl = event.urlAfterRedirects || event.url || '/';
       });
@@ -63,16 +67,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.waitForBackend();
-
-    this.service.validateToken().subscribe({
-      next: data => {
-        this.isLoggedIn = data;
-        this.loadAndApplyUserSettings();
-      }, error: () => {
-        this.isLoggedIn = false;
-        this.applyGuestDefaults();
-      }
-    })
   }
 
   ngOnDestroy(): void {

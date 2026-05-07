@@ -1,5 +1,5 @@
 import { Component, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
-import { DatePipe, NgIf } from '@angular/common';
+import { AsyncPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
@@ -17,7 +17,7 @@ import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-
 import { NavbarActionsService } from './navbar-actions.service';
 import { NavbarAction, NavbarBreadcrumb } from './navbar-action.model';
 import { MatDivider } from '@angular/material/list';
-import { AuthService } from '../../service/auth.service';
+import { AuthService as Auth0Service } from '@auth0/auth0-angular';
 
 @Component({
   selector: 'app-navigation',
@@ -39,7 +39,8 @@ import { AuthService } from '../../service/auth.service';
     TranslatePipe,
     MatButtonToggle,
     MatButtonToggleGroup,
-    MatDivider
+    MatDivider,
+    AsyncPipe
   ],
   templateUrl: './navigation.component.html',
   styleUrl: './navigation.component.scss'
@@ -48,7 +49,8 @@ export class NavigationComponent implements OnInit, OnDestroy {
   service = inject(HttpService);
   snackBar = inject(MatSnackBar);
   navbarActionsService = inject(NavbarActionsService);
-  translate = inject(TranslateService)
+  translate = inject(TranslateService);
+  auth0 = inject(Auth0Service);
 
   user: User = {} as User;
   avatarObjectUrl: string | null = null;
@@ -216,6 +218,18 @@ export class NavigationComponent implements OnInit, OnDestroy {
         );
       },
       error: (err) => console.error(err)
+    });
+  }
+
+  login(): void {
+    this.auth0.loginWithRedirect();
+  }
+
+  register(): void {
+    this.auth0.loginWithRedirect({
+      authorizationParams: {
+        screen_hint: 'signup'
+      }
     });
   }
 

@@ -1,38 +1,55 @@
-import {inject, Injectable} from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
-
-import { LoginDTO, UserDTO } from '../model/User';
-import { Config } from '../config';
-import {HttpService} from './http.service'
+import { inject, Injectable } from '@angular/core';
+import { AuthService as Auth0Service } from '@auth0/auth0-angular';
+import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private loggedIn = new BehaviorSubject<boolean>(false);
-  private http = inject(HttpService)
-  loggedIn$ = this.loggedIn.asObservable();
+  private readonly auth0 = inject(Auth0Service);
 
-  constructor() {
-    this.hasValidToken().subscribe(isValid => {
-      this.loggedIn.next(isValid);
+  loggedIn$: Observable<boolean> = this.auth0.isAuthenticated$;
+
+  login(): void {
+    this.auth0.loginWithRedirect({
+      appState: { target: '/home' },
+      authorizationParams: {
+        audience: 'https://teacher-helper-api',
+        scope: 'openid profile email',
+      },
     });
   }
 
-  private hasValidToken(): Observable<boolean> {
-    const token = localStorage.getItem('teacher_authToken');
-    if (!token) {
-      return of(false);
-    }
-
-    return this.http.validateToken().pipe(
-      catchError(() => of(false))
-    );
+  register(): void {
+    this.auth0.loginWithRedirect({
+      appState: { target: '/home' },
+      authorizationParams: {
+        audience: 'https://teacher-helper-api',
+        scope: 'openid profile email',
+        screen_hint: 'signup',
+      },
+    });
   }
 
-  setLogin(token: string, userId: string) {
-    localStorage.setItem('teacher_authToken', token);
-    localStorage.setItem('teacher_userId', userId);
-    this.loggedIn.next(true);
+  logout(): void {
+    localStorage.removeItem('teacher_authToken');
+    localStorage.removeItem('teacher_userId');
+
+    this.auth0.logout({
+      logoutParams: {
+        returnTo: window.location.origin,
+      },
+    });
+  }
+
+  getAccessToken(): Observable<string> {
+    return this.auth0.getAccessTokenSilently({
+      authorizationParams: {
+        audience: 'https://teacher-helper-api',
+        scope: 'openid profile email',
+      },
+    });
+  }
+
+  setLogin(_token: string, _userId: string): void {
+    // no-op after Auth0 migration
   }
 }

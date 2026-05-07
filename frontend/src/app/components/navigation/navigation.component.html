@@ -63,6 +63,18 @@
           }
         </div>
 
+        @if (!(auth0.isAuthenticated$ | async)) {
+          <button mat-stroked-button type="button" class="navbar-auth-btn" (click)="login()">
+            <mat-icon>login</mat-icon>
+            Login
+          </button>
+
+          <button mat-flat-button color="primary" type="button" class="navbar-auth-btn" (click)="register()">
+            <mat-icon>person_add</mat-icon>
+            Registrieren
+          </button>
+        }
+
         <mat-divider class="navbar-divider" [vertical]="true"></mat-divider>
 
         <button mat-icon-button class="icon-btn" routerLink="/help">

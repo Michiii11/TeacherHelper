@@ -243,7 +243,7 @@
       },
       "print": {
         "title": "Ready to Print",
-        "text": "Bereite Tests so vor, dass sie direkt übersichtlich gedruckt oder exportiert werden können."
+        "text": "Bereite Tests so vor, dass sie direkt übersichtlich gedruckt werden können."
       },
       "cloud": {
         "title": "Cloud Based",
@@ -952,23 +952,31 @@
     "startTutorial": "Starte Tutorial",
     "docs": {
       "kicker": "Schnell erklärt",
-      "headline": "Die wichtigsten Bereiche auf einen Blick",
-      "subline": "Kein langes Handbuch – nur das, was du im Alltag wirklich brauchst.",
+      "headline": "Die wichtigsten Funktionen auf einen Blick",
+      "subline": "Der Überblick zeigt, wie TeacherHelper dich beim Sammeln, Anpassen, Zusammenarbeiten und Drucken unterstützt.",
       "collections": {
-        "title": "Sammlungssystem",
-        "text": "Sammlungen geben dir einen klaren Ort für Aufgaben, Tests und gemeinsame Inhalte. So bleibt alles sauber organisiert statt irgendwo verteilt zu liegen."
+        "title": "Sammlungen, Ordner & Tags",
+        "text": "Sammle Beispiele und Tests in gemeinsamen Sammlungen. Mit Ordnern und Tags strukturierst du deine Dateien so, dass du sie später schnell wiederfindest."
       },
-      "examplesTests": {
-        "title": "Beispiele & Tests",
-        "text": "Gute Beispiele einmal anlegen, später wiederverwenden und daraus schnell neue Tests bauen – genau dafür ist TeacherHelper da."
+      "variables": {
+        "title": "Flexible Variablen",
+        "text": "Ergänze Variablen direkt in Beispielen und passe ihre Werte später flexibel pro Test an. So entsteht aus einem Beispiel schnell eine neue Variante."
       },
-      "searchFilter": {
-        "title": "Suche & Filter",
-        "text": "Wenn Inhalte mehr werden, wird gutes Finden entscheidend. Mit Suche und Filtern kommst du schneller wieder zu genau dem, was du gerade brauchst."
+      "editor": {
+        "title": "LaTeX & Markdown",
+        "text": "Nutze integrierte LaTeX- und Markdown-Funktionen, um Formeln, Hervorhebungen, Listen und saubere Aufgabenstellungen direkt im Editor zu gestalten."
       },
-      "invites": {
-        "title": "Kooperation & Teamarbeit",
-        "text": "Mitglieder einladen und gemeinsam Beispiele und Tests verwalten und sammeln."
+      "team": {
+        "title": "Kooperation mit Lehrkräften",
+        "text": "Arbeite mit anderen Lehrkräften in geteilten Sammlungen zusammen. Inhalte können gemeinsam erstellt, erweitert und für Tests genutzt werden."
+      },
+      "print": {
+        "title": "Ready to Print",
+        "text": "Bereite Tests mit Punkten, Layout, Abständen und optionalen Lösungen so vor, dass sie direkt übersichtlich gedruckt oder exportiert werden können."
+      },
+      "cloud": {
+        "title": "Cloud Based",
+        "text": "Deine Sammlungen sind online verfügbar. Dadurch bleiben Beispiele und Tests zentral gespeichert und sind dort erreichbar, wo du sie brauchst."
       }
     },
     "changelog": {

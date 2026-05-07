@@ -1,14 +1,12 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
 import { MatButton } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { Router } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, finalize, takeUntil } from 'rxjs';
-import * as CryptoJS from 'crypto-js';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { HttpService } from '../../service/http.service';
@@ -17,10 +15,10 @@ import { ConfirmDialogComponent } from '../../dialog/confirm-dialog/confirm-dial
 import { ThemeService } from '../../service/theme.service';
 import { LanguageService } from '../../service/language.service';
 import { NavbarActionsService } from '../navigation/navbar-actions.service';
-import {MatProgressBar} from '@angular/material/progress-bar'
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { AuthService } from '../../service/auth.service';
 
 type ProfileLanguage = 'de' | 'en';
-
 type ProfileSettings = {
   darkMode: boolean;
   language: ProfileLanguage;
@@ -30,15 +28,7 @@ type ProfileSettings = {
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    MatIcon,
-    MatButton,
-    MatFormFieldModule,
-    MatInput,
-    TranslatePipe,
-    MatProgressBar
-  ],
+  imports: [ReactiveFormsModule, MatIcon, MatButton, MatFormFieldModule, MatInput, TranslatePipe, MatProgressBar],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss'
 })
@@ -47,13 +37,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private readonly http = inject(HttpService);
   private readonly snack = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
-  private readonly router = inject(Router);
   private readonly destroy$ = new Subject<void>();
   private readonly themeService = inject(ThemeService);
   private readonly languageService = inject(LanguageService);
   private readonly translate = inject(TranslateService);
-
   private readonly navbarActions = inject(NavbarActionsService);
+  private readonly auth = inject(AuthService);
 
   user: User | null = null;
   loading = true;
@@ -63,19 +52,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
   avatarObjectUrl: string | null = null;
 
   savingUsername = false;
-  savingEmail = false;
-  savingPassword = false;
   savingAvatar = false;
   savingSettings = false;
-  cancelingPendingEmail = false;
   deletingAccount = false;
 
   private settingsReady = false;
-  private lastSavedSettings: ProfileSettings = {
-    darkMode: false,
-    language: 'de',
-    allowInvitations: true
-  };
+  private lastSavedSettings: ProfileSettings = { darkMode: false, language: 'de', allowInvitations: true };
   private queuedSettings: ProfileSettings | null = null;
 
   readonly maxAvatarBytes = 2 * 1024 * 1024;
@@ -85,24 +67,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
     username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(40)]]
   });
 
-  emailForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email, Validators.maxLength(120)]]
-  });
-
-  passwordForm = this.fb.group({
-    currentPassword: ['', [Validators.required]],
-    newPassword: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(120)]],
-    confirmPassword: ['', [Validators.required]]
-  });
-
-  settingsForm = this.fb.group({
-    darkMode: [false, { nonNullable: true }],
-    language: ['de' as 'de' | 'en', [Validators.required]],
-    allowInvitations: [true, { nonNullable: true }]
-  });
-
-  deleteAccountForm = this.fb.group({
-    currentPassword: ['', [Validators.required]]
+  settingsForm = new FormGroup({
+    darkMode: new FormControl<boolean>(false, { nonNullable: true }),
+    language: new FormControl<ProfileLanguage>('de', { nonNullable: true, validators: [Validators.required] }),
+    allowInvitations: new FormControl<boolean>(true, { nonNullable: true }),
   });
 
   ngOnInit(): void {
@@ -119,39 +87,22 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   private setNavbarActions(): void {
-    this.navbarActions.setBreadcrumbs([
-      {
-        labelKey: 'profile.title',
-        route: '/profile'
-      }
-    ]);
-
-    this.navbarActions.setActions([
-      {
-        labelKey: 'common.logout',
-        icon: 'logout',
-        variant: 'flat',
-        action: () => this.logout()
-      }
-    ]);
+    this.navbarActions.setBreadcrumbs([{ labelKey: 'profile.title', route: '/profile' }]);
+    this.navbarActions.setActions([{ labelKey: 'common.logout', icon: 'logout', variant: 'flat', action: () => this.logout() }]);
   }
 
   loadUser(): void {
     this.loading = true;
-
     this.http.getUser()
       .pipe(takeUntil(this.destroy$), finalize(() => this.loading = false))
       .subscribe({
         next: (user: User) => {
           this.user = user;
           this.usernameForm.patchValue({ username: user?.username ?? '' });
-          this.emailForm.patchValue({ email: user?.email ?? '' });
 
           const resolvedSettings = this.resolveSettings(user.settings);
-
           this.settingsForm.patchValue(resolvedSettings, { emitEvent: false });
           this.applyResolvedSettings(resolvedSettings);
-
           this.lastSavedSettings = resolvedSettings;
           this.settingsReady = true;
           this.loadAvatar();
@@ -167,17 +118,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.destroy$),
         debounceTime(350),
-        distinctUntilChanged((prev, curr) =>
-          prev.darkMode === curr.darkMode
-          && prev.language === curr.language
-          && prev.allowInvitations === curr.allowInvitations
-        )
+        distinctUntilChanged((prev, curr) => prev.darkMode === curr.darkMode && prev.language === curr.language && prev.allowInvitations === curr.allowInvitations)
       )
       .subscribe(() => {
-        if (!this.settingsReady || this.settingsForm.invalid) {
-          return;
-        }
-
+        if (!this.settingsReady || this.settingsForm.invalid) return;
         const settings = this.getCurrentSettings();
         this.applyResolvedSettings(settings);
         this.persistSettings(settings);
@@ -194,9 +138,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   private getCurrentSettings(): ProfileSettings {
     return {
-      darkMode: this.settingsForm.controls.darkMode.value as boolean,
+      darkMode: this.settingsForm.controls.darkMode.value,
       language: this.settingsForm.controls.language.value ?? 'de',
-      allowInvitations: this.settingsForm.controls.allowInvitations.value as boolean
+      allowInvitations: this.settingsForm.controls.allowInvitations.value
     };
   }
 
@@ -206,65 +150,38 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   private persistSettings(settings: ProfileSettings): void {
-    if (this.areSettingsEqual(settings, this.lastSavedSettings)) {
-      return;
-    }
-
+    if (this.areSettingsEqual(settings, this.lastSavedSettings)) return;
     if (this.savingSettings) {
       this.queuedSettings = settings;
       return;
     }
 
     this.savingSettings = true;
-
-    this.http.updateUserSettings({
-      darkMode: settings.darkMode,
-      language: settings.language,
-      allowInvitations: settings.allowInvitations
-    })
+    this.http.updateUserSettings({ darkMode: settings.darkMode, language: settings.language, allowInvitations: settings.allowInvitations })
       .pipe(takeUntil(this.destroy$), finalize(() => {
         this.savingSettings = false;
-
         if (this.queuedSettings) {
           const queued = { ...this.queuedSettings };
           this.queuedSettings = null;
-
-          if (!this.areSettingsEqual(queued, this.lastSavedSettings)) {
-            this.persistSettings(queued);
-          }
+          if (!this.areSettingsEqual(queued, this.lastSavedSettings)) this.persistSettings(queued);
         }
       }))
       .subscribe({
         next: () => {
-          if (this.user) {
-            this.user.settings = {
-              darkMode: settings.darkMode,
-              language: settings.language,
-              allowInvitations: settings.allowInvitations
-            };
-          }
-
+          if (this.user) this.user.settings = { darkMode: settings.darkMode, language: settings.language, allowInvitations: settings.allowInvitations };
           this.lastSavedSettings = { ...settings };
         },
         error: (err) => {
           const fallback = this.lastSavedSettings;
-
           this.settingsForm.patchValue(fallback, { emitEvent: false });
           this.applyResolvedSettings(fallback);
-
-          this.snack.open(
-            typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.settingsSaveError'),
-            'OK',
-            { duration: 3500 }
-          );
+          this.snack.open(typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.settingsSaveError'), 'OK', { duration: 3500 });
         }
       });
   }
 
   private areSettingsEqual(a: ProfileSettings, b: ProfileSettings): boolean {
-    return a.darkMode === b.darkMode
-      && a.language === b.language
-      && a.allowInvitations === b.allowInvitations;
+    return a.darkMode === b.darkMode && a.language === b.language && a.allowInvitations === b.allowInvitations;
   }
 
   saveUsername(): void {
@@ -274,128 +191,21 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     const username = this.usernameForm.controls.username.value?.trim() ?? '';
-
     this.savingUsername = true;
     this.http.updateUsername(username)
       .pipe(takeUntil(this.destroy$), finalize(() => this.savingUsername = false))
       .subscribe({
         next: () => {
-          if (this.user) {
-            this.user.username = username;
-          }
+          if (this.user) this.user.username = username;
           window.dispatchEvent(new Event('storage'));
           this.snack.open(this.translate.instant('snackbar.usernameUpdated'), 'OK', { duration: 3000 });
         },
-        error: (err) => {
-          this.snack.open(
-            typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.usernameUpdateError'),
-            'OK',
-            { duration: 3500 }
-          );
-        }
-      });
-  }
-
-  saveEmail(): void {
-    if (this.emailForm.invalid || this.savingEmail) {
-      this.emailForm.markAllAsTouched();
-      return;
-    }
-
-    const email = this.emailForm.controls.email.value?.trim() ?? '';
-
-    this.savingEmail = true;
-    this.http.requestEmailChange(email)
-      .pipe(takeUntil(this.destroy$), finalize(() => this.savingEmail = false))
-      .subscribe({
-        next: (message: string) => {
-          if (this.user) {
-            this.user.pendingEmail = email;
-          }
-          this.snack.open(message, 'OK', { duration: 3500 });
-        },
-        error: (err) => {
-          this.snack.open(
-            typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.emailRequestError'),
-            'OK',
-            { duration: 3500 }
-          );
-        }
-      });
-  }
-
-  cancelPendingEmailChange(): void {
-    if (!this.user?.pendingEmail || this.cancelingPendingEmail) {
-      return;
-    }
-
-    this.cancelingPendingEmail = true;
-    this.http.cancelPendingEmailChange()
-      .pipe(takeUntil(this.destroy$), finalize(() => this.cancelingPendingEmail = false))
-      .subscribe({
-        next: (message) => {
-          if (this.user) {
-            this.user.pendingEmail = null;
-          }
-          this.emailForm.patchValue({ email: this.user?.email ?? '' });
-          this.snack.open(message, 'OK', { duration: 3200 });
-        },
-        error: (err) => {
-          this.snack.open(
-            typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.pendingEmailDeleteError'),
-            'OK',
-            { duration: 3500 }
-          );
-        }
-      });
-  }
-
-  savePassword(): void {
-    if (this.passwordForm.invalid || this.savingPassword) {
-      this.passwordForm.markAllAsTouched();
-      return;
-    }
-
-    const currentPasswordRaw = this.passwordForm.controls.currentPassword.value ?? '';
-    const newPasswordRaw = this.passwordForm.controls.newPassword.value ?? '';
-    const confirmPasswordRaw = this.passwordForm.controls.confirmPassword.value ?? '';
-
-    if (newPasswordRaw !== confirmPasswordRaw) {
-      this.snack.open(this.translate.instant('snackbar.passwordMismatch'), 'OK', { duration: 3200 });
-      return;
-    }
-
-    if (currentPasswordRaw === newPasswordRaw) {
-      this.snack.open(this.translate.instant('snackbar.passwordSame'), 'OK', { duration: 3200 });
-      return;
-    }
-
-    const currentPassword = CryptoJS.SHA256(currentPasswordRaw).toString();
-    const newPassword = CryptoJS.SHA256(newPasswordRaw).toString();
-
-    this.savingPassword = true;
-    this.http.changePassword({ currentPassword, newPassword })
-      .pipe(takeUntil(this.destroy$), finalize(() => this.savingPassword = false))
-      .subscribe({
-        next: () => {
-          this.passwordForm.reset();
-          this.snack.open(this.translate.instant('snackbar.passwordChanged'), 'OK', { duration: 3000 });
-        },
-        error: (err) => {
-          this.snack.open(
-            typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.passwordChangeError'),
-            'OK',
-            { duration: 3500 }
-          );
-        }
+        error: (err) => this.snack.open(typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.usernameUpdateError'), 'OK', { duration: 3500 })
       });
   }
 
   confirmDeleteAccount(): void {
-    if (this.deleteAccountForm.invalid || this.deletingAccount) {
-      this.deleteAccountForm.markAllAsTouched();
-      return;
-    }
+    if (this.deletingAccount) return;
 
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '600px',
@@ -412,49 +222,24 @@ export class ProfileComponent implements OnInit, OnDestroy {
     });
 
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((confirmed: boolean) => {
-      if (confirmed) {
-        this.deleteAccount();
-      }
+      if (confirmed) this.deleteAccount();
     });
   }
 
   deleteAccount(): void {
-    if (this.deleteAccountForm.invalid || this.deletingAccount) {
-      this.deleteAccountForm.markAllAsTouched();
-      return;
-    }
-
-    const currentPasswordRaw = this.deleteAccountForm.controls.currentPassword.value ?? '';
-    const currentPassword = CryptoJS.SHA256(currentPasswordRaw).toString();
-
     this.deletingAccount = true;
-    this.http.deleteAccount(currentPassword)
+    this.http.deleteAccount()
       .pipe(takeUntil(this.destroy$), finalize(() => this.deletingAccount = false))
       .subscribe({
-        next: (message: string) => {
-          localStorage.removeItem('teacher_authToken');
-          localStorage.removeItem('teacher_userId');
-          window.dispatchEvent(new Event('storage'));
-          this.snack.open(message, 'OK', { duration: 3000 });
-          this.router.navigate(['/login']);
-        },
-        error: (err) => {
-          this.snack.open(
-            typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.accountDeleteError'),
-            'OK',
-            { duration: 3500 }
-          );
-        }
+        next: () => this.auth.logout(),
+        error: (err) => this.snack.open(typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.accountDeleteError'), 'OK', { duration: 3500 })
       });
   }
 
   onAvatarSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
-
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     if (!this.allowedAvatarTypes.includes(file.type)) {
       this.snack.open(this.translate.instant('snackbar.imageTypeError'), 'OK', { duration: 3000 });
@@ -469,18 +254,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     this.selectedAvatarFile = file;
-
     const reader = new FileReader();
-    reader.onload = () => {
-      this.avatarPreviewUrl = reader.result as string;
-    };
+    reader.onload = () => this.avatarPreviewUrl = reader.result as string;
     reader.readAsDataURL(file);
   }
 
   saveAvatar(): void {
-    if (!this.selectedAvatarFile || this.savingAvatar) {
-      return;
-    }
+    if (!this.selectedAvatarFile || this.savingAvatar) return;
 
     this.savingAvatar = true;
     this.http.uploadProfileImage(this.selectedAvatarFile)
@@ -488,21 +268,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (imageUrl: string) => {
           this.avatarPreviewUrl = null;
-          if (this.user) {
-            this.user.profileImageUrl = imageUrl;
-          }
+          if (this.user) this.user.profileImageUrl = imageUrl;
           this.selectedAvatarFile = null;
           this.loadAvatar();
           window.dispatchEvent(new Event('storage'));
           this.snack.open(this.translate.instant('snackbar.avatarUpdated'), 'OK', { duration: 3000 });
         },
-        error: (err) => {
-          this.snack.open(
-            typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.avatarUpdateError'),
-            'OK',
-            { duration: 3500 }
-          );
-        }
+        error: (err) => this.snack.open(typeof err?.error === 'string' ? err.error : this.translate.instant('snackbar.avatarUpdateError'), 'OK', { duration: 3500 })
       });
   }
 
@@ -511,39 +283,19 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.avatarPreviewUrl = null;
   }
 
-  logout(): void {
-    localStorage.removeItem('teacher_authToken');
-    localStorage.removeItem('teacher_userId');
-    window.dispatchEvent(new Event('storage'));
-    this.router.navigate(['/login']);
-  }
+  logout(): void { this.auth.logout(); }
 
-  getDisplayName(): string {
-    return this.user?.username || this.translate.instant('profile.fallbackName');
-  }
-
-  getDisplayEmail(): string {
-    return this.user?.email || this.translate.instant('profile.fallbackEmail');
-  }
-
-  getPlanLabel(): string {
-    return this.user?.subscriptionModel || 'FREE';
-  }
+  getDisplayName(): string { return this.user?.username || this.translate.instant('profile.fallbackName'); }
+  getDisplayEmail(): string { return this.user?.email || this.translate.instant('profile.fallbackEmail'); }
+  getPlanLabel(): string { return this.user?.subscriptionModel || 'FREE'; }
 
   getAvatarUrl(): string | null {
-    if (this.avatarPreviewUrl) {
-      return this.avatarPreviewUrl;
-    }
-
-    return this.avatarObjectUrl;
+    return this.avatarPreviewUrl || this.avatarObjectUrl;
   }
 
   private loadAvatar(): void {
     this.revokeAvatarObjectUrl();
-
-    if (!this.user?.id || !this.user?.profileImageUrl) {
-      return;
-    }
+    if (!this.user?.id || !this.user?.profileImageUrl) return;
 
     this.http.getProfileImage(this.user.id)
       .pipe(takeUntil(this.destroy$))
@@ -552,9 +304,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.revokeAvatarObjectUrl();
           this.avatarObjectUrl = URL.createObjectURL(blob);
         },
-        error: () => {
-          this.avatarObjectUrl = null;
-        }
+        error: () => this.avatarObjectUrl = null
       });
   }
 
@@ -565,26 +315,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-  getInitials(): string {
-    return this.http.getUserInitials(this.user);
-  }
-
-  isCurrentPlan(plan: 'FREE' | 'PRO' | 'ENTERPRISE'): boolean {
-    return this.user?.subscriptionModel === plan;
-  }
+  getInitials(): string { return this.http.getUserInitials(this.user); }
 
   hasUsernameError(error: string): boolean {
     return !!this.usernameForm.controls.username.touched && !!this.usernameForm.controls.username.hasError(error);
   }
 
-  hasEmailError(error: string): boolean {
-    return !!this.emailForm.controls.email.touched && !!this.emailForm.controls.email.hasError(error);
-  }
-
   deleteAvatar(): void {
-    if (!this.user?.profileImageUrl) {
-      return;
-    }
+    if (!this.user?.profileImageUrl) return;
 
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
@@ -602,16 +340,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.http.deleteProfileImage()
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          next: (msg: string) => {
-            if (this.user) {
-              this.user.profileImageUrl = null;
-            }
+          next: () => {
+            if (this.user) this.user.profileImageUrl = null;
             this.revokeAvatarObjectUrl();
-            this.snack.open(msg, 'OK', { duration: 3000 });
+            this.snack.open(this.translate.instant('snackbar.avatarDeleted'), 'OK', { duration: 3000 });
           },
-          error: () => {
-            this.snack.open(this.translate.instant('snackbar.avatarDeleteError'), 'OK', { duration: 3000 });
-          }
+          error: () => this.snack.open(this.translate.instant('snackbar.avatarDeleteError'), 'OK', { duration: 3000 })
         });
     });
   }

@@ -6,16 +6,16 @@
       </a>
 
       <div class="topbar-actions">
-        @if (isLoggedIn) {
+        @if (isLoggedIn$ | async) {
           <a mat-stroked-button class="topbar-button" routerLink="/home">
             <mat-icon>dashboard</mat-icon>
             {{ 'landing.dashboard' | translate }}
           </a>
         } @else {
-          <a mat-stroked-button class="topbar-button" routerLink="/login">
+          <button mat-stroked-button class="topbar-button" type="button" (click)="login()">
             <mat-icon>login</mat-icon>
             {{ 'landing.login' | translate }}
-          </a>
+          </button>
         }
       </div>
     </header>
@@ -27,21 +27,21 @@
         <p class="hero-text">{{ 'landing.description' | translate }}</p>
 
         <div class="hero-actions">
-          @if (isLoggedIn) {
+          @if (isLoggedIn$ | async) {
             <a mat-flat-button color="primary" class="main-button" routerLink="/home">
               <mat-icon>arrow_forward</mat-icon>
               {{ 'landing.dashboard' | translate }}
             </a>
           } @else {
-            <a mat-flat-button color="primary" class="main-button" routerLink="/login">
+            <button mat-flat-button color="primary" class="main-button" type="button" (click)="register()">
               <mat-icon>person_add</mat-icon>
               {{ 'landing.register' | translate }}
-            </a>
+            </button>
 
-            <a mat-stroked-button class="main-button secondary" routerLink="/login">
+            <button mat-stroked-button class="main-button secondary" type="button" (click)="login()">
               <mat-icon>login</mat-icon>
               {{ 'landing.loginShort' | translate }}
-            </a>
+            </button>
           }
         </div>
       </div>

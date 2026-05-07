@@ -37,12 +37,13 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
+  padding-top: .5rem;
 }
 
 .help-card,
 .changelog-card {
   border-radius: 24px;
-  background: var(--surface);
+  background: var(--surface-soft);
   border: 1px solid var(--border);
 }
 
@@ -54,7 +55,6 @@
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: var(--shadow);
     border-color: rgba(106, 133, 255, 0.18);
   }
 }

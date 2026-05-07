@@ -10,7 +10,6 @@ import at.enums.InviteStatus;
 import at.enums.InviteType;
 import at.model.*;
 import at.model.helper.Focus;
-import at.security.TokenService;
 import at.service.MediaStorageService;
 import at.websocket.CollectionSocket;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -38,9 +37,6 @@ public class CollectionRepository {
 
     @Inject
     EntityManager em;
-
-    @Inject
-    TokenService tokenService;
 
     @Inject
     NotificationRepository notificationRepository;

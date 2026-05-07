@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './components/login/login.component';
 import { AuthGuard } from './guard/auth.guard';
 import { adminGuard } from './guard/admin.guard';
 import { HomeComponent } from './components/home/home.component';
@@ -10,6 +9,7 @@ import { LegalPageComponent } from './components/legal-page/legal-page.component
 import { LandingPageComponent } from './components/landing-page/landing-page.component';
 import { HelpComponent } from './components/help/help.component';
 import { AdminComponent } from './components/admin/admin.component';
+import {LoginComponent} from './components/login/login.component'
 
 export const routes: Routes = [
   { path: 'home', component: HomeComponent, canActivate: [AuthGuard] },

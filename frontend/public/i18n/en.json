@@ -251,7 +251,7 @@
       },
       "print": {
         "title": "Ready to print",
-        "text": "Prepare tests so they can be printed or exported in a clear layout."
+        "text": "Prepare tests so they can be printed in a clear layout."
       },
       "cloud": {
         "title": "Cloud based",
@@ -926,23 +926,31 @@
     "startTutorial": "Start tutorial",
     "docs": {
       "kicker": "Quick overview",
-      "headline": "The important parts at a glance",
-      "subline": "No giant manual — just what actually matters in daily use.",
+      "headline": "The key features at a glance",
+      "subline": "The overview shows how TeacherHelper helps you collect, adapt, collaborate, and print your teaching material.",
       "collections": {
-        "title": "Collection system",
-        "text": "Collections give you one clear place for tasks, tests, and shared content, so everything stays organized instead of being scattered around."
+        "title": "Collections, folders & tags",
+        "text": "Collect exercises and tests in shared collections. Use folders and tags to structure your files so you can find them again quickly later."
       },
-      "exercisesTests": {
-        "title": "Exercises & tests",
-        "text": "Create strong exercises once, reuse them later, and turn them into new tests quickly — that is exactly what TeacherHelper is for."
+      "variables": {
+        "title": "Flexible variables",
+        "text": "Add variables directly to exercises and adjust their values later for each test. This turns one exercise into a new variation quickly."
       },
-      "searchFilter": {
-        "title": "Search & filters",
-        "text": "As your content grows, finding things well becomes essential. Search and filters help you get back to exactly what you need much faster."
+      "editor": {
+        "title": "LaTeX & Markdown",
+        "text": "Use built-in LaTeX and Markdown features to format formulas, highlights, lists, and clean task descriptions directly in the editor."
       },
-      "invites": {
-        "title": "Cooperation & teamwork",
-        "text": "Invite members and manage your tasks and tests together in one shared collection."
+      "team": {
+        "title": "Teacher collaboration",
+        "text": "Work together with other teachers in shared collections. Content can be created, expanded, and reused for tests collaboratively."
+      },
+      "print": {
+        "title": "Ready to print",
+        "text": "Prepare tests with points, layout, spacing, and optional solutions so they can be printed or exported in a clear format."
+      },
+      "cloud": {
+        "title": "Cloud based",
+        "text": "Your collections are available online. Exercises and tests stay centrally stored and accessible where you need them."
       }
     },
     "changelog": {
