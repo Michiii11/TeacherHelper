@@ -1337,7 +1337,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   async saveExample(): Promise<void> {
     this.syncVariablesFromContent();
 
-    if (!this.example.instruction.trim() || !this.example.question.trim()) {
+    if (!this.example.instruction.trim()) {
       this.openTranslatedSnack('exampleDialog.snackbar.fillInstructionAndQuestion');
       return;
     }

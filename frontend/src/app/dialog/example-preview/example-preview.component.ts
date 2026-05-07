@@ -11,6 +11,7 @@ import { CreateExampleDTO, ExampleTypes } from '../../model/Example';
 import {TranslatePipe} from '@ngx-translate/core'
 import {MatProgressBar} from '@angular/material/progress-bar'
 import {MatIcon} from '@angular/material/icon'
+import { ExamplePreviewRendererService } from '../../service/example-preview-renderer.service'
 
 type ExamplePreviewDialogData = {
   example?: CreateExampleDTO;
@@ -31,6 +32,7 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
   private readonly data = inject<ExamplePreviewDialogData | null>(MAT_DIALOG_DATA, { optional: true });
   private readonly http = inject(HttpService);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly previewRenderer = inject(ExamplePreviewRendererService);
 
   readonly ExampleTypes = ExampleTypes;
   readonly defaultImageWidth = 320;
@@ -151,7 +153,7 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
 
 
   getResolvedText(value: string | null | undefined): string {
-    return this.replaceVariablesOutsideLatex(value);
+    return this.previewRenderer.getResolvedText(this.example, value);
   }
 
   private replaceVariablesOutsideLatex(value: string | null | undefined): string {
@@ -177,15 +179,17 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   renderMathText(value: string | null | undefined): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(this.renderMathHtml(this.getResolvedText(value)));
+    return this.sanitizer.bypassSecurityTrustHtml(this.previewRenderer.renderMathHtml(value, this.example?.variables));
   }
 
   renderQuestionWithGapLabels(): SafeHtml {
-    if (this.example?.type === ExampleTypes.GAP_FILL) {
-      return this.sanitizer.bypassSecurityTrustHtml(this.buildGapQuestionHtml());
+    if (!this.example) {
+      return this.sanitizer.bypassSecurityTrustHtml('');
     }
 
-    return this.sanitizer.bypassSecurityTrustHtml(this.renderMathHtml(this.getQuestionWithGapLabels()));
+    return this.sanitizer.bypassSecurityTrustHtml(this.previewRenderer.buildQuestionHtml(this.example, {
+      getLetter: (index) => this.getLetter(index),
+    }));
   }
 
   private renderMathHtml(value: string | null | undefined): string {
@@ -385,18 +389,11 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getQuestionWithGapLabels(): string {
-    const q = this.getResolvedText(this.example?.question);
-    if (this.example?.type !== ExampleTypes.GAP_FILL) return q;
+    if (!this.example) {
+      return '';
+    }
 
-    const gaps = this.example?.gaps ?? [];
-    if (!gaps.length) return q;
-
-    let i = 0;
-    return q.replace(/_{3,}/g, (match) => {
-      const label = gaps[i]?.label ?? this.getLetter(i);
-      i++;
-      return `${match} (${label})`;
-    });
+    return this.previewRenderer.getQuestionWithGapLabels(this.example, (index) => this.getLetter(index));
   }
 
   getLetter(index: number): string {
@@ -422,7 +419,7 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
   private normalizeImageWidth(value: number | null | undefined): number {
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) {
-      return this.defaultImageWidth;
+      return this.previewRenderer.defaultImageWidth;
     }
     return Math.max(80, Math.min(1200, Math.round(parsed)));
   }

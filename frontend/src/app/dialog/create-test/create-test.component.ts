@@ -209,6 +209,9 @@ export class CreateTestComponent implements OnInit, OnDestroy {
               ...this.test,
               ...response,
             };
+
+            console.log(this.test)
+
             this.isEditMode = true;
             const hydratedEntries = (await this.hydrateConstructionImagesForEntries(this.test.exampleList ?? [])).map(entry => ({
               ...entry,
@@ -217,6 +220,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
                 ...(entry.variableValues ?? {})
               }
             }));
+
+            console.log(hydratedEntries);
             this.selectedExamplesInternal = hydratedEntries;
             this.test.exampleList = hydratedEntries;
             this.hydratePersistedSettings(response);
@@ -1030,21 +1035,93 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     return this.selectedExamples.map(entry => ({
       ...entry,
       title: this.getResolvedEntryTitle(entry),
-      example: {
-        ...entry.example,
-        instruction: this.resolveVariables(entry.example.instruction, entry.variableValues, entry.example),
-        question: this.resolveVariables(entry.example.question, entry.variableValues, entry.example),
-        solution: this.resolveVariables((entry.example as any).solution, entry.variableValues, entry.example),
-        answers: (entry.example.answers ?? []).map(answer => [
-          this.resolveVariables(answer?.[0], entry.variableValues, entry.example),
-          this.resolveVariables(answer?.[1], entry.variableValues, entry.example),
-        ]),
-        options: this.resolveOptionList(entry.example.options, entry.variableValues, entry.example),
-        gaps: this.resolveGapList(entry.example.gaps, entry.variableValues, entry.example),
-        assigns: this.resolveAssignList(entry.example.assigns, entry.variableValues, entry.example),
-        assignRightItems: (entry.example.assignRightItems ?? []).map(item => this.resolveVariables(item, entry.variableValues, entry.example)),
-      } as Example
+      variableValues: {
+        ...this.buildDefaultVariableValues(entry.example),
+        ...(entry.variableValues ?? {}),
+      },
+      example: this.buildPreviewExample(entry),
     }));
+  }
+
+  /**
+   * Do not pre-replace variables in instruction/question/options here.
+   * The shared ExamplePreviewRendererService protects LaTeX first and only then
+   * replaces real declared variables. Pre-replacing here breaks formulas such as
+   * $\frac{a}{b}$ when variables named a/b exist.
+   */
+  private buildPreviewExample(entry: TestExampleDTO): Example {
+    const example = this.clonePlain(entry.example) as Example;
+    const variableValues = {
+      ...this.buildDefaultVariableValues(entry.example),
+      ...(entry.variableValues ?? {}),
+    };
+
+    example.displaySettings = this.normalizeDisplaySettings((example as any).displaySettings) as any;
+    example.variables = this.mergeVariableValuesIntoExampleVariables(example.variables, variableValues) as any;
+
+    return example;
+  }
+
+  private mergeVariableValuesIntoExampleVariables(
+    variables: Example['variables'] | undefined,
+    variableValues: TestExampleVariableValues | null | undefined,
+  ): NonNullable<Example['variables']> {
+    const values = variableValues ?? {};
+    const existingVariables = Array.isArray(variables) ? variables : [];
+    const normalized = existingVariables.map(variable => {
+      const key = String(variable?.key ?? '').trim();
+      return {
+        ...variable,
+        defaultValue: String(key && key in values ? values[key] ?? '' : variable?.defaultValue ?? ''),
+      };
+    });
+
+    const knownKeys = new Set(normalized.map(variable => String(variable?.key ?? '').trim()).filter(Boolean));
+
+    for (const [key, value] of Object.entries(values)) {
+      const normalizedKey = String(key ?? '').trim();
+      if (!normalizedKey || knownKeys.has(normalizedKey)) {
+        continue;
+      }
+
+      normalized.push({
+        id: normalizedKey,
+        key: normalizedKey,
+        defaultValue: String(value ?? ''),
+      } as any);
+    }
+
+    return normalized as NonNullable<Example['variables']>;
+  }
+
+  private normalizeDisplaySettings(value: unknown): { showInstructionLabel: boolean; showQuestionLabel: boolean; showTaskImageLabel: boolean } {
+    let settings: any = value;
+
+    if (typeof settings === 'string') {
+      try {
+        settings = JSON.parse(settings);
+      } catch {
+        settings = {};
+      }
+    }
+
+    if (!settings || typeof settings !== 'object') {
+      settings = {};
+    }
+
+    return {
+      showInstructionLabel: settings.showInstructionLabel !== false,
+      showQuestionLabel: settings.showQuestionLabel !== false,
+      showTaskImageLabel: settings.showTaskImageLabel !== false,
+    };
+  }
+
+  private clonePlain<T>(value: T): T {
+    if (typeof structuredClone === 'function') {
+      return structuredClone(value);
+    }
+
+    return JSON.parse(JSON.stringify(value ?? null));
   }
 
   private refreshPreviewHtml(): void {

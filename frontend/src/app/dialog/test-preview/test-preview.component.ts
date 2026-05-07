@@ -9,7 +9,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { Example, ExampleTypes } from '../../model/Example';
-import { CreateTestDTO, GradingLevel, TestExampleDTO } from '../../model/Test';
+import { CreateTestDTO, GradingLevel, TestExampleDTO, TestExampleVariableValues } from '../../model/Test';
 import { HttpService } from '../../service/http.service';
 import { PersistedTestSettings, TestBranding, TestPrintLabels, TestPrintService } from '../../service/test-print.service';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
@@ -188,7 +188,7 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
   }
 
   printPreview(): void {
-    const success = this.testPrintService.printTest(this.test, this.selectedExamples, {
+    const success = this.testPrintService.printTest(this.test, this.buildResolvedExamplesForPreview(), {
       printCopies: this.printCopies,
       includeSolutionSheet: this.includeSolutionSheet,
       getGradeRangeLabel: (gradeOrIndex) => this.getGradeRangeLabelByIndex(gradeOrIndex - 1),
@@ -251,7 +251,7 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
   private refreshPreviewHtml(): void {
     this.labels = this.buildPrintLabels();
 
-    const html = this.testPrintService.buildPreviewHtml(this.test, this.selectedExamples, {
+    const html = this.testPrintService.buildPreviewHtml(this.test, this.buildResolvedExamplesForPreview(), {
       printCopies: 1,
       includeSolutionSheet: this.includeSolutionSheet,
       getGradeRangeLabel: (gradeOrIndex: number) => this.getGradeRangeLabelByIndex(gradeOrIndex - 1),
@@ -263,6 +263,98 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
     });
 
     this.previewHtml = this.sanitizer.bypassSecurityTrustHtml(html);
+  }
+
+  private buildResolvedExamplesForPreview(): TestExampleDTO[] {
+    return this.selectedExamples.map(entry => ({
+      ...entry,
+      variableValues: {
+        ...this.buildDefaultVariableValues(entry.example),
+        ...((entry as any).variableValues ?? {}),
+      },
+      example: this.buildPreviewExample(entry),
+    }));
+  }
+
+  private buildPreviewExample(entry: TestExampleDTO): Example {
+    const example = this.clonePlain(entry.example) as Example;
+    const variableValues = {
+      ...this.buildDefaultVariableValues(entry.example),
+      ...((entry as any).variableValues ?? {}),
+    };
+
+    (example as any).displaySettings = this.normalizeDisplaySettings((example as any).displaySettings);
+    example.variables = this.mergeVariableValuesIntoExampleVariables(example.variables, variableValues) as any;
+
+    return example;
+  }
+
+  private buildDefaultVariableValues(example: Example): TestExampleVariableValues {
+    return Object.fromEntries(
+      (example.variables ?? []).map(variable => [variable.key, variable.defaultValue ?? ''])
+    );
+  }
+
+  private mergeVariableValuesIntoExampleVariables(
+    variables: Example['variables'] | undefined,
+    variableValues: TestExampleVariableValues | null | undefined,
+  ): NonNullable<Example['variables']> {
+    const values = variableValues ?? {};
+    const existingVariables = Array.isArray(variables) ? variables : [];
+    const normalized = existingVariables.map(variable => {
+      const key = String(variable?.key ?? '').trim();
+      return {
+        ...variable,
+        defaultValue: String(key && key in values ? values[key] ?? '' : variable?.defaultValue ?? ''),
+      };
+    });
+
+    const knownKeys = new Set(normalized.map(variable => String(variable?.key ?? '').trim()).filter(Boolean));
+
+    for (const [key, value] of Object.entries(values)) {
+      const normalizedKey = String(key ?? '').trim();
+      if (!normalizedKey || knownKeys.has(normalizedKey)) {
+        continue;
+      }
+
+      normalized.push({
+        id: normalizedKey,
+        key: normalizedKey,
+        defaultValue: String(value ?? ''),
+      } as any);
+    }
+
+    return normalized as NonNullable<Example['variables']>;
+  }
+
+  private normalizeDisplaySettings(value: unknown): { showInstructionLabel: boolean; showQuestionLabel: boolean; showTaskImageLabel: boolean } {
+    let settings: any = value;
+
+    if (typeof settings === 'string') {
+      try {
+        settings = JSON.parse(settings);
+      } catch {
+        settings = {};
+      }
+    }
+
+    if (!settings || typeof settings !== 'object') {
+      settings = {};
+    }
+
+    return {
+      showInstructionLabel: settings.showInstructionLabel !== false,
+      showQuestionLabel: settings.showQuestionLabel !== false,
+      showTaskImageLabel: settings.showTaskImageLabel !== false,
+    };
+  }
+
+  private clonePlain<T>(value: T): T {
+    if (typeof structuredClone === 'function') {
+      return structuredClone(value);
+    }
+
+    return JSON.parse(JSON.stringify(value ?? null));
   }
 
   getQuestionWithGapLabels(example: Example): string {

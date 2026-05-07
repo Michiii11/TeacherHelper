@@ -308,7 +308,8 @@ public class TestRepository {
                         )).toList()
                 ),
                 e.getAssigns() == null ? new LinkedList<>() : new LinkedList<>(e.getAssigns()),
-                e.getAssignRightItems() == null ? new LinkedList<>() : new LinkedList<>(e.getAssignRightItems())
+                e.getAssignRightItems() == null ? new LinkedList<>() : new LinkedList<>(e.getAssignRightItems()),
+                e.getDisplaySettings()
         );
     }
 

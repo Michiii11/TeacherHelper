@@ -1,8 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import * as katex from 'katex';
 
 import { Example, ExampleTypes, Gap, Option } from '../model/Example';
 import { CreateTestDTO, GradingLevel, TestExampleDTO } from '../model/Test';
+import { ExamplePreviewRendererService } from './example-preview-renderer.service';
 
 export type GradeMode = 'auto' | 'manual';
 
@@ -66,6 +67,7 @@ export type TestPrintOptions = {
 
 @Injectable({ providedIn: 'root' })
 export class TestPrintService {
+  private readonly previewRenderer = inject(ExamplePreviewRendererService);
   private readonly defaultImageWidth = 320;
   private readonly variablePattern = /\{([a-zA-Z_][a-zA-Z0-9_-]*)\}/g;
 
@@ -238,7 +240,7 @@ export class TestPrintService {
     value: string | number | null | undefined,
     variables?: { key?: string; defaultValue?: string | number | null }[] | null
   ): string {
-    return this.renderMathHtml(this.replaceVariablesOutsideLatex(value, variables));
+    return this.previewRenderer.renderMathHtml(value, variables);
   }
 
   /**
@@ -270,11 +272,27 @@ export class TestPrintService {
 
   private replaceVariables(
     value: string | number | null | undefined,
-    variables?: { key?: string; defaultValue?: string | number | null }[] | null
+    variables?: { key?: string; defaultValue?: string | number | null; value?: string | number | null }[] | null
   ): string {
-    return String(value ?? '').replace(this.variablePattern, (_match, key: string) => {
-      const variable = (variables ?? []).find(entry => String(entry.key ?? '').trim() === key.trim());
-      return String(variable?.defaultValue ?? '');
+    const variableMap = new Map<string, string>();
+
+    for (const variable of variables ?? []) {
+      const key = String(variable?.key ?? '').trim();
+      if (!key) {
+        continue;
+      }
+
+      const rawValue = variable.defaultValue ?? variable.value;
+      if (rawValue === undefined || rawValue === null) {
+        continue;
+      }
+
+      variableMap.set(key, String(rawValue));
+    }
+
+    return String(value ?? '').replace(this.variablePattern, (match, key: string) => {
+      const normalizedKey = key.trim();
+      return variableMap.has(normalizedKey) ? variableMap.get(normalizedKey)! : match;
     });
   }
 
@@ -831,6 +849,21 @@ export class TestPrintService {
         .half-open-preview {
           margin-top: 0.8rem;
         }
+        .preview-panel {
+          --text: #111;
+          --text-muted: #333;
+          --text-soft: #64748b;
+          --border: #d7deea;
+          --primary: #64748b;
+          --bg-soft: transparent;
+          --bg-code: #f1f5f9;
+          --bg-code-block: #f8fafc;
+          --blockquote-bg: #f8fafc;
+          --gap-border: #94a3b8;
+          --gap-bg: #e2e8f0;
+          --table-head-bg: #f8fafc;
+        }
+        ${this.previewRenderer.buildPreviewCss()}
         @media print {
           .preview-panel {
             background: #fff;
@@ -980,17 +1013,153 @@ export class TestPrintService {
       .trim();
   }
 
+
+  /**
+   * Test/Edit entries can carry variable values outside entry.example.variables.
+   * ExamplePreviewComponent receives a live Example object, but Test/Print receives
+   * a TestExampleDTO. Normalize it into the same shape before rendering.
+   */
+  private getPrintableExample(entry: TestExampleDTO): Example {
+    const example = this.clonePlain(entry.example) as Example;
+    const entryVariableValues = this.extractEntryVariableValues(entry);
+
+    (example as any).displaySettings = this.normalizeDisplaySettings((example as any).displaySettings);
+
+    const existingVariables = Array.isArray(example.variables) ? example.variables : [];
+    const normalizedVariables = existingVariables.map(variable => {
+      const key = String(variable?.key ?? '').trim();
+
+      return {
+        ...variable,
+        defaultValue: String(key && entryVariableValues.has(key) ? entryVariableValues.get(key) ?? '' : variable?.defaultValue ?? ''),
+      };
+    });
+
+    const knownKeys = new Set(normalizedVariables.map(variable => String(variable?.key ?? '').trim()).filter(Boolean));
+
+    for (const [key, value] of entryVariableValues.entries()) {
+      const normalizedKey = String(key ?? '').trim();
+      if (!normalizedKey || knownKeys.has(normalizedKey)) {
+        continue;
+      }
+
+      normalizedVariables.push({
+        id: normalizedKey,
+        key: normalizedKey,
+        defaultValue: String(value ?? ''),
+      } as any);
+    }
+
+    example.variables = normalizedVariables as any;
+
+    return example;
+  }
+
+  private normalizeDisplaySettings(value: unknown): { showInstructionLabel: boolean; showQuestionLabel: boolean; showTaskImageLabel: boolean } {
+    let settings: any = value;
+
+    if (typeof settings === 'string') {
+      try {
+        settings = JSON.parse(settings);
+      } catch {
+        settings = {};
+      }
+    }
+
+    if (!settings || typeof settings !== 'object') {
+      settings = {};
+    }
+
+    return {
+      showInstructionLabel: settings.showInstructionLabel !== false,
+      showQuestionLabel: settings.showQuestionLabel !== false,
+      showTaskImageLabel: settings.showTaskImageLabel !== false,
+    };
+  }
+
+  private clonePlain<T>(value: T): T {
+    if (typeof structuredClone === 'function') {
+      return structuredClone(value);
+    }
+
+    return JSON.parse(JSON.stringify(value ?? null));
+  }
+
+  private extractEntryVariableValues(entry: TestExampleDTO): Map<string, string> {
+    const result = new Map<string, string>();
+    const candidateContainers = [
+      (entry as any).variableValues,
+      (entry as any).variables,
+      (entry as any).testVariables,
+      (entry as any).variableValueMap,
+      (entry as any).resolvedVariables,
+      (entry as any).exampleVariables,
+      (entry as any).values,
+    ];
+
+    for (const container of candidateContainers) {
+      this.collectVariableValues(container, result);
+    }
+
+    return result;
+  }
+
+  private collectVariableValues(value: unknown, target: Map<string, string>): void {
+    if (!value) {
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      value.forEach(item => this.collectVariableValues(item, target));
+      return;
+    }
+
+    if (typeof value !== 'object') {
+      return;
+    }
+
+    const record = value as Record<string, any>;
+    const explicitKey = String(
+      record['key'] ??
+      record['name'] ??
+      record['variableKey'] ??
+      record['variableName'] ??
+      record['variable']?.key ??
+      ''
+    ).trim();
+
+    if (explicitKey) {
+      const rawValue =
+        record['value'] ??
+        record['defaultValue'] ??
+        record['resolvedValue'] ??
+        record['currentValue'] ??
+        record['text'];
+
+      if (rawValue !== undefined && rawValue !== null) {
+        target.set(explicitKey, String(rawValue));
+      }
+
+      return;
+    }
+
+    for (const [key, rawValue] of Object.entries(record)) {
+      if (rawValue === undefined || rawValue === null) {
+        continue;
+      }
+
+      if (typeof rawValue === 'string' || typeof rawValue === 'number' || typeof rawValue === 'boolean') {
+        target.set(String(key).trim(), String(rawValue));
+      }
+    }
+  }
+
   private buildTaskHtml(entry: TestExampleDTO, index: number, isSolution: boolean, options: TestPrintOptions): string {
-    const exampleId = entry.example?.id ?? '';
+    const example = this.getPrintableExample(entry);
+    const exampleId = example?.id ?? '';
     const margin = options.getTaskSpacing(exampleId);
     const exampleLabel = options.labels.exampleShort;
-    const taskTitle = this.resolveExplicitTaskTitle(entry);
-
-    const schoolQuestion = options.labels.question;
-    const instructionLabel = options.labels.instruction || 'Angabe';
-    const displaySettings = (entry.example as any).displaySettings ?? {};
-    const showInstructionLabel = displaySettings.showInstructionLabel !== false;
-    const showQuestionLabel = displaySettings.showQuestionLabel !== false;
+    const taskTitle = this.resolveExplicitTaskTitle({ ...entry, example });
 
     const header = `
       <div class="task-head">
@@ -999,25 +1168,58 @@ export class TestPrintService {
       </div>
     `;
 
-    const instruction = entry.example.instruction
-      ? `${showInstructionLabel ? `<p><strong>${this.escapeHtml(instructionLabel)}:</strong></p>` : ''}<div class="task-instruction rich-text multiline-text">${this.formatMultiline(entry.example.instruction, entry.example.variables)}</div>`
-      : '';
-
-    const question = entry.example.type === ExampleTypes.GAP_FILL
-      ? `<div class="task-question rich-text multiline-text rich-gap-question">${isSolution && entry.example.gapFillType === 'INPUT' ? this.buildGapQuestionSolutionHtml(entry.example) : this.buildGapQuestionHtml(entry.example)}</div>`
-      : `<div class="task-question rich-text multiline-text">${this.formatMultiline(options.getQuestionWithGapLabels(entry.example), entry.example.variables)}</div>`;
-
     return `
       <div class="task print-task" style="margin-bottom:${margin}px;">
         ${header}
-        <div class="preview-panel">
-          ${instruction}
-          ${showQuestionLabel ? `<p><strong>${this.escapeHtml(schoolQuestion)}:</strong></p>` : ''}
-          ${question}
-          ${this.buildTaskBodyHtml(entry.example, isSolution, options)}
-        </div>
+        ${this.previewRenderer.buildExamplePreviewPanelHtml(example, {
+      isSolution,
+      getLetter: (letterIndex) => options.getLetter(letterIndex),
+      labels: {
+        instruction: options.labels.instruction || 'Angabe',
+        question: options.labels.question,
+        taskImage: options.labels.taskImage || 'Aufgabenbild',
+        imagePreviewAlt: options.labels.imagePreviewAlt,
+        noSolution: options.labels.noSolution,
+      },
+    })}
+        ${this.buildSolutionFreeSpaceHtml(example, isSolution)}
       </div>
     `;
+  }
+
+  private buildSolutionFreeSpaceHtml(example: Example, isSolution: boolean): string {
+    if (isSolution) {
+      return '';
+    }
+
+    if (example.type === ExampleTypes.OPEN) {
+      return `<div class="free-space large"></div>`;
+    }
+
+    if (example.type === ExampleTypes.GAP_FILL && example.gapFillType === 'INPUT') {
+      return `<div class="free-space medium"></div>`;
+    }
+
+    return '';
+  }
+
+  private getQuestionWithGapLabels(example: Example, options: TestPrintOptions): string {
+    const q = this.replaceVariablesOutsideLatex(example?.question, example?.variables);
+    if (example?.type !== ExampleTypes.GAP_FILL) {
+      return q;
+    }
+
+    const gaps = example?.gaps ?? [];
+    if (!gaps.length) {
+      return q;
+    }
+
+    let i = 0;
+    return this.replaceOutsideLatex(q, (text) => text.replace(/_{3,}/g, (match) => {
+      const label = (gaps[i] as any)?.label ?? options.getLetter(i);
+      i += 1;
+      return `${match} (${label})`;
+    }));
   }
 
   private buildGapQuestionHtml(example: Example): string {

@@ -109,7 +109,8 @@ public class ExampleRepository {
                         example.getGapFillType(),
                         new LinkedList<>(example.getGapDTO()),
                         new LinkedList<>(example.getAssigns()),
-                        new LinkedList<>(example.getAssignRightItems())
+                        new LinkedList<>(example.getAssignRightItems()),
+                        example.getDisplaySettings()
                 )
         ).collect(Collectors.toList());
 
