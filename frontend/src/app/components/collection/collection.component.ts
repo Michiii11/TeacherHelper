@@ -1675,6 +1675,21 @@ export class CollectionComponent implements OnInit, OnDestroy {
     return crumbs.map(crumb => crumb.name).join(' / ');
   }
 
+  private buildSchoolDialogData(extra: Record<string, unknown> = {}): Record<string, unknown> {
+    const collectionName = this.school?.name || '';
+    const collectionLogoUrl = this.logoUrl || '';
+
+    return {
+      schoolId: this.schoolId,
+      schoolName: collectionName,
+      collectionName,
+      schoolLogoUrl: collectionLogoUrl,
+      collectionLogoUrl,
+      school: this.school,
+      ...extra,
+    };
+  }
+
   openCreateExample(): void {
     const isMobile = window.innerWidth <= 768;
 
@@ -1683,10 +1698,9 @@ export class CollectionComponent implements OnInit, OnDestroy {
       maxWidth: isMobile ? '100vw' : '70vw',
       maxHeight: isMobile ? '100dvh' : '90vh',
       panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-example-dialog-panel',
-      data: {
-        schoolId: this.schoolId,
+      data: this.buildSchoolDialogData({
         folderId: this.selectedFolderId
-      },
+      }),
       autoFocus: false
     }).afterClosed().subscribe(() => {
       this.loadExamples();
@@ -1732,10 +1746,9 @@ export class CollectionComponent implements OnInit, OnDestroy {
       height: isMobile ? '100dvh' : '90vh',
       maxHeight: isMobile ? '100dvh' : '90vh',
       panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-test-dialog-panel',
-      data: {
-        schoolId: this.schoolId,
+      data: this.buildSchoolDialogData({
         folderId: this.selectedFolderId
-      }
+      })
     }).afterClosed().subscribe(() => {
       this.loadTests();
     });
@@ -1750,7 +1763,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
       height: isMobile ? '100dvh' : '90vh',
       maxHeight: isMobile ? '100dvh' : '90vh',
       panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-test-dialog-panel',
-      data: { schoolId: this.schoolId, testId: test.id, folderId: test.folderId ?? null }
+      data: this.buildSchoolDialogData({ testId: test.id, folderId: test.folderId ?? null })
     }).afterClosed().subscribe(() => {
       this.loadTests();
     });
@@ -1763,7 +1776,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
       height: '92vh',
       maxHeight: '92vh',
       panelClass: 'test-preview-dialog',
-      data: { schoolId: this.schoolId, testId: test.id }
+      data: this.buildSchoolDialogData({ testId: test.id })
     }).afterClosed().subscribe(() => {
       this.loadTests();
     });

@@ -75,7 +75,17 @@ type PersistedTestSettings = {
   styleUrl: './create-test.component.scss',
 })
 export class CreateTestComponent implements OnInit, OnDestroy {
-  data = inject<{ schoolId: string; testId?: string; folderId: string | null }>(MAT_DIALOG_DATA);
+  data = inject<{
+    schoolId: string;
+    testId?: string;
+    folderId: string | null;
+    schoolName?: string;
+    schoolLogoUrl?: string;
+    schoolLogo?: string;
+    collectionName?: string;
+    collectionLogoUrl?: string;
+    school?: { name?: string; logoUrl?: string; logo?: string } | null;
+  }>(MAT_DIALOG_DATA);
   private dialogRef = inject(MatDialogRef<CreateTestComponent>);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
@@ -271,7 +281,36 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   private loadSchoolBranding(): void {
     const serviceAny = this.service as any;
-    const request = serviceAny?.getSchool?.(this.data.schoolId) ?? serviceAny?.getSchoolById?.(this.data.schoolId);
+    const dialogData = this.data as any;
+    const schoolFromDialog = dialogData?.school ?? null;
+    const schoolId = String((this.test as any)?.collectionId || dialogData?.schoolId || this.data.schoolId || '').trim();
+
+    (this.test as any).schoolName =
+      (this.test as any).schoolName
+      || schoolFromDialog?.name
+      || dialogData?.schoolName
+      || dialogData?.collectionName
+      || '';
+
+    (this.test as any).schoolLogoUrl =
+      (this.test as any).schoolLogoUrl
+      || dialogData?.schoolLogoUrl
+      || dialogData?.collectionLogoUrl
+      || dialogData?.schoolLogo
+      || schoolFromDialog?.logoUrl
+      || schoolFromDialog?.logo
+      || '';
+
+    if (schoolFromDialog) {
+      (this.test as any).school = {
+        ...(this.test as any).school,
+        ...schoolFromDialog,
+      };
+    }
+
+    const request = serviceAny?.getCollectionById?.(schoolId)
+      ?? serviceAny?.getSchool?.(schoolId)
+      ?? serviceAny?.getSchoolById?.(schoolId);
 
     if (!request?.subscribe) {
       this.refreshPreviewHtml();
@@ -282,17 +321,14 @@ export class CreateTestComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (school: any) => {
-          if (!school) {
-            this.refreshPreviewHtml();
-            return;
+          if (school) {
+            (this.test as any).schoolName = (this.test as any).schoolName || school?.name || '';
+            (this.test as any).schoolLogoUrl = (this.test as any).schoolLogoUrl || (this.service as any)?.getSchoolLogo?.(school, schoolId) || school?.logoUrl || school?.logo || '';
+            (this.test as any).school = {
+              ...(this.test as any).school,
+              ...school,
+            };
           }
-
-          (this.test as any).schoolName = (this.test as any).schoolName || school?.name || '';
-          (this.test as any).schoolLogoUrl = (this.test as any).schoolLogoUrl || (this.service as any)?.getSchoolLogo?.(school, this.data.schoolId) || school?.logoUrl || school?.logo || '';
-          (this.test as any).school = {
-            ...(this.test as any).school,
-            ...school,
-          };
           this.refreshPreviewHtml();
         },
         error: () => {
@@ -997,8 +1033,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     const logoFromService = (this.service as any)?.getSchoolLogo?.(school, schoolId);
 
     return {
-      schoolName: (this.test as any)?.schoolName || school?.name || dialogData?.schoolName || '',
-      schoolLogoUrl: logoFromService || (this.test as any)?.schoolLogoUrl || school?.logoUrl || school?.logo || dialogData?.schoolLogoUrl || dialogData?.schoolLogo || '',
+      schoolName: (this.test as any)?.schoolName || school?.name || dialogData?.schoolName || dialogData?.collectionName || '',
+      schoolLogoUrl: logoFromService || (this.test as any)?.schoolLogoUrl || school?.logoUrl || school?.logo || dialogData?.schoolLogoUrl || dialogData?.collectionLogoUrl || dialogData?.schoolLogo || '',
       showNameWhenLogoExists: true,
     };
   }

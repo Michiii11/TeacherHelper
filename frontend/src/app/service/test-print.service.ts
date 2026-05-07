@@ -111,7 +111,8 @@ export class TestPrintService {
       }, 500);
     };
 
-    printFrame.onload = () => {
+    printFrame.onload = async () => {
+      await this.waitForImages(frameDocument);
       printFrame.contentWindow?.focus();
       printFrame.contentWindow?.print();
       cleanup();
@@ -203,6 +204,26 @@ export class TestPrintService {
       .replace(/\s+/g, '_');
 
     return `${safeName}${withSolution ? '_mit_Loesung' : ''}.${extension}`;
+  }
+
+
+  private async waitForImages(doc: Document): Promise<void> {
+    const images = Array.from(doc.images ?? []);
+
+    if (!images.length) {
+      return;
+    }
+
+    await Promise.all(images.map(image => {
+      if (image.complete) {
+        return Promise.resolve();
+      }
+
+      return new Promise<void>(resolve => {
+        image.onload = () => resolve();
+        image.onerror = () => resolve();
+      });
+    }));
   }
 
   private escapeHtml(value: string | number | null | undefined): string {
@@ -466,29 +487,33 @@ export class TestPrintService {
         .brand-row {
           display: flex;
           align-items: center;
-          justify-content: space-between;
+          justify-content: center;
           gap: 18px;
-          margin-bottom: 14px;
+          margin: 0 0 16px;
           min-height: 64px;
+          width: 100%;
         }
         .brand-left {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 10px;
           min-width: 0;
-          flex: 1;
+          width: 100%;
+          text-align: center;
         }
         .brand-logo {
-          width: 50px;
-          height: 50px;
+          width: 40px;
+          height: 40px;
           object-fit: contain;
-          border-radius: 10px;
+          border-radius: 14px;
           flex: 0 0 auto;
         }
         .brand-name {
-          font-size: 16px;
-          font-weight: 700;
+          font-size: 17px;
+          font-weight: 800;
           line-height: 1.2;
+          color: #111;
+          overflow-wrap: anywhere;
         }
         .test-title { text-align: center; font-size: 22px; font-weight: 700; margin: 0 0 14px; }
         .meta-lines { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }

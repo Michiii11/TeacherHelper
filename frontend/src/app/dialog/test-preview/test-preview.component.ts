@@ -36,7 +36,16 @@ import {MatProgressBar} from '@angular/material/progress-bar'
   styleUrl: './test-preview.component.scss',
 })
 export class TestPreviewComponent implements OnInit, OnDestroy {
-  data = inject<{ schoolId: string; testId: string }>(MAT_DIALOG_DATA);
+  data = inject<{
+    schoolId: string;
+    testId: string;
+    schoolName?: string;
+    schoolLogoUrl?: string;
+    schoolLogo?: string;
+    collectionName?: string;
+    collectionLogoUrl?: string;
+    school?: { name?: string; logoUrl?: string; logo?: string } | null;
+  }>(MAT_DIALOG_DATA);
   private dialogRef = inject(MatDialogRef<TestPreviewComponent>);
   private service = inject(HttpService);
   private snackBar = inject(MatSnackBar);
@@ -95,10 +104,13 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
 
         this.hydratePersistedSettings(response);
         this.test.exampleList = await this.hydrateConstructionImagesForEntries(this.test.exampleList ?? []);
+        await this.loadSchoolBranding();
         this.refreshPreviewHtml();
-        this.loadSchoolBranding();
         this.isLoading = false;
       },
+      error: () => {
+        this.isLoading = false;
+      }
     });
   }
 
@@ -113,33 +125,56 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
     }
   }
 
-  private loadSchoolBranding(): void {
-    const schoolId = String((this.test as any)?.schoolId || this.data.schoolId || '').trim();
+  private async loadSchoolBranding(): Promise<void> {
+    const dialogData = this.data as any;
+    const schoolFromDialog = dialogData?.school ?? null;
+    const schoolId = String(
+      (this.test as any)?.collectionId
+      || (this.test as any)?.schoolId
+      || dialogData?.schoolId
+      || ''
+    ).trim();
 
-    if (!schoolId) {
-      this.refreshPreviewHtml();
-      return;
+    (this.test as any).schoolName =
+      (this.test as any).schoolName
+      || schoolFromDialog?.name
+      || dialogData?.schoolName
+      || dialogData?.collectionName
+      || '';
+
+    (this.test as any).schoolLogoUrl =
+      (this.test as any).schoolLogoUrl
+      || dialogData?.schoolLogoUrl
+      || dialogData?.collectionLogoUrl
+      || dialogData?.schoolLogo
+      || schoolFromDialog?.logoUrl
+      || schoolFromDialog?.logo
+      || '';
+
+    if (schoolFromDialog) {
+      (this.test as any).school = {
+        ...(this.test as any).school,
+        ...schoolFromDialog,
+      };
     }
 
-    this.service.getCollectionById(schoolId).subscribe({
-      next: async (school: any) => {
-        (this.test as any).schoolName = school?.name || (this.test as any).schoolName || '';
-        (this.test as any).school = {
-          ...(this.test as any).school,
-          ...school,
-        };
+    if (!schoolId) return;
 
-        const logoUrl = await this.loadSchoolLogoObjectUrl(schoolId);
-        (this.test as any).schoolLogoUrl = logoUrl || school?.logoUrl || school?.logo || (this.test as any).schoolLogoUrl || '';
+    try {
+      const school = await firstValueFrom(this.service.getCollectionById(schoolId));
 
-        this.refreshPreviewHtml();
-      },
-      error: async () => {
-        const logoUrl = await this.loadSchoolLogoObjectUrl(schoolId);
-        (this.test as any).schoolLogoUrl = logoUrl || (this.test as any).schoolLogoUrl || '';
-        this.refreshPreviewHtml();
-      }
-    });
+      (this.test as any).schoolName = (this.test as any).schoolName || school?.name || '';
+      (this.test as any).school = {
+        ...(this.test as any).school,
+        ...school,
+      };
+
+      const logoUrl = await this.loadSchoolLogoObjectUrl(schoolId);
+      (this.test as any).schoolLogoUrl = logoUrl || (this.test as any).schoolLogoUrl || school?.logoUrl || '';
+    } catch {
+      const logoUrl = await this.loadSchoolLogoObjectUrl(schoolId);
+      (this.test as any).schoolLogoUrl = logoUrl || (this.test as any).schoolLogoUrl || '';
+    }
   }
 
   private async loadSchoolLogoObjectUrl(schoolId: string): Promise<string> {
@@ -238,8 +273,8 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
     const dialogData = this.data as any;
 
     return {
-      schoolName: (this.test as any)?.schoolName || school?.name || dialogData?.schoolName || '',
-      schoolLogoUrl: (this.test as any)?.schoolLogoUrl || school?.logoUrl || school?.logo || dialogData?.schoolLogoUrl || dialogData?.schoolLogo || '',
+      schoolName: (this.test as any)?.schoolName || school?.name || dialogData?.schoolName || dialogData?.collectionName || '',
+      schoolLogoUrl: (this.test as any)?.schoolLogoUrl || school?.logoUrl || school?.logo || dialogData?.schoolLogoUrl || dialogData?.collectionLogoUrl || dialogData?.schoolLogo || '',
       showNameWhenLogoExists: true,
     };
   }

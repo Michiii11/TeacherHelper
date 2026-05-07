@@ -1,0 +1,20 @@
+ALTER TABLE example
+    ADD COLUMN IF NOT EXISTS showinstructionlabel BOOLEAN DEFAULT TRUE,
+    ADD COLUMN IF NOT EXISTS showquestionlabel BOOLEAN DEFAULT TRUE,
+    ADD COLUMN IF NOT EXISTS showtaskimagelabel BOOLEAN DEFAULT TRUE;
+
+UPDATE example
+SET
+    showinstructionlabel = COALESCE(showinstructionlabel, TRUE),
+    showquestionlabel = COALESCE(showquestionlabel, TRUE),
+    showtaskimagelabel = COALESCE(showtaskimagelabel, TRUE);
+
+ALTER TABLE example
+    ALTER COLUMN showinstructionlabel SET DEFAULT TRUE,
+    ALTER COLUMN showquestionlabel SET DEFAULT TRUE,
+    ALTER COLUMN showtaskimagelabel SET DEFAULT TRUE;
+
+ALTER TABLE example
+    ALTER COLUMN showinstructionlabel SET NOT NULL,
+    ALTER COLUMN showquestionlabel SET NOT NULL,
+    ALTER COLUMN showtaskimagelabel SET NOT NULL;
