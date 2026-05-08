@@ -13,7 +13,9 @@
     "create": "Create",
     "filter": "Filter",
     "type": "Type",
-    "sort": "Sort"
+    "sort": "Sort",
+    "rename": "Rename",
+    "move": "Move"
   },
   "profile": {
     "title": "Profile",
@@ -294,6 +296,7 @@
     }
   },
   "collection": {
+    "addSubfolder": "Add subfolder",
     "dashboardAria": "School dashboard",
     "logoAlt": "School logo",
     "admin": "Admin",

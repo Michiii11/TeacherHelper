@@ -70,9 +70,10 @@ type EditorToolbarAction =
 
 type EditorToolbarItem = {
   label: string;
-  icon: string;
+  icon?: string;
   action: EditorToolbarAction;
   insert: string;
+  example?: string;
   tooltip?: string;
 };
 
@@ -157,7 +158,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   private activeTextSelection: TextSelectionState | null = null;
   previewCollapsed = false;
   variablesCollapsed = true;
-  editorCollapsed = true;
+  editorCollapsed = false;
   displaySettingsCollapsed = true;
   activeEditorToolbarGroupIndex = 0;
   tagsCollapsed = true;
@@ -177,35 +178,35 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     {
       label: 'exampleDialog.editor.groups.formulas',
       items: [
-        { label: 'exampleDialog.editor.commands.inlineFormula', icon: 'functions', action: 'inlineFormula', insert: '$x$' },
-        { label: 'exampleDialog.editor.commands.displayFormula', icon: 'calculate', action: 'displayFormula', insert: '$$x$$' },
-        { label: 'exampleDialog.editor.commands.frac', icon: 'functions', action: 'frac', insert: '$\\frac{a}{b}$' },
-        { label: 'exampleDialog.editor.commands.sqrt', icon: 'data_object', action: 'sqrt', insert: '$\\sqrt{x}$' },
-        { label: 'exampleDialog.editor.commands.power', icon: 'superscript', action: 'power', insert: '$x^2$' },
-        { label: 'exampleDialog.editor.commands.index', icon: 'subscript', action: 'index', insert: '$x_1$' },
-        { label: 'exampleDialog.editor.commands.textUnit', icon: 'straighten', action: 'textUnit', insert: '$10\\,\\text{mm}$' },
+        { label: 'exampleDialog.editor.commands.inlineFormula', icon: 'functions', action: 'inlineFormula', insert: 'x', example: '$x$' },
+        { label: 'exampleDialog.editor.commands.displayFormula', icon: 'calculate', action: 'displayFormula', insert: '\\frac{}{}', example: '$$\\frac{a}{b}$$' },
+        { label: 'exampleDialog.editor.commands.frac', icon: 'functions', action: 'frac', insert: '\\frac{}{}', example: '$\\frac{a}{b}$' },
+        { label: 'exampleDialog.editor.commands.sqrt', icon: 'data_object', action: 'sqrt', insert: '\\sqrt{}', example: '$\\sqrt{x}$' },
+        { label: 'exampleDialog.editor.commands.power', icon: 'superscript', action: 'power', insert: '^{}', example: '$x^2$' },
+        { label: 'exampleDialog.editor.commands.index', icon: 'subscript', action: 'index', insert: '_{}', example: '$x_1$' },
+        { label: 'exampleDialog.editor.commands.textUnit', icon: 'straighten', action: 'textUnit', insert: '\\,\\text{}', example: '$10\\,\\text{mm}$' },
       ],
     },
     {
       label: 'exampleDialog.editor.groups.symbols',
       items: [
-        { label: '·', icon: 'close', action: 'cdot', insert: '$a\\cdot b$' },
-        { label: '×', icon: 'close', action: 'times', insert: '$a\\times b$' },
-        { label: '≤', icon: 'keyboard_double_arrow_left', action: 'leq', insert: '$a\\le b$' },
-        { label: '≥', icon: 'keyboard_double_arrow_right', action: 'geq', insert: '$a\\ge b$' },
-        { label: '≈', icon: 'waves', action: 'approx', insert: '$a\\approx b$' },
-        { label: '°', icon: 'radio_button_unchecked', action: 'degree', insert: '$90^\\circ$' },
-        { label: 'π', icon: 'blur_circular', action: 'pi', insert: '$\\pi$' },
+        { label: '·', action: 'cdot', insert: '\\cdot', example: '$a\\cdot b$' },
+        { label: '×', action: 'times', insert: '\\times', example: '$a\\times b$' },
+        { label: '≤', action: 'leq', insert: '\\le', example: '$a\\le b$' },
+        { label: '≥', action: 'geq', insert: '\\ge', example: '$a\\ge b$' },
+        { label: '≈', action: 'approx', insert: '\\approx', example: '$a\\approx b$' },
+        { label: '°', action: 'degree', insert: '^\\circ', example: '$90^\\circ$' },
+        { label: 'π', action: 'pi', insert: '\\pi', example: '$\\pi$' },
       ],
     },
     {
       label: 'exampleDialog.editor.groups.more',
       items: [
-        { label: 'n√', icon: 'data_object', action: 'nthRoot', insert: '$\\sqrt[n]{x}$' },
-        { label: 'exampleDialog.editor.commands.sum', icon: 'functions', action: 'sum', insert: '$\\sum_{i=1}^{n} i$' },
-        { label: 'exampleDialog.editor.commands.integral', icon: 'functions', action: 'integral', insert: '$\\int_a^b f(x)\\,dx$' },
-        { label: 'exampleDialog.editor.commands.vector', icon: 'arrow_forward', action: 'vector', insert: '$\\vec{a}$' },
-        { label: 'exampleDialog.editor.commands.aligned', icon: 'reorder', action: 'aligned', insert: '$$\\begin{aligned} a&=b+c \\ d&=e+f \\end{aligned}$$' },
+        { label: 'n√', icon: 'data_object', action: 'nthRoot', insert: '\\sqrt[]{}', example: '$\\sqrt[n]{x}$' },
+        { label: 'exampleDialog.editor.commands.sum', icon: 'functions', action: 'sum', insert: '\\sum_{}^{}', example: '$\\sum_{i=1}^{n} i$' },
+        { label: 'exampleDialog.editor.commands.integral', icon: 'functions', action: 'integral', insert: '\\int_{}^{}', example: '$\\int_a^b f(x)\\,dx$' },
+        { label: 'exampleDialog.editor.commands.vector', icon: 'arrow_forward', action: 'vector', insert: '\\vec{}', example: '$\\vec{a}$' },
+        { label: 'exampleDialog.editor.commands.aligned', icon: 'reorder', action: 'aligned', insert: '\\begin{aligned}\n&= \\\\n&=\n\\end{aligned}', example: '$$\\begin{aligned} a&=b+c \\\ d&=e+f \\end{aligned}$$' },
       ],
     },
   ] as ReadonlyArray<{ label: string; items: ReadonlyArray<EditorToolbarItem> }>;
@@ -240,7 +241,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   exampleTypes = Object.values(ExampleTypes) as ExampleTypes[];
   ExampleTypeLabels = ExampleTypeLabels;
 
-  private readonly variablePattern = /\{([a-zA-Z_][a-zA-Z0-9_-]*)\}/g;
+  private readonly variablePattern = /\[\[([a-zA-Z_][a-zA-Z0-9_-]*)\]\]/g;
 
   constructor(
     private dialogRef: MatDialogRef<CreateExampleComponent>,
@@ -475,30 +476,11 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   }
 
 
-  private stripLatexForVariableScan(value: string | null | undefined): string {
-    return String(value ?? '').replace(/\$\$[\s\S]*?\$\$|\$[^$\n]*?\$/g, ' ');
-  }
-
-  private replaceVariablesOutsideLatex(value: string | null | undefined): string {
-    const source = String(value ?? '');
-    const mathPattern = /\$\$[\s\S]*?\$\$|\$[^$\n]*?\$/g;
-    let cursor = 0;
-    let result = '';
-    let match: RegExpExecArray | null;
-
-    const replaceVariables = (text: string): string => text.replace(this.variablePattern, (_match, key: string) => {
+  private replaceVariables(value: string | null | undefined): string {
+    return String(value ?? '').replace(this.variablePattern, (_match, key: string) => {
       const variable = (this.example.variables ?? []).find(entry => entry.key === key.trim());
       return variable?.defaultValue ?? '';
     });
-
-    while ((match = mathPattern.exec(source)) !== null) {
-      result += replaceVariables(source.slice(cursor, match.index));
-      result += match[0];
-      cursor = match.index + match[0].length;
-    }
-
-    result += replaceVariables(source.slice(cursor));
-    return result;
   }
 
 
@@ -523,63 +505,105 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
         this.applyNumberedListOrInsert();
         break;
       case 'inlineFormula':
-        this.insertTextAtActiveTarget('$x$');
+        this.insertFormulaSnippet('x');
         break;
       case 'displayFormula':
-        this.insertLineSnippet('$$\n\\frac{a}{b}\n$$');
+        this.insertDisplayFormulaSnippet('\\frac{}{}');
         break;
       case 'frac':
-        this.insertTextAtActiveTarget('$\\frac{a}{b}$');
+        this.insertFormulaSnippet('\\frac{}{}');
         break;
       case 'sqrt':
-        this.insertTextAtActiveTarget('$\\sqrt{x}$');
+        this.insertFormulaSnippet('\\sqrt{}');
         break;
       case 'nthRoot':
-        this.insertTextAtActiveTarget('$\\sqrt[n]{x}$');
+        this.insertFormulaSnippet('\\sqrt[]{}');
         break;
       case 'power':
-        this.insertTextAtActiveTarget('$x^2$');
+        this.insertFormulaSnippet('^{}');
         break;
       case 'index':
-        this.insertTextAtActiveTarget('$x_1$');
+        this.insertFormulaSnippet('_{}');
         break;
       case 'cdot':
-        this.insertTextAtActiveTarget('$a\\cdot b$');
+        this.insertFormulaSnippet('\\cdot');
         break;
       case 'times':
-        this.insertTextAtActiveTarget('$a\\times b$');
+        this.insertFormulaSnippet('\\times');
         break;
       case 'leq':
-        this.insertTextAtActiveTarget('$a\\le b$');
+        this.insertFormulaSnippet('\\le');
         break;
       case 'geq':
-        this.insertTextAtActiveTarget('$a\\ge b$');
+        this.insertFormulaSnippet('\\ge');
         break;
       case 'approx':
-        this.insertTextAtActiveTarget('$a\\approx b$');
+        this.insertFormulaSnippet('\\approx');
         break;
       case 'degree':
-        this.insertTextAtActiveTarget('$90^\\circ$');
+        this.insertFormulaSnippet('^\\circ');
         break;
       case 'pi':
-        this.insertTextAtActiveTarget('$\\pi$');
+        this.insertFormulaSnippet('\\pi');
         break;
       case 'textUnit':
-        this.insertTextAtActiveTarget('$10\\,\\text{mm}$');
+        this.insertFormulaSnippet('\\,\\text{}');
         break;
       case 'sum':
-        this.insertTextAtActiveTarget('$\\sum_{i=1}^{n} i$');
+        this.insertFormulaSnippet('\\sum_{}^{}');
         break;
       case 'integral':
-        this.insertTextAtActiveTarget('$\\int_a^b f(x)\\,dx$');
+        this.insertFormulaSnippet('\\int_{}^{}');
         break;
       case 'vector':
-        this.insertTextAtActiveTarget('$\\vec{a}$');
+        this.insertFormulaSnippet('\\vec{}');
         break;
       case 'aligned':
-        this.insertLineSnippet('$$\n\\begin{aligned}\na&=b+c \\\\nd&=e+f\n\\end{aligned}\n$$');
+        this.insertDisplayFormulaSnippet('\\begin{aligned}\n&= \\\\n&=\n\\end{aligned}');
         break;
     }
+  }
+
+  getToolbarTooltip(item: EditorToolbarItem): string {
+    const command = item.insert || item.label;
+    return item.example ? `${command}\n${item.example}` : command;
+  }
+
+  private insertFormulaSnippet(snippet: string): void {
+    const selection = this.getCurrentSelectionContext();
+    const insertText = selection && this.isSelectionInsideLatex(selection)
+      ? snippet
+      : `$${snippet}$`;
+
+    this.insertTextAtActiveTarget(insertText);
+  }
+
+  private insertDisplayFormulaSnippet(snippet: string): void {
+    const selection = this.getCurrentSelectionContext();
+
+    if (selection && this.isSelectionInsideLatex(selection)) {
+      this.insertTextAtActiveTarget(snippet);
+      return;
+    }
+
+    this.insertLineSnippet(`$$\n${snippet}\n$$`);
+  }
+
+  private isSelectionInsideLatex(selection: { value: string; start: number; end: number }): boolean {
+    const index = selection.start;
+    const source = selection.value ?? '';
+    const mathPattern = /\$\$[\s\S]*?\$\$|\$[^$\n]*?\$/g;
+    let match: RegExpExecArray | null;
+
+    while ((match = mathPattern.exec(source)) !== null) {
+      const start = match.index;
+      const end = start + match[0].length;
+      if (index > start && index < end) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private insertLineSnippet(snippet: string): void {
@@ -712,9 +736,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     const keysInOrder: string[] = [];
 
     for (const sourceText of this.getVariableSourceTexts()) {
-      const sourceTextWithoutLatex = this.stripLatexForVariableScan(sourceText);
-
-      for (const match of sourceTextWithoutLatex.matchAll(this.variablePattern)) {
+      for (const match of sourceText.matchAll(this.variablePattern)) {
         const normalizedKey = this.normalizeVariableKey(match[1]);
         if (!normalizedKey || keysInOrder.includes(normalizedKey)) {
           continue;
@@ -747,7 +769,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       nextKey = `wert${nextIndex}`;
     }
 
-    return `{${nextKey}}`;
+    return `[[${nextKey}]]`;
   }
 
   private appendInsertText(value: string | null | undefined, insertText: string): string {
@@ -760,7 +782,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.insertTextAtActiveTarget(`{${variableKey}}`);
+    this.insertTextAtActiveTarget(`[[${variableKey}]]`);
   }
 
   private insertTextAtActiveTarget(insertText: string): void {
@@ -915,7 +937,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   }
 
   getResolvedTextWithDefaults(value: string | null | undefined): string {
-    return this.replaceVariablesOutsideLatex(value);
+    return this.replaceVariables(value);
   }
 
   addOption(): void {

@@ -181,8 +181,11 @@ export class HttpService {
     });
   }
 
-  moveExampleToFolder(exampleId: string, folderId: string | null) {
-    return this.http.put(`${Config.API_URL}/example/${exampleId}/folder/${folderId}`, {});
+  moveExampleToFolder(exampleId: string | number, folderId: string | null) {
+    const url = folderId
+      ? `${Config.API_URL}/example/${exampleId}/folder/${folderId}`
+      : `${Config.API_URL}/example/${exampleId}/folder`;
+    return this.http.put(url, null);
   }
 
   getExampleImage(exampleId: string, isSolution: boolean) {
@@ -234,8 +237,13 @@ export class HttpService {
     return this.http.delete(`${Config.API_URL}/test/${id}`);
   }
 
-  moveTestToFolder(testId: string, folderId: string | null) {
-    return this.http.put(`${Config.API_URL}/test/${testId}/folder/${folderId}`, {});
+  moveTestToFolder(testId: string | number, folderId: string | null) {
+    console.log(testId, folderId)
+
+    const url = folderId
+      ? `${Config.API_URL}/test/${testId}/folder/${folderId}`
+      : `${Config.API_URL}/test/${testId}/folder`;
+    return this.http.put(url, null);
   }
   // endregion
 

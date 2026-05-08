@@ -64,6 +64,12 @@ public class TestResource {
         return repository.moveTestToFolder(testId, folderId, userId);
     }
 
+    @PUT
+    @Path("/{testId}/folder")
+    public Response moveTestToRoot(@PathParam("testId") UUID testId) {
+        UUID userId = currentUserId();
+        return repository.moveTestToFolder(testId, null, userId);
+    }
 
     private UUID currentUserId() {
         User user = userRepository.getOrCreateAuth0User(jwt);

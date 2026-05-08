@@ -1531,3 +1531,120 @@ mat-icon { overflow: visible; line-height: 1; }
   .compact-search.open { width: min(250px, 42vw); }
 
 }
+
+/* Sidebar folder actions + clearer drag target feedback */
+.root-nav-btn.drop-active,
+.folder-tree-entry.drop-active {
+  outline: 2px solid var(--input-border-focus);
+  outline-offset: 2px;
+  background: var(--primary-ring);
+}
+
+.folder-tree-entry {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  border-radius: 12px;
+  padding-left: calc(var(--level, 0) * 1rem);
+  transition: background 0.16s ease, outline-color 0.16s ease, opacity 0.16s ease;
+}
+
+.folder-tree-entry:hover,
+.folder-tree-entry.in-path:not(.active) {
+  background: var(--primary-soft);
+}
+
+.folder-tree-entry.active {
+  color: var(--primary);
+  background: var(--primary-soft-strong);
+  font-weight: 800;
+}
+
+.folder-tree-entry.drop-source,
+.folder-tree-entry.deleting {
+  opacity: 0.58;
+}
+
+.folder-tree-entry .folder-tree-node {
+  min-width: 0;
+  flex: 1 1 auto;
+  padding-left: 0.55rem;
+  background: transparent;
+}
+
+.folder-tree-entry.active .folder-tree-node,
+.folder-tree-entry:hover .folder-tree-node,
+.folder-tree-entry.in-path .folder-tree-node,
+.folder-tree-entry.drop-active .folder-tree-node {
+  background: transparent;
+  color: inherit;
+}
+
+.folder-tree-menu-btn {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  display: grid;
+  place-items: center;
+  opacity: 1;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.folder-tree-menu-btn:hover,
+.folder-tree-menu-btn.open {
+  background: var(--surface-soft);
+}
+
+.folder-tree-menu-btn mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
+.folder-tree-menu {
+  position: fixed;
+  z-index: 1000;
+  min-width: 220px;
+  padding: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-solid);
+  box-shadow: var(--shadow-md);
+  max-height: min(300px, calc(100vh - 24px));
+  overflow-y: auto;
+}
+
+.folder-tree-menu button {
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.65rem;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.folder-tree-menu button:hover {
+  background: var(--primary-soft);
+}
+
+.folder-tree-menu button.danger {
+  color: var(--warn, #b42318);
+}
+
+.folder-tree-menu mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}

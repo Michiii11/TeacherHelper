@@ -78,6 +78,13 @@ public class ExampleResource {
         return repository.moveExampleToFolder(exampleId, userId, folderId);
     }
 
+    @PUT
+    @Path("/{exampleId}/folder")
+    public Response moveExampleToRoot(@PathParam("exampleId") UUID exampleId) {
+        UUID userId = currentUserId();
+        return repository.moveExampleToFolder(exampleId, userId, null);
+    }
+
     @GET
     @Path("{exampleId}/image/{isSolution}")
     public Response getExampleImage(@PathParam("exampleId") UUID exampleId,

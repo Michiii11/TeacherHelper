@@ -21,7 +21,7 @@ export type ExamplePreviewRendererOptions = {
 @Injectable({ providedIn: 'root' })
 export class ExamplePreviewRendererService {
   readonly defaultImageWidth = 320;
-  private readonly variablePattern = /\{([a-zA-Z_][a-zA-Z0-9_-]*)\}/g;
+  private readonly variablePattern = /\[\[([a-zA-Z_][a-zA-Z0-9_-]*)\]\]/g;
 
   getResolvedText(
     example: Pick<Example, 'variables'> | Pick<CreateExampleDTO, 'variables'> | null | undefined,
@@ -516,7 +516,9 @@ export class ExamplePreviewRendererService {
     value: string | number | null | undefined,
     variables?: { key?: string; defaultValue?: string | number | null }[] | null,
   ): string {
-    return this.replaceOutsideLatex(String(value ?? ''), (text) => this.replaceVariables(text, variables));
+    // With [[variable]] placeholders we can safely replace everywhere, including inside LaTeX.
+    // Example: $\frac{[[zaehler]]}{[[nenner]]}$ -> $\frac{10}{2}$
+    return this.replaceVariables(String(value ?? ''), variables);
   }
 
   private replaceVariables(
@@ -542,9 +544,7 @@ export class ExamplePreviewRendererService {
     return String(value ?? '').replace(this.variablePattern, (match, key: string) => {
       const normalizedKey = key.trim();
 
-      // Important for KaTeX:
-      // LaTeX itself uses braces, e.g. \frac{a}{b}. Only replace placeholders
-      // that are real declared variables. Undeclared brace groups must stay untouched.
+      // Only replace declared [[variable]] placeholders. Unknown placeholders stay visible.
       return variableMap.has(normalizedKey) ? variableMap.get(normalizedKey)! : match;
     });
   }

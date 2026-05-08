@@ -24,7 +24,6 @@
 }
 
 @mixin panel-card($radius: 14px, $padding: 0.95rem) {
-  padding: $padding;
   border-radius: $radius;
   border: 1px solid var(--border);
   min-width: 0;
@@ -1586,4 +1585,43 @@ mat-dialog-actions {
   .example-type-toggle-group {
     grid-template-columns: 1fr;
   }
+}
+
+// Editor is always visible now; no collapse affordance because the collapsed height
+// was practically the same as the compact toolbar.
+.editor-ribbon-head {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  padding: 0 .75rem;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.editor-ribbon-command {
+  mat-icon:empty {
+    display: none;
+  }
+}
+
+::ng-deep .editor-command-tooltip {
+  white-space: pre-line;
+}
+
+// Keep the add-variable action independent from the collapse header. Hovering or
+// clicking the button no longer highlights/toggles the collapsible head.
+.variable-collapse-head-row {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.variable-collapse-head-row .side-collapse-head {
+  width: auto;
+  flex: 1 1 auto;
+}
+
+.variable-add-action {
+  margin-right: .65rem !important;
 }

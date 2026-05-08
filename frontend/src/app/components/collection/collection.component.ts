@@ -124,6 +124,8 @@ export class CollectionComponent implements OnInit, OnDestroy {
   isCreateMenuOpen = false;
   isSortPopupOpen = false;
   isSearchOpen = false;
+  activeFolderMenuId: string | null = null;
+  activeFolderMenuPosition: { top: number; left: number } | null = null;
 
   @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
 
@@ -198,6 +200,8 @@ export class CollectionComponent implements OnInit, OnDestroy {
     this.isFilterPopupOpen = false;
     this.isCreateMenuOpen = false;
     this.isSortPopupOpen = false;
+    this.activeFolderMenuId = null;
+    this.activeFolderMenuPosition = null;
     if (!this.isSearching) {
       this.isSearchOpen = false;
     }
@@ -884,6 +888,58 @@ export class CollectionComponent implements OnInit, OnDestroy {
     this.isFilterPopupOpen = false;
     this.isCreateMenuOpen = false;
     this.isSortPopupOpen = false;
+    this.activeFolderMenuId = null;
+    this.activeFolderMenuPosition = null;
+  }
+
+  toggleFolderMenu(folder: ExplorerFolder, event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const shouldOpen = this.activeFolderMenuId !== folder.id;
+    this.closeFloatingMenus();
+
+    if (!shouldOpen) return;
+
+    const button = event.currentTarget as HTMLElement | null;
+    const rect = button?.getBoundingClientRect();
+    const menuWidth = 236;
+    const left = rect
+      ? Math.min(window.innerWidth - menuWidth - 12, Math.max(12, rect.right + 8))
+      : Math.max(12, event.clientX);
+    const top = rect
+      ? Math.min(window.innerHeight - 210, Math.max(12, rect.top))
+      : Math.max(12, event.clientY);
+
+    this.activeFolderMenuId = folder.id;
+    this.activeFolderMenuPosition = { top, left };
+  }
+
+  closeFolderMenu(): void {
+    this.activeFolderMenuId = null;
+    this.activeFolderMenuPosition = null;
+  }
+
+  renameFolderFromMenu(folder: ExplorerFolder, event: Event): void {
+    this.closeFolderMenu();
+    this.renameFolder(folder, event);
+  }
+
+  moveFolderFromMenu(folder: ExplorerFolder, event: Event): void {
+    this.closeFolderMenu();
+    this.moveFolderWithPicker(folder, event);
+  }
+
+  createSubFolderFromMenu(folder: ExplorerFolder, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.closeFolderMenu();
+    this.createFolder(folder.id);
+  }
+
+  deleteFolderFromMenu(folder: ExplorerFolder, event: Event): void {
+    this.closeFolderMenu();
+    this.deleteFolder(folder, event);
   }
 
   toggleFilterPopup(event: MouseEvent): void {
@@ -973,6 +1029,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
   }
 
   selectFolder(folderId: string | null): void {
+    this.closeFolderMenu();
     this.selectedFolderId = folderId;
     this.persistExplorerState();
     this.updateFolderQueryParam();
@@ -1130,26 +1187,51 @@ export class CollectionComponent implements OnInit, OnDestroy {
   }
 
   moveExampleToFolder(example: ExampleOverviewDTO, folderId: string | null): void {
-    this.service.moveExampleToFolder(example.id, folderId)
-      .pipe(catchError(() => of(null)))
-      .subscribe(() => {
+    const previousFolderId = example.folderId ?? null;
+
+    this.examples = this.examples.map(item =>
+      String(item.id) === String(example.id) ? { ...item, folderId } : item
+    );
+
+    this.service.moveExampleToFolder(example.id, folderId).subscribe({
+      next: () => {
+        this.loadExamples();
+      },
+      error: err => {
         this.examples = this.examples.map(item =>
-          item.id === example.id ? { ...item, folderId } : item
+          String(item.id) === String(example.id) ? { ...item, folderId: previousFolderId } : item
         );
-      });
+        this.showErrorSnack(err);
+      }
+    });
   }
 
   moveTestToFolder(test: TestOverviewDTO, folderId: string | null): void {
-    this.service.moveTestToFolder(test.id, folderId)
-      .pipe(catchError(() => of(null)))
-      .subscribe(() => {
+    const previousFolderId = test.folderId ?? null;
+
+    this.tests = this.tests.map(item =>
+      String(item.id) === String(test.id) ? { ...item, folderId } : item
+    );
+
+    this.service.moveTestToFolder(test.id, folderId).subscribe({
+      next: () => {
+        this.loadTests();
+      },
+      error: err => {
         this.tests = this.tests.map(item =>
-          item.id === test.id ? { ...item, folderId } : item
+          String(item.id) === String(test.id) ? { ...item, folderId: previousFolderId } : item
         );
-      });
+        this.showErrorSnack(err);
+      }
+    });
   }
 
-  onItemDragStart(type: ExplorerItemType, itemId: number | string): void {
+  onItemDragStart(type: ExplorerItemType, itemId: number | string, event?: DragEvent): void {
+    event?.stopPropagation();
+    event?.dataTransfer?.setData('text/plain', `${type}:${itemId}`);
+    if (event?.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+    }
     this.draggedItem = { type, itemId };
   }
 
@@ -1160,6 +1242,11 @@ export class CollectionComponent implements OnInit, OnDestroy {
 
   onFolderDragStart(folder: ExplorerFolder, event?: DragEvent): void {
     event?.stopPropagation();
+    event?.dataTransfer?.setData('text/plain', `folder:${folder.id}`);
+    if (event?.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+    }
+    this.closeFolderMenu();
     this.draggedFolder = { folderId: folder.id };
   }
 
@@ -1169,8 +1256,13 @@ export class CollectionComponent implements OnInit, OnDestroy {
   }
 
   allowDrop(event: DragEvent, target: string): void {
+    if (!this.draggedItem && !this.draggedFolder) return;
+
     event.preventDefault();
     event.stopPropagation();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
     this.dropTarget = target;
   }
 
@@ -1196,11 +1288,11 @@ export class CollectionComponent implements OnInit, OnDestroy {
   private handleDrop(folderId: string | null): void {
     if (this.draggedItem) {
       if (this.draggedItem.type === 'examples') {
-        const example = this.examples.find(item => item.id === this.draggedItem?.itemId.toString());
-        if (example) this.moveExampleToFolder(example, folderId);
+        const example = this.examples.find(item => String(item.id) === String(this.draggedItem?.itemId));
+        if (example && (example.folderId ?? null) !== folderId) this.moveExampleToFolder(example, folderId);
       } else {
-        const test = this.tests.find(item => item.id === this.draggedItem?.itemId);
-        if (test) this.moveTestToFolder(test, folderId);
+        const test = this.tests.find(item => String(item.id) === String(this.draggedItem?.itemId));
+        if (test && (test.folderId ?? null) !== folderId) this.moveTestToFolder(test, folderId);
       }
     }
 
@@ -1409,7 +1501,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
 
 
   getRenderedPreviewTitle(item: ExplorerItem): SafeHtml {
-    const fallbackTitle = this.t('collection.untitled') || 'Unbenannt';
+    const fallbackTitle = this.t('collection.untitled');
 
     // Cards are intentionally a one-line preview. We cut the raw title before
     // rendering so multi-line Markdown/LaTeX cannot create hidden second rows.
@@ -1723,6 +1815,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
 
   editExample(example: ExampleOverviewDTO): void {
     const isMobile = window.innerWidth <= 768;
+    const currentExample = this.examples.find(item => String(item.id) === String(example.id)) ?? example;
 
     this.dialog.open(CreateExampleComponent, {
       width: isMobile ? '100vw' : 'min(96vw, 1400px)',
@@ -1730,7 +1823,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
       height: isMobile ? '100dvh' : '90vh',
       maxHeight: isMobile ? '100dvh' : '90vh',
       panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-example-dialog-panel',
-      data: { schoolId: this.schoolId, exampleId: example.id, folderId: example.folderId ?? null },
+      data: { schoolId: this.schoolId, exampleId: currentExample.id, folderId: currentExample.folderId ?? null },
       autoFocus: false
     }).afterClosed().subscribe(() => {
       this.loadExamples();
@@ -1756,6 +1849,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
 
   editTest(test: TestOverviewDTO): void {
     const isMobile = window.innerWidth <= 768;
+    const currentTest = this.tests.find(item => String(item.id) === String(test.id)) ?? test;
 
     this.dialog.open(CreateTestComponent, {
       width: isMobile ? '100vw' : 'min(96vw, 1680px)',
@@ -1763,7 +1857,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
       height: isMobile ? '100dvh' : '90vh',
       maxHeight: isMobile ? '100dvh' : '90vh',
       panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-test-dialog-panel',
-      data: this.buildSchoolDialogData({ testId: test.id, folderId: test.folderId ?? null })
+      data: this.buildSchoolDialogData({ testId: currentTest.id, folderId: currentTest.folderId ?? null })
     }).afterClosed().subscribe(() => {
       this.loadTests();
     });
