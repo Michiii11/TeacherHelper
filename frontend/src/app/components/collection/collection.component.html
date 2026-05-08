@@ -380,7 +380,7 @@
                 [attr.draggable]="canManageItem(item) && !isDeletingItem(item)"
                 (dragstart)="canManageItem(item) && !isDeletingItem(item) && onItemDragStart(item.type, item.id)"
                 (dragend)="onItemDragEnd()"
-                (click)="openItem(item)"
+                (click)="editItem(item)"
               >
                 <div class="compact-title-wrap">
                   <mat-icon class="compact-icon item">{{ getItemIcon(item) }}</mat-icon>

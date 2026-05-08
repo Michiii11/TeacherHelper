@@ -238,6 +238,7 @@
   display: grid;
   place-items: center;
   flex-shrink: 0;
+  overflow: hidden;
   font-weight: 900;
   color: var(--primary-deep);
   background: linear-gradient(
@@ -259,6 +260,45 @@
   height: 68px;
   border-radius: 20px;
   font-size: 1.25rem;
+}
+
+
+.member-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: var(--bg-soft);
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--bg-soft);
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.member-detail-item {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
 }
 
 .user-main {

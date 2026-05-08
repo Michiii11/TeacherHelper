@@ -271,6 +271,7 @@ public class UserRepository {
                 .map(u -> new AdminUserDashboardDTO(
                         u.getId(),
                         u.getUsername(),
+                        u.getProfileImageUrl(),
                         u.getCreatedAt(),
                         u.getLastActivityAt(),
                         countCollectionsByUser(u),

@@ -117,7 +117,10 @@
       "message": "Willst du das Beispiel „{{name}}“ wirklich löschen?",
       "usedInTests": "Dieses Beispiel ist in folgenden Tests enthalten:",
       "confirmationText": "Ich bestätige, dass dieses Beispiel gelöscht werden soll."
-    }
+    },
+    "collectionNameExists": "Dieser Name ist bereits vergeben.",
+    "collectionNameEmpty": "Bitte gib einen Namen ein.",
+    "collectionCreateError": "Die Sammlung konnte nicht erstellt werden. Bitte versuche es erneut."
   },
   "navbar": {
     "home": "Sammlungen",
@@ -206,6 +209,11 @@
       "title": "Sammlungen, bei denen du Mitglied bist",
       "subtitle": "Du hast Zugriff, bist aber nicht Admin.",
       "empty": "Du bist aktuell in keiner weiteren Sammlung Mitglied."
+    },
+    "logoAlt": "Logo von {{name}}",
+    "roles": {
+      "admin": "Admin",
+      "member": "Mitglied"
     }
   },
   "landing": {

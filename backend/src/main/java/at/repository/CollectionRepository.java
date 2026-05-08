@@ -157,20 +157,41 @@ public class CollectionRepository {
     }
 
     public Response addCollection(String collectionName, UUID userId) {
-        try {
-            User user = em.find(User.class, userId);
+        User user = em.find(User.class, userId);
 
-            if (user == null) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("User not found").build();
-            }
-
-            Collection collection = new Collection(collectionName, user);
-            em.persist(collection);
-
-            return Response.ok(collection.toDTO()).build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("User not found or error occurred").build();
+        if (user == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("USER_NOT_FOUND")
+                    .build();
         }
+
+        if (collectionName == null || collectionName.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("COLLECTION_NAME_EMPTY")
+                    .build();
+        }
+
+        String cleanedName = collectionName.trim();
+
+        Long existing = em.createQuery("""
+            SELECT COUNT(c)
+            FROM Collection c
+            WHERE LOWER(c.name) = LOWER(:name)
+            """, Long.class)
+                .setParameter("name", cleanedName)
+                .getSingleResult();
+
+        if (existing > 0) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity("COLLECTION_NAME_EXISTS")
+                    .build();
+        }
+
+        Collection collection = new Collection(cleanedName, user);
+        em.persist(collection);
+        em.flush();
+
+        return Response.ok(collection.toDTO()).build();
     }
 
     public Response deleteCollection(UUID collectionId, UUID userId) {

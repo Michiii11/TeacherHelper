@@ -6,6 +6,7 @@ import java.util.UUID;
 public record AdminUserDashboardDTO(
         UUID id,
         String username,
+        String profileImageUrl,
         LocalDateTime createdAt,
         LocalDateTime lastActive,
         long collections,

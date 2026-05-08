@@ -117,7 +117,10 @@
       "message": "Do you really want to delete the exercise “{{name}}”?",
       "usedInTests": "This exercise is used in the following tests:",
       "confirmationText": "I confirm that this exercise should be deleted."
-    }
+    },
+    "collectionNameExists": "This name is already taken.",
+    "collectionNameEmpty": "Please enter a name.",
+    "collectionCreateError": "The collection could not be created. Please try again."
   },
   "navbar": {
     "home": "Collections",
@@ -185,35 +188,41 @@
     }
   },
   "home": {
-    "title": "My Schools",
-    "subtitle": "Here you see where you are an admin and where you are a member.",
-    "createSchool": "New School",
+    "title": "My Collections",
+    "subtitle": "Here you can see at a glance where you are an admin and where you are a member.",
+    "createSchool": "New Collection",
     "labels": {
       "admin": "Admin",
-      "exercises": "Exercises"
+      "exercises": "Exercises",
+      "examples": "Exercises"
     },
     "actions": {
-      "openSchool": "Open school",
+      "openSchool": "Open collection",
       "sendRequest": "Send request",
       "join": "Join"
     },
     "adminSection": {
-      "title": "Schools you manage",
-      "subtitle": "You are registered here as an admin.",
-      "empty": "You are currently not registered as an admin at any school."
+      "title": "Collections you manage",
+      "subtitle": "You are listed as an admin here.",
+      "empty": "You are currently not listed as an admin in any collection."
     },
     "memberSection": {
-      "title": "Schools where you are a member",
+      "title": "Collections where you are a member",
       "subtitle": "You have access, but you are not an admin.",
-      "empty": "You are currently not a member of any other school."
+      "empty": "You are currently not a member of any other collection."
     },
     "discoverSection": {
-      "title": "Discover more schools",
-      "subtitle": "Search for schools and send a join request.",
-      "empty": "No further schools found."
+      "title": "Discover more collections",
+      "subtitle": "Search for collections and send a join request.",
+      "empty": "No further collections found."
     },
     "search": {
-      "label": "Search school"
+      "label": "Search collection"
+    },
+    "logoAlt": "Logo of {{name}}",
+    "roles": {
+      "admin": "Admin",
+      "member": "Member"
     }
   },
   "landing": {

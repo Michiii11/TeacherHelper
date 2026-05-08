@@ -7,7 +7,7 @@
     </section>
   </main>
 } @else {
-  <main class="schools-dashboard" aria-label="School Overview">
+  <main class="schools-dashboard" [attr.aria-label]="'collection.dashboardAria' | translate">
     <section class="section">
       <div class="section-header">
         <h2 class="section-title">{{ 'home.title' | translate }}</h2>
@@ -24,7 +24,7 @@
               <div [class]="getAvatarClass(school)">
                 <img *ngIf="logoUrls[school.id]"
                      [src]="logoUrls[school.id]"
-                     alt="{{ school.name }} Logo"
+                     [attr.alt]="'home.logoAlt' | translate:{ name: school.name }"
                      class="avatar-image" />
               </div>
             } @else {
@@ -34,7 +34,7 @@
             }
 
             <span class="role-badge" [ngClass]="getRoleBadgeClass(school)">
-            {{ getSchoolRoleLabel(school) }}
+            {{ getSchoolRoleLabelKey(school) | translate }}
           </span>
           </div>
 
@@ -51,7 +51,7 @@
             </div>
             <div class="info-row">
               <mat-icon>assignment</mat-icon>
-              <span>{{ 'collection.test' | translate}}s: {{ school.tests.length }}</span>
+              <span>{{ 'collection.tests' | translate }}: {{ school.tests.length }}</span>
             </div>
           </div>
 
