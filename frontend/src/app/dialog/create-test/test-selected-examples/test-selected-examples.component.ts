@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { SafeHtml } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -28,12 +29,14 @@ export class TestSelectedExamplesComponent {
   @Input({ required: true }) selectedExamples: TestExampleDTO[] = [];
 
   @Input({ required: true }) getResolvedExampleHeading!: (example: TestExampleDTO['example'], values?: TestExampleVariableValues) => string;
+  @Input({ required: true }) getResolvedExampleHeadingHtml!: (entry: TestExampleDTO) => SafeHtml;
   @Input({ required: true }) getExampleMeta!: (entry: TestExampleDTO) => string;
   @Input({ required: true }) getTaskSpacing!: (exampleId: string) => number;
   @Input({ required: true }) hasVariables!: (entry: TestExampleDTO) => boolean;
   @Input({ required: true }) getExampleVariables!: (entry: TestExampleDTO) => Array<{ key: string; defaultValue?: string | null }>;
   @Input({ required: true }) getVariableValue!: (entry: TestExampleDTO, key: string) => string;
   @Input({ required: true }) getResolvedEntryTitle!: (entry: TestExampleDTO) => string;
+  @Input({ required: true }) getResolvedEntryTitleHtml!: (entry: TestExampleDTO) => SafeHtml;
 
   @Output() moveExample = new EventEmitter<{ index: number; direction: -1 | 1 }>();
   @Output() removeExample = new EventEmitter<TestExampleDTO>();

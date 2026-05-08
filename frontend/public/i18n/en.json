@@ -1296,5 +1296,10 @@
       "questionLabel": "Show “Question”",
       "taskImageLabel": "Show “Task image”"
     }
+  },
+  "whatsNew": {
+    "title": "What’s new?",
+    "close": "Close",
+    "openChangelog": "Changelog"
   }
 }

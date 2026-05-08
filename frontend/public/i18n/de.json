@@ -1179,5 +1179,10 @@
     "multipleChoice": "Eine oder mehrere Optionen auswählen.",
     "gapFill": "Lücken durch Auswahl oder Eingabe füllen.",
     "assign": "Elemente einander zuordnen."
+  },
+  "whatsNew": {
+    "title": "Was ist neu?",
+    "close": "Schließen",
+    "openChangelog": "Changelog"
   }
 }

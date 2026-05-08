@@ -32,14 +32,23 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .navbar-left {
   display: flex;
   align-items: center;
   min-width: 0;
-  width: 20%;
+  flex: 1 1 auto;
+  max-width: 42%;
   gap: .25rem;
+  overflow: hidden;
+
+  > button,
+  > div {
+    flex: 0 0 auto;
+  }
 
   img {
     width: 100%;
@@ -48,12 +57,16 @@
 
 .navbar-left a[mat-button] {
   min-width: unset;
+  max-width: clamp(7rem, 18vw, 14rem);
   border-radius: 14px;
   color: var(--text-subtle-2);
   font-weight: 600;
   font-size: 1.2rem;
   transition: all .2s ease;
   padding-inline: .5rem !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .navbar-left a[mat-button]:hover {
@@ -83,7 +96,17 @@
   align-items: center;
   justify-content: flex-end;
   gap: 0.35rem;
-  flex-wrap: wrap;
+  flex: 0 1 auto;
+  min-width: 0;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.navbar-auth-btn,
+.icon-btn,
+.navbar-divider,
+.avatar-btn {
+  flex: 0 0 auto;
 }
 
 .navbar-page-actions {
@@ -92,12 +115,23 @@
   gap: 0.65rem;
   margin-left: 0.5rem;
   margin-right: 0.25rem;
-  flex-wrap: wrap;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.navbar-page-actions::-webkit-scrollbar {
+  display: none;
 }
 
 .navbar-action-btn {
   white-space: nowrap;
   border-radius: 14px !important;
+  flex: 0 0 auto;
 }
 
 .navbar-action-btn mat-icon {
@@ -525,36 +559,54 @@
 }
 
 @media (max-width: 900px) {
-  .navbar {
-    height: auto;
-    min-height: 78px;
-  }
-
   .navbar-container {
     width: min(100%, calc(100% - 20px));
-    padding: 0.8rem 0;
-    align-items: stretch;
+    gap: 0.6rem;
   }
 
   .navbar-left {
-    display: none;
+    max-width: 36%;
+  }
+
+  .navbar-left a[mat-button] {
+    max-width: clamp(5.5rem, 16vw, 9rem);
   }
 
   .navbar-right {
-    justify-content: center;
+    flex: 1 1 auto;
   }
 
   .navbar-page-actions {
-    width: 100%;
-    justify-content: center;
     margin-left: 0;
-    margin-right: 0;
+    margin-right: 0.15rem;
   }
 }
 
 @media (max-width: 640px) {
+  .navbar-container {
+    width: min(100%, calc(100% - 12px));
+    gap: 0.35rem;
+  }
+
+  .navbar-left {
+    max-width: 32%;
+    gap: 0.1rem;
+  }
+
+  .navbar-left a[mat-button] {
+    max-width: 6.5rem;
+    font-size: 1rem;
+    padding-inline: 0.35rem !important;
+  }
+
   .navbar-right {
     gap: 0.3rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .navbar-right::-webkit-scrollbar {
+    display: none;
   }
 
   .navbar-right a[mat-button] {
@@ -640,4 +692,188 @@
 
 .notif-item.notif-history.notif-history-expanded .notif-title-actions {
   display: flex;
+}
+
+.mobile-menu-trigger {
+  display: none;
+  flex: 0 0 auto;
+  border-radius: 14px;
+  color: var(--text-subtle-2);
+}
+
+.mobile-menu-trigger:hover {
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+
+::ng-deep .cdk-overlay-pane .mat-mdc-menu-panel.mobile-nav-menu {
+  width: min(94vw, 420px) !important;
+  max-width: min(94vw, 420px) !important;
+  margin-top: 10px;
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  background: var(--overlay-bg) !important;
+  box-shadow: none !important;
+}
+
+::ng-deep .cdk-overlay-pane .mat-mdc-menu-panel.mobile-nav-menu .mat-mdc-menu-content {
+  padding: 0 !important;
+}
+
+.mobile-nav-panel {
+  border: 1px solid var(--border-soft);
+  border-radius: 24px;
+  background: var(--overlay-bg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.mobile-nav-section {
+  padding: 0.8rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.mobile-nav-section:last-child {
+  border-bottom: 0;
+}
+
+.mobile-nav-breadcrumbs,
+.mobile-nav-actions,
+.mobile-nav-auth {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.mobile-nav-breadcrumbs {
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  color: var(--text-subtle-2);
+}
+
+.mobile-home-btn {
+  flex: 0 0 auto;
+}
+
+.mobile-nav-breadcrumbs a[mat-button] {
+  min-width: unset;
+  max-width: 100%;
+  border-radius: 14px;
+  color: var(--text-subtle-2);
+  font-weight: 600;
+  font-size: 1rem;
+  padding-inline: 0.5rem !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-nav-breadcrumbs a[mat-button]:hover,
+.mobile-nav-breadcrumbs a[mat-button].active-link {
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+
+.mobile-nav-actions {
+  align-items: stretch;
+}
+
+.mobile-nav-actions .navbar-action-btn,
+.mobile-nav-auth .navbar-auth-btn {
+  flex: 1 1 auto;
+}
+
+.mobile-nav-links {
+  padding: 0.35rem;
+}
+
+.mobile-nav-links button[mat-menu-item] {
+  border-radius: 14px;
+  color: var(--text-subtle-2);
+  font-weight: 600;
+}
+
+.mobile-nav-links button[mat-menu-item]:hover {
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+
+.mobile-notif-badge {
+  margin-left: auto;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--danger-gradient);
+  color: var(--surface-solid);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: var(--shadow-danger);
+}
+
+.mobile-avatar-image,
+.mobile-avatar-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  flex: 0 0 auto;
+}
+
+.mobile-avatar-image {
+  object-fit: cover;
+  object-position: center;
+  border: 1px solid var(--avatar-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.mobile-avatar-circle {
+  display: grid;
+  place-items: center;
+  background: var(--avatar-gradient);
+  color: var(--primary-deep);
+  font-weight: 800;
+  font-size: 0.78rem;
+  border: 1px solid var(--avatar-border);
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    height: 64px;
+  }
+
+  .navbar-container {
+    width: min(100%, calc(100% - 24px));
+    justify-content: flex-end;
+    overflow: visible;
+  }
+
+  .navbar-left,
+  .navbar-right {
+    display: none;
+  }
+
+  .mobile-menu-trigger {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 420px) {
+  ::ng-deep .cdk-overlay-pane .mat-mdc-menu-panel.mobile-nav-menu {
+    width: 96vw !important;
+    max-width: 96vw !important;
+  }
+
+  .mobile-nav-actions,
+  .mobile-nav-auth {
+    flex-direction: column;
+  }
+
+  .mobile-nav-actions .navbar-action-btn,
+  .mobile-nav-auth .navbar-auth-btn {
+    width: 100%;
+  }
 }

@@ -5,7 +5,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/ro
 import { filter, Subscription } from 'rxjs';
 import { MatToolbar } from '@angular/material/toolbar';
 import { MatAnchor, MatButton, MatIconButton } from '@angular/material/button';
-import { MatMenu, MatMenuTrigger } from '@angular/material/menu';
+import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -32,6 +32,7 @@ import { AuthService as Auth0Service } from '@auth0/auth0-angular';
     MatIcon,
     MatIconButton,
     MatMenu,
+    MatMenuItem,
     MatMenuTrigger,
     MatButton,
     MatSnackBarModule,

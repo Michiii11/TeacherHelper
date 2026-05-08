@@ -28,6 +28,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { TestSelectedExamplesComponent } from './test-selected-examples/test-selected-examples.component';
 import { TestAdvancedSettingsComponent } from './test-advanced-settings/test-advanced-settings.component';
 import { TestPrintPreviewPaneComponent } from './test-print-preview-pane/test-print-preview-pane.component';
+import { ExamplePreviewRendererService } from '../../service/example-preview-renderer.service';
 
 type GradeMode = 'auto' | 'manual';
 type GradePresetKey = 'AT' | 'DE' | 'US' | 'MITARBEIT' | 'CUSTOM';
@@ -93,6 +94,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   private sanitizer = inject(DomSanitizer);
   private service = inject(HttpService);
   private testPrintService = inject(TestPrintService);
+  private previewRenderer = inject(ExamplePreviewRendererService);
   private readonly destroy$ = new Subject<void>();
   private readonly exampleImageObjectUrls = new Set<string>();
   private readonly exampleImageObjectUrlCache = new Map<string, string>();
@@ -421,6 +423,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   readonly getResolvedExampleHeadingFn = (example: Example | ExampleDTO, variableValues?: TestExampleVariableValues): string =>
     this.getResolvedExampleHeading(example, variableValues);
+  readonly getResolvedExampleHeadingHtmlFn = (entry: TestExampleDTO): SafeHtml =>
+    this.renderEntryTextHtml(this.getResolvedExampleHeading(entry.example, entry.variableValues), entry);
 
   readonly getExampleMetaFn = (entry: TestExampleDTO): string =>
     this.getExampleMeta(entry);
@@ -439,6 +443,8 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   readonly getResolvedEntryTitleFn = (entry: TestExampleDTO): string =>
     this.getResolvedEntryTitle(entry);
+  readonly getResolvedEntryTitleHtmlFn = (entry: TestExampleDTO): SafeHtml =>
+    this.renderEntryTextHtml(this.getResolvedEntryTitle(entry), entry);
 
   readonly getGradeRangeLabelByIndexFn = (index: number): string =>
     this.getGradeRangeLabelByIndex(index);
@@ -539,6 +545,20 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   getResolvedExampleHeading(example: Example | ExampleDTO, variableValues?: TestExampleVariableValues): string {
     const fallback = example.instruction?.trim() || example.question?.trim() || `Beispiel #${example.id}`;
     return this.resolveVariables(fallback, variableValues, example);
+  }
+
+
+  private renderEntryTextHtml(value: string | null | undefined, entry: TestExampleDTO): SafeHtml {
+    const variables = this.mergeVariableValuesIntoExampleVariables(
+      entry.example.variables,
+      {
+        ...this.buildDefaultVariableValues(entry.example),
+        ...(entry.variableValues ?? {}),
+      },
+    );
+
+    const html = this.previewRenderer.renderMathHtml(value, variables);
+    return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 
 

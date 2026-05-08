@@ -30,4 +30,38 @@
       <app-footer></app-footer>
     }
   </div>
+
+  <!--@if (showWhatsNewPanel) {
+    @if (latestChangelogEntry; as entry) {
+      <aside class="whats-new-panel" aria-live="polite">
+        <header class="whats-new-head">
+          <div>
+            <span class="whats-new-kicker">{{ 'help.changelog.label' | translate }}</span>
+            <h2>{{ 'whatsNew.title' | translate }}</h2>
+          </div>
+
+          <span class="whats-new-version">{{ entry.version }}</span>
+        </header>
+
+        <ul class="whats-new-list">
+          @for (change of entry.changes; track change) {
+            <li>
+              <mat-icon>check_circle</mat-icon>
+              <span>{{ change | translate }}</span>
+            </li>
+          }
+        </ul>
+
+        <div class="whats-new-actions">
+          <button type="button" class="whats-new-close" (click)="dismissWhatsNew()">
+            {{ 'whatsNew.close' | translate }}
+          </button>
+
+          <button type="button" class="whats-new-changelog" (click)="openChangelog()">
+            {{ 'whatsNew.openChangelog' | translate }}
+          </button>
+        </div>
+      </aside>
+    }
+  }-->
 }

@@ -201,14 +201,14 @@
 
             <div class="picker-row-copy">
               <div class="picker-row-title">
-                <strong [attr.title]="getExampleTitleFull(example)">{{ getExampleTitle(example) }}</strong>
+                <div class="rendered-preview-text rendered-preview-title" [attr.title]="getExampleTitleFull(example)" [innerHTML]="getExampleTitleHtml(example)"></div>
                 @if (isAlreadySelected(example.id)) {
                   <span class="state-badge muted">{{ 'createTest.examplePicker.alreadyAdded' | translate }}</span>
                 }
               </div>
 
               @if (getExampleDescription(example)) {
-                <p class="picker-row-text" [attr.title]="getExampleDescriptionFull(example)">{{ getExampleDescription(example) }}</p>
+                <div class="picker-row-text rendered-preview-text rendered-preview-description" [attr.title]="getExampleDescriptionFull(example)" [innerHTML]="getExampleDescriptionHtml(example)"></div>
               }
 
             </div>
