@@ -136,19 +136,30 @@
         </form>
       </article>
 
-      <article class="panel danger-panel compact card">
-        <div class="panel-header compact-header">
-          <h2 class="panel-title">
-            <mat-icon>delete_forever</mat-icon>
-            {{ 'profile.deleteAccount' | translate }}
-          </h2>
-        </div>
+      <article class="panel danger-panel card">
+        <div class="danger-panel-content">
+          <div class="danger-icon-shell" aria-hidden="true">
+            <mat-icon>warning</mat-icon>
+          </div>
 
-        <div class="panel-body compact-body">
-          <button mat-flat-button color="warn" type="button" class="danger-btn" [disabled]="deletingAccount" (click)="confirmDeleteAccount()">
-            <mat-icon>{{ deletingAccount ? 'hourglass_top' : 'delete_forever' }}</mat-icon>
-            {{ deletingAccount ? ('common.deleting' | translate) : ('profile.deleteAccountButton' | translate) }}
-          </button>
+          <div class="danger-copy">
+            <div class="panel-header danger-header">
+              <p class="eyebrow danger-eyebrow">{{ 'profile.dangerZoneEyebrow' | translate }}</p>
+              <h2 class="panel-title danger-title">
+                {{ 'profile.deleteAccount' | translate }}
+              </h2>
+              <p class="panel-subtitle danger-subtitle">
+                {{ 'profile.deleteAccountWarning' | translate }}
+              </p>
+            </div>
+
+            <div class="panel-body danger-body">
+              <button mat-flat-button color="warn" type="button" class="danger-btn" [disabled]="deletingAccount" (click)="confirmDeleteAccount()">
+                <mat-icon>{{ deletingAccount ? 'hourglass_top' : 'delete_forever' }}</mat-icon>
+                {{ deletingAccount ? ('common.deleting' | translate) : ('profile.deleteAccountButton' | translate) }}
+              </button>
+            </div>
+          </div>
         </div>
       </article>
     </section>

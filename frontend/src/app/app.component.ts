@@ -22,7 +22,6 @@ import {APP_CHANGELOG, ChangelogEntry} from '../../public/data/changelog.data'
     NavigationComponent,
     MatProgressSpinner,
     FooterComponent,
-    TranslatePipe,
     MatIconModule
   ],
   styleUrl: './app.component.scss'
@@ -177,7 +176,9 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   get isLandingRoute(): boolean {
-    return this.currentUrl === '/';
+    const urlWithoutFragment = this.currentUrl.split('#')[0];
+
+    return urlWithoutFragment === '/' || urlWithoutFragment === '';
   }
 
   get showNavigation(): boolean {

@@ -55,7 +55,9 @@
     "pendingEmailConfirmation": "Pending email confirmation:",
     "publicInfoUsername": "Username is publicly visible",
     "publicInfoAvatar": "Profile picture is publicly visible",
-    "allowInvitationsDesc": "Other users can invite you to collections"
+    "allowInvitationsDesc": "Other users can invite you to collections",
+    "dangerZoneEyebrow": "Critical area",
+    "deleteAccountWarning": "This action permanently deletes your profile. Please make sure you have saved all important data before continuing."
   },
   "languages": {
     "de": "Deutsch",
@@ -241,7 +243,8 @@
     },
     "features": {
       "eyebrow": "Features",
-      "title": "The essentials for your collection"
+      "title": "The essentials for your collection",
+      "text": "The landing page presents your core features like a modern SaaS page: clear cards, generous spacing and soft shapes."
     },
     "featureCards": {
       "collections": {
@@ -271,7 +274,10 @@
     },
     "pricing": {
       "eyebrow": "Plans",
-      "title": "Choose what fits your workflow"
+      "title": "Choose what fits your workflow",
+      "text": "Start small and upgrade later when you need more collections, exercises or team features.",
+      "choose": "Choose plan",
+      "selected": "Selected"
     },
     "plans": {
       "free": {
@@ -293,6 +299,50 @@
         "f2": "∞ exercises",
         "f3": "∞ tests"
       }
+    },
+    "nav": {
+      "features": "Features",
+      "benefits": "Benefits",
+      "pricing": "Pricing"
+    },
+    "workflow": {
+      "eyebrow": "Workflow",
+      "title": "From idea to finished test",
+      "text": "TeacherHelper brings your material into one clear flow: collect, adapt and reuse.",
+      "s1": {
+        "title": "Collect",
+        "text": "Store exercises in collections, folders and tags in a structured way."
+      },
+      "s2": {
+        "title": "Adapt",
+        "text": "Use variables, Markdown and LaTeX to create variations quickly."
+      },
+      "s3": {
+        "title": "Use",
+        "text": "Build tests from them, print them or collaborate with your team."
+      }
+    },
+    "benefits": {
+      "eyebrow": "Why TeacherHelper",
+      "title": "More structure, less searching",
+      "text": "Instead of rebuilding your material every time, your exercises are stored centrally, reusable and ready for tests.",
+      "artTitle": "Ready for class",
+      "artText": "Collect exercises, build tests and keep teaching material organized.",
+      "b1": "Create tests faster from existing exercises",
+      "b2": "Structure content cleanly with folders and tags",
+      "b3": "Prepare flexible variants with variables",
+      "b4": "Collaborate with other teachers"
+    },
+    "stats": {
+      "examples": "exercises in Free",
+      "tests": "tests to start",
+      "ideas": "possibilities with variables",
+      "cloud": "available online"
+    },
+    "cta": {
+      "eyebrow": "Get started",
+      "title": "Build your teaching collection",
+      "text": "Start with one collection, organize your best exercises and turn them into clean tests faster."
     }
   },
   "collection": {

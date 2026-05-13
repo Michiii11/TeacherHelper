@@ -1,26 +1,7 @@
 <main class="landing-page">
-  <section class="landing-shell">
-    <header class="landing-topbar">
-      <a class="brand" routerLink="/" aria-label="TeacherHelper">
-        <img [src]="getLogo()" alt="TeacherHelper Logo" class="brand-logo-image">
-      </a>
+  <section class="hero-section">
 
-      <div class="topbar-actions">
-        @if (isLoggedIn$ | async) {
-          <a mat-stroked-button class="topbar-button" routerLink="/home">
-            <mat-icon>dashboard</mat-icon>
-            {{ 'landing.dashboard' | translate }}
-          </a>
-        } @else {
-          <button mat-stroked-button class="topbar-button" type="button" (click)="login()">
-            <mat-icon>login</mat-icon>
-            {{ 'landing.login' | translate }}
-          </button>
-        }
-      </div>
-    </header>
-
-    <section class="hero" aria-labelledby="landing-title">
+    <section class="hero landing-shell" aria-labelledby="landing-title">
       <div class="hero-copy">
         <p class="eyebrow">{{ 'landing.eyebrow' | translate }}</p>
         <h1 id="landing-title">{{ 'landing.title' | translate }}</h1>
@@ -40,66 +21,139 @@
 
             <button mat-stroked-button class="main-button secondary" type="button" (click)="login()">
               <mat-icon>login</mat-icon>
-              {{ 'landing.loginShort' | translate }}
+              {{ 'landing.login' | translate }}
             </button>
           }
         </div>
       </div>
 
-      <div class="hero-visual">
+      <div class="hero-visual" aria-hidden="true">
+        <div class="visual-orbit">
+          <span class="orbit-icon icon-1"><mat-icon>folder_copy</mat-icon></span>
+          <span class="orbit-icon icon-2"><mat-icon>functions</mat-icon></span>
+          <span class="orbit-icon icon-3"><mat-icon>groups</mat-icon></span>
+          <span class="orbit-icon icon-4"><mat-icon>print</mat-icon></span>
+        </div>
+
         <div class="screenshot-card">
           <div class="screenshot-card-head">
             <span>{{ 'landing.visual.label' | translate }}</span>
           </div>
-
-          <img
-            class="screenshot-image"
-            [src]="getImage()"
-            [alt]="'landing.visual.alt' | translate"
-          >
+          <img class="screenshot-image" [src]="getImage()" [alt]="'landing.visual.alt' | translate">
         </div>
       </div>
     </section>
+  </section>
 
-    <section class="features" aria-labelledby="features-title">
-      <div class="section-head">
+  <section class="workflow-section" aria-labelledby="workflow-title">
+    <div class="landing-shell">
+      <div class="section-head compact">
+        <p class="eyebrow">{{ 'landing.workflow.eyebrow' | translate }}</p>
+        <h2 id="workflow-title">{{ 'landing.workflow.title' | translate }}</h2>
+        <p>{{ 'landing.workflow.text' | translate }}</p>
+      </div>
+
+      <div class="workflow-grid">
+        <article class="workflow-item" *ngFor="let step of workflow; trackBy: trackByWorkflow">
+          <span class="workflow-icon"><mat-icon>{{ step.icon }}</mat-icon></span>
+          <h3>{{ step.title | translate }}</h3>
+          <p>{{ step.text | translate }}</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="features-section" id="features" aria-labelledby="features-title">
+    <div class="landing-shell feature-layout">
+      <div class="feature-intro">
         <p class="eyebrow">{{ 'landing.features.eyebrow' | translate }}</p>
         <h2 id="features-title">{{ 'landing.features.title' | translate }}</h2>
       </div>
 
       <div class="feature-grid">
         <article class="feature-card" *ngFor="let feature of features; trackBy: trackByFeature">
-          <mat-icon>{{ feature.icon }}</mat-icon>
+          <span class="feature-icon"><mat-icon>{{ feature.icon }}</mat-icon></span>
           <h3>{{ feature.title | translate }}</h3>
           <p>{{ feature.text | translate }}</p>
         </article>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="pricing" aria-labelledby="pricing-title">
-      <div class="section-head">
+  <section class="benefits-section" id="benefits" aria-labelledby="benefits-title">
+    <div class="landing-shell benefits-layout">
+      <div class="benefits-art" aria-hidden="true">
+        <div class="art-card art-card-main">
+          <mat-icon>assignment</mat-icon>
+          <strong>{{ 'landing.benefits.artTitle' | translate }}</strong>
+          <span>{{ 'landing.benefits.artText' | translate }}</span>
+        </div>
+        <div class="art-card art-card-small one"><mat-icon>auto_awesome</mat-icon></div>
+        <div class="art-card art-card-small two"><mat-icon>cloud_done</mat-icon></div>
+      </div>
+
+      <div class="benefits-copy">
+        <p class="eyebrow">{{ 'landing.benefits.eyebrow' | translate }}</p>
+        <h2 id="benefits-title">{{ 'landing.benefits.title' | translate }}</h2>
+        <p>{{ 'landing.benefits.text' | translate }}</p>
+
+        <div class="benefit-list">
+          <div class="benefit-item" *ngFor="let benefit of benefits; trackBy: trackByBenefit">
+            <mat-icon>check_circle</mat-icon>
+            <span>{{ benefit | translate }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pricing-section" id="pricing" aria-labelledby="pricing-title">
+    <div class="landing-shell">
+      <div class="section-head compact">
         <p class="eyebrow">{{ 'landing.pricing.eyebrow' | translate }}</p>
         <h2 id="pricing-title">{{ 'landing.pricing.title' | translate }}</h2>
+        <p>{{ 'landing.pricing.text' | translate }}</p>
       </div>
 
       <div class="plan-grid">
-        <article class="plan-card" *ngFor="let plan of plans; trackBy: trackByPlan" [class.highlight]="plan.highlight">
+        <article
+          class="plan-card"
+          *ngFor="let plan of plans; trackBy: trackByPlan"
+          [class.highlight]="plan.highlight"
+          [class.selected]="selectedPlanId === plan.id"
+          tabindex="0"
+          role="button"
+          [attr.aria-label]="('landing.pricing.choose' | translate) + ' ' + plan.name"
+          (click)="choosePlan(plan)"
+          (keydown.enter)="choosePlan(plan)"
+          (keydown.space)="$event.preventDefault(); choosePlan(plan)"
+        >
           <div class="plan-badge" *ngIf="plan.badge">{{ plan.badge | translate }}</div>
 
           <div class="plan-head">
             <h3>{{ plan.name }}</h3>
             <div class="plan-price">{{ plan.price }}</div>
-            <p>{{ plan.subtitle | translate }}</p>
           </div>
 
           <div class="plan-list">
             <div class="plan-item" *ngFor="let item of plan.features; trackBy: trackByValue">
-              <mat-icon>check</mat-icon>
+              <mat-icon>done</mat-icon>
               <span>{{ item | translate }}</span>
             </div>
           </div>
+
+          <button
+            mat-flat-button
+            class="plan-action"
+            type="button"
+            [class.plan-action-light]="plan.highlight"
+            (click)="$event.stopPropagation(); choosePlan(plan)"
+          >
+            {{ 'landing.pricing.choose' | translate }}
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
         </article>
       </div>
-    </section>
+    </div>
   </section>
 </main>

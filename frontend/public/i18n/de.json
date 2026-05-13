@@ -55,7 +55,9 @@
     "pendingEmailConfirmation": "Offene E-Mail-Bestätigung:",
     "publicInfoUsername": "Benutzername ist öffentlich sichtbar",
     "publicInfoAvatar": "Profilbild ist öffentlich sichtbar",
-    "allowInvitationsDesc": "Andere Nutzer können dich zu Sammlungen einladen"
+    "allowInvitationsDesc": "Andere Nutzer können dich zu Sammlungen einladen",
+    "dangerZoneEyebrow": "Kritischer Bereich",
+    "deleteAccountWarning": "Diese Aktion löscht dein Profil dauerhaft. Bitte prüfe vorher, ob du alle wichtigen Daten gesichert hast."
   },
   "languages": {
     "de": "Deutsch",
@@ -221,7 +223,7 @@
   "landing": {
     "eyebrow": "TeacherHelper",
     "title": "Beispiele. Tests. Ordnung.",
-    "description": "Organisiere Unterrichtsbeispiele in Sammlungen, baue Tests schneller daraus und arbeite bei Bedarf gemeinsam mit anderen Lehrkräften.",
+    "description": "Organisiere Unterrichtsbeispiele in Sammlungen, baue Tests schneller daraus und arbeite gemeinsam mit anderen Lehrkräften.",
     "register": "Registrieren",
     "login": "Login / Registrieren",
     "loginShort": "Login",
@@ -232,7 +234,8 @@
     },
     "features": {
       "eyebrow": "Features",
-      "title": "Alles Wichtige für deine Sammlung"
+      "title": "Alles Wichtige für deine Sammlung",
+      "text": "Die Landing Page zeigt deine Kernfunktionen wie eine moderne SaaS-Seite: klare Karten, viel Weißraum und weiche Formen."
     },
     "featureCards": {
       "collections": {
@@ -262,7 +265,10 @@
     },
     "pricing": {
       "eyebrow": "Abo-Modelle",
-      "title": "Wähle, was zu dir passt"
+      "title": "Wähle, was zu dir passt",
+      "text": "Starte klein und erweitere später, sobald du mehr Sammlungen, Beispiele oder Team-Funktionen brauchst.",
+      "choose": "Auswählen",
+      "selected": "Ausgewählt"
     },
     "plans": {
       "free": {
@@ -284,6 +290,50 @@
         "f2": "∞ Beispiele",
         "f3": "∞ Tests"
       }
+    },
+    "nav": {
+      "features": "Features",
+      "benefits": "Vorteile",
+      "pricing": "Preise"
+    },
+    "workflow": {
+      "eyebrow": "Workflow",
+      "title": "Von der Idee zum fertigen Test",
+      "text": "TeacherHelper führt deine Inhalte in einem klaren Ablauf zusammen: sammeln, anpassen und wiederverwenden.",
+      "s1": {
+        "title": "Sammeln",
+        "text": "Lege Beispiele in Sammlungen, Ordnern und Tags strukturiert ab."
+      },
+      "s2": {
+        "title": "Anpassen",
+        "text": "Nutze Variablen, Markdown und LaTeX, um Aufgaben schnell zu variieren."
+      },
+      "s3": {
+        "title": "Verwenden",
+        "text": "Baue daraus Tests, drucke sie aus oder arbeite gemeinsam im Team."
+      }
+    },
+    "benefits": {
+      "eyebrow": "Warum TeacherHelper",
+      "title": "Mehr Ordnung, weniger Sucharbeit",
+      "text": "Statt Beispiele jedes Mal neu zusammenzusuchen, liegen sie zentral, wiederverwendbar und für Tests vorbereitet bereit.",
+      "artTitle": "Bereit für den Unterricht",
+      "artText": "Beispiele sammeln, Tests bauen und Materialien sauber organisieren.",
+      "b1": "Schneller Tests aus bestehenden Aufgaben erstellen",
+      "b2": "Inhalte sauber mit Ordnern und Tags strukturieren",
+      "b3": "Varianten mit Variablen flexibel vorbereiten",
+      "b4": "Gemeinsam mit anderen Lehrkräften arbeiten"
+    },
+    "stats": {
+      "examples": "Beispiele im Free-Plan",
+      "tests": "Tests zum Start",
+      "ideas": "Möglichkeiten mit Variablen",
+      "cloud": "online verfügbar"
+    },
+    "cta": {
+      "eyebrow": "Loslegen",
+      "title": "Baue deine Unterrichtssammlung auf",
+      "text": "Starte mit einer Sammlung, sortiere deine besten Beispiele und erstelle daraus schneller saubere Tests."
     }
   },
   "collection": {
