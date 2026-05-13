@@ -877,3 +877,22 @@
     width: 100%;
   }
 }
+
+.mobile-nav-links button[mat-menu-item] {
+  border-radius: 14px;
+  color: var(--text-subtle-2);
+  font-weight: 600;
+  min-height: 48px;
+  line-height: 1;
+}
+
+::ng-deep .mat-mdc-menu-panel.mobile-nav-menu
+.mobile-nav-links
+.mat-mdc-menu-item
+.mat-mdc-menu-item-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  line-height: 1;
+}

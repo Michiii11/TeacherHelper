@@ -1647,3 +1647,307 @@ mat-icon { overflow: visible; line-height: 1; }
   height: 18px;
   font-size: 18px;
 }
+
+/* -----------------------------
+   Responsive collection layout
+-------------------------------- */
+
+@media (max-width: 1100px) {
+  .collection-shell {
+    padding: 1rem;
+  }
+
+  .collection-frame {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+
+  .single-toolbar-row {
+    min-height: auto;
+    flex-wrap: wrap;
+    align-items: stretch;
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .smart-location {
+    flex: 1 1 100%;
+    min-height: 38px;
+  }
+
+  .toolbar-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .compact-search.open {
+    width: min(360px, 100%);
+  }
+
+  .content-grid {
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .collection-shell {
+    padding: 0.75rem;
+  }
+
+  .collection-frame {
+    display: flex;
+    flex-direction: column;
+    min-height: auto;
+    border-radius: 22px;
+  }
+
+  .explorer-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem;
+    max-height: 260px;
+    overflow: auto;
+  }
+
+  .sidebar-brand {
+    padding-bottom: 0.75rem;
+  }
+
+  .school-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  .root-nav-btn,
+  .folder-tree-node {
+    min-height: 40px;
+    padding-block: 0.45rem;
+  }
+
+  .nested-folder-tree {
+    padding-left: 0.75rem;
+  }
+
+  .explorer-main {
+    min-height: 0;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+  }
+
+  .single-toolbar-row {
+    padding: 0.75rem;
+  }
+
+  .current-location {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .current-location::-webkit-scrollbar {
+    display: none;
+  }
+
+  .crumb-pair.middle-pair .crumb-link,
+  .crumb-link.last-crumb {
+    max-width: 150px;
+  }
+
+  .toolbar-actions {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(38px, auto));
+    justify-content: start;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .compact-search {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .compact-search.open {
+    width: 100%;
+  }
+
+  .compact-search input {
+    display: block;
+  }
+
+  .toolbar-pill-btn {
+    padding-inline: 0.65rem;
+  }
+
+  .toolbar-label {
+    display: none;
+  }
+
+  .sort-popup-panel,
+  .create-menu-panel,
+  .filter-popup-panel {
+    position: fixed;
+    left: 0.75rem;
+    right: 0.75rem;
+    top: auto;
+    bottom: 0.75rem;
+    width: auto;
+    max-height: min(70vh, 560px);
+    border-radius: 18px;
+    z-index: 100;
+  }
+
+  .chip-strip {
+    padding: 0.75rem;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+
+  .chip-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .selected-chip {
+    flex: 0 0 auto;
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr;
+    padding: 0.75rem;
+  }
+
+  .content-card {
+    min-height: auto;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    padding: 0.85rem;
+  }
+
+  .card-actions {
+    padding-top: 0.6rem;
+  }
+
+  .item-bottom-bar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .action-buttons {
+    align-self: flex-end;
+  }
+
+  .compact-list {
+    padding: 0.75rem;
+  }
+
+  .compact-row {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .compact-title-wrap {
+    width: 100%;
+  }
+
+  .compact-actions,
+  .compact-actions.item-bottom-bar {
+    width: 100%;
+    flex: 1 1 auto;
+    justify-content: space-between;
+  }
+
+  .compact-actions.item-bottom-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .compact-actions .action-buttons {
+    align-self: flex-end;
+  }
+
+  .item-tags {
+    width: 100%;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .item-tag {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .collection-shell {
+    padding: 0.5rem;
+  }
+
+  .collection-frame {
+    border-radius: 18px;
+  }
+
+  .explorer-sidebar {
+    max-height: 220px;
+  }
+
+  .single-toolbar-row {
+    padding: 0.65rem;
+  }
+
+  .toolbar-actions {
+    grid-template-columns: repeat(4, minmax(38px, auto));
+  }
+
+  .view-toggle {
+    width: auto;
+  }
+
+  .content-grid,
+  .compact-list {
+    padding: 0.65rem;
+  }
+
+  .content-card {
+    gap: 0.65rem;
+  }
+
+  .card-leading {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  .card-leading mat-icon {
+    width: 22px;
+    height: 22px;
+    font-size: 22px;
+  }
+
+  .card-copy strong {
+    font-size: 0.95rem;
+  }
+
+  .card-actions,
+  .action-buttons {
+    gap: 0.05rem;
+  }
+
+  .card-actions button,
+  .compact-actions button {
+    width: 32px;
+    height: 32px;
+  }
+
+  .filter-popup-panel,
+  .sort-popup-panel,
+  .create-menu-panel {
+    left: 0.5rem;
+    right: 0.5rem;
+    bottom: 0.5rem;
+  }
+}
