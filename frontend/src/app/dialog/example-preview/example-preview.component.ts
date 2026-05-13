@@ -36,7 +36,7 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
 
   readonly ExampleTypes = ExampleTypes;
   readonly defaultImageWidth = 320;
-  private readonly variablePattern = /\{([a-zA-Z_][a-zA-Z0-9_-]*)\}/g;
+  private readonly variablePattern = /\[\[([a-zA-Z_][a-zA-Z0-9_-]*)\]\]/g;
 
   @Input() example: CreateExampleDTO | null = null;
   @Input() constructionImagePreviewUrl: string | null = null;

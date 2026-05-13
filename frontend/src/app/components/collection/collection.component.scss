@@ -1372,7 +1372,6 @@ mat-icon { overflow: visible; line-height: 1; }
   min-width: 0;
   max-width: 100%;
   min-height: 0;
-  height: 1.35em;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -1530,4 +1529,425 @@ mat-icon { overflow: visible; line-height: 1; }
 
   .compact-search.open { width: min(250px, 42vw); }
 
+}
+
+/* Sidebar folder actions + clearer drag target feedback */
+.root-nav-btn.drop-active,
+.folder-tree-entry.drop-active {
+  outline: 2px solid var(--input-border-focus);
+  outline-offset: 2px;
+  background: var(--primary-ring);
+}
+
+.folder-tree-entry {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  border-radius: 12px;
+  padding-left: calc(var(--level, 0) * 1rem);
+  transition: background 0.16s ease, outline-color 0.16s ease, opacity 0.16s ease;
+}
+
+.folder-tree-entry:hover,
+.folder-tree-entry.in-path:not(.active) {
+  background: var(--primary-soft);
+}
+
+.folder-tree-entry.active {
+  color: var(--primary);
+  background: var(--primary-soft-strong);
+  font-weight: 800;
+}
+
+.folder-tree-entry.drop-source,
+.folder-tree-entry.deleting {
+  opacity: 0.58;
+}
+
+.folder-tree-entry .folder-tree-node {
+  min-width: 0;
+  flex: 1 1 auto;
+  padding-left: 0.55rem;
+  background: transparent;
+}
+
+.folder-tree-entry.active .folder-tree-node,
+.folder-tree-entry:hover .folder-tree-node,
+.folder-tree-entry.in-path .folder-tree-node,
+.folder-tree-entry.drop-active .folder-tree-node {
+  background: transparent;
+  color: inherit;
+}
+
+.folder-tree-menu-btn {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  display: grid;
+  place-items: center;
+  opacity: 1;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.folder-tree-menu-btn:hover,
+.folder-tree-menu-btn.open {
+  background: var(--surface-soft);
+}
+
+.folder-tree-menu-btn mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
+.folder-tree-menu {
+  position: fixed;
+  z-index: 1000;
+  min-width: 220px;
+  padding: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-solid);
+  box-shadow: var(--shadow-md);
+  max-height: min(300px, calc(100vh - 24px));
+  overflow-y: auto;
+}
+
+.folder-tree-menu button {
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.65rem;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.folder-tree-menu button:hover {
+  background: var(--primary-soft);
+}
+
+.folder-tree-menu button.danger {
+  color: var(--warn, #b42318);
+}
+
+.folder-tree-menu mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
+/* -----------------------------
+   Responsive collection layout
+-------------------------------- */
+
+@media (max-width: 1100px) {
+  .collection-shell {
+    padding: 1rem;
+  }
+
+  .collection-frame {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+
+  .single-toolbar-row {
+    min-height: auto;
+    flex-wrap: wrap;
+    align-items: stretch;
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .smart-location {
+    flex: 1 1 100%;
+    min-height: 38px;
+  }
+
+  .toolbar-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .compact-search.open {
+    width: min(360px, 100%);
+  }
+
+  .content-grid {
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .collection-shell {
+    padding: 0.75rem;
+  }
+
+  .collection-frame {
+    display: flex;
+    flex-direction: column;
+    min-height: auto;
+    border-radius: 22px;
+  }
+
+  .explorer-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem;
+    max-height: 260px;
+    overflow: auto;
+  }
+
+  .sidebar-brand {
+    padding-bottom: 0.75rem;
+  }
+
+  .school-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  .root-nav-btn,
+  .folder-tree-node {
+    min-height: 40px;
+    padding-block: 0.45rem;
+  }
+
+  .nested-folder-tree {
+    padding-left: 0.75rem;
+  }
+
+  .explorer-main {
+    min-height: 0;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+  }
+
+  .single-toolbar-row {
+    padding: 0.75rem;
+  }
+
+  .current-location {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .current-location::-webkit-scrollbar {
+    display: none;
+  }
+
+  .crumb-pair.middle-pair .crumb-link,
+  .crumb-link.last-crumb {
+    max-width: 150px;
+  }
+
+  .toolbar-actions {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(38px, auto));
+    justify-content: start;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .compact-search {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .compact-search.open {
+    width: 100%;
+  }
+
+  .compact-search input {
+    display: block;
+  }
+
+  .toolbar-pill-btn {
+    padding-inline: 0.65rem;
+  }
+
+  .toolbar-label {
+    display: none;
+  }
+
+  .sort-popup-panel,
+  .create-menu-panel,
+  .filter-popup-panel {
+    position: fixed;
+    left: 0.75rem;
+    right: 0.75rem;
+    top: auto;
+    bottom: 0.75rem;
+    width: auto;
+    max-height: min(70vh, 560px);
+    border-radius: 18px;
+    z-index: 100;
+  }
+
+  .chip-strip {
+    padding: 0.75rem;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+
+  .chip-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .selected-chip {
+    flex: 0 0 auto;
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr;
+    padding: 0.75rem;
+  }
+
+  .content-card {
+    min-height: auto;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    padding: 0.85rem;
+  }
+
+  .card-actions {
+    padding-top: 0.6rem;
+  }
+
+  .item-bottom-bar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .action-buttons {
+    align-self: flex-end;
+  }
+
+  .compact-list {
+    padding: 0.75rem;
+  }
+
+  .compact-row {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .compact-title-wrap {
+    width: 100%;
+  }
+
+  .compact-actions,
+  .compact-actions.item-bottom-bar {
+    width: 100%;
+    flex: 1 1 auto;
+    justify-content: space-between;
+  }
+
+  .compact-actions.item-bottom-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .compact-actions .action-buttons {
+    align-self: flex-end;
+  }
+
+  .item-tags {
+    width: 100%;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .item-tag {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .collection-shell {
+    padding: 0.5rem;
+  }
+
+  .collection-frame {
+    border-radius: 18px;
+  }
+
+  .explorer-sidebar {
+    max-height: 220px;
+  }
+
+  .single-toolbar-row {
+    padding: 0.65rem;
+  }
+
+  .toolbar-actions {
+    grid-template-columns: repeat(4, minmax(38px, auto));
+  }
+
+  .view-toggle {
+    width: auto;
+  }
+
+  .content-grid,
+  .compact-list {
+    padding: 0.65rem;
+  }
+
+  .content-card {
+    gap: 0.65rem;
+  }
+
+  .card-leading {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  .card-leading mat-icon {
+    width: 22px;
+    height: 22px;
+    font-size: 22px;
+  }
+
+  .card-copy strong {
+    font-size: 0.95rem;
+  }
+
+  .card-actions,
+  .action-buttons {
+    gap: 0.05rem;
+  }
+
+  .card-actions button,
+  .compact-actions button {
+    width: 32px;
+    height: 32px;
+  }
+
+  .filter-popup-panel,
+  .sort-popup-panel,
+  .create-menu-panel {
+    left: 0.5rem;
+    right: 0.5rem;
+    bottom: 0.5rem;
+  }
 }

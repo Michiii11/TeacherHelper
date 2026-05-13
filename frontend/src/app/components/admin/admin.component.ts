@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from "@angular/common";
-import { Component, OnDestroy, OnInit, inject } from "@angular/core";
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
@@ -16,6 +16,9 @@ import {
 import { CollectionDTO } from "../../model/Collection";
 import { ExampleOverviewDTO } from "../../model/Example";
 import { TestOverviewDTO } from "../../model/Test";
+import { Subject } from "rxjs";
+import { takeUntil } from "rxjs/operators";
+import {TranslatePipe} from '@ngx-translate/core'
 
 type AdminSortKey = "newest" | "oldest" | "lastActive" | "nameAsc" | "nameDesc";
 type CollectionSortKey =
@@ -81,6 +84,11 @@ interface AdminUserDetailDTO {
   collections: CollectionDTO[];
 }
 
+interface AvatarUser {
+  id: string;
+  profileImageUrl?: string | null;
+}
+
 @Component({
   selector: "app-admin",
   standalone: true,
@@ -100,6 +108,11 @@ export class AdminComponent implements OnInit, OnDestroy {
   private readonly navbarActions = inject(NavbarActionsService);
   private readonly snack = inject(MatSnackBar);
   private readonly service = inject(HttpService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly destroy$ = new Subject<void>();
+
+  private avatarUrls = new Map<string, string>();
+  private loadingAvatarIds = new Set<string>();
 
   readonly userStatCards: StatCardConfig[] = [
     { label: "User gesamt", key: "amountUsers", toneClass: "tone-users" },
@@ -169,6 +182,9 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.navbarActions.clearAll();
+    this.revokeAvatarUrls();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get visibleUsers(): AdminUserDashboardDTO[] {
@@ -201,6 +217,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.service.getAdminDashboard().subscribe({
       next: (data) => {
         this.dash = this.normalizeDashboard(data);
+        this.loadDashboardAvatars();
 
         if (
           this.selectedUserId &&
@@ -243,6 +260,8 @@ export class AdminComponent implements OnInit, OnDestroy {
           id: dto.id ?? user.id,
           collections: collections.map((collection) => this.normalizeCollection(collection)),
         };
+
+        this.loadSelectedUserCollectionAvatars();
       },
       error: () => {
         if (this.selectedUserId === user.id) {
@@ -292,6 +311,14 @@ export class AdminComponent implements OnInit, OnDestroy {
   getUserInitials(username: string): string {
     const normalized = username?.trim();
     return normalized ? normalized.slice(0, 2).toUpperCase() : "--";
+  }
+
+  getAvatarUrl(user: AvatarUser | null | undefined): string | null {
+    if (!user?.profileImageUrl) {
+      return null;
+    }
+
+    return this.avatarUrls.get(user.id) ?? null;
   }
 
   getLastActiveLabel(value: string): string {
@@ -374,6 +401,64 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   trackByTest(index: number, test: TestOverviewDTO): string {
     return test.id ?? `${this.getTestTitle(test)}-${index}`;
+  }
+
+  private loadDashboardAvatars(): void {
+    this.dash.users.forEach((user) => this.loadAvatar(user));
+  }
+
+  private loadSelectedUserCollectionAvatars(): void {
+    this.selectedUserDTO.collections.forEach((collection) => {
+      collection.members?.forEach((member) => this.loadAvatar(member));
+    });
+  }
+
+  private loadAvatar(user: AvatarUser | null | undefined): void {
+    if (!user?.profileImageUrl) {
+      return;
+    }
+
+    const userId = user.id;
+
+    if (this.loadingAvatarIds.has(userId)) {
+      return;
+    }
+
+    this.loadingAvatarIds.add(userId);
+
+    this.service
+      .getProfileImage(userId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob) => {
+          this.revokeAvatarUrl(userId);
+          this.avatarUrls.set(userId, URL.createObjectURL(blob));
+          this.loadingAvatarIds.delete(userId);
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.revokeAvatarUrl(userId);
+          this.loadingAvatarIds.delete(userId);
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  private revokeAvatarUrl(userId: string): void {
+    const url = this.avatarUrls.get(userId);
+
+    if (url) {
+      URL.revokeObjectURL(url);
+      this.avatarUrls.delete(userId);
+    }
+
+    this.loadingAvatarIds.delete(userId);
+  }
+
+  private revokeAvatarUrls(): void {
+    this.avatarUrls.forEach((url) => URL.revokeObjectURL(url));
+    this.avatarUrls.clear();
+    this.loadingAvatarIds.clear();
   }
 
   private get normalizedSearch(): string {

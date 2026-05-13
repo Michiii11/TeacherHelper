@@ -63,6 +63,18 @@
           }
         </div>
 
+        @if (!(auth0.isAuthenticated$ | async)) {
+          <button mat-stroked-button type="button" class="navbar-auth-btn" (click)="login()">
+            <mat-icon>login</mat-icon>
+            Login
+          </button>
+
+          <button mat-flat-button color="primary" type="button" class="navbar-auth-btn" (click)="register()">
+            <mat-icon>person_add</mat-icon>
+            Registrieren
+          </button>
+        }
+
         <mat-divider class="navbar-divider" [vertical]="true"></mat-divider>
 
         <button mat-icon-button class="icon-btn" routerLink="/help">
@@ -90,8 +102,127 @@
           }
         </button>
       </nav>
+
+      <button
+        mat-icon-button
+        type="button"
+        class="mobile-menu-trigger"
+        [matMenuTriggerFor]="mobileNavMenu"
+        aria-label="Navigation öffnen">
+        <mat-icon>menu</mat-icon>
+      </button>
     </div>
   </mat-toolbar>
+
+
+  <mat-menu #mobileNavMenu="matMenu" class="mobile-nav-menu">
+    <div class="mobile-nav-panel">
+      <div class="mobile-nav-section mobile-nav-breadcrumbs">
+        <button mat-icon-button routerLink="/home" class="mobile-home-btn">
+          <mat-icon>home</mat-icon>
+        </button>
+
+        @for (crumb of breadcrumbs; track crumb.route || crumb.labelKey || crumb.label || $index) {
+          <div>/</div>
+
+          <a
+            mat-button
+            [routerLink]="crumb.route"
+            routerLinkActive="active-link"
+            [routerLinkActiveOptions]="{ exact: true }">
+            {{ crumb.labelKey ? (crumb.labelKey | translate) : crumb.label }}
+          </a>
+        }
+      </div>
+
+      @if (navbarActions.length > 0) {
+        <div class="mobile-nav-section mobile-nav-actions">
+          @for (action of navbarActions; track action.labelKey || action.label || $index) {
+            @if (action.variant === 'icon') {
+              <button
+                mat-icon-button
+                type="button"
+                class="navbar-action-btn"
+                [disabled]="!!action.disabled"
+                (click)="handleNavbarAction(action)">
+                <mat-icon>{{ action.icon }}</mat-icon>
+              </button>
+            } @else if (action.variant === 'stroked') {
+              <button
+                mat-stroked-button
+                type="button"
+                class="navbar-action-btn"
+                [disabled]="!!action.disabled"
+                (click)="handleNavbarAction(action)">
+                @if (action.icon) {
+                  <mat-icon>{{ action.icon }}</mat-icon>
+                }
+                {{ action.labelKey ? (action.labelKey | translate) : action.label }}
+              </button>
+            } @else {
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                class="navbar-action-btn"
+                [disabled]="!!action.disabled"
+                (click)="handleNavbarAction(action)">
+                @if (action.icon) {
+                  <mat-icon>{{ action.icon }}</mat-icon>
+                }
+                {{ action.labelKey ? (action.labelKey | translate) : action.label }}
+              </button>
+            }
+          }
+        </div>
+      }
+
+      @if (!(auth0.isAuthenticated$ | async)) {
+        <div class="mobile-nav-section mobile-nav-auth">
+          <button mat-stroked-button type="button" class="navbar-auth-btn" (click)="login()">
+            <mat-icon>login</mat-icon>
+            Login
+          </button>
+
+          <button mat-flat-button color="primary" type="button" class="navbar-auth-btn" (click)="register()">
+            <mat-icon>person_add</mat-icon>
+            Registrieren
+          </button>
+        </div>
+      }
+
+      <div class="mobile-nav-section mobile-nav-links">
+        <button mat-menu-item routerLink="/help">
+          <mat-icon>help</mat-icon>
+          <span>Hilfe</span>
+        </button>
+
+        @if (adminVisible) {
+          <button mat-menu-item routerLink="/admin">
+            <mat-icon>dashboard</mat-icon>
+            <span>Admin</span>
+          </button>
+        }
+
+        <button mat-menu-item [matMenuTriggerFor]="notifMenu">
+          <mat-icon>notifications</mat-icon>
+          <span>Benachrichtigungen</span>
+          @if (unreadCount > 0) {
+            <span class="mobile-notif-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+          }
+        </button>
+
+        <button mat-menu-item routerLink="/profile">
+          @if (getAvatarUrl()) {
+            <img class="mobile-avatar-image" [src]="getAvatarUrl()!" alt="Profilbild">
+          } @else {
+            <div class="mobile-avatar-circle">{{ getInitials() }}</div>
+          }
+          <span>Profil</span>
+        </button>
+      </div>
+    </div>
+  </mat-menu>
 
   <mat-menu #notifMenu="matMenu" class="notif-menu">
     <div class="notif-panel" (click)="$event.stopPropagation()">

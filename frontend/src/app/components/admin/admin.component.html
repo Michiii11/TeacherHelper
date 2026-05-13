@@ -91,8 +91,16 @@
               (click)="selectUser(user)"
             >
               <div class="user-card-top">
-                <div class="avatar-tile">
-                  {{ getUserInitials(user.username) }}
+                <div class="avatar">
+                  @if (getAvatarUrl(user); as avatarUrl) {
+                    <img
+                      class="avatar-image"
+                      [src]="avatarUrl"
+                      [alt]="user.username"
+                    >
+                  } @else {
+                    <div class="avatar-circle">{{ getUserInitials(user.username) }}</div>
+                  }
                 </div>
 
                 <div class="user-main">
@@ -143,7 +151,17 @@
       @if (selectedUser; as user) {
         <div class="detail-header">
           <div class="detail-title-row">
-            <div class="avatar-lg">{{ getUserInitials(user.username) }}</div>
+            <div class="avatar">
+              @if (getAvatarUrl(user); as avatarUrl) {
+                <img
+                  class="avatar-image"
+                  [src]="avatarUrl"
+                  [alt]="user.username"
+                >
+              } @else {
+                <div class="avatar-circle">{{ getUserInitials(user.username) }}</div>
+              }
+            </div>
 
             <div>
               <h2>{{ user.username }}</h2>
@@ -247,7 +265,19 @@
                         @if (getCollectionMembers(collection).length) {
                           <div class="detail-item-list">
                             @for (member of getCollectionMembers(collection); track trackByMember($index, member)) {
-                              <div class="detail-item">
+                              <div class="detail-item member-detail-item">
+                                <div class="avatar member-avatar">
+                                  @if (getAvatarUrl(member); as avatarUrl) {
+                                    <img
+                                      class="avatar-image"
+                                      [src]="avatarUrl"
+                                      [alt]="member.username"
+                                    >
+                                  } @else {
+                                    <div class="avatar-circle">{{ getUserInitials(member.username) }}</div>
+                                  }
+                                </div>
+
                                 <div class="detail-item-main">
                                   <span class="detail-item-title">{{ member.username }}</span>
                                   <span class="detail-item-sub">#{{ member.id }}</span>

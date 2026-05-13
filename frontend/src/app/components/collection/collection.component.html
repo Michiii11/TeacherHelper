@@ -9,10 +9,10 @@
 } @else {
   <main class="collection-shell" [attr.aria-label]="'collection.dashboardAria' | translate">
     <section class="collection-frame">
-      <aside class="explorer-sidebar" aria-label="Ordnernavigation">
+      <aside class="explorer-sidebar" [attr.aria-label]="'collection.folderNavigationAria' | translate">
         <div class="sidebar-brand">
           @if (logoUrl) {
-            <img [src]="logoUrl" alt="{{ school.name }} Logo" class="school-avatar" />
+            <img [src]="logoUrl" [alt]="'collection.schoolLogoAlt' | translate:{ name: school.name }" class="school-avatar" />
           } @else {
             <div class="school-avatar fallback-avatar"><mat-icon>school</mat-icon></div>
           }
@@ -25,6 +25,7 @@
           type="button"
           class="root-nav-btn"
           [class.active]="!selectedFolderId && !isSearching"
+          [class.drop-active]="dropTarget === 'root'"
           (click)="selectFolder(null)"
           (dragover)="allowDrop($event, 'root')"
           (dragleave)="onDropLeave($event, 'root')"
@@ -34,28 +35,69 @@
           <span>{{ 'collection.root' | translate }}</span>
         </button>
 
-        <nav class="folder-tree nested-folder-tree" aria-label="Ordnerbaum">
+        <nav class="folder-tree nested-folder-tree" [attr.aria-label]="'collection.folderTreeAria' | translate">
           @for (folder of folderNavNodes; track folder.id) {
-            <button
-              type="button"
-              class="folder-tree-node"
+            <div
+              class="folder-tree-entry"
               [class.active]="selectedFolderId === folder.id && !isSearching"
               [class.in-path]="isFolderInCurrentPath(folder.id)"
               [class.drop-active]="dropTarget === 'folder-' + folder.id"
               [class.drop-source]="draggedFolder?.folderId === folder.id"
               [class.deleting]="isDeletingFolder(folder.id)"
               [style.--level]="folder.depth"
-              [attr.draggable]="!isDeletingFolder(folder.id)"
-              (click)="openFolder(folder)"
-              (dragstart)="!isDeletingFolder(folder.id) && onFolderDragStart(folder, $event)"
-              (dragend)="onFolderDragEnd()"
               (dragover)="allowDrop($event, 'folder-' + folder.id)"
               (dragleave)="onDropLeave($event, 'folder-' + folder.id)"
               (drop)="onDropToFolder($event, folder.id)"
             >
-              <mat-icon>folder</mat-icon>
-              <span class="tree-name">{{ folder.name }}</span>
-            </button>
+              <button
+                type="button"
+                class="folder-tree-node"
+                [attr.draggable]="!isDeletingFolder(folder.id)"
+                (click)="openFolder(folder)"
+                (dragstart)="!isDeletingFolder(folder.id) && onFolderDragStart(folder, $event)"
+                (dragend)="onFolderDragEnd()"
+              >
+                <mat-icon>folder</mat-icon>
+                <span class="tree-name">{{ folder.name }}</span>
+              </button>
+
+              <button
+                type="button"
+                class="folder-tree-menu-btn"
+                [class.open]="activeFolderMenuId === folder.id"
+                [disabled]="isDeletingFolder(folder.id)"
+                (click)="toggleFolderMenu(folder, $event)"
+                [attr.aria-label]="'collection.folderOptionsAria' | translate"
+              >
+                <mat-icon>more_vert</mat-icon>
+              </button>
+
+              @if (activeFolderMenuId === folder.id && activeFolderMenuPosition) {
+                <div
+                  class="folder-tree-menu"
+                  [style.top.px]="activeFolderMenuPosition.top"
+                  [style.left.px]="activeFolderMenuPosition.left"
+                  (click)="stopClick($event)"
+                >
+                  <button type="button" (click)="renameFolderFromMenu(folder, $event)">
+                    <mat-icon>edit</mat-icon>
+                    <span>{{ 'common.rename' | translate }}</span>
+                  </button>
+                  <button type="button" (click)="moveFolderFromMenu(folder, $event)">
+                    <mat-icon>drive_file_move</mat-icon>
+                    <span>{{ 'common.move' | translate }}</span>
+                  </button>
+                  <button type="button" (click)="createSubFolderFromMenu(folder, $event)">
+                    <mat-icon>create_new_folder</mat-icon>
+                    <span>{{ 'collection.addSubfolder' | translate }}</span>
+                  </button>
+                  <button type="button" class="danger" (click)="deleteFolderFromMenu(folder, $event)">
+                    <mat-icon>delete</mat-icon>
+                    <span>{{ 'common.delete' | translate }}</span>
+                  </button>
+                </div>
+              }
+            </div>
           }
         </nav>
       </aside>
@@ -194,11 +236,11 @@
 
                 @if (isSortPopupOpen) {
                   <div class="sort-popup-panel">
-                    <button type="button" class="sort-option" [class.checked]="sort === 'nameAsc'" (click)="setSort('nameAsc')"><span>Name A–Z</span><mat-icon>check</mat-icon></button>
-                    <button type="button" class="sort-option" [class.checked]="sort === 'nameDesc'" (click)="setSort('nameDesc')"><span>Name Z–A</span><mat-icon>check</mat-icon></button>
+                    <button type="button" class="sort-option" [class.checked]="sort === 'nameAsc'" (click)="setSort('nameAsc')"><span>{{ 'collection.sort.nameAsc' | translate }}</span><mat-icon>check</mat-icon></button>
+                    <button type="button" class="sort-option" [class.checked]="sort === 'nameDesc'" (click)="setSort('nameDesc')"><span>{{ 'collection.sort.nameDesc' | translate }}</span><mat-icon>check</mat-icon></button>
                     <button type="button" class="sort-option" [class.checked]="sort === 'createdDesc'" (click)="setSort('createdDesc')"><span>{{ 'collection.sort.updatedDesc' | translate }}</span><mat-icon>check</mat-icon></button>
                     <button type="button" class="sort-option" [class.checked]="sort === 'createdAsc'" (click)="setSort('createdAsc')"><span>{{ 'collection.sort.updatedAsc' | translate }}</span><mat-icon>check</mat-icon></button>
-                    <button type="button" class="sort-option" [class.checked]="sort === 'authorAsc'" (click)="setSort('authorAsc')"><span>Autor A–Z</span><mat-icon>check</mat-icon></button>
+                    <button type="button" class="sort-option" [class.checked]="sort === 'authorAsc'" (click)="setSort('authorAsc')"><span>{{ 'collection.sort.authorAsc' | translate }}</span><mat-icon>check</mat-icon></button>
                   </div>
                 }
               </div>
@@ -293,7 +335,7 @@
                 [class.drop-source]="draggedItem?.type === item.type && draggedItem?.itemId === item.id"
                 [class.deleting]="isDeletingItem(item)"
                 [attr.draggable]="canManageItem(item) && !isDeletingItem(item)"
-                (dragstart)="canManageItem(item) && !isDeletingItem(item) && onItemDragStart(item.type, item.id)"
+                (dragstart)="canManageItem(item) && !isDeletingItem(item) && onItemDragStart(item.type, item.id, $event)"
                 (dragend)="onItemDragEnd()"
                 (click)="editItem(item)"
               >
@@ -303,7 +345,7 @@
                   <span>{{ getItemMeta(item) }}</span>
                 </div>
                 <div class="card-actions item-bottom-bar" (click)="$event.stopPropagation()">
-                  <div class="item-tags" aria-label="Tags">
+                  <div class="item-tags" [attr.aria-label]="'collection.tagsAria' | translate">
                     @for (tag of getItemTags(item); track tag) {
                       <span class="item-tag">{{ tag }}</span>
                     }
@@ -378,9 +420,9 @@
                 [class.drop-source]="draggedItem?.type === item.type && draggedItem?.itemId === item.id"
                 [class.deleting]="isDeletingItem(item)"
                 [attr.draggable]="canManageItem(item) && !isDeletingItem(item)"
-                (dragstart)="canManageItem(item) && !isDeletingItem(item) && onItemDragStart(item.type, item.id)"
+                (dragstart)="canManageItem(item) && !isDeletingItem(item) && onItemDragStart(item.type, item.id, $event)"
                 (dragend)="onItemDragEnd()"
-                (click)="openItem(item)"
+                (click)="editItem(item)"
               >
                 <div class="compact-title-wrap">
                   <mat-icon class="compact-icon item">{{ getItemIcon(item) }}</mat-icon>
@@ -390,7 +432,7 @@
                   </div>
                 </div>
                 <div class="compact-actions item-bottom-bar" (click)="$event.stopPropagation()">
-                  <div class="item-tags" aria-label="Tags">
+                  <div class="item-tags" [attr.aria-label]="'collection.tagsAria' | translate">
                     @for (tag of getItemTags(item); track tag) {
                       <span class="item-tag"><mat-icon>sell</mat-icon>{{ tag }}</span>
                     }

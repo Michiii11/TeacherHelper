@@ -69,7 +69,7 @@ export type TestPrintOptions = {
 export class TestPrintService {
   private readonly previewRenderer = inject(ExamplePreviewRendererService);
   private readonly defaultImageWidth = 320;
-  private readonly variablePattern = /\{([a-zA-Z_][a-zA-Z0-9_-]*)\}/g;
+  private readonly variablePattern = /\[\[([a-zA-Z_][a-zA-Z0-9_-]*)\]\]/g;
 
   buildPreviewHtml(test: PrintableTest, selectedExamples: TestExampleDTO[], options: TestPrintOptions): string {
     return `

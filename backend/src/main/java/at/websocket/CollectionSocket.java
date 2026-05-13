@@ -1,8 +1,6 @@
 package at.websocket;
 
-import at.security.TokenService;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnError;
@@ -12,8 +10,6 @@ import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
 
 import java.io.IOException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -25,31 +21,8 @@ public class CollectionSocket {
 
     private static final Map<UUID, Set<Session>> sessionsByCollection = new ConcurrentHashMap<>();
 
-    @Inject
-    TokenService tokenService;
-
     @OnOpen
     public void onOpen(Session session, @PathParam("collectionId") String rawCollectionId) throws IOException {
-        String token = extractToken(session.getQueryString());
-
-        if (token == null || token.isBlank()) {
-            session.close(new CloseReason(
-                    CloseReason.CloseCodes.VIOLATED_POLICY,
-                    "Missing token"
-            ));
-            return;
-        }
-
-        UUID userId = tokenService.validateTokenAndGetUserId(token);
-
-        if (userId == null) {
-            session.close(new CloseReason(
-                    CloseReason.CloseCodes.VIOLATED_POLICY,
-                    "Invalid token"
-            ));
-            return;
-        }
-
         UUID collectionId;
 
         try {
@@ -62,7 +35,6 @@ public class CollectionSocket {
             return;
         }
 
-        session.getUserProperties().put("userId", userId);
         session.getUserProperties().put("collectionId", collectionId);
 
         sessionsByCollection
@@ -82,11 +54,6 @@ public class CollectionSocket {
         }
 
         removeSession(session);
-
-        try {
-            session.close();
-        } catch (Exception ignored) {
-        }
     }
 
     public static void broadcast(UUID collectionId) {
@@ -130,23 +97,5 @@ public class CollectionSocket {
         if (sessions.isEmpty()) {
             sessionsByCollection.remove(collectionId);
         }
-    }
-
-    private String extractToken(String queryString) {
-        if (queryString == null || queryString.isBlank()) {
-            return null;
-        }
-
-        String[] pairs = queryString.split("&");
-
-        for (String pair : pairs) {
-            String[] kv = pair.split("=", 2);
-
-            if (kv.length == 2 && "token".equals(kv[0])) {
-                return URLDecoder.decode(kv[1], StandardCharsets.UTF_8);
-            }
-        }
-
-        return null;
     }
 }

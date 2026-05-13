@@ -346,8 +346,108 @@
   border-color: rgba(239, 68, 68, 0.2);
 }
 
+.eyebrow {
+  margin: 0 0 0.25rem;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .danger-panel {
-  border-color: rgba(239, 68, 68, 0.16);
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(239, 68, 68, 0.2);
+  background:
+    radial-gradient(circle at top right, rgba(239, 68, 68, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(254, 242, 242, 0.72), var(--bg-soft));
+}
+
+.danger-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: linear-gradient(180deg, #ef4444, #991b1b);
+}
+
+.danger-panel-content {
+  position: relative;
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.danger-icon-shell {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.18);
+}
+
+.danger-icon-shell mat-icon {
+  width: 28px;
+  height: 28px;
+  font-size: 28px;
+}
+
+.danger-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.danger-header,
+.danger-body {
+  padding: 0;
+  border: 0;
+}
+
+.danger-eyebrow,
+.danger-title mat-icon {
+  color: #b91c1c;
+}
+
+.danger-title {
+  color: var(--text);
+}
+
+.danger-subtitle {
+  max-width: 52ch;
+  line-height: 1.5;
+}
+
+.danger-body {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.danger-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 42px;
+  padding: 0.65rem 0.8rem;
+  border-radius: 14px;
+  color: #7f1d1d;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(239, 68, 68, 0.18);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.danger-note mat-icon {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
 }
 
 .plan-grid {
@@ -416,35 +516,15 @@
   color: var(--success-2);
 }
 
-.danger-panel.compact {
-  padding: 1.2rem;
-  border: 1px solid rgba(255, 0, 0, 0.2);
-  background: rgba(255, 0, 0, 0.03);
-}
-
 .mat-mdc-unelevated-button[disabled]{
   color: var(--text-soft);
   border: 1px solid var(--border-soft-2);
 }
 
-.compact-header {
-  margin-bottom: 0.5rem;
-}
-
-.compact-body {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.compact-field {
-  flex: 1;
-  min-width: 200px;
-}
-
 .danger-btn {
+  min-height: 44px;
   white-space: nowrap;
+  box-shadow: 0 12px 24px rgba(185, 28, 28, 0.18);
 }
 
 @media (max-width: 1080px) {
@@ -473,7 +553,9 @@
   .form-actions,
   .header-actions,
   .setting-card,
-  .setting-language-card {
+  .setting-language-card,
+  .danger-panel-content,
+  .danger-body {
     flex-direction: column;
     align-items: stretch;
   }
@@ -528,4 +610,17 @@
 
 .school-loading-card mat-progress-bar {
   width: 100%;
+}
+
+@media (prefers-color-scheme: dark) {
+  .danger-panel {
+    background:
+      radial-gradient(circle at top right, rgba(239, 68, 68, 0.16), transparent 34%),
+      linear-gradient(180deg, rgba(127, 29, 29, 0.18), var(--bg-soft));
+  }
+
+  .danger-note {
+    background: rgba(127, 29, 29, 0.16);
+    color: #fecaca;
+  }
 }

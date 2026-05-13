@@ -118,26 +118,14 @@ export class HomeComponent implements OnInit, OnDestroy {
       maxWidth: '92vw',
     });
 
-    dialogRef.afterClosed().subscribe(schoolName => {
-      const trimmedName = typeof schoolName === 'string' ? schoolName.trim() : '';
-      if (!trimmedName) return;
+    dialogRef.afterClosed().subscribe((createdCollection?: CollectionDTO | { id: string } | false) => {
+      const createdId = this.getCreatedCollectionId(createdCollection);
 
-      this.http.addCollection(trimmedName).subscribe({
-        next: (response: string | CollectionDTO | { id?: string | number; collectionId?: string | number }) => {
-          const createdId = this.getCreatedCollectionId(response);
+      if (!createdId) {
+        return;
+      }
 
-          if (!createdId) {
-            console.error('Collection wurde erstellt, aber keine ID wurde zurückgegeben:', response);
-            this.loadSchools();
-            return;
-          }
-
-          this.router.navigate(['/collection', createdId]);
-        },
-        error: (err) => {
-          console.error('Fehler beim Hinzufügen:', err?.error ?? err);
-        }
-      });
+      this.router.navigate(['/collection', createdId]);
     });
   }
 
@@ -175,8 +163,8 @@ export class HomeComponent implements OnInit, OnDestroy {
       .join('');
   }
 
-  getSchoolRoleLabel(school: CollectionDTO): string {
-    return this.isAdminSchool(school, this.userId) ? 'Admin' : 'Mitglied';
+  getSchoolRoleLabelKey(school: CollectionDTO): string {
+    return this.isAdminSchool(school, this.userId) ? 'home.roles.admin' : 'home.roles.member';
   }
 
   getRoleBadgeClass(school: CollectionDTO): string {

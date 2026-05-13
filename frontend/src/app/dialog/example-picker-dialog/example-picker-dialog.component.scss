@@ -586,13 +586,13 @@ mat-dialog-actions {
 }
 
 .picker-row {
-  min-height: 92px;
+  min-height: 74px;
   display: grid;
   grid-template-columns: auto minmax(150px, 0.48fr) minmax(230px, 1fr) auto;
   align-items: center;
   gap: 0.78rem;
   margin-top: 0.25rem;
-  padding: 0.78rem 0.9rem;
+  padding: 0.6rem 0.85rem;
   border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
   border-radius: 16px;
   background: color-mix(in srgb, var(--surface) 86%, transparent);
@@ -658,13 +658,8 @@ mat-dialog-actions {
   justify-content: flex-start;
   gap: 0.55rem;
 
-  strong {
-    min-width: 0;
-    overflow: hidden;
-    font-size: 1.08rem;
-    line-height: 1.24;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .rendered-preview-title {
+    flex: 1 1 auto;
   }
 }
 
@@ -862,4 +857,41 @@ mat-dialog-actions {
     border-right: 0;
     border-bottom: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
   }
+}
+
+
+.rendered-preview-text {
+  min-width: 0;
+  display: block;
+  overflow: hidden;
+  line-height: 1.28;
+}
+
+.rendered-preview-title {
+  max-height: calc(1.28em * 2);
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.rendered-preview-description {
+  max-height: calc(1.32em * 2);
+  font-size: 0.84rem;
+  line-height: 1.32;
+}
+
+:host ::ng-deep .rendered-preview-text :is(p, ul, ol, blockquote, pre) {
+  margin: 0;
+}
+
+:host ::ng-deep .rendered-preview-text :is(ul, ol) {
+  padding-left: 1.1rem;
+}
+
+:host ::ng-deep .rendered-preview-text :is(math, .katex, .katex-display) {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+:host ::ng-deep .rendered-preview-text .katex-display {
+  margin: 0;
 }

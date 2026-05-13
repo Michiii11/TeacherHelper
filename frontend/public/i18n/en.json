@@ -13,7 +13,9 @@
     "create": "Create",
     "filter": "Filter",
     "type": "Type",
-    "sort": "Sort"
+    "sort": "Sort",
+    "rename": "Rename",
+    "move": "Move"
   },
   "profile": {
     "title": "Profile",
@@ -53,7 +55,9 @@
     "pendingEmailConfirmation": "Pending email confirmation:",
     "publicInfoUsername": "Username is publicly visible",
     "publicInfoAvatar": "Profile picture is publicly visible",
-    "allowInvitationsDesc": "Other users can invite you to collections"
+    "allowInvitationsDesc": "Other users can invite you to collections",
+    "dangerZoneEyebrow": "Critical area",
+    "deleteAccountWarning": "This action permanently deletes your profile. Please make sure you have saved all important data before continuing."
   },
   "languages": {
     "de": "Deutsch",
@@ -117,7 +121,10 @@
       "message": "Do you really want to delete the exercise “{{name}}”?",
       "usedInTests": "This exercise is used in the following tests:",
       "confirmationText": "I confirm that this exercise should be deleted."
-    }
+    },
+    "collectionNameExists": "This name is already taken.",
+    "collectionNameEmpty": "Please enter a name.",
+    "collectionCreateError": "The collection could not be created. Please try again."
   },
   "navbar": {
     "home": "Collections",
@@ -185,35 +192,41 @@
     }
   },
   "home": {
-    "title": "My Schools",
-    "subtitle": "Here you see where you are an admin and where you are a member.",
-    "createSchool": "New School",
+    "title": "My Collections",
+    "subtitle": "Here you can see at a glance where you are an admin and where you are a member.",
+    "createSchool": "New Collection",
     "labels": {
       "admin": "Admin",
-      "exercises": "Exercises"
+      "exercises": "Exercises",
+      "examples": "Exercises"
     },
     "actions": {
-      "openSchool": "Open school",
+      "openSchool": "Open collection",
       "sendRequest": "Send request",
       "join": "Join"
     },
     "adminSection": {
-      "title": "Schools you manage",
-      "subtitle": "You are registered here as an admin.",
-      "empty": "You are currently not registered as an admin at any school."
+      "title": "Collections you manage",
+      "subtitle": "You are listed as an admin here.",
+      "empty": "You are currently not listed as an admin in any collection."
     },
     "memberSection": {
-      "title": "Schools where you are a member",
+      "title": "Collections where you are a member",
       "subtitle": "You have access, but you are not an admin.",
-      "empty": "You are currently not a member of any other school."
+      "empty": "You are currently not a member of any other collection."
     },
     "discoverSection": {
-      "title": "Discover more schools",
-      "subtitle": "Search for schools and send a join request.",
-      "empty": "No further schools found."
+      "title": "Discover more collections",
+      "subtitle": "Search for collections and send a join request.",
+      "empty": "No further collections found."
     },
     "search": {
-      "label": "Search school"
+      "label": "Search collection"
+    },
+    "logoAlt": "Logo of {{name}}",
+    "roles": {
+      "admin": "Admin",
+      "member": "Member"
     }
   },
   "landing": {
@@ -230,7 +243,8 @@
     },
     "features": {
       "eyebrow": "Features",
-      "title": "The essentials for your collection"
+      "title": "The essentials for your collection",
+      "text": "The landing page presents your core features like a modern SaaS page: clear cards, generous spacing and soft shapes."
     },
     "featureCards": {
       "collections": {
@@ -251,7 +265,7 @@
       },
       "print": {
         "title": "Ready to print",
-        "text": "Prepare tests so they can be printed or exported in a clear layout."
+        "text": "Prepare tests so they can be printed in a clear layout."
       },
       "cloud": {
         "title": "Cloud based",
@@ -260,7 +274,10 @@
     },
     "pricing": {
       "eyebrow": "Plans",
-      "title": "Choose what fits your workflow"
+      "title": "Choose what fits your workflow",
+      "text": "Start small and upgrade later when you need more collections, exercises or team features.",
+      "choose": "Choose plan",
+      "selected": "Selected"
     },
     "plans": {
       "free": {
@@ -282,9 +299,54 @@
         "f2": "∞ exercises",
         "f3": "∞ tests"
       }
+    },
+    "nav": {
+      "features": "Features",
+      "benefits": "Benefits",
+      "pricing": "Pricing"
+    },
+    "workflow": {
+      "eyebrow": "Workflow",
+      "title": "From idea to finished test",
+      "text": "TeacherHelper brings your material into one clear flow: collect, adapt and reuse.",
+      "s1": {
+        "title": "Collect",
+        "text": "Store exercises in collections, folders and tags in a structured way."
+      },
+      "s2": {
+        "title": "Adapt",
+        "text": "Use variables, Markdown and LaTeX to create variations quickly."
+      },
+      "s3": {
+        "title": "Use",
+        "text": "Build tests from them, print them or collaborate with your team."
+      }
+    },
+    "benefits": {
+      "eyebrow": "Why TeacherHelper",
+      "title": "More structure, less searching",
+      "text": "Instead of rebuilding your material every time, your exercises are stored centrally, reusable and ready for tests.",
+      "artTitle": "Ready for class",
+      "artText": "Collect exercises, build tests and keep teaching material organized.",
+      "b1": "Create tests faster from existing exercises",
+      "b2": "Structure content cleanly with folders and tags",
+      "b3": "Prepare flexible variants with variables",
+      "b4": "Collaborate with other teachers"
+    },
+    "stats": {
+      "examples": "exercises in Free",
+      "tests": "tests to start",
+      "ideas": "possibilities with variables",
+      "cloud": "available online"
+    },
+    "cta": {
+      "eyebrow": "Get started",
+      "title": "Build your teaching collection",
+      "text": "Start with one collection, organize your best exercises and turn them into clean tests faster."
     }
   },
   "collection": {
+    "addSubfolder": "Add subfolder",
     "dashboardAria": "School dashboard",
     "logoAlt": "School logo",
     "admin": "Admin",
@@ -926,23 +988,31 @@
     "startTutorial": "Start tutorial",
     "docs": {
       "kicker": "Quick overview",
-      "headline": "The important parts at a glance",
-      "subline": "No giant manual — just what actually matters in daily use.",
+      "headline": "The key features at a glance",
+      "subline": "The overview shows how TeacherHelper helps you collect, adapt, collaborate, and print your teaching material.",
       "collections": {
-        "title": "Collection system",
-        "text": "Collections give you one clear place for tasks, tests, and shared content, so everything stays organized instead of being scattered around."
+        "title": "Collections, folders & tags",
+        "text": "Collect exercises and tests in shared collections. Use folders and tags to structure your files so you can find them again quickly later."
       },
-      "exercisesTests": {
-        "title": "Exercises & tests",
-        "text": "Create strong exercises once, reuse them later, and turn them into new tests quickly — that is exactly what TeacherHelper is for."
+      "variables": {
+        "title": "Flexible variables",
+        "text": "Add variables directly to exercises and adjust their values later for each test. This turns one exercise into a new variation quickly."
       },
-      "searchFilter": {
-        "title": "Search & filters",
-        "text": "As your content grows, finding things well becomes essential. Search and filters help you get back to exactly what you need much faster."
+      "editor": {
+        "title": "LaTeX & Markdown",
+        "text": "Use built-in LaTeX and Markdown features to format formulas, highlights, lists, and clean task descriptions directly in the editor."
       },
-      "invites": {
-        "title": "Cooperation & teamwork",
-        "text": "Invite members and manage your tasks and tests together in one shared collection."
+      "team": {
+        "title": "Teacher collaboration",
+        "text": "Work together with other teachers in shared collections. Content can be created, expanded, and reused for tests collaboratively."
+      },
+      "print": {
+        "title": "Ready to print",
+        "text": "Prepare tests with points, layout, spacing, and optional solutions so they can be printed or exported in a clear format."
+      },
+      "cloud": {
+        "title": "Cloud based",
+        "text": "Your collections are available online. Exercises and tests stay centrally stored and accessible where you need them."
       }
     },
     "changelog": {
@@ -1276,5 +1346,10 @@
       "questionLabel": "Show “Question”",
       "taskImageLabel": "Show “Task image”"
     }
+  },
+  "whatsNew": {
+    "title": "What’s new?",
+    "close": "Close",
+    "openChangelog": "Changelog"
   }
 }

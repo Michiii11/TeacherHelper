@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Component, ElementRef, Inject, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,6 +9,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { ExampleDTO, ExampleTypeLabels, ExampleTypes } from '../../model/Example';
+import { ExamplePreviewRendererService } from '../../service/example-preview-renderer.service';
 
 type ExplorerFolderType = 'examples' | 'tests';
 
@@ -100,7 +102,9 @@ export class ExamplePickerDialogComponent implements OnInit {
   constructor(
     @Inject(MAT_DIALOG_DATA) readonly data: ExamplePickerDialogData,
     private readonly dialogRef: MatDialogRef<ExamplePickerDialogComponent, ExamplePickerDialogResult>,
-    private readonly translate: TranslateService
+    private readonly translate: TranslateService,
+    private readonly sanitizer: DomSanitizer,
+    private readonly previewRenderer: ExamplePreviewRendererService
   ) {}
 
   ngOnInit(): void {
@@ -473,6 +477,20 @@ export class ExamplePickerDialogComponent implements OnInit {
     const description = question && question !== title ? question : instruction && instruction !== title ? instruction : '';
 
     return description;
+  }
+
+
+  getExampleTitleHtml(example: ExampleDTO): SafeHtml {
+    return this.renderPreviewHtml(this.getExampleTitleFull(example), example);
+  }
+
+  getExampleDescriptionHtml(example: ExampleDTO): SafeHtml {
+    return this.renderPreviewHtml(this.getExampleDescriptionFull(example), example);
+  }
+
+  private renderPreviewHtml(value: string | null | undefined, example: ExampleDTO): SafeHtml {
+    const html = this.previewRenderer.renderMathHtml(value, example.variables);
+    return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 
   getTypeIcon(type: ExampleTypes | string | null | undefined): string {

@@ -62,6 +62,7 @@ export interface AdminDashboardDTO {
 export interface AdminUserDashboardDTO {
   id: string;
   username: string;
+  profileImageUrl: string | null;
   createdAt: string;
   lastActive: string;
   collections: number;

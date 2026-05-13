@@ -12,7 +12,6 @@ import at.model.*;
 import at.model.Collection;
 import at.model.helper.ExampleVariable;
 import at.model.helper.GradingLevel;
-import at.security.TokenService;
 import at.websocket.CollectionSocket;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -27,9 +26,6 @@ import java.util.*;
 public class TestRepository {
     @Inject
     EntityManager em;
-
-    @Inject
-    TokenService tokenService;
 
     @Inject
     FolderRepository folderRepository;

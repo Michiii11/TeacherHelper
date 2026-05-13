@@ -13,7 +13,9 @@
     "create": "Erstellen",
     "filter": "Filter",
     "type": "Typ",
-    "sort": "Sortieren"
+    "sort": "Sortieren",
+    "rename": "Umbenennen",
+    "move": "Verschieben"
   },
   "profile": {
     "title": "Profil",
@@ -53,7 +55,9 @@
     "pendingEmailConfirmation": "Offene E-Mail-Bestätigung:",
     "publicInfoUsername": "Benutzername ist öffentlich sichtbar",
     "publicInfoAvatar": "Profilbild ist öffentlich sichtbar",
-    "allowInvitationsDesc": "Andere Nutzer können dich zu Sammlungen einladen"
+    "allowInvitationsDesc": "Andere Nutzer können dich zu Sammlungen einladen",
+    "dangerZoneEyebrow": "Kritischer Bereich",
+    "deleteAccountWarning": "Diese Aktion löscht dein Profil dauerhaft. Bitte prüfe vorher, ob du alle wichtigen Daten gesichert hast."
   },
   "languages": {
     "de": "Deutsch",
@@ -117,7 +121,10 @@
       "message": "Willst du das Beispiel „{{name}}“ wirklich löschen?",
       "usedInTests": "Dieses Beispiel ist in folgenden Tests enthalten:",
       "confirmationText": "Ich bestätige, dass dieses Beispiel gelöscht werden soll."
-    }
+    },
+    "collectionNameExists": "Dieser Name ist bereits vergeben.",
+    "collectionNameEmpty": "Bitte gib einen Namen ein.",
+    "collectionCreateError": "Die Sammlung konnte nicht erstellt werden. Bitte versuche es erneut."
   },
   "navbar": {
     "home": "Sammlungen",
@@ -206,12 +213,17 @@
       "title": "Sammlungen, bei denen du Mitglied bist",
       "subtitle": "Du hast Zugriff, bist aber nicht Admin.",
       "empty": "Du bist aktuell in keiner weiteren Sammlung Mitglied."
+    },
+    "logoAlt": "Logo von {{name}}",
+    "roles": {
+      "admin": "Admin",
+      "member": "Mitglied"
     }
   },
   "landing": {
     "eyebrow": "TeacherHelper",
     "title": "Beispiele. Tests. Ordnung.",
-    "description": "Organisiere Unterrichtsbeispiele in Sammlungen, baue Tests schneller daraus und arbeite bei Bedarf gemeinsam mit anderen Lehrkräften.",
+    "description": "Organisiere Unterrichtsbeispiele in Sammlungen, baue Tests daraus und arbeite gemeinsam mit anderen Lehrkräften.",
     "register": "Registrieren",
     "login": "Login / Registrieren",
     "loginShort": "Login",
@@ -222,7 +234,8 @@
     },
     "features": {
       "eyebrow": "Features",
-      "title": "Alles Wichtige für deine Sammlung"
+      "title": "Alles Wichtige für deine Sammlung",
+      "text": "Die Landing Page zeigt deine Kernfunktionen wie eine moderne SaaS-Seite: klare Karten, viel Weißraum und weiche Formen."
     },
     "featureCards": {
       "collections": {
@@ -243,7 +256,7 @@
       },
       "print": {
         "title": "Ready to Print",
-        "text": "Bereite Tests so vor, dass sie direkt übersichtlich gedruckt oder exportiert werden können."
+        "text": "Bereite Tests so vor, dass sie direkt übersichtlich gedruckt werden können."
       },
       "cloud": {
         "title": "Cloud Based",
@@ -252,7 +265,10 @@
     },
     "pricing": {
       "eyebrow": "Abo-Modelle",
-      "title": "Wähle, was zu dir passt"
+      "title": "Wähle, was zu dir passt",
+      "text": "Starte klein und erweitere später, sobald du mehr Sammlungen, Beispiele oder Team-Funktionen brauchst.",
+      "choose": "Auswählen",
+      "selected": "Ausgewählt"
     },
     "plans": {
       "free": {
@@ -274,9 +290,54 @@
         "f2": "∞ Beispiele",
         "f3": "∞ Tests"
       }
+    },
+    "nav": {
+      "features": "Features",
+      "benefits": "Vorteile",
+      "pricing": "Preise"
+    },
+    "workflow": {
+      "eyebrow": "Workflow",
+      "title": "Von der Idee zum fertigen Test",
+      "text": "TeacherHelper führt deine Inhalte in einem klaren Ablauf zusammen: sammeln, anpassen und wiederverwenden.",
+      "s1": {
+        "title": "Sammeln",
+        "text": "Lege Beispiele in Sammlungen, Ordnern und Tags strukturiert ab."
+      },
+      "s2": {
+        "title": "Anpassen",
+        "text": "Nutze Variablen, Markdown und LaTeX, um Aufgaben schnell zu variieren."
+      },
+      "s3": {
+        "title": "Verwenden",
+        "text": "Baue daraus Tests, drucke sie aus oder arbeite gemeinsam im Team."
+      }
+    },
+    "benefits": {
+      "eyebrow": "Warum TeacherHelper",
+      "title": "Mehr Ordnung, weniger Sucharbeit",
+      "text": "Statt Beispiele jedes Mal neu zusammenzusuchen, liegen sie zentral, wiederverwendbar und für Tests vorbereitet bereit.",
+      "artTitle": "Bereit für den Unterricht",
+      "artText": "Beispiele sammeln, Tests bauen und Materialien sauber organisieren.",
+      "b1": "Schneller Tests aus bestehenden Aufgaben erstellen",
+      "b2": "Inhalte sauber mit Ordnern und Tags strukturieren",
+      "b3": "Varianten mit Variablen flexibel vorbereiten",
+      "b4": "Gemeinsam mit anderen Lehrkräften arbeiten"
+    },
+    "stats": {
+      "examples": "Beispiele im Free-Plan",
+      "tests": "Tests zum Start",
+      "ideas": "Möglichkeiten mit Variablen",
+      "cloud": "online verfügbar"
+    },
+    "cta": {
+      "eyebrow": "Loslegen",
+      "title": "Baue deine Unterrichtssammlung auf",
+      "text": "Starte mit einer Sammlung, sortiere deine besten Beispiele und erstelle daraus schneller saubere Tests."
     }
   },
   "collection": {
+    "addSubfolder": "Unterordner hinzufügen",
     "dashboardAria": "Sammlungsübersicht",
     "logoAlt": "Schullogo",
     "admin": "Admin",
@@ -952,23 +1013,31 @@
     "startTutorial": "Starte Tutorial",
     "docs": {
       "kicker": "Schnell erklärt",
-      "headline": "Die wichtigsten Bereiche auf einen Blick",
-      "subline": "Kein langes Handbuch – nur das, was du im Alltag wirklich brauchst.",
+      "headline": "Die wichtigsten Funktionen auf einen Blick",
+      "subline": "Der Überblick zeigt, wie TeacherHelper dich beim Sammeln, Anpassen, Zusammenarbeiten und Drucken unterstützt.",
       "collections": {
-        "title": "Sammlungssystem",
-        "text": "Sammlungen geben dir einen klaren Ort für Aufgaben, Tests und gemeinsame Inhalte. So bleibt alles sauber organisiert statt irgendwo verteilt zu liegen."
+        "title": "Sammlungen, Ordner & Tags",
+        "text": "Sammle Beispiele und Tests in gemeinsamen Sammlungen. Mit Ordnern und Tags strukturierst du deine Dateien so, dass du sie später schnell wiederfindest."
       },
-      "examplesTests": {
-        "title": "Beispiele & Tests",
-        "text": "Gute Beispiele einmal anlegen, später wiederverwenden und daraus schnell neue Tests bauen – genau dafür ist TeacherHelper da."
+      "variables": {
+        "title": "Flexible Variablen",
+        "text": "Ergänze Variablen direkt in Beispielen und passe ihre Werte später flexibel pro Test an. So entsteht aus einem Beispiel schnell eine neue Variante."
       },
-      "searchFilter": {
-        "title": "Suche & Filter",
-        "text": "Wenn Inhalte mehr werden, wird gutes Finden entscheidend. Mit Suche und Filtern kommst du schneller wieder zu genau dem, was du gerade brauchst."
+      "editor": {
+        "title": "LaTeX & Markdown",
+        "text": "Nutze integrierte LaTeX- und Markdown-Funktionen, um Formeln, Hervorhebungen, Listen und saubere Aufgabenstellungen direkt im Editor zu gestalten."
       },
-      "invites": {
-        "title": "Kooperation & Teamarbeit",
-        "text": "Mitglieder einladen und gemeinsam Beispiele und Tests verwalten und sammeln."
+      "team": {
+        "title": "Kooperation mit Lehrkräften",
+        "text": "Arbeite mit anderen Lehrkräften in geteilten Sammlungen zusammen. Inhalte können gemeinsam erstellt, erweitert und für Tests genutzt werden."
+      },
+      "print": {
+        "title": "Ready to Print",
+        "text": "Bereite Tests mit Punkten, Layout, Abständen und optionalen Lösungen so vor, dass sie direkt übersichtlich gedruckt oder exportiert werden können."
+      },
+      "cloud": {
+        "title": "Cloud Based",
+        "text": "Deine Sammlungen sind online verfügbar. Dadurch bleiben Beispiele und Tests zentral gespeichert und sind dort erreichbar, wo du sie brauchst."
       }
     },
     "changelog": {
@@ -1160,5 +1229,10 @@
     "multipleChoice": "Eine oder mehrere Optionen auswählen.",
     "gapFill": "Lücken durch Auswahl oder Eingabe füllen.",
     "assign": "Elemente einander zuordnen."
+  },
+  "whatsNew": {
+    "title": "Was ist neu?",
+    "close": "Schließen",
+    "openChangelog": "Changelog"
   }
 }

@@ -9,17 +9,17 @@ import at.model.Collection;
 import at.model.Example;
 import at.model.Test;
 import at.model.User;
-import at.security.TokenService;
-import at.service.MailService;
+import at.service.Auth0ManagementService;
 import at.service.MediaStorageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
-import org.mindrot.jbcrypt.BCrypt;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -43,31 +43,13 @@ public class UserRepository {
     EntityManager em;
 
     @Inject
-    TokenService tokenService;
-
-    @Inject
-    MailService mailService;
-
-    @Inject
     CollectionRepository collectionRepository;
 
     @Inject
     MediaStorageService mediaStorageService;
 
-    public Response generateResponseOfAuth(String auth) {
-        if (auth == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Missing token").build();
-        }
-        UUID userId = tokenService.validateTokenAndGetUserId(auth);
-        if (userId == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build();
-        }
-
-        if (findById(userId) != null) {
-            findById(userId).newActivity();
-        }
-        return null;
-    }
+    @Inject
+    Auth0ManagementService auth0ManagementService;
 
     public Response getUsernames() {
         List<String> usernames = em.createQuery("SELECT u.username FROM User u", String.class)
@@ -75,233 +57,18 @@ public class UserRepository {
         return Response.ok(usernames).build();
     }
 
-    public AuthResult register(FullUserDTO dto) {
-        if (dto == null || dto.username() == null || dto.username().isBlank()
-                || dto.email() == null || dto.email().isBlank()
-                || dto.password() == null || dto.password().isBlank()) {
-            return AuthResult.failure("INVALID_DATA");
-        }
-
-        String username = dto.username().trim();
-        String email = dto.email().trim().toLowerCase();
-
-        if (username.length() < 3 || username.length() > 40) {
-            return AuthResult.failure("INVALID_USERNAME");
-        }
-
-        if (!isValidEmail(email)) {
-            return AuthResult.failure("INVALID_EMAIL");
-        }
-
-        if (email.length() > 120) {
-            return AuthResult.failure("INVALID_EMAIL");
-        }
-
-        if (dto.password().length() < 8) {
-            return AuthResult.failure("INVALID_PASSWORD");
-        }
-
-        User existingByUsername = findByUsername(username);
-        if (existingByUsername != null) {
-            if (existingByUsername.isEmailVerified()) {
-                return AuthResult.failure("USERNAME_TAKEN");
-            }
-
-            if (!BCrypt.checkpw(dto.password(), existingByUsername.getPassword())) {
-                return AuthResult.failure("USERNAME_TAKEN");
-            }
-
-            User existingByEmail = findByEmail(email);
-            if (existingByEmail != null && !existingByEmail.getId().equals(existingByUsername.getId())) {
-                return AuthResult.failure("EMAIL_TAKEN");
-            }
-
-            existingByUsername.setEmail(email);
-            existingByUsername.setEmailVerificationToken(generateSixDigitCode());
-            existingByUsername.setEmailVerificationExpiresAt(now().plusMinutes(15));
-            existingByUsername.setDarkMode(dto.darkMode());
-            existingByUsername.setLanguage(dto.language());
-
-            em.merge(existingByUsername);
-            mailService.sendRegistrationVerification(
-                    existingByUsername.getEmail(),
-                    existingByUsername.getEmailVerificationToken(),
-                    dto.language()
-            );
-
-            return new AuthResult(
-                    true,
-                    "EMAIL_CONFIRMATION_REQUIRED",
-                    "Please enter the 6-digit code we sent to your email address.",
-                    null,
-                    null
-            );
-        }
-
-        User existingByEmail = findByEmail(email);
-        if (existingByEmail != null) {
-            return AuthResult.failure("EMAIL_TAKEN");
-        }
-
-        String hashed = BCrypt.hashpw(dto.password(), BCrypt.gensalt());
-
-        User user = new User(username, email, hashed);
-        user.setSubscriptionModel(SubscriptionModel.FREE);
-        user.setEmailVerified(false);
-        user.setEmailVerificationToken(generateSixDigitCode());
-        user.setEmailVerificationExpiresAt(now().plusMinutes(15));
-        user.setAllowInvitations(true);
-        user.setDarkMode(dto.darkMode());
-        user.setLanguage(dto.language());
-
-        em.persist(user);
-        mailService.sendRegistrationVerification(user.getEmail(), user.getEmailVerificationToken(), dto.language());
-
-        return new AuthResult(
-                true,
-                "EMAIL_CONFIRMATION_REQUIRED",
-                "Please enter the 6-digit code we sent to your email address.",
-                null,
-                null
-        );
-    }
-
-    public AuthResult login(LoginDTO dto) {
-        if (dto == null || dto.email() == null || dto.email().isBlank()
-                || dto.password() == null || dto.password().isBlank()) {
-            return AuthResult.failure("INVALID_DATA");
-        }
-
-        User user = findByEmail(dto.email());
-        if (user == null) {
-            return AuthResult.failure("INVALID_CREDENTIALS");
-        }
-
-        boolean ok = BCrypt.checkpw(dto.password(), user.getPassword());
-        if (!ok) {
-            return AuthResult.failure("INVALID_CREDENTIALS");
-        }
-
-        if (!user.isEmailVerified()) {
-            return AuthResult.failure("EMAIL_NOT_VERIFIED");
-        }
-
-        String token = tokenService.createToken(user.getId());
-        return AuthResult.success(user.getId(), token);
-    }
-
-    public boolean validateToken(String token) {
-        if (token == null || token.isBlank()) return false;
-
-        UUID userId = tokenService.validateTokenAndGetUserId(token);
-        if (userId == null) return false;
-
-        try {
-            User user = em.find(User.class, userId);
-            return user != null;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    public Response verifyRegistrationCode(String email, String code) {
-        if (email == null || email.isBlank()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("EMAIL_REQUIRED").build();
-        }
-
-        if (code == null || !code.trim().matches("\\d{6}")) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("INVALID_CODE").build();
-        }
-
-        User user = findByEmail(email);
-        if (user == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("EMAIL_NOT_FOUND").build();
-        }
-
-        if (user.isEmailVerified()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("EMAIL_ALREADY_VERIFIED").build();
-        }
-
-        if (user.getEmailVerificationExpiresAt() == null
-                || user.getEmailVerificationExpiresAt().isBefore(now())) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("CODE_EXPIRED").build();
-        }
-
-        if (user.getEmailVerificationToken() == null
-                || !user.getEmailVerificationToken().equals(code.trim())) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("INVALID_CODE").build();
-        }
-
-        user.setEmailVerified(true);
-        user.setEmailVerificationToken(null);
-        user.setEmailVerificationExpiresAt(null);
-        em.merge(user);
-
-        return Response.ok().build();
-    }
-
-    public Response verifyEmail(String token) {
-        if (token == null || token.isBlank()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Token is required.").build();
-        }
-
-        User user = findByVerificationToken(token);
-        if (user == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Verification token is invalid.").build();
-        }
-
-        if (user.getEmailVerificationExpiresAt() == null
-                || user.getEmailVerificationExpiresAt().isBefore(now())) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Verification token expired.").build();
-        }
-
-        if (user.getPendingEmail() != null && !user.getPendingEmail().isBlank()) {
-            user.setEmail(user.getPendingEmail().trim().toLowerCase());
-            user.setPendingEmail(null);
-        }
-
-        user.setEmailVerified(true);
-        user.setEmailVerificationToken(null);
-        user.setEmailVerificationExpiresAt(null);
-        em.merge(user);
-
-        return Response.ok().build();
-    }
-
-    public Response resendVerification(String email, String language) {
-        if (email == null || email.isBlank()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Email is required.").build();
-        }
-
-        User user = findByEmail(email);
-        if (user == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Email not found.").build();
-        }
-
-        if (user.isEmailVerified()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Email is already verified.").build();
-        }
-
-        user.setEmailVerificationToken(generateSixDigitCode());
-        user.setEmailVerificationExpiresAt(now().plusMinutes(15));
-        em.merge(user);
-
-        mailService.sendRegistrationVerification(user.getEmail(), user.getEmailVerificationToken(), language);
-        return Response.ok().build();
-    }
-
-    public Response deleteAccount(UUID userId, String currentPassword) {
+    public Response deleteAccount(UUID userId) {
         User user = em.find(User.class, userId);
-        if (user == null) return Response.status(Response.Status.NOT_FOUND).entity("User not found.").build();
-        if (currentPassword == null || currentPassword.isBlank()) return Response.status(Response.Status.BAD_REQUEST).entity("Current password is required.").build();
-
-        if (!BCrypt.checkpw(currentPassword, user.getPassword())) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Current password is incorrect.").build();
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("User not found.").build();
         }
+
+        String auth0Id = user.getAuth0Id();
 
         List<Collection> collections = em.createQuery(
                 "SELECT s FROM Collection s WHERE s.admin.id = :userId",
-                Collection.class).setParameter("userId", userId).getResultList();
+                Collection.class
+        ).setParameter("userId", userId).getResultList();
 
         for (Collection collection : collections) {
             collectionRepository.deleteCollection(collection.getId(), userId);
@@ -309,90 +76,30 @@ public class UserRepository {
 
         List<Example> examples = em.createQuery(
                 "SELECT e FROM Example e WHERE e.admin.id = :userId",
-                Example.class).setParameter("userId", userId).getResultList();
+                Example.class
+        ).setParameter("userId", userId).getResultList();
 
-        for(Example example : examples) {
+        for (Example example : examples) {
             example.setAdmin(example.getCollection().getAdmin());
         }
 
         List<Test> tests = em.createQuery(
                 "SELECT t FROM Test t WHERE t.admin.id = :userId",
-                Test.class).setParameter("userId", userId).getResultList();
+                Test.class
+        ).setParameter("userId", userId).getResultList();
 
         for (Test test : tests) {
             test.setAdmin(test.getCollection().getAdmin());
         }
 
-        if(user.getProfileImageUrl() != null) {
+        if (user.getProfileImageUrl() != null) {
             mediaStorageService.delete(user.getProfileImageUrl());
         }
 
-        em.merge(user);
         em.remove(user);
-        return Response.ok().build();
-    }
+        em.flush();
 
-    public Response changePassword(UUID userId, String currentPassword, String newPassword) {
-        User user = em.find(User.class, userId);
-        if (user == null) return Response.status(Response.Status.NOT_FOUND).entity("User not found.").build();
-
-        if (currentPassword == null || currentPassword.isBlank()
-                || newPassword == null || newPassword.isBlank()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Current and new password are required.").build();
-        }
-
-        if (!BCrypt.checkpw(currentPassword, user.getPassword())) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Current password is incorrect.").build();
-        }
-
-        if (newPassword.length() < 8) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("New password must be at least 8 characters long.").build();
-        }
-
-        if (BCrypt.checkpw(newPassword, user.getPassword())) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("New password must be different from the current password.").build();
-        }
-
-        user.setPassword(BCrypt.hashpw(newPassword, BCrypt.gensalt()));
-        em.merge(user);
-        return Response.ok().build();
-    }
-
-    public Response requestPasswordReset(String email) {
-        if (email == null || email.isBlank()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Email is required.").build();
-        }
-
-        User user = findByEmail(email);
-        if (user == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity("User not found.").build();
-        }
-
-        user.setPasswordResetToken(UUID.randomUUID().toString());
-        user.setPasswordResetExpiresAt(now().plusHours(2));
-        em.merge(user);
-
-        mailService.sendPasswordReset(user.getEmail(), user.getPasswordResetToken(), user.getLanguage());
-        return Response.ok().build();
-    }
-
-    public Response resetPassword(String token, String newPassword) {
-        if (token == null || token.isBlank()) return Response.status(Response.Status.BAD_REQUEST).entity("Token is required.").build();
-        if (newPassword == null || newPassword.isBlank()) return  Response.status(Response.Status.BAD_REQUEST).entity("New password is required.").build();
-        if (newPassword.length() < 8) return Response.status(Response.Status.BAD_REQUEST).entity("New password must be at least 8 characters long.").build();
-
-        User user = findByPasswordResetToken(token);
-        if (user == null) return Response.status(Response.Status.BAD_REQUEST).entity("Invalid password reset token.").build();
-
-        if (user.getPasswordResetExpiresAt() == null
-                || user.getPasswordResetExpiresAt().isBefore(now())) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Password reset token expired.").build();
-        }
-
-        user.setPassword(BCrypt.hashpw(newPassword, BCrypt.gensalt()));
-        user.setPasswordResetToken(null);
-        user.setPasswordResetExpiresAt(null);
-        em.merge(user);
+        auth0ManagementService.deleteUser(auth0Id);
 
         return Response.ok().build();
     }
@@ -414,52 +121,6 @@ public class UserRepository {
 
         user.setUsername(normalized);
         em.merge(user);
-        return Response.ok().build();
-    }
-
-    public Response requestEmailChange(UUID userId, String email) {
-        User user = em.find(User.class, userId);
-        if (user == null) return Response.status(Response.Status.NOT_FOUND).entity("User not found.").build();
-        if (email == null || email.isBlank()) return Response.status(Response.Status.BAD_REQUEST).entity("Email is required.").build();
-
-        String normalized = email.trim().toLowerCase();
-
-        if (!isValidEmail(normalized)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Please enter a valid email address.").build();
-        }
-
-        if (normalized.length() > 120) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Email is too long.").build();
-        }
-
-        User existing = findByEmail(normalized);
-        if (existing != null && !existing.getId().equals(userId)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Email is already taken.").build();
-        }
-
-        if (normalized.equals(user.getEmail())) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("New email must be different from the current email.").build();
-        }
-
-        user.setPendingEmail(normalized);
-        user.setEmailVerificationToken(UUID.randomUUID().toString());
-        user.setEmailVerificationExpiresAt(now().plusHours(24));
-        em.merge(user);
-
-        mailService.sendEmailChangeVerification(normalized, user.getEmailVerificationToken(), user.getLanguage());
-        return Response.ok().build();
-    }
-
-    public Response cancelPendingEmailChange(UUID userId) {
-        User user = em.find(User.class, userId);
-        if (user == null) return Response.status(Response.Status.NOT_FOUND).entity("User not found.").build();
-        if (user.getPendingEmail() == null || user.getPendingEmail().isBlank()) return Response.status(Response.Status.BAD_REQUEST).entity("No pending email change to cancel.").build();
-
-        user.setPendingEmail(null);
-        user.setEmailVerificationToken(null);
-        user.setEmailVerificationExpiresAt(null);
-        em.merge(user);
-
         return Response.ok().build();
     }
 
@@ -610,6 +271,7 @@ public class UserRepository {
                 .map(u -> new AdminUserDashboardDTO(
                         u.getId(),
                         u.getUsername(),
+                        u.getProfileImageUrl(),
                         u.getCreatedAt(),
                         u.getLastActivityAt(),
                         countCollectionsByUser(u),
@@ -729,6 +391,152 @@ public class UserRepository {
 
 
 
+
+    public User getOrCreateAuth0User(JsonWebToken jwt) {
+        if (jwt == null || jwt.getSubject() == null || jwt.getSubject().isBlank()) {
+            throw new WebApplicationException("Missing Auth0 subject", Response.Status.UNAUTHORIZED);
+        }
+
+        String auth0Id = jwt.getSubject();
+
+        lockAuth0UserCreation(auth0Id);
+
+        User existingByAuth0Id = findByAuth0Id(auth0Id);
+        if (existingByAuth0Id != null) {
+            existingByAuth0Id.newActivity();
+            return em.merge(existingByAuth0Id);
+        }
+
+        String email = normalizeEmail(readStringClaim(
+                jwt,
+                "https://teacher-helper.at/email",
+                "email"
+        ));
+
+        if (email == null || email.isBlank()) {
+            throw new WebApplicationException(
+                    "Auth0 token does not contain email.",
+                    Response.Status.BAD_REQUEST
+            );
+        }
+
+        User existingByEmail = findByEmail(email);
+        if (existingByEmail != null) {
+            existingByEmail.setAuth0Id(auth0Id);
+            existingByEmail.newActivity();
+            return em.merge(existingByEmail);
+        }
+
+        String emailPrefix = email.contains("@")
+                ? email.substring(0, email.indexOf("@"))
+                : email;
+
+        User user = new User();
+        user.setAuth0Id(auth0Id);
+        user.setEmail(email);
+        user.setUsername(resolveUniqueUsername(emailPrefix));
+        user.setSubscriptionModel(SubscriptionModel.FREE);
+        user.setAllowInvitations(true);
+        user.setLocked(false);
+
+        em.persist(user);
+        em.flush();
+
+        return user;
+    }
+
+    private void lockAuth0UserCreation(String auth0Id) {
+        em.createNativeQuery("SELECT pg_advisory_xact_lock(hashtext(:lockKey))")
+                .setParameter("lockKey", "auth0-user:" + auth0Id)
+                .getSingleResult();
+    }
+
+    private String readStringClaim(JsonWebToken jwt, String... claimNames) {
+        for (String claimName : claimNames) {
+            Object value = jwt.getClaim(claimName);
+            if (value instanceof String text && !text.isBlank()) {
+                return text;
+            }
+        }
+        return null;
+    }
+
+    public User findByAuth0Id(String auth0Id) {
+        if (auth0Id == null || auth0Id.isBlank()) {
+            return null;
+        }
+
+        try {
+            return em.createQuery(
+                            "SELECT u FROM User u WHERE u.auth0Id = :auth0Id",
+                            User.class
+                    )
+                    .setParameter("auth0Id", auth0Id)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    private String normalizeEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return null;
+        }
+        return email.trim().toLowerCase();
+    }
+
+    private String resolveUniqueUsername(String preferredName) {
+        String base = sanitizeUsername(preferredName);
+        if (base.isBlank()) {
+            base = "user";
+        }
+
+        String candidate = trimUsername(base);
+        if (findByUsername(candidate) == null) {
+            return candidate;
+        }
+
+        if (findByUsername(candidate) == null) {
+            return candidate;
+        }
+
+        while (true) {
+            candidate = trimUsername(base);
+            if (findByUsername(candidate) == null) {
+                return candidate;
+            }
+        }
+    }
+
+    private String sanitizeUsername(String value) {
+        if (value == null) {
+            return "user";
+        }
+
+        String normalized = value
+                .trim()
+                .toLowerCase()
+                .replaceAll("[^a-z0-9._-]", "-")
+                .replaceAll("-+", "-")
+                .replaceAll("^-|-$", "");
+
+        if (normalized.length() < 3) {
+            normalized = (normalized + "-user").replaceAll("^-|-$", "");
+        }
+
+        return normalized;
+    }
+
+    private String trimUsername(String value) {
+        return trimUsername(value, 0);
+    }
+
+    private String trimUsername(String value, int reservedLength) {
+        int maxLength = Math.max(3, 40 - reservedLength);
+        String trimmed = value.length() <= maxLength ? value : value.substring(0, maxLength);
+        return trimmed.replaceAll("^-|-$", "");
+    }
+
     public User findByEmail(String email) {
         try {
             return em.createQuery(
@@ -768,19 +576,6 @@ public class UserRepository {
         }
     }
 
-    public User findByPasswordResetToken(String token) {
-        try {
-            return em.createQuery(
-                            "SELECT u FROM User u WHERE u.passwordResetToken = :token",
-                            User.class
-                    )
-                    .setParameter("token", token)
-                    .getSingleResult();
-        } catch (NoResultException e) {
-            return null;
-        }
-    }
-
     public User findById(UUID userId) {
         if (userId == null) return null;
         User user = em.find(User.class, userId);
@@ -794,8 +589,6 @@ public class UserRepository {
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
-                user.isEmailVerified(),
-                user.getPendingEmail(),
                 user.getSubscriptionModel(),
                 user.getProfileImageUrl(),
                 new UserSettingsDTO(
@@ -808,14 +601,6 @@ public class UserRepository {
 
     private LocalDateTime now() {
         return LocalDateTime.now(APP_ZONE);
-    }
-
-    private String generateSixDigitCode() {
-        return String.valueOf(100000 + CODE_RANDOM.nextInt(900000));
-    }
-
-    private boolean isValidEmail(String email) {
-        return email != null && email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
     }
 
     private long countUsers() {

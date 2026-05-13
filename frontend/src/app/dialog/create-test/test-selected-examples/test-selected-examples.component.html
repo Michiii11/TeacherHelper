@@ -7,7 +7,7 @@
       <div class="task-index-badge">{{ i + 1 }}</div>
 
       <div class="task-copy">
-        <strong>{{ getResolvedExampleHeading(entry.example, entry.variableValues) }}</strong>
+        <div class="rendered-preview-text selected-task-heading" [innerHTML]="getResolvedExampleHeadingHtml(entry)"></div>
         <div class="task-subline">{{ getExampleMeta(entry) }}</div>
       </div>
 
@@ -100,7 +100,7 @@
 
       <div class="task-variable-preview">
         <span>{{ 'createTest.variables.preview' | translate }}</span>
-        <strong>{{ getResolvedEntryTitle(entry) }}</strong>
+        <div class="rendered-preview-text variable-preview-title" [innerHTML]="getResolvedEntryTitleHtml(entry)"></div>
       </div>
     </div>
   </div>

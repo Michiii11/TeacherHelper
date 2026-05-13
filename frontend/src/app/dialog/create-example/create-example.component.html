@@ -19,14 +19,8 @@
     <div class="grid">
       <div class="create-example-dialog">
         <form class="example-form">
-          <section class="panel-box side-collapsible editor-ribbon-panel" [class.collapsed]="editorCollapsed">
-            <div class="side-collapse-head" role="button" tabindex="0" (click)="editorCollapsed = !editorCollapsed">
-              <mat-icon class="collapse-icon">{{ editorCollapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
-              <span class="panel-title">{{ 'exampleDialog.editor.title' | translate }}</span>
-              <span class="collapse-head-spacer"></span>
-            </div>
-
-            <div class="side-collapse-body editor-ribbon-body" *ngIf="!editorCollapsed">
+          <section class="panel-box editor-ribbon-panel">
+            <div class="editor-ribbon-body">
               <div class="editor-ribbon-tabs" [attr.aria-label]="'exampleDialog.editor.groupsAria' | translate">
                 <button
                   mat-button
@@ -49,9 +43,10 @@
                   *ngFor="let item of activeEditorToolbarItems"
                   (mousedown)="$event.preventDefault()"
                   (click)="runEditorToolbarAction(item.action)"
-                  [matTooltip]="(item.tooltip || item.label) | translate"
+                  [matTooltip]="getToolbarTooltip(item)"
+                  matTooltipClass="editor-command-tooltip"
                 >
-                  <mat-icon>{{ item.icon }}</mat-icon>
+                  <mat-icon *ngIf="item.icon">{{ item.icon }}</mat-icon>
                   <span>{{ item.label | translate }}</span>
                 </button>
               </div>
@@ -457,15 +452,17 @@
         </section>
 
         <section class="panel-box side-collapsible compact-variable-table" [class.collapsed]="variablesCollapsed">
-          <div class="side-collapse-head" role="button" tabindex="0" (click)="variablesCollapsed = !variablesCollapsed">
-            <mat-icon class="collapse-icon">{{ variablesCollapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
-            <span class="panel-title">{{ 'exampleDialog.variables.title' | translate }}</span>
-            <span class="collapse-head-spacer"></span>
+          <div class="variable-collapse-head-row">
+            <div class="side-collapse-head" role="button" tabindex="0" (click)="variablesCollapsed = !variablesCollapsed">
+              <mat-icon class="collapse-icon">{{ variablesCollapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
+              <span class="panel-title">{{ 'exampleDialog.variables.title' | translate }}</span>
+            </div>
+
             <button
               mat-stroked-button
-              class="collapse-head-action"
+              class="collapse-head-action variable-add-action"
               type="button"
-              (click)="$event.stopPropagation(); insertVariableAtCursor(); variablesCollapsed = false"
+              (click)="insertVariableAtCursor()"
             >
               <mat-icon>add</mat-icon>
               {{ 'exampleDialog.variables.add' | translate }}
@@ -492,8 +489,7 @@
                   <input
                     [(ngModel)]="variable.defaultValue"
                     name="variableDefault-{{ variable.key }}"
-                    (ngModelChange)="markDirty()"
-                    [placeholder]="'exampleDialog.variables.defaultValuePlaceholder' | translate" />
+                    (ngModelChange)="markDirty()">
                 </td>
                 <td class="insert-col">
                   <button
