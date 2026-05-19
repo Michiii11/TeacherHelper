@@ -31,9 +31,15 @@ public class Example {
     @Enumerated(EnumType.STRING)
     private ExampleTypes type;
 
+    @Column(columnDefinition = "TEXT")
     private String instruction;
+
+    @Column(columnDefinition = "TEXT")
     private String question;
+
+    @Column(columnDefinition = "TEXT")
     private String solution;
+
     private String imageUrl;
     private String solutionUrl;
 
@@ -83,8 +89,8 @@ public class Example {
     private LocalDateTime updatedAt;
 
     public Example() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        createdAt = AppTime.now();
+        updatedAt = AppTime.now();
     }
 
     public Example(User admin, ExampleTypes type, String instruction, String question, String solution, Collection collection) {
@@ -126,7 +132,7 @@ public class Example {
 
     @PrePersist
     public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = AppTime.now();
         if (this.createdAt == null) {
             this.createdAt = now;
         }
@@ -135,7 +141,7 @@ public class Example {
 
     @PreUpdate
     public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = AppTime.now();
     }
 
     public UUID getId() { return id; }

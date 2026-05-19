@@ -285,6 +285,8 @@ public class TestRepository {
                         e.getCollection().getAdminDTO(),
                         List.of(),
                         List.of(),
+                        List.of(),
+                        e.getFocusList(),
                         e.getCollection().getUsers() == null
                                 ? List.of()
                                 : e.getCollection().getUsers().stream()

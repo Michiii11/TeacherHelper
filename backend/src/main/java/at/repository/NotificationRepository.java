@@ -6,6 +6,7 @@ import at.enums.NotificationType;
 import at.model.Collection;
 import at.model.Notification;
 import at.model.User;
+import at.model.helper.AppTime;
 import at.websocket.NotificationSocket;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -31,7 +32,7 @@ public class NotificationRepository {
 
         Notification notification = new Notification(
                 recipient, actor, collection, type, title, message, link, false,
-                relatedEntityId, primaryAction, secondaryAction, LocalDateTime.now());
+                relatedEntityId, primaryAction, secondaryAction, AppTime.now());
 
         em.persist(notification);
         em.flush();

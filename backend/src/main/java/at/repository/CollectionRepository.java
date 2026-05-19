@@ -2,6 +2,7 @@ package at.repository;
 
 import at.dtos.Collection.CollectionDTO;
 import at.dtos.Example.ExampleOverviewDTO;
+import at.dtos.Folder.FolderDTO;
 import at.dtos.Notification.CollectionInviteDTO;
 import at.dtos.Test.TestOverviewDTO;
 import at.enums.NotificationActionType;
@@ -9,6 +10,7 @@ import at.enums.NotificationType;
 import at.enums.InviteStatus;
 import at.enums.InviteType;
 import at.model.*;
+import at.model.helper.AppTime;
 import at.model.helper.Focus;
 import at.service.MediaStorageService;
 import at.websocket.CollectionSocket;
@@ -56,8 +58,8 @@ public class CollectionRepository {
                         SELECT DISTINCT c
                         FROM Collection c
                         LEFT JOIN FETCH c.admin
-                        LEFT JOIN FETCH c.users
-                        WHERE c.admin.id = :userId OR :user MEMBER OF c.users
+                        WHERE c.admin.id = :userId
+                           OR :user MEMBER OF c.users
                         ORDER BY c.name
                         """, Collection.class)
                 .setParameter("userId", userId)
@@ -129,6 +131,29 @@ public class CollectionRepository {
                 ))
                 .toList();
 
+        List<FolderDTO> folders = em.createQuery(
+                        """
+                        SELECT DISTINCT f
+                        FROM Folder f
+                        LEFT JOIN FETCH f.parent
+                        WHERE f.collection.id = :collectionId
+                        ORDER BY f.createdAt DESC
+                        """,
+                        Folder.class
+                )
+                .setParameter("collectionId", collection.getId())
+                .getResultList()
+                .stream()
+                .map(f -> new FolderDTO(
+                        f.getId(),
+                        f.getName(),
+                        f.getCollection().getId(),
+                        f.getParent() != null ? f.getParent().getId() : null,
+                        f.getCreatedAt(),
+                        f.getUpdatedAt()
+                ))
+                .toList();
+
         return new CollectionDTO(
                 collection.getId(),
                 collection.getName(),
@@ -136,6 +161,10 @@ public class CollectionRepository {
                 collection.getAdminDTO(),
                 examples,
                 tests,
+                folders,
+                collection.getFocusList() != null
+                        ? new java.util.LinkedList<>(collection.getFocusList())
+                        : List.of(),
                 collection.getUsers() != null
                         ? collection.getUsers().stream().map(User::toUserDTO).toList()
                         : List.of()
@@ -616,7 +645,7 @@ public class CollectionRepository {
             }
 
             invite.setStatus(InviteStatus.ACCEPTED);
-            invite.setDecidedAt(LocalDateTime.now());
+            invite.setDecidedAt(AppTime.now());
             em.merge(invite);
 
             notificationRepository.createNotification(
@@ -629,7 +658,7 @@ public class CollectionRepository {
             );
         } else {
             invite.setStatus(InviteStatus.DECLINED);
-            invite.setDecidedAt(LocalDateTime.now());
+            invite.setDecidedAt(AppTime.now());
             em.merge(invite);
 
             notificationRepository.createNotification(

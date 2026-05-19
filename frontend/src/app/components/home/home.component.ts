@@ -80,6 +80,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     this.http.getYourCollections().subscribe({
       next: (schools: CollectionDTO[]) => {
+        console.log(schools)
         this.http.getUserId().subscribe({
           next: (id: string) => {
             this.userId = id;

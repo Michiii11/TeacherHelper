@@ -323,7 +323,7 @@ public class ExampleRepository {
     }
 
     public Response moveExampleToFolder(UUID exampleId, UUID userId, UUID folderId) {
-       Example example = em.find(Example.class, exampleId);
+        Example example = em.find(Example.class, exampleId);
         if (example == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("Example not found.").build();
         }

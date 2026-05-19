@@ -2,17 +2,15 @@ package at.model;
 
 import at.dtos.User.UserDTO;
 import at.enums.SubscriptionModel;
+import at.model.helper.AppTime;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.UUID;
 
 @Entity
 @Table(name = "app_user")
 public class User {
-
-    private static final ZoneId APP_ZONE = ZoneId.of("Europe/Vienna");
 
     @Id
     @GeneratedValue
@@ -102,7 +100,7 @@ public class User {
     }
 
     private static LocalDateTime now() {
-        return LocalDateTime.now(APP_ZONE);
+        return AppTime.now();
     }
 
     public UUID getId() {

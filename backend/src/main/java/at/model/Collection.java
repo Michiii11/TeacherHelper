@@ -2,8 +2,10 @@ package at.model;
 
 import at.dtos.Collection.CollectionDTO;
 import at.dtos.Example.ExampleOverviewDTO;
+import at.dtos.Folder.FolderDTO;
 import at.dtos.Test.TestOverviewDTO;
 import at.dtos.User.UserDTO;
+import at.model.helper.AppTime;
 import at.model.helper.Focus;
 import jakarta.persistence.*;
 
@@ -43,8 +45,8 @@ public class Collection {
     private LocalDateTime updatedAt;
 
     public Collection() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        createdAt = AppTime.now();
+        updatedAt = AppTime.now();
     }
 
     public Collection(String name, User admin) {
@@ -54,7 +56,7 @@ public class Collection {
 
     @PrePersist
     public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = AppTime.now();
         if (this.createdAt == null) {
             this.createdAt = now;
         }
@@ -63,7 +65,7 @@ public class Collection {
 
     @PreUpdate
     public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = AppTime.now();
     }
 
     public void addUser(User user) {
@@ -145,14 +147,15 @@ public class Collection {
                 this.getName(),
                 this.getLogoUrl(),
                 this.getAdminDTO(),
-                null, null,
+                null, null, null, null,
                 this.getUsers().stream().map(User::toUserDTO).toList()
         );
     }
 
     public CollectionDTO toDTOFull(
             List<ExampleOverviewDTO> examples,
-            List<TestOverviewDTO> tests
+            List<TestOverviewDTO> tests,
+            List<FolderDTO> folders
     ) {
         return new CollectionDTO(
                 this.getId(),
@@ -161,6 +164,10 @@ public class Collection {
                 this.getAdminDTO(),
                 examples,
                 tests,
+                folders,
+                this.getFocusList() != null
+                        ? new java.util.LinkedList<>(this.getFocusList())
+                        : List.of(),
                 this.getUsers().stream()
                         .map(User::toUserDTO)
                         .toList()

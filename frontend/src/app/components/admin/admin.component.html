@@ -40,27 +40,59 @@
   <section class="section layout-grid">
     <article class="panel user-list-panel">
       <div class="panel-header sticky-header">
-        <div>
-          <h2>User</h2>
-          <p>{{ visibleUsers.length }} angezeigt</p>
-        </div>
+        <div class="admin-toolbar" (click)="stopClick($event)">
+          <div
+            class="search-wrap compact-search outlined-control"
+            [class.open]="isUserSearchOpen || !!search"
+            (click)="openUserSearch($event)"
+          >
+            <button
+              type="button"
+              class="search-icon-btn"
+              (click)="toggleUserSearch($event)"
+              title="Suche nach Name oder ID"
+            >
+              <mat-icon>search</mat-icon>
+            </button>
 
-        <div class="toolbar-grid">
-          <label class="control search-control">
-            <input
-              type="text"
-              [(ngModel)]="search"
-              placeholder="Suche nach Name oder ID"
-            />
-          </label>
-
-          <label class="control select-control">
-            <select [(ngModel)]="sort">
-              @for (option of sortOptions; track option.value) {
-                <option [value]="option.value">{{ option.label }}</option>
+            @if (isUserSearchOpen || search) {
+              <input
+                type="text"
+                [(ngModel)]="search"
+                (click)="stopClick($event)"
+                (keydown.escape)="isUserSearchOpen = false"
+                placeholder="Suche nach Name oder ID"
+              />
+              @if (search) {
+                <button type="button" class="search-clear-btn" (click)="clearUserSearch($event)">
+                  <mat-icon>close</mat-icon>
+                </button>
               }
-            </select>
-          </label>
+            }
+          </div>
+
+          <div class="sort-popup-wrap" (click)="stopClick($event)">
+            <button type="button" class="toolbar-pill-btn outlined-control" (click)="toggleUserSortPopup($event)">
+              <mat-icon>swap_vert</mat-icon>
+              <span class="toolbar-label">{{ getUserSortLabel(sort) }}</span>
+            </button>
+
+            @if (isUserSortPopupOpen) {
+              <div class="sort-popup-panel">
+                @for (option of sortOptions; track option.value) {
+                  <button
+                    type="button"
+                    class="sort-option"
+                    [class.checked]="sort === option.value"
+                    (click)="setUserSort(option.value)"
+                  >
+                    <span>{{ option.label }}</span>
+                    <mat-icon>check</mat-icon>
+                  </button>
+                }
+              </div>
+            }
+          </div>
         </div>
       </div>
 
@@ -191,22 +223,59 @@
             <span>{{ selectedUserDTO.collections.length }}</span>
           </div>
 
-          <div class="collection-toolbar">
-            <label class="control search-control">
-              <input
-                type="text"
-                [(ngModel)]="collectionSearch"
-                placeholder="Collection suchen"
-              />
-            </label>
+          <div class="admin-toolbar collection-toolbar" (click)="stopClick($event)">
+            <div
+              class="search-wrap compact-search outlined-control"
+              [class.open]="isCollectionSearchOpen || !!collectionSearch"
+              (click)="openCollectionSearch($event)"
+            >
+              <button
+                type="button"
+                class="search-icon-btn"
+                (click)="toggleCollectionSearch($event)"
+                title="Collection suchen"
+              >
+                <mat-icon>search</mat-icon>
+              </button>
 
-            <label class="control select-control">
-              <select [(ngModel)]="collectionSort">
-                @for (option of collectionSortOptions; track option.value) {
-                  <option [value]="option.value">{{ option.label }}</option>
+              @if (isCollectionSearchOpen || collectionSearch) {
+                <input
+                  type="text"
+                  [(ngModel)]="collectionSearch"
+                  (click)="stopClick($event)"
+                  (keydown.escape)="isCollectionSearchOpen = false"
+                  placeholder="Collection suchen"
+                />
+                @if (collectionSearch) {
+                  <button type="button" class="search-clear-btn" (click)="clearCollectionSearch($event)">
+                    <mat-icon>close</mat-icon>
+                  </button>
                 }
-              </select>
-            </label>
+              }
+            </div>
+
+            <div class="sort-popup-wrap" (click)="stopClick($event)">
+              <button type="button" class="toolbar-pill-btn outlined-control" (click)="toggleCollectionSortPopup($event)">
+                <mat-icon>swap_vert</mat-icon>
+                <span class="toolbar-label">{{ getCollectionSortLabel(collectionSort) }}</span>
+              </button>
+
+              @if (isCollectionSortPopupOpen) {
+                <div class="sort-popup-panel">
+                  @for (option of collectionSortOptions; track option.value) {
+                    <button
+                      type="button"
+                      class="sort-option"
+                      [class.checked]="collectionSort === option.value"
+                      (click)="setCollectionSort(option.value)"
+                    >
+                      <span>{{ option.label }}</span>
+                      <mat-icon>check</mat-icon>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
           </div>
 
           <div class="collection-list">

@@ -17,7 +17,8 @@ export type ConstructionImageKind = 'preview' | 'solution';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConstructionImageCardComponent {
-  private static readonly MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024;
+  private static readonly MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+  private readonly allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
 
   @Input({ required: true }) kind!: ConstructionImageKind;
   @Input({ required: true }) titleKey!: string;
@@ -31,9 +32,13 @@ export class ConstructionImageCardComponent {
   @Input() widthName = 'imageWidth';
 
   @Output() imageSelected = new EventEmitter<{ event: Event; kind: ConstructionImageKind }>();
+  @Output() imageDropped = new EventEmitter<{ file: File; kind: ConstructionImageKind }>();
   @Output() imageRemoved = new EventEmitter<ConstructionImageKind>();
   @Output() widthChange = new EventEmitter<number>();
   @Output() fileTooLarge = new EventEmitter<{ kind: ConstructionImageKind; maxSizeMb: number }>();
+  @Output() invalidFileType = new EventEmitter<ConstructionImageKind>();
+
+  isDragOver = false;
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -43,17 +48,69 @@ export class ConstructionImageCardComponent {
       return;
     }
 
-    if (file.size > ConstructionImageCardComponent.MAX_FILE_SIZE_BYTES) {
+    if (!this.isValidFile(file)) {
       input.value = '';
-      this.fileTooLarge.emit({ kind: this.kind, maxSizeMb: 2 });
       return;
     }
 
     this.imageSelected.emit({ event, kind: this.kind });
   }
 
+  onDragEnter(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = true;
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const currentTarget = event.currentTarget as HTMLElement | null;
+    const relatedTarget = event.relatedTarget as Node | null;
+
+    if (currentTarget && relatedTarget && currentTarget.contains(relatedTarget)) {
+      return;
+    }
+
+    this.isDragOver = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+
+    const file = event.dataTransfer?.files?.[0];
+    if (!file || !this.isValidFile(file)) {
+      return;
+    }
+
+    this.imageDropped.emit({ file, kind: this.kind });
+  }
+
   onWidthChange(value: number): void {
     this.width = value;
     this.widthChange.emit(value);
+  }
+
+  private isValidFile(file: File): boolean {
+    if (!this.allowedImageTypes.includes(file.type)) {
+      this.invalidFileType.emit(this.kind);
+      return false;
+    }
+
+    if (file.size > ConstructionImageCardComponent.MAX_FILE_SIZE_BYTES) {
+      this.fileTooLarge.emit({ kind: this.kind, maxSizeMb: 5 });
+      return false;
+    }
+
+    return true;
   }
 }

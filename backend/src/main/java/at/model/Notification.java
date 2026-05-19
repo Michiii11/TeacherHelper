@@ -3,6 +3,7 @@ package at.model;
 import at.dtos.Notification.NotificationDTO;
 import at.enums.NotificationActionType;
 import at.enums.NotificationType;
+import at.model.helper.AppTime;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -43,7 +44,7 @@ public class Notification {
     @Enumerated(EnumType.STRING)
     private NotificationActionType secondaryAction;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt = AppTime.now();
 
     public Notification() {
     }

@@ -1,7 +1,13 @@
-import { Injectable } from '@angular/core';
-import * as katex from 'katex';
+import { Injectable } from "@angular/core";
+import * as katex from "katex";
 
-import { CreateExampleDTO, Example, ExampleTypes, Gap, Option } from '../model/Example';
+import {
+  CreateExampleDTO,
+  Example,
+  ExampleTypes,
+  Gap,
+  Option,
+} from "../model/Example";
 
 export type ExamplePreviewRendererLabels = {
   instruction?: string;
@@ -18,13 +24,17 @@ export type ExamplePreviewRendererOptions = {
   getLetter?: (index: number) => string;
 };
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class ExamplePreviewRendererService {
   readonly defaultImageWidth = 320;
   private readonly variablePattern = /\[\[([a-zA-Z_][a-zA-Z0-9_-]*)\]\]/g;
 
   getResolvedText(
-    example: Pick<Example, 'variables'> | Pick<CreateExampleDTO, 'variables'> | null | undefined,
+    example:
+      | Pick<Example, "variables">
+      | Pick<CreateExampleDTO, "variables">
+      | null
+      | undefined,
     value: string | number | null | undefined,
   ): string {
     return this.replaceVariablesOutsideLatex(value, example?.variables);
@@ -32,54 +42,94 @@ export class ExamplePreviewRendererService {
 
   renderMathHtml(
     value: string | number | null | undefined,
-    variables?: { key?: string; defaultValue?: string | number | null }[] | null,
+    variables?:
+      | { key?: string; defaultValue?: string | number | null }[]
+      | null,
   ): string {
     const source = this.replaceVariablesOutsideLatex(value, variables);
     const mathTokens: string[] = [];
-    const mathPattern = /\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]|\$([^$\n]+?)\$|\\\(([^)]+?)\\\)/g;
+    const mathPattern =
+      /\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]|\$([^$\n]+?)\$|\\\(([^)]+?)\\\)/g;
 
-    const textWithMathTokens = source.replace(mathPattern, (_fullMatch, dollarDisplayFormula, bracketDisplayFormula, dollarInlineFormula, parenInlineFormula) => {
-      const isDisplay = dollarDisplayFormula !== undefined || bracketDisplayFormula !== undefined;
-      const formula = dollarDisplayFormula ?? bracketDisplayFormula ?? dollarInlineFormula ?? parenInlineFormula ?? '';
-      const token = `@@MATH_TOKEN_${mathTokens.length}@@`;
-      mathTokens.push(this.renderFormula(formula, isDisplay));
-      return token;
-    });
+    const textWithMathTokens = source.replace(
+      mathPattern,
+      (
+        _fullMatch,
+        dollarDisplayFormula,
+        bracketDisplayFormula,
+        dollarInlineFormula,
+        parenInlineFormula,
+      ) => {
+        const isDisplay =
+          dollarDisplayFormula !== undefined ||
+          bracketDisplayFormula !== undefined;
+        const formula =
+          dollarDisplayFormula ??
+          bracketDisplayFormula ??
+          dollarInlineFormula ??
+          parenInlineFormula ??
+          "";
+        const token = `@@MATH_TOKEN_${mathTokens.length}@@`;
+        mathTokens.push(this.renderFormula(formula, isDisplay));
+        return token;
+      },
+    );
 
     let html = this.renderMarkdownHtml(textWithMathTokens);
     mathTokens.forEach((formulaHtml, index) => {
-      html = html.replace(new RegExp(`@@MATH_TOKEN_${index}@@`, 'g'), formulaHtml);
+      html = html.replace(
+        new RegExp(`@@MATH_TOKEN_${index}@@`, "g"),
+        formulaHtml,
+      );
     });
 
     return html;
   }
 
-  buildQuestionHtml(example: Example | CreateExampleDTO, options: ExamplePreviewRendererOptions = {}): string {
+  renderMathInlineHtml(
+    value: string | number | null | undefined,
+    variables?:
+      | { key?: string; defaultValue?: string | number | null }[]
+      | null,
+  ): string {
+    return this.toInlineHtml(this.renderMathHtml(value, variables));
+  }
+
+  buildQuestionHtml(
+    example: Example | CreateExampleDTO,
+    options: ExamplePreviewRendererOptions = {},
+  ): string {
     if (example.type === ExampleTypes.GAP_FILL) {
-      return options.isSolution && example.gapFillType === 'INPUT'
+      return options.isSolution && example.gapFillType === "INPUT"
         ? this.buildGapQuestionSolutionHtml(example)
         : this.buildGapQuestionHtml(example);
     }
 
-    return this.renderMathHtml(this.getQuestionWithGapLabels(example, options.getLetter), example.variables);
+    return this.renderMathHtml(
+      this.getQuestionWithGapLabels(example, options.getLetter),
+      example.variables,
+    );
   }
 
-  buildExamplePreviewPanelHtml(example: Example | CreateExampleDTO, options: ExamplePreviewRendererOptions = {}): string {
+  buildExamplePreviewPanelHtml(
+    example: Example | CreateExampleDTO,
+    options: ExamplePreviewRendererOptions = {},
+  ): string {
     const labels = options.labels ?? {};
     const displaySettings = this.getDisplaySettings(example);
     const showInstructionLabel = displaySettings.showInstructionLabel !== false;
     const showQuestionLabel = displaySettings.showQuestionLabel !== false;
-    const instructionLabel = labels.instruction ?? 'Angabe';
-    const questionLabel = labels.question ?? 'Aufgabenstellung';
+    const instructionLabel = labels.instruction ?? "Angabe";
+    const questionLabel = labels.question ?? "Aufgabenstellung";
 
     return `
       <div class="preview-panel">
         <div>
-          ${showInstructionLabel ? `<p><strong>${this.escapeHtml(instructionLabel)}:</strong></p>` : ''}
+          ${showInstructionLabel ? `<p><strong>${this.escapeHtml(instructionLabel)}:</strong></p>` : ""}
           <div class="rich-text multiline-text">${this.renderMathHtml(example.instruction, example.variables)}</div>
         </div>
 
-        ${showQuestionLabel ? `<p><strong>${this.escapeHtml(questionLabel)}:</strong></p>` : ''}
+        ${showQuestionLabel ? `<p><strong>${this.escapeHtml(questionLabel)}:</strong></p>` : ""}
 
         <div>
           <div class="rich-text multiline-text">${this.buildQuestionHtml(example, options)}</div>
@@ -90,24 +140,31 @@ export class ExamplePreviewRendererService {
     `;
   }
 
-  buildBodyHtml(example: Example | CreateExampleDTO, options: ExamplePreviewRendererOptions = {}): string {
+  buildBodyHtml(
+    example: Example | CreateExampleDTO,
+    options: ExamplePreviewRendererOptions = {},
+  ): string {
     const labels = options.labels ?? {};
-    const getLetter = options.getLetter ?? ((index: number) => this.getLetter(index));
+    const getLetter =
+      options.getLetter ?? ((index: number) => this.getLetter(index));
     const isSolution = options.isSolution === true;
 
     switch (example.type) {
       case ExampleTypes.OPEN:
         return isSolution
-          ? `<div class="solution-box rich-text multiline-text">${this.renderMathHtml((example as any).solution || '', example.variables) || `<span class="muted">${this.escapeHtml(labels.noSolution ?? '')}</span>`}</div>`
-          : '';
+          ? `<div class="solution-box rich-text multiline-text">${this.renderMathHtml((example as any).solution || "", example.variables) || `<span class="muted">${this.escapeHtml(labels.noSolution ?? "")}</span>`}</div>`
+          : "";
 
       case ExampleTypes.HALF_OPEN:
         return `
           <div class="half-open-preview">
-            ${(example.answers ?? []).map(ans => isSolution
-          ? `<p><span>${this.renderMathHtml(ans?.[0] ?? '', example.variables)}</span> = ${this.renderMathHtml(ans?.[1] ?? '', example.variables)}</p>`
-          : `<p><span>${this.renderMathHtml(ans?.[0] ?? '', example.variables)}</span> = ___________________</p>`
-        ).join('')}
+            ${(example.answers ?? [])
+          .map((ans) =>
+            isSolution
+              ? `<div class="half-open-item"><span class="half-open-label">${this.renderMathInlineHtml(ans?.[0] ?? "", example.variables)}</span><span class="half-open-equals" aria-hidden="true">&nbsp;=&nbsp;</span><span class="half-open-solution">${this.renderMathInlineHtml(ans?.[1] ?? "", example.variables)}</span></div>`
+              : `<div class="half-open-item"><span class="half-open-label">${this.renderMathInlineHtml(ans?.[0] ?? "", example.variables)}</span><span class="half-open-equals" aria-hidden="true">&nbsp;=&nbsp;</span><span class="half-open-line" aria-hidden="true"></span></div>`,
+          )
+          .join("")}
           </div>
         `;
 
@@ -119,17 +176,22 @@ export class ExamplePreviewRendererService {
           ? this.normalizeImageWidth((example as any).solutionImageWidth)
           : this.normalizeImageWidth((example as any).imageWidth);
         const displaySettings = this.getDisplaySettings(example);
-        const showTaskImageLabel = !isSolution && displaySettings.showTaskImageLabel !== false;
-        const taskImageLabel = labels.taskImage ?? 'Aufgabenbild';
-        const noTaskImage = labels.noTaskImage ?? '';
+        const showTaskImageLabel =
+          !isSolution && displaySettings.showTaskImageLabel !== false;
+        const taskImageLabel = labels.taskImage ?? "Aufgabenbild";
+        const noTaskImage = labels.noTaskImage ?? "";
 
         return `
           <div class="construction-preview">
             <div>
-              ${showTaskImageLabel ? `<p><strong>${this.escapeHtml(taskImageLabel)}</strong></p>` : ''}
-              ${image
-          ? `<div class="image-preview-frame"><img src="${this.escapeHtml(image)}" alt="${this.escapeHtml(labels.imagePreviewAlt ?? '')}" class="image-preview" style="width:${width}px;max-width:100%;height:auto;" /></div>`
-          : (noTaskImage ? `<p>${this.escapeHtml(noTaskImage)}</p>` : '')}
+              ${showTaskImageLabel ? `<p><strong>${this.escapeHtml(taskImageLabel)}</strong></p>` : ""}
+              ${
+          image
+            ? `<div class="image-preview-frame"><img src="${this.escapeHtml(image)}" alt="${this.escapeHtml(labels.imagePreviewAlt ?? "")}" class="image-preview" style="width:${width}px;max-width:100%;height:auto;" /></div>`
+            : noTaskImage
+              ? `<p>${this.escapeHtml(noTaskImage)}</p>`
+              : ""
+        }
             </div>
           </div>
         `;
@@ -139,71 +201,94 @@ export class ExamplePreviewRendererService {
         return `
           <div class="multiple-choice-preview">
             <table>
-              ${(example.options ?? []).map((option: Option) => `
+              ${(example.options ?? [])
+          .map(
+            (option: Option) => `
                 <tr>
                   <td>${this.renderMathHtml(option.text, example.variables)}</td>
-                  <td class="small checkbox-cell">${isSolution && option.correct ? '☒' : '☐'}</td>
+                  <td class="small checkbox-cell">${isSolution && option.correct ? "☒" : "☐"}</td>
                 </tr>
-              `).join('')}
+              `,
+          )
+          .join("")}
             </table>
           </div>
         `;
 
       case ExampleTypes.GAP_FILL:
-        if (example.gapFillType === 'SELECT') {
+        if (example.gapFillType === "SELECT") {
           return `
             <div class="gap-fill-preview">
-              ${(example.gaps ?? []).map((gap: Gap, gapIndex: number) => `
+              ${(example.gaps ?? [])
+            .map(
+              (gap: Gap, gapIndex: number) => `
                 <table>
                   <tr><th colspan="2">${this.escapeHtml(String(gapIndex + 1))}</th></tr>
-                  ${(gap.options ?? []).map((opt: Option) => `
+                  ${(gap.options ?? [])
+                .map(
+                  (opt: Option) => `
                     <tr>
                       <td>${this.renderMathHtml(opt.text, example.variables)}</td>
-                      <td class="small checkbox-cell">${isSolution && opt.correct ? '☒' : '☐'}</td>
+                      <td class="small checkbox-cell">${isSolution && opt.correct ? "☒" : "☐"}</td>
                     </tr>
-                  `).join('')}
+                  `,
+                )
+                .join("")}
                 </table>
-              `).join('')}
+              `,
+            )
+            .join("")}
             </div>
           `;
         }
-        return '';
+        return "";
 
       case ExampleTypes.ASSIGN:
         return isSolution
           ? `
             <div class="solution-list">
-              ${(example.assigns ?? []).map(assign => `<div>${this.renderMathHtml(assign.left, example.variables)} → ${this.renderMathHtml(assign.right, example.variables)}</div>`).join('')}
+              ${(example.assigns ?? []).map((assign) => `<div>${this.renderMathHtml(assign.left, example.variables)} → ${this.renderMathHtml(assign.right, example.variables)}</div>`).join("")}
             </div>
           `
           : `
             <div class="assign-preview">
               <table class="leftSide">
-                ${(example.assigns ?? []).map(assign => `
+                ${(example.assigns ?? [])
+            .map(
+              (assign) => `
                   <tr>
                     <td>${this.renderMathHtml(assign.left, example.variables)}</td>
                     <td class="fill"></td>
                   </tr>
-                `).join('')}
+                `,
+            )
+            .join("")}
               </table>
 
               <table class="rightSide">
-                ${(example.assignRightItems ?? []).map((right: string, index: number) => `
+                ${(example.assignRightItems ?? [])
+            .map(
+              (right: string, index: number) => `
                   <tr>
                     <td class="fill letter-cell">${this.escapeHtml(getLetter(index))}</td>
                     <td>${this.renderMathHtml(right, example.variables)}</td>
                   </tr>
-                `).join('')}
+                `,
+            )
+            .join("")}
               </table>
             </div>
           `;
 
       default:
-        return '';
+        return "";
     }
   }
 
-  getQuestionWithGapLabels(example: Example | CreateExampleDTO, getLetter: (index: number) => string = (index) => this.getLetter(index)): string {
+  getQuestionWithGapLabels(
+    example: Example | CreateExampleDTO,
+    getLetter: (index: number) => string = (index) => this.getLetter(index),
+  ): string {
     const q = this.getResolvedText(example, example?.question);
     if (example?.type !== ExampleTypes.GAP_FILL) {
       return q;
@@ -215,11 +300,13 @@ export class ExamplePreviewRendererService {
     }
 
     let i = 0;
-    return this.replaceOutsideLatex(q, (text) => text.replace(/_{3,}/g, (match) => {
-      const label = (gaps[i] as any)?.label ?? getLetter(i);
-      i += 1;
-      return `${match} (${label})`;
-    }));
+    return this.replaceOutsideLatex(q, (text) =>
+      text.replace(/_{3,}/g, (match) => {
+        const label = (gaps[i] as any)?.label ?? getLetter(i);
+        i += 1;
+        return `${match} (${label})`;
+      }),
+    );
   }
 
   getLetter(index: number): string {
@@ -432,81 +519,155 @@ export class ExamplePreviewRendererService {
         width: 48px;
         text-align: center;
       }
-      .half-open-preview { margin-top: 0.8rem; }
+      .half-open-preview {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+        margin-top: 0.8rem;
+        overflow-x: auto;
+      }
+      .half-open-item {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0;
+        width: max-content;
+        max-width: 100%;
+        min-height: 1.8rem;
+        white-space: nowrap;
+      }
+      .half-open-label {
+        display: inline-flex;
+        align-items: baseline;
+        min-width: 0;
+        white-space: nowrap;
+      }
+      .half-open-label p {
+        display: inline;
+        margin: 0;
+      }
+      .half-open-label .katex-display {
+        display: inline-block;
+        margin: 0;
+      }
+      .half-open-equals {
+        display: inline-block;
+        flex: 0 0 auto;
+        white-space: nowrap;
+        line-height: 1;
+      }
+      .half-open-line {
+        display: inline-block;
+        flex: 0 0 9rem;
+        width: 9rem;
+        height: 0.95em;
+        border-bottom: 1.5px solid currentColor;
+      }
+      .half-open-solution {
+        display: inline-flex;
+        align-items: baseline;
+        min-width: 3rem;
+        white-space: nowrap;
+        font-weight: 600;
+      }
     `;
   }
 
   private buildGapQuestionHtml(example: Example | CreateExampleDTO): string {
     let gapIndex = 0;
 
-    return this.renderTextWithGapPlaceholders(example.question || '', () => {
-      const gap = (example.gaps ?? [])[gapIndex];
-      const gapNumber = this.escapeHtml(String(gapIndex + 1));
-      gapIndex += 1;
+    return this.renderTextWithGapPlaceholders(
+      example.question || "",
+      () => {
+        const gap = (example.gaps ?? [])[gapIndex];
+        const gapNumber = this.escapeHtml(String(gapIndex + 1));
+        gapIndex += 1;
 
-      if (example.gapFillType === 'INPUT') {
-        const width = this.normalizeGapInlineWidth((gap as any)?.width, (gap as any)?.solution);
-        return `
+        if (example.gapFillType === "INPUT") {
+          const width = this.normalizeGapInlineWidth(
+            (gap as any)?.width,
+            (gap as any)?.solution,
+          );
+          return `
           <span class="gap-inline gap-inline-input" style="width:${width}px;">
             <span class="gap-inline-label gap-inline-label-number">${gapNumber}</span>
             <span class="gap-inline-line"></span>
           </span>
         `;
-      }
+        }
 
-      return `
+        return `
         <span class="gap-inline gap-inline-select">
           <span class="gap-inline-pill">
             <span class="gap-inline-pill-number">${gapNumber}</span>
           </span>
         </span>
       `;
-    }, example.variables);
+      },
+      example.variables,
+    );
   }
 
-  private buildGapQuestionSolutionHtml(example: Example | CreateExampleDTO): string {
+  private buildGapQuestionSolutionHtml(
+    example: Example | CreateExampleDTO,
+  ): string {
     let gapIndex = 0;
 
-    return this.renderTextWithGapPlaceholders(example.question || '', () => {
-      const gap = (example.gaps ?? [])[gapIndex];
-      const gapNumber = this.escapeHtml(String(gapIndex + 1));
-      gapIndex += 1;
+    return this.renderTextWithGapPlaceholders(
+      example.question || "",
+      () => {
+        const gap = (example.gaps ?? [])[gapIndex];
+        const gapNumber = this.escapeHtml(String(gapIndex + 1));
+        gapIndex += 1;
 
-      if (example.gapFillType === 'INPUT') {
-        const solution = this.renderMathHtml(String((gap as any)?.solution ?? ''), example.variables);
-        const width = this.normalizeGapInlineWidth((gap as any)?.width, (gap as any)?.solution);
-        return `
+        if (example.gapFillType === "INPUT") {
+          const solution = this.renderMathHtml(
+            String((gap as any)?.solution ?? ""),
+            example.variables,
+          );
+          const width = this.normalizeGapInlineWidth(
+            (gap as any)?.width,
+            (gap as any)?.solution,
+          );
+          return `
           <span class="gap-inline gap-inline-input" style="width:${width}px;">
             <span class="gap-inline-label gap-inline-label-number">${gapNumber}</span>
-            <span class="gap-inline-solution">${solution || '&nbsp;'}</span>
+            <span class="gap-inline-solution">${solution || "&nbsp;"}</span>
           </span>
         `;
-      }
+        }
 
-      return `
+        return `
         <span class="gap-inline gap-inline-select">
           <span class="gap-inline-pill">
             <span class="gap-inline-pill-number">${gapNumber}</span>
           </span>
         </span>
       `;
-    }, example.variables);
+      },
+      example.variables,
+    );
   }
 
-  private renderTextWithGapPlaceholders(value: string, gapRenderer: () => string, variables?: Example['variables'] | CreateExampleDTO['variables']): string {
-    const source = String(value ?? '');
+  private renderTextWithGapPlaceholders(
+    value: string,
+    gapRenderer: () => string,
+    variables?: Example["variables"] | CreateExampleDTO["variables"],
+  ): string {
+    const source = String(value ?? "");
     const gapTokens: string[] = [];
     const gapPattern = /\{\d+\}|\{Lücke \d+\}|_{3,}/g;
 
-    const textWithGapTokens = this.replaceOutsideLatex(source, (text) => text.replace(gapPattern, () => {
-      const token = `@@GAP_TOKEN_${gapTokens.length}@@`;
-      gapTokens.push(gapRenderer());
-      return token;
-    }));
+    const textWithGapTokens = this.replaceOutsideLatex(source, (text) =>
+      text.replace(gapPattern, () => {
+        const token = `@@GAP_TOKEN_${gapTokens.length}@@`;
+        gapTokens.push(gapRenderer());
+        return token;
+      }),
+    );
 
     let html = this.renderMathHtml(textWithGapTokens, variables);
     gapTokens.forEach((gapHtml, index) => {
-      html = html.replace(new RegExp(`@@GAP_TOKEN_${index}@@`, 'g'), gapHtml);
+      html = html.replace(new RegExp(`@@GAP_TOKEN_${index}@@`, "g"), gapHtml);
     });
 
     return html;
@@ -514,21 +675,29 @@ export class ExamplePreviewRendererService {
 
   private replaceVariablesOutsideLatex(
     value: string | number | null | undefined,
-    variables?: { key?: string; defaultValue?: string | number | null }[] | null,
+    variables?:
+      | { key?: string; defaultValue?: string | number | null }[]
+      | null,
   ): string {
     // With [[variable]] placeholders we can safely replace everywhere, including inside LaTeX.
     // Example: $\frac{[[zaehler]]}{[[nenner]]}$ -> $\frac{10}{2}$
-    return this.replaceVariables(String(value ?? ''), variables);
+    return this.replaceVariables(String(value ?? ""), variables);
   }
 
   private replaceVariables(
     value: string | number | null | undefined,
-    variables?: { key?: string; defaultValue?: string | number | null; value?: string | number | null }[] | null,
+    variables?:
+      | {
+      key?: string;
+      defaultValue?: string | number | null;
+      value?: string | number | null;
+    }[]
+      | null,
   ): string {
     const variableMap = new Map<string, string>();
 
     for (const variable of variables ?? []) {
-      const key = String(variable?.key ?? '').trim();
+      const key = String(variable?.key ?? "").trim();
       if (!key) {
         continue;
       }
@@ -541,19 +710,28 @@ export class ExamplePreviewRendererService {
       variableMap.set(key, String(rawValue));
     }
 
-    return String(value ?? '').replace(this.variablePattern, (match, key: string) => {
-      const normalizedKey = key.trim();
+    return String(value ?? "").replace(
+      this.variablePattern,
+      (match, key: string) => {
+        const normalizedKey = key.trim();
 
-      // Only replace declared [[variable]] placeholders. Unknown placeholders stay visible.
-      return variableMap.has(normalizedKey) ? variableMap.get(normalizedKey)! : match;
-    });
+        // Only replace declared [[variable]] placeholders. Unknown placeholders stay visible.
+        return variableMap.has(normalizedKey)
+          ? variableMap.get(normalizedKey)!
+          : match;
+      },
+    );
   }
 
-  private replaceOutsideLatex(value: string, replacer: (text: string) => string): string {
-    const source = String(value ?? '');
-    const mathPattern = /\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\$[^$\n]*?\$|\\\([\s\S]*?\\\)/g;
+  private replaceOutsideLatex(
+    value: string,
+    replacer: (text: string) => string,
+  ): string {
+    const source = String(value ?? "");
+    const mathPattern =
+      /\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\$[^$\n]*?\$|\\\([\s\S]*?\\\)/g;
     let cursor = 0;
-    let result = '';
+    let result = "";
     let match: RegExpExecArray | null;
 
     while ((match = mathPattern.exec(source)) !== null) {
@@ -566,13 +744,15 @@ export class ExamplePreviewRendererService {
     return result;
   }
 
-  private renderMarkdownHtml(value: string | number | null | undefined): string {
-    const source = String(value ?? '').replace(/\r\n?/g, '\n');
+  private renderMarkdownHtml(
+    value: string | number | null | undefined,
+  ): string {
+    const source = String(value ?? "").replace(/\r\n?/g, "\n");
     if (!source.trim()) {
-      return '';
+      return "";
     }
 
-    const lines = source.split('\n');
+    const lines = source.split("\n");
     const blocks: string[] = [];
     let index = 0;
 
@@ -580,7 +760,7 @@ export class ExamplePreviewRendererService {
       const line = lines[index];
 
       if (!line.trim()) {
-        blocks.push('<p><br></p>');
+        blocks.push("<p><br></p>");
         index += 1;
         continue;
       }
@@ -595,103 +775,128 @@ export class ExamplePreviewRendererService {
         if (index < lines.length) {
           index += 1;
         }
-        blocks.push(`<pre><code>${this.escapeHtml(codeLines.join('\n'))}</code></pre>`);
+        blocks.push(
+          `<pre><code>${this.escapeHtml(codeLines.join("\n"))}</code></pre>`,
+        );
         continue;
       }
 
       if (/^\s*>\s?/.test(line)) {
         const quoteLines: string[] = [];
         while (index < lines.length && /^\s*>\s?/.test(lines[index])) {
-          quoteLines.push(lines[index].replace(/^\s*>\s?/, ''));
+          quoteLines.push(lines[index].replace(/^\s*>\s?/, ""));
           index += 1;
         }
-        blocks.push(`<blockquote>${quoteLines.map(item => this.renderInlineMarkdown(item)).join('<br>')}</blockquote>`);
+        blocks.push(
+          `<blockquote>${quoteLines.map((item) => this.renderInlineMarkdown(item)).join("<br>")}</blockquote>`,
+        );
         continue;
       }
 
       if (/^\s*[-*+]\s+/.test(line)) {
         const items: string[] = [];
         while (index < lines.length && /^\s*[-*+]\s+/.test(lines[index])) {
-          items.push(lines[index].replace(/^\s*[-*+]\s+/, ''));
+          items.push(lines[index].replace(/^\s*[-*+]\s+/, ""));
           index += 1;
         }
-        blocks.push(`<ul>${items.map(item => `<li>${this.renderInlineMarkdown(item)}</li>`).join('')}</ul>`);
+        blocks.push(
+          `<ul>${items.map((item) => `<li>${this.renderInlineMarkdown(item)}</li>`).join("")}</ul>`,
+        );
         continue;
       }
 
       if (/^\s*\d+[.)]\s+/.test(line)) {
         const items: string[] = [];
         while (index < lines.length && /^\s*\d+[.)]\s+/.test(lines[index])) {
-          items.push(lines[index].replace(/^\s*\d+[.)]\s+/, ''));
+          items.push(lines[index].replace(/^\s*\d+[.)]\s+/, ""));
           index += 1;
         }
-        blocks.push(`<ol>${items.map(item => `<li>${this.renderInlineMarkdown(item)}</li>`).join('')}</ol>`);
+        blocks.push(
+          `<ol>${items.map((item) => `<li>${this.renderInlineMarkdown(item)}</li>`).join("")}</ol>`,
+        );
         continue;
       }
 
       const paragraphLines: string[] = [];
       while (
-        index < lines.length
-        && lines[index].trim()
-        && !/^\s*```/.test(lines[index])
-        && !/^\s*>\s?/.test(lines[index])
-        && !/^\s*[-*+]\s+/.test(lines[index])
-        && !/^\s*\d+[.)]\s+/.test(lines[index])
+        index < lines.length &&
+        lines[index].trim() &&
+        !/^\s*```/.test(lines[index]) &&
+        !/^\s*>\s?/.test(lines[index]) &&
+        !/^\s*[-*+]\s+/.test(lines[index]) &&
+        !/^\s*\d+[.)]\s+/.test(lines[index])
         ) {
         paragraphLines.push(lines[index]);
         index += 1;
       }
-      blocks.push(`<p>${paragraphLines.map(item => this.renderInlineMarkdown(item)).join('<br>')}</p>`);
+      blocks.push(
+        `<p>${paragraphLines.map((item) => this.renderInlineMarkdown(item)).join("<br>")}</p>`,
+      );
     }
 
-    return blocks.join('');
+    return blocks.join("");
   }
 
-  private renderInlineMarkdown(value: string | number | null | undefined): string {
+  private renderInlineMarkdown(
+    value: string | number | null | undefined,
+  ): string {
     return this.escapeHtml(value)
-      .replace(/`([^`]+)`/g, '<code>$1</code>')
-      .replace(/~~([^~]+)~~/g, '<del>$1</del>')
-      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-      .replace(/__([^_]+)__/g, '<strong>$1</strong>')
-      .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/~~([^~]+)~~/g, "<del>$1</del>")
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/__([^_]+)__/g, "<strong>$1</strong>")
+      .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>");
   }
 
   private renderFormula(formula: string, displayMode: boolean): string {
     try {
       return katex.renderToString(formula.trim(), {
         displayMode,
-        output: 'mathml',
+        output: "mathml",
         throwOnError: false,
-        strict: 'ignore',
+        strict: "ignore",
       });
     } catch {
       return this.escapeHtml(displayMode ? `$$${formula}$$` : `$${formula}$`);
     }
   }
 
-  private normalizeGapInlineWidth(value: number | string | null | undefined, solution: string | null | undefined): number {
+  private normalizeGapInlineWidth(
+    value: number | string | null | undefined,
+    solution: string | null | undefined,
+  ): number {
     const parsed = Number(value);
     if (Number.isFinite(parsed)) {
       return Math.max(90, Math.min(420, Math.round(parsed)));
     }
 
-    const solutionLength = String(solution ?? '').trim().length;
+    const solutionLength = String(solution ?? "").trim().length;
     const estimated = 90 + solutionLength * 9;
     return Math.max(90, Math.min(420, estimated));
   }
 
-  private getConstructionTaskImage(example: Example | CreateExampleDTO): string | null {
+  private getConstructionTaskImage(
+    example: Example | CreateExampleDTO,
+  ): string | null {
     return (example as any)?.imageUrl || (example as any)?.image || null;
   }
 
-  private getConstructionSolutionImage(example: Example | CreateExampleDTO): string | null {
-    return (example as any)?.solutionUrl || this.getConstructionTaskImage(example);
+  private getConstructionSolutionImage(
+    example: Example | CreateExampleDTO,
+  ): string | null {
+    return (
+      (example as any)?.solutionUrl || this.getConstructionTaskImage(example)
+    );
   }
 
-  private getDisplaySettings(example: Example | CreateExampleDTO): { showInstructionLabel: boolean; showQuestionLabel: boolean; showTaskImageLabel: boolean } {
+  private getDisplaySettings(example: Example | CreateExampleDTO): {
+    showInstructionLabel: boolean;
+    showQuestionLabel: boolean;
+    showTaskImageLabel: boolean;
+  } {
     let settings: any = (example as any)?.displaySettings;
 
-    if (typeof settings === 'string') {
+    if (typeof settings === "string") {
       try {
         settings = JSON.parse(settings);
       } catch {
@@ -699,7 +904,7 @@ export class ExamplePreviewRendererService {
       }
     }
 
-    if (!settings || typeof settings !== 'object') {
+    if (!settings || typeof settings !== "object") {
       settings = {};
     }
 
@@ -710,12 +915,20 @@ export class ExamplePreviewRendererService {
     };
   }
 
+  private toInlineHtml(html: string): string {
+    return String(html ?? "")
+      .trim()
+      .replace(/^<p>/, "")
+      .replace(/<\/p>$/, "")
+      .replace(/<\/p>\s*<p>/g, "<br>");
+  }
+
   private escapeHtml(value: string | number | null | undefined): string {
-    return String(value ?? '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/\"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 }

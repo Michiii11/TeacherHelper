@@ -178,7 +178,7 @@
       "message": "There is a new activity."
     },
     "notificationBadges": {
-      "SCHOOL_INVITATION": "Invitation",
+      "COLLECTION_INVITATION": "Invitation",
       "INVITATION_ACCEPTED": "Joined",
       "INVITATION_DECLINED": "Declined",
       "SYSTEM_INFO": "Info"
@@ -1306,7 +1306,8 @@
       "created": "Exercise created successfully.",
       "saveError": "Exercise could not be saved.",
       "focusDeleted": "The focus \"{{label}}\" was deleted.",
-      "imageSizeError": "The image must not exceed 5 MB."
+      "imageSizeError": "The image must not exceed 5 MB.",
+      "textLimitExceeded": "{{label}} is too long. Maximum {{max}} characters allowed."
     },
     "preview": "Preview",
     "editor": {
@@ -1317,7 +1318,8 @@
         "start": "Home",
         "formulas": "Formulas",
         "symbols": "Symbols",
-        "more": "More"
+        "more": "More",
+        "greek": "Greek"
       },
       "commands": {
         "bold": "Bold",
@@ -1337,7 +1339,28 @@
         "sum": "Sum",
         "integral": "Integral",
         "vector": "Vector",
-        "aligned": "Equations"
+        "aligned": "Equations",
+        "up": "Up",
+        "down": "Down",
+        "proofread": "Check"
+      },
+      "tooltip": {
+        "insert": "Insert",
+        "example": "Example",
+        "shortcut": "Shortcut",
+        "click": "Click to run"
+      },
+      "proofreading": {
+        "title": "Text check",
+        "browserHint": "Inline markings are provided by the browser. This panel adds simple Word-like suggestions for spacing, punctuation and common typos.",
+        "empty": "No obvious issues found.",
+        "replace": "Replace",
+        "messages": {
+          "doubleSpace": "Multiple spaces found.",
+          "spaceBeforePunctuation": "There should be no space before punctuation.",
+          "repeatedPunctuation": "The punctuation appears to be repeated.",
+          "commonTypo": "Possible typo: {{original}}."
+        }
       }
     },
     "displaySettings": {
