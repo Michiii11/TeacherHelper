@@ -1,6 +1,7 @@
 package at.model;
 
 import at.model.helper.GradingLevel;
+import at.model.helper.AppTime;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -69,8 +70,8 @@ public class Test {
     private LocalDateTime updatedAt;
 
     public Test() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        createdAt = AppTime.now();
+        updatedAt = AppTime.now();
     }
 
     public Test(String name, String note, User admin, Collection collection, int duration) {
@@ -84,7 +85,7 @@ public class Test {
 
     @PrePersist
     public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = AppTime.now();
         if (this.createdAt == null) {
             this.createdAt = now;
         }
@@ -93,7 +94,7 @@ public class Test {
 
     @PreUpdate
     public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = AppTime.now();
     }
 
     @Override

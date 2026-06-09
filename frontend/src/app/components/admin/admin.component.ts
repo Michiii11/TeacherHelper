@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from "@angular/common";
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from "@angular/core";
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
@@ -174,6 +174,10 @@ export class AdminComponent implements OnInit, OnDestroy {
   dash: AdminDashboardDTO = this.createEmptyDashboard();
   isDashboardLoading = false;
   isUserLoading = false;
+  isUserSearchOpen = false;
+  isUserSortPopupOpen = false;
+  isCollectionSearchOpen = false;
+  isCollectionSortPopupOpen = false;
 
   ngOnInit(): void {
     this.setNavbar();
@@ -185,6 +189,11 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.revokeAvatarUrls();
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  @HostListener("document:click")
+  onDocumentClick(): void {
+    this.closeFloatingControls();
   }
 
   get visibleUsers(): AdminUserDashboardDTO[] {
@@ -281,6 +290,78 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   toggleCollectionDetails(collection: CollectionDTO): void {
     this.expandedCollectionId = this.isCollectionExpanded(collection) ? null : collection.id;
+  }
+
+  stopClick(event: Event): void {
+    event.stopPropagation();
+  }
+
+  openUserSearch(event: Event): void {
+    event.stopPropagation();
+    this.isUserSearchOpen = true;
+    this.isUserSortPopupOpen = false;
+  }
+
+  toggleUserSearch(event: Event): void {
+    event.stopPropagation();
+    this.isUserSearchOpen = !this.isUserSearchOpen;
+    this.isUserSortPopupOpen = false;
+  }
+
+  clearUserSearch(event: Event): void {
+    event.stopPropagation();
+    this.search = "";
+    this.isUserSearchOpen = false;
+  }
+
+  toggleUserSortPopup(event: Event): void {
+    event.stopPropagation();
+    const next = !this.isUserSortPopupOpen;
+    this.closeFloatingControls();
+    this.isUserSortPopupOpen = next;
+  }
+
+  setUserSort(sort: AdminSortKey): void {
+    this.sort = sort;
+    this.isUserSortPopupOpen = false;
+  }
+
+  getUserSortLabel(sort: AdminSortKey): string {
+    return this.sortOptions.find((option) => option.value === sort)?.label ?? "Sortieren";
+  }
+
+  openCollectionSearch(event: Event): void {
+    event.stopPropagation();
+    this.isCollectionSearchOpen = true;
+    this.isCollectionSortPopupOpen = false;
+  }
+
+  toggleCollectionSearch(event: Event): void {
+    event.stopPropagation();
+    this.isCollectionSearchOpen = !this.isCollectionSearchOpen;
+    this.isCollectionSortPopupOpen = false;
+  }
+
+  clearCollectionSearch(event: Event): void {
+    event.stopPropagation();
+    this.collectionSearch = "";
+    this.isCollectionSearchOpen = false;
+  }
+
+  toggleCollectionSortPopup(event: Event): void {
+    event.stopPropagation();
+    const next = !this.isCollectionSortPopupOpen;
+    this.closeFloatingControls();
+    this.isCollectionSortPopupOpen = next;
+  }
+
+  setCollectionSort(sort: CollectionSortKey): void {
+    this.collectionSort = sort;
+    this.isCollectionSortPopupOpen = false;
+  }
+
+  getCollectionSortLabel(sort: CollectionSortKey): string {
+    return this.collectionSortOptions.find((option) => option.value === sort)?.label ?? "Sortieren";
   }
 
   isCollectionExpanded(collection: CollectionDTO): boolean {
@@ -459,6 +540,19 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.avatarUrls.forEach((url) => URL.revokeObjectURL(url));
     this.avatarUrls.clear();
     this.loadingAvatarIds.clear();
+  }
+
+  private closeFloatingControls(): void {
+    this.isUserSortPopupOpen = false;
+    this.isCollectionSortPopupOpen = false;
+
+    if (!this.search.trim()) {
+      this.isUserSearchOpen = false;
+    }
+
+    if (!this.collectionSearch.trim()) {
+      this.isCollectionSearchOpen = false;
+    }
   }
 
   private get normalizedSearch(): string {

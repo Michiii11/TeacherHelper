@@ -24,7 +24,19 @@
     }
   </div>
 
-  <div class="construction-stage-preview">
+  <div
+    class="construction-stage-preview"
+    [class.drag-over]="isDragOver"
+    role="button"
+    tabindex="0"
+    (click)="!previewUrl && fileInput.click()"
+    (keydown.enter)="!previewUrl && fileInput.click()"
+    (keydown.space)="$event.preventDefault(); !previewUrl && fileInput.click()"
+    (dragenter)="onDragEnter($event)"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+  >
     @if (previewUrl) {
       <img
         [src]="previewUrl"
@@ -32,10 +44,17 @@
         class="image-preview construction-preview-image"
         [style.width.px]="width || 320"
       />
+
+      <div class="drop-overlay" [class.visible]="isDragOver">
+        <mat-icon>cloud_upload</mat-icon>
+        <span>Bild hier ablegen</span>
+      </div>
     } @else {
       <div class="construction-empty-state">
-        <mat-icon>{{ emptyIcon }}</mat-icon>
+        <mat-icon>{{ isDragOver ? 'cloud_upload' : emptyIcon }}</mat-icon>
         <span>{{ emptyTextKey | translate }}</span>
+        <small>Bild hierher ziehen oder auswählen</small>
+        <small class="file-limit-hint">PNG, JPG oder WebP · max. {{ maxSizeMb }} MB</small>
       </div>
     }
   </div>

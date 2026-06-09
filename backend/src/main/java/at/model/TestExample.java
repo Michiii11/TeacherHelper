@@ -18,7 +18,9 @@ public class TestExample {
     @ManyToOne(optional = false)
     private Example example;
 
-    private int points;
+    @Column(name = "points", nullable = false, columnDefinition = "double precision")
+    private Double points = 0.0;
+
     private String title;
 
     @ElementCollection
@@ -30,10 +32,10 @@ public class TestExample {
     public TestExample() {
     }
 
-    public TestExample(Test test, Example example, int points, String title) {
+    public TestExample(Test test, Example example, Double points, String title) {
         this.test = test;
         this.example = example;
-        this.points = points;
+        this.points = points != null ? points : 0.0;
         this.title = title;
     }
 
@@ -73,12 +75,12 @@ public class TestExample {
         this.example = example;
     }
 
-    public int getPoints() {
-        return points;
+    public Double getPoints() {
+        return points != null ? points : 0.0;
     }
 
-    public void setPoints(int points) {
-        this.points = points;
+    public void setPoints(Double points) {
+        this.points = points != null ? points : 0.0;
     }
 
     public String getTitle() {

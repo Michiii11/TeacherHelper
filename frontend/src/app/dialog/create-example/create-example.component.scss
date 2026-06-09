@@ -165,6 +165,10 @@
   min-width: 0;
 }
 
+.editor-ribbon-panel + .row {
+  margin-top: -0.9rem;
+}
+
 .type-selection {
   align-items: center;
 }
@@ -280,7 +284,7 @@
 }
 
 .example-panel {
-  gap: 0.9rem;
+  gap: 1.15rem;
   min-width: 0;
 }
 
@@ -329,6 +333,7 @@
 .assign-column {
   @include flex-column(.5rem);
   background: none;
+  padding: 1rem;
 }
 
 .gap-fill-luecken div div {
@@ -365,6 +370,7 @@
 
 .assign-column {
   @include panel-card;
+  padding: 1rem;
 }
 
 .option-row button[mat-icon-button] {
@@ -373,6 +379,7 @@
 
 mat-divider {
   border-color: var(--border);
+  margin: 0.35rem 0 0.75rem;
 }
 
 // -----------------------------------------------------------------------------
@@ -1624,4 +1631,167 @@ mat-dialog-actions {
 
 .variable-add-action {
   margin-right: .65rem !important;
+}
+
+.editor-ribbon-command {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.editor-command-example {
+  max-width: 110px;
+  padding-left: 4px;
+  border-left: 1px solid color-mix(in srgb, var(--border-strong) 48%, transparent);
+  color: var(--text-subtle);
+  font-size: .66rem;
+  font-weight: 700;
+  line-height: 1;
+  opacity: .78;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editor-ribbon-command:hover .editor-command-example {
+  color: var(--primary);
+  opacity: 1;
+}
+
+.text-limit-hint {
+  margin-top: 3px;
+  color: var(--text-subtle);
+  font-size: .72rem;
+  text-align: right;
+}
+
+// Greek letters can get long; keep the ribbon compact and scrollable after ~3 rows.
+.editor-ribbon-toolbar.greek-toolbar {
+  max-height: 116px;
+  overflow-y: auto;
+  align-content: flex-start;
+  scrollbar-width: thin;
+}
+
+.editor-ribbon-toolbar.greek-toolbar .editor-ribbon-command {
+  min-width: 42px !important;
+}
+
+.proofreading-panel {
+  margin: 0 8px 8px;
+  padding: .75rem;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border));
+  background: color-mix(in srgb, var(--surface-2) 88%, transparent);
+}
+
+.proofreading-head,
+.proofreading-item,
+.proofreading-empty,
+.proofreading-replacement {
+  display: flex;
+  align-items: center;
+}
+
+.proofreading-head {
+  justify-content: space-between;
+  gap: .75rem;
+  margin-bottom: .55rem;
+}
+
+.proofreading-title {
+  color: var(--text);
+  font-size: .86rem;
+  font-weight: 850;
+}
+
+.proofreading-subtitle {
+  margin-top: .15rem;
+  color: var(--text-subtle);
+  font-size: .72rem;
+  line-height: 1.35;
+}
+
+.proofreading-empty {
+  gap: .45rem;
+  color: var(--text-subtle);
+  font-size: .78rem;
+
+  mat-icon {
+    @include button-icon-size(18px);
+    color: var(--primary);
+  }
+}
+
+.proofreading-list {
+  display: grid;
+  gap: .5rem;
+}
+
+.proofreading-item {
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .55rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  background: var(--bg-soft);
+}
+
+.proofreading-copy {
+  min-width: 0;
+}
+
+.proofreading-message {
+  color: var(--text);
+  font-size: .78rem;
+  font-weight: 750;
+}
+
+.proofreading-replacement {
+  gap: .35rem;
+  margin-top: .25rem;
+  color: var(--text-subtle);
+  font-size: .74rem;
+
+  mat-icon {
+    @include button-icon-size(15px);
+  }
+}
+
+.proofreading-original {
+  text-decoration: line-through;
+}
+
+.proofreading-suggestion {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+
+.half-open-answers .item-row {
+  align-items: flex-start;
+}
+
+.half-open-solution-input textarea {
+  min-height: 0;
+  resize: none;
+  overflow: hidden;
+}
+
+.global-solution-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.solution-helper-text {
+  margin-top: -0.35rem;
+  color: var(--text-subtle);
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.global-solution-text {
+  margin-bottom: 0.15rem;
 }

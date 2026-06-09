@@ -2,13 +2,12 @@ package at.repository;
 
 import at.dtos.Collection.CollectionDTO;
 import at.dtos.Example.ExampleOverviewDTO;
+import at.dtos.Folder.FolderDTO;
 import at.dtos.Test.TestOverviewDTO;
 import at.dtos.User.*;
 import at.enums.SubscriptionModel;
-import at.model.Collection;
-import at.model.Example;
-import at.model.Test;
-import at.model.User;
+import at.model.*;
+import at.model.helper.AppTime;
 import at.service.Auth0ManagementService;
 import at.service.MediaStorageService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -24,7 +23,6 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -37,7 +35,6 @@ public class UserRepository {
     private static final long MAX_PROFILE_IMAGE_SIZE = 2L * 1024L * 1024L;
     private static final Set<String> SUPPORTED_LANGUAGES = Set.of("de", "en");
     private static final SecureRandom CODE_RANDOM = new SecureRandom();
-    private static final ZoneId APP_ZONE = ZoneId.of("Europe/Vienna");
 
     @Inject
     EntityManager em;
@@ -377,7 +374,30 @@ public class UserRepository {
                             ))
                             .toList();
 
-                    return collection.toDTOFull(examples, tests);
+                    List<FolderDTO> folders = em.createQuery(
+                                    """
+                                    SELECT DISTINCT f
+                                    FROM Folder f
+                                    LEFT JOIN FETCH f.parent
+                                    WHERE f.collection.id = :collectionId
+                                    ORDER BY f.createdAt DESC
+                                    """,
+                                    Folder.class
+                            )
+                            .setParameter("collectionId", collection.getId())
+                            .getResultList()
+                            .stream()
+                            .map(f -> new FolderDTO(
+                                    f.getId(),
+                                    f.getName(),
+                                    f.getCollection().getId(),
+                                    f.getParent() != null ? f.getParent().getId() : null,
+                                    f.getCreatedAt(),
+                                    f.getUpdatedAt()
+                            ))
+                            .toList();
+
+                    return collection.toDTOFull(examples, tests, folders);
                 })
                 .toList();
 
@@ -563,19 +583,6 @@ public class UserRepository {
         }
     }
 
-    public User findByVerificationToken(String token) {
-        try {
-            return em.createQuery(
-                            "SELECT u FROM User u WHERE u.emailVerificationToken = :token",
-                            User.class
-                    )
-                    .setParameter("token", token)
-                    .getSingleResult();
-        } catch (NoResultException e) {
-            return null;
-        }
-    }
-
     public User findById(UUID userId) {
         if (userId == null) return null;
         User user = em.find(User.class, userId);
@@ -600,7 +607,7 @@ public class UserRepository {
     }
 
     private LocalDateTime now() {
-        return LocalDateTime.now(APP_ZONE);
+        return AppTime.now();
     }
 
     private long countUsers() {

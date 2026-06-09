@@ -1,6 +1,7 @@
 package at.model;
 
 import at.dtos.Folder.FolderDTO;
+import at.model.helper.AppTime;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -38,7 +39,7 @@ public class Folder {
 
     @PrePersist
     public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = AppTime.now();
         if (this.createdAt == null) {
             this.createdAt = now;
         }
@@ -47,7 +48,7 @@ public class Folder {
 
     @PreUpdate
     public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = AppTime.now();
     }
 
     public FolderDTO toDto() {

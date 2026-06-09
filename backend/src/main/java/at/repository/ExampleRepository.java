@@ -199,11 +199,13 @@ public class ExampleRepository {
                 example.setImageWidth(dto.imageWidth());
                 example.setSolutionImageWidth(dto.solutionImageWidth());
             }
+            case OPEN -> {
+                example.setSolutionUrl(dto.solutionUrl());
+                example.setSolutionImageWidth(dto.solutionImageWidth());
+            }
             case ASSIGN -> {
                 example.setAssigns(dto.assigns());
                 example.setAssignRightItems(dto.assignRightItems());
-            }
-            case OPEN -> {
             }
         }
 
@@ -309,11 +311,13 @@ public class ExampleRepository {
                 example.setImageWidth(dto.imageWidth());
                 example.setSolutionImageWidth(dto.solutionImageWidth());
             }
+            case OPEN -> {
+                example.setSolutionUrl(dto.solutionUrl());
+                example.setSolutionImageWidth(dto.solutionImageWidth());
+            }
             case ASSIGN -> {
                 example.setAssigns(dto.assigns());
                 example.setAssignRightItems(dto.assignRightItems());
-            }
-            case OPEN -> {
             }
         }
 
@@ -323,7 +327,7 @@ public class ExampleRepository {
     }
 
     public Response moveExampleToFolder(UUID exampleId, UUID userId, UUID folderId) {
-       Example example = em.find(Example.class, exampleId);
+        Example example = em.find(Example.class, exampleId);
         if (example == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("Example not found.").build();
         }
@@ -350,7 +354,7 @@ public class ExampleRepository {
 
     public Response getExampleImage(UUID exampleId, UUID userId, boolean isSolution) {
         Example example = findById(exampleId);
-        if (example == null || example.getImageUrl() == null || example.getImageUrl().isBlank()) {
+        if (example == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
@@ -358,12 +362,12 @@ public class ExampleRepository {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
-        MediaStorageService.StoredImage image = null;
-        if(isSolution) {
-            image = mediaStorageService.loadImage(example.getSolutionUrl());
-        } else {
-            image = mediaStorageService.loadImage(example.getImageUrl());
+        String imageKey = isSolution ? example.getSolutionUrl() : example.getImageUrl();
+        if (imageKey == null || imageKey.isBlank()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
+
+        MediaStorageService.StoredImage image = mediaStorageService.loadImage(imageKey);
 
         if (image == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -502,6 +506,10 @@ public class ExampleRepository {
 
         if (example.getType() != at.enums.ExampleTypes.CONSTRUCTION) {
             example.setImageUrl(null);
+        }
+
+        if (example.getType() != at.enums.ExampleTypes.CONSTRUCTION
+                && example.getType() != at.enums.ExampleTypes.OPEN) {
             example.setSolutionUrl(null);
         }
     }

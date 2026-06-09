@@ -1,6 +1,7 @@
 import { User, UserDTO } from './User';
 import { ExampleOverviewDTO, Focus } from './Example';
 import { TestOverviewDTO } from './Test';
+import {FolderDTO} from './Folder'
 
 export interface Collection {
   id: string;
@@ -20,5 +21,7 @@ export interface CollectionDTO {
   admin: UserDTO | null;
   examples: ExampleOverviewDTO[];
   tests: TestOverviewDTO[];
+  folders: FolderDTO[];
+  focusList: Focus[];
   members: UserDTO[];
 }

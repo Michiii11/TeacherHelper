@@ -178,7 +178,7 @@
       "message": "Es gibt eine neue Aktivität."
     },
     "notificationBadges": {
-      "SCHOOL_INVITATION": "Einladung",
+      "COLLECTION_INVITATION": "Einladung",
       "INVITATION_ACCEPTED": "Beigetreten",
       "INVITATION_DECLINED": "Abgelehnt",
       "SYSTEM_INFO": "Info"
@@ -620,7 +620,8 @@
       "created": "Beispiel erfolgreich erstellt.",
       "saveError": "Beispiel konnte nicht gespeichert werden.",
       "focusDeleted": "Der Schwerpunkt \"{{label}}\" wurde gelöscht.",
-      "imageSizeError": "Das Bild darf maximal 5 MB groß sein."
+      "imageSizeError": "Das Bild darf maximal 5 MB groß sein.",
+      "textLimitExceeded": "{{label}} ist zu lang. Maximal {{max}} Zeichen erlaubt."
     },
     "preview": "Vorschau",
     "editor": {
@@ -631,12 +632,15 @@
         "start": "Start",
         "formulas": "Formeln",
         "symbols": "Zeichen",
-        "more": "Mehr"
+        "more": "Mehr",
+        "greek": "Griechisch"
       },
       "commands": {
         "bold": "Fett",
         "italic": "Kursiv",
         "strike": "Durchstr.",
+        "up": "Hoch",
+        "down": "Tief",
         "code": "Code",
         "bulletList": "Liste",
         "numberedList": "Nr.",
@@ -651,7 +655,26 @@
         "sum": "Summe",
         "integral": "Integral",
         "vector": "Vektor",
-        "aligned": "Gleichungen"
+        "aligned": "Gleichungen",
+        "proofread": "Prüfen"
+      },
+      "tooltip": {
+        "insert": "Einfügen",
+        "example": "Beispiel",
+        "shortcut": "Shortcut",
+        "click": "Klicken zum Ausführen"
+      },
+      "proofreading": {
+        "title": "Textprüfung",
+        "browserHint": "Markierungen im Text kommen vom Browser. Hier findest du zusätzliche einfache Vorschläge wie in einer kleinen Word-Prüfung.",
+        "empty": "Keine offensichtlichen Probleme gefunden.",
+        "replace": "Ersetzen",
+        "messages": {
+          "doubleSpace": "Mehrfaches Leerzeichen gefunden.",
+          "spaceBeforePunctuation": "Vor Satzzeichen sollte kein Leerzeichen stehen.",
+          "repeatedPunctuation": "Satzzeichen wirkt doppelt gesetzt.",
+          "commonTypo": "Möglicher Schreibfehler: {{original}}."
+        }
       }
     },
     "displaySettings": {

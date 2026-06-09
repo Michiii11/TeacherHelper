@@ -1,116 +1,22 @@
 @if (isLoading) {
-  <main class="create-example-shell loading-dashboard" aria-label="Example Loading">
+  <main
+    class="create-example-shell loading-dashboard"
+    aria-label="Example Loading"
+  >
     <section class="school-loading-card">
       <mat-icon>post_add</mat-icon>
-      <h2>{{ 'common.loading' | translate }}</h2>
+      <h2>{{ "common.loading" | translate }}</h2>
       <mat-progress-bar mode="indeterminate"></mat-progress-bar>
     </section>
   </main>
 } @else if (example) {
   <div class="preview-dialog">
-    @if(showHeader){
+    @if (showHeader) {
       <div class="preview-header">
-        <h1>{{ 'createTest.preview.previewTitle' | translate }}</h1>
+        <h1>{{ "createTest.preview.previewTitle" | translate }}</h1>
       </div>
     }
 
-    <div class="preview-panel">
-      <div>
-        <p *ngIf="showInstructionLabel()"><strong>{{ 'collection.instruction' | translate }}:</strong></p>
-        <div class="rich-text multiline-text" [innerHTML]="renderMathText(example.instruction)"></div>
-      </div>
-
-      <p *ngIf="showQuestionLabel()"><strong>{{ 'collection.question' | translate }}:</strong></p>
-
-      <div>
-        <div class="rich-text multiline-text" [innerHTML]="renderQuestionWithGapLabels()"></div>
-      </div>
-
-      @if(example.type === ExampleTypes.HALF_OPEN){
-        <div class="half-open-preview">
-          @for (ans of example.answers; track ans){
-            <p><span [innerHTML]="renderMathText(ans[0])"></span> = ___________________</p>
-          }
-        </div>
-      }
-
-      @if(example.type === ExampleTypes.CONSTRUCTION){
-        <div class="construction-preview">
-          <div>
-            <p *ngIf="showTaskImageLabel()"><strong>{{ 'exampleDialog.taskImage' | translate }}</strong></p>
-
-            <div *ngIf="getPreviewImageUrl()" class="image-preview-frame">
-              <img
-                [src]="getPreviewImageUrl()"
-                [alt]="'exampleDialog.taskImagePreviewAlt' | translate"
-                class="image-preview"
-                [style.width.px]="getImageWidth(example)" />
-            </div>
-
-            <p *ngIf="!getPreviewImageUrl()">
-              {{ 'exampleDialog.noTaskImage' | translate }}
-            </p>
-          </div>
-        </div>
-      }
-
-      @if(example.type === ExampleTypes.MULTIPLE_CHOICE){
-        <div class="multiple-choice-preview">
-          <table>
-            @for (option of example.options; track option){
-              <tr>
-                <td [innerHTML]="renderMathText(option.text)"></td>
-                <td class="small">
-                  <mat-pseudo-checkbox></mat-pseudo-checkbox>
-                </td>
-              </tr>
-            }
-          </table>
-        </div>
-      }
-
-      @if(example.type === ExampleTypes.GAP_FILL){
-        @if(example.gapFillType === 'SELECT'){
-          <div class="gap-fill-preview">
-            @for (gap of example.gaps; track gap; let gapIndex = $index){
-              <table>
-                <tr>
-                  <th colspan="2">{{ gapIndex + 1 }}</th>
-                </tr>
-
-                @for(opt of gap.options; track opt){
-                  <tr>
-                    <td [innerHTML]="renderMathText(opt.text)"></td>
-                    <td class="small">
-                      <mat-pseudo-checkbox></mat-pseudo-checkbox>
-                    </td>
-                  </tr>
-                }
-              </table>
-            }
-          </div>
-        }
-      }
-
-      @if(example.type === ExampleTypes.ASSIGN){
-        <div class="assign-preview">
-          <table class="leftSide">
-            @for(assign of example.assigns; track assign){
-              <tr>
-                <td [innerHTML]="renderMathText(assign.left)"></td>
-                <td class="fill"></td>
-              </tr>
-            }
-          </table>
-
-          <table class="rightSide">
-            <tr *ngFor="let right of example.assignRightItems; let i = index">
-              <td class="fill">{{ getLetter(i) }}</td>
-              <td [innerHTML]="renderMathText(right)"></td>
-            </tr>
-          </table>
-        </div>
-      }
-    </div>
+    <div [innerHTML]="previewHtml"></div>
   </div>
 }

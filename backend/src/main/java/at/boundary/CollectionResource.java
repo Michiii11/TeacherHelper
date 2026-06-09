@@ -26,7 +26,7 @@ public class CollectionResource {
     JsonWebToken jwt;
     @GET
     @Path("your-collections")
-    public Response getYourCollections(@HeaderParam("Authorization") String auth) {
+    public Response getYourCollections() {
         UUID userId = currentUserId();
         return repository.getYourCollections(userId);
     }

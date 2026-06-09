@@ -35,7 +35,7 @@
                 </button>
               </div>
 
-              <div class="editor-ribbon-toolbar" [attr.aria-label]="'exampleDialog.editor.toolbarAria' | translate">
+              <div class="editor-ribbon-toolbar" [class.greek-toolbar]="isGreekToolbarActive" [attr.aria-label]="'exampleDialog.editor.toolbarAria' | translate">
                 <button
                   mat-button
                   type="button"
@@ -50,26 +50,63 @@
                   <span>{{ item.label | translate }}</span>
                 </button>
               </div>
+
+              <div class="proofreading-panel" *ngIf="proofreadingOpen">
+                <div class="proofreading-head">
+                  <div>
+                    <div class="proofreading-title">{{ 'exampleDialog.editor.proofreading.title' | translate }}</div>
+                    <div class="proofreading-subtitle">{{ 'exampleDialog.editor.proofreading.browserHint' | translate }}</div>
+                  </div>
+
+                  <button mat-icon-button type="button" (click)="closeProofreading()" [attr.aria-label]="'common.close' | translate">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+
+                <div class="proofreading-empty" *ngIf="!proofreadIssues.length">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>{{ 'exampleDialog.editor.proofreading.empty' | translate }}</span>
+                </div>
+
+                <div class="proofreading-list" *ngIf="proofreadIssues.length">
+                  <div class="proofreading-item" *ngFor="let issue of proofreadIssues">
+                    <div class="proofreading-copy">
+                      <div class="proofreading-message">{{ getProofreadingIssueMessage(issue) }}</div>
+                      <div class="proofreading-replacement">
+                        <span class="proofreading-original">{{ issue.original }}</span>
+                        <mat-icon>arrow_forward</mat-icon>
+                        <span class="proofreading-suggestion">{{ issue.suggestion }}</span>
+                      </div>
+                    </div>
+
+                    <button mat-stroked-button type="button" (click)="applyProofreadingIssue(issue)">
+                      {{ 'exampleDialog.editor.proofreading.replace' | translate }}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 
           <div class="row">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>{{ 'collection.instruction' | translate }}</mat-label>
-              <textarea
-                matInput
-                [(ngModel)]="example.instruction"
-                name="instruction"
-                (focus)="setVariableTarget({ type: 'instruction' }, $event)"
-                (click)="setVariableTarget({ type: 'instruction' }, $event)"
-                (keyup)="setVariableTarget({ type: 'instruction' }, $event)"
-                (select)="setVariableTarget({ type: 'instruction' }, $event)"
-                (input)="setVariableTarget({ type: 'instruction' }, $event); syncVariablesFromContent(); markDirty()"
-                placeholder="{{ 'exampleDialog.instructionPlaceholder' | translate }}"
-                cdkTextareaAutosize
-                cdkAutosizeMinRows="2"
-                cdkAutosizeMaxRows="10">
+              <textarea spellcheck="true" [attr.lang]="editorSpellcheckLang"
+                        matInput
+                        [(ngModel)]="example.instruction"
+                        name="instruction"
+                        [attr.maxlength]="textLimits.instruction"
+                        (focus)="setVariableTarget({ type: 'instruction' }, $event)"
+                        (click)="setVariableTarget({ type: 'instruction' }, $event)"
+                        (keyup)="setVariableTarget({ type: 'instruction' }, $event)"
+                        (select)="setVariableTarget({ type: 'instruction' }, $event)"
+                        (input)="setVariableTarget({ type: 'instruction' }, $event); syncVariablesFromContent(); markDirty()"
+                        placeholder="{{ 'exampleDialog.instructionPlaceholder' | translate }}"
+                        cdkTextareaAutosize
+                        cdkAutosizeMinRows="2"
+                        cdkAutosizeMaxRows="10">
           </textarea>
+              <mat-hint align="end" *ngIf="shouldShowTextLimitHint(example.instruction, textLimits.instruction)">{{ getTextLength(example.instruction) }} / {{ textLimits.instruction }}</mat-hint>
             </mat-form-field>
           </div>
 
@@ -77,60 +114,48 @@
             <ng-container *ngIf="example.type === ExampleTypes.OPEN">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>{{ 'collection.question' | translate }}</mat-label>
-                <textarea
-                  matInput
-                  [(ngModel)]="example.question"
-                  name="question"
-                  (focus)="setVariableTarget({ type: 'question' }, $event)"
-                  (click)="setVariableTarget({ type: 'question' }, $event)"
-                  (keyup)="setVariableTarget({ type: 'question' }, $event)"
-                  (select)="setVariableTarget({ type: 'question' }, $event)"
-                  (input)="setVariableTarget({ type: 'question' }, $event); syncVariablesFromContent(); markDirty()"
-                  placeholder="{{ 'exampleDialog.openQuestionPlaceholder' | translate }}"
-                  cdkTextareaAutosize
-                  cdkAutosizeMinRows="2"
-                  cdkAutosizeMaxRows="10">
+                <textarea spellcheck="true" [attr.lang]="editorSpellcheckLang"
+                          matInput
+                          [(ngModel)]="example.question"
+                          name="question"
+                          [attr.maxlength]="textLimits.question"
+                          (focus)="setVariableTarget({ type: 'question' }, $event)"
+                          (click)="setVariableTarget({ type: 'question' }, $event)"
+                          (keyup)="setVariableTarget({ type: 'question' }, $event)"
+                          (select)="setVariableTarget({ type: 'question' }, $event)"
+                          (input)="setVariableTarget({ type: 'question' }, $event); syncVariablesFromContent(); markDirty()"
+                          placeholder="{{ 'exampleDialog.openQuestionPlaceholder' | translate }}"
+                          cdkTextareaAutosize
+                          cdkAutosizeMinRows="2"
+                          cdkAutosizeMaxRows="10">
           </textarea>
-              </mat-form-field>
-
-              <mat-divider></mat-divider>
-
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>{{ 'exampleDialog.solution' | translate }}</mat-label>
-                <textarea
-                  matInput
-                  [(ngModel)]="example.solution"
-                  name="solution"
-                  (focus)="setVariableTarget({ type: 'solution' }, $event)"
-                  (click)="setVariableTarget({ type: 'solution' }, $event)"
-                  (keyup)="setVariableTarget({ type: 'solution' }, $event)"
-                  (select)="setVariableTarget({ type: 'solution' }, $event)"
-                  (input)="setVariableTarget({ type: 'solution' }, $event); syncVariablesFromContent(); markDirty()"
-                  placeholder="{{ 'exampleDialog.solutionPlaceholder' | translate }}"
-                  cdkTextareaAutosize
-                  cdkAutosizeMinRows="2"
-                  cdkAutosizeMaxRows="10">
-          </textarea>
+                <mat-hint align="end" *ngIf="shouldShowTextLimitHint(example.question, textLimits.question)">{{ getTextLength(example.question) }} / {{ textLimits.question }}</mat-hint>
               </mat-form-field>
             </ng-container>
 
             <ng-container *ngIf="example.type === ExampleTypes.HALF_OPEN">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>{{ 'collection.question' | translate }}</mat-label>
-                <textarea matInput [(ngModel)]="example.question" name="question" (focus)="setVariableTarget({ type: 'question' }, $event)" (click)="setVariableTarget({ type: 'question' }, $event)" (keyup)="setVariableTarget({ type: 'question' }, $event)" (select)="setVariableTarget({ type: 'question' }, $event)" (input)="setVariableTarget({ type: 'question' }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.halfOpenQuestionPlaceholder' | translate }}"
+                <textarea spellcheck="true" [attr.lang]="editorSpellcheckLang" matInput [(ngModel)]="example.question" name="question" [attr.maxlength]="textLimits.question" (focus)="setVariableTarget({ type: 'question' }, $event)" (click)="setVariableTarget({ type: 'question' }, $event)" (keyup)="setVariableTarget({ type: 'question' }, $event)" (select)="setVariableTarget({ type: 'question' }, $event)" (input)="setVariableTarget({ type: 'question' }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.halfOpenQuestionPlaceholder' | translate }}"
                           cdkTextareaAutosize
                           cdkAutosizeMinRows="2"
                           cdkAutosizeMaxRows="10"></textarea>
+                <mat-hint align="end" *ngIf="shouldShowTextLimitHint(example.question, textLimits.question)">{{ getTextLength(example.question) }} / {{ textLimits.question }}</mat-hint>
               </mat-form-field>
 
               <div class="panel-box half-open-answers">
                 <div class="panel-title">{{ 'exampleDialog.answers' | translate }}</div>
                 <div *ngFor="let a of example.answers; let i = index; trackBy: trackByIndex" class="item-row">
                   <mat-form-field appearance="outline" class="item-input">
-                    <input matInput [(ngModel)]="example.answers[i][0]" name="halfOpenAnswer{{i}}" (focus)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event)" (click)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event)" (keyup)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event)" (select)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event)" (input)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ ('exampleDialog.answer' | translate) + ' ' + (i + 1) }}">
+                    <input matInput spellcheck="true" [attr.lang]="editorSpellcheckLang" [(ngModel)]="example.answers[i][0]" name="halfOpenAnswer{{i}}" [attr.maxlength]="textLimits.halfOpenAnswer" (focus)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event)" (click)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event)" (keyup)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event)" (select)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event)" (input)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ ('exampleDialog.answer' | translate) + ' ' + (i + 1) }}">
+                    <mat-hint align="end" *ngIf="shouldShowTextLimitHint(example.answers[i][0], textLimits.halfOpenAnswer)">{{ getTextLength(example.answers[i][0]) }} / {{ textLimits.halfOpenAnswer }}</mat-hint>
                   </mat-form-field>
-                  <mat-form-field appearance="outline" class="item-input">
-                    <input matInput [(ngModel)]="example.answers[i][1]" name="halfOpenCorrectAnswer{{i}}" (focus)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (click)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (keyup)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (select)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (input)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ ('exampleDialog.correctSolution' | translate) + ' ' + (i + 1) }}">
+                  <mat-form-field appearance="outline" class="item-input half-open-solution-input">
+                    <textarea matInput spellcheck="true" [attr.lang]="editorSpellcheckLang" [(ngModel)]="example.answers[i][1]" name="halfOpenCorrectAnswer{{i}}" [attr.maxlength]="textLimits.halfOpenCorrectAnswer" (focus)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (click)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (keyup)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (select)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (input)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ ('exampleDialog.correctSolution' | translate) + ' ' + (i + 1) }}"
+                              cdkTextareaAutosize
+                              cdkAutosizeMinRows="1"
+                              cdkAutosizeMaxRows="6"></textarea>
+                    <mat-hint align="end" *ngIf="shouldShowTextLimitHint(example.answers[i][1], textLimits.halfOpenCorrectAnswer)">{{ getTextLength(example.answers[i][1]) }} / {{ textLimits.halfOpenCorrectAnswer }}</mat-hint>
                   </mat-form-field>
                   <button mat-icon-button color="warn" type="button" (click)="removeHalfOpenAnswer(i)" [attr.aria-label]="'exampleDialog.removeAnswer' | translate">
                     <mat-icon>delete</mat-icon>
@@ -143,10 +168,11 @@
             <ng-container *ngIf="example.type === ExampleTypes.MULTIPLE_CHOICE">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>{{ 'collection.question' | translate }}</mat-label>
-                <textarea matInput [(ngModel)]="example.question" name="question" (focus)="setVariableTarget({ type: 'question' }, $event)" (click)="setVariableTarget({ type: 'question' }, $event)" (keyup)="setVariableTarget({ type: 'question' }, $event)" (select)="setVariableTarget({ type: 'question' }, $event)" (input)="setVariableTarget({ type: 'question' }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.multipleChoicePlaceholder' | translate }}"
+                <textarea spellcheck="true" [attr.lang]="editorSpellcheckLang" matInput [(ngModel)]="example.question" name="question" [attr.maxlength]="textLimits.question" (focus)="setVariableTarget({ type: 'question' }, $event)" (click)="setVariableTarget({ type: 'question' }, $event)" (keyup)="setVariableTarget({ type: 'question' }, $event)" (select)="setVariableTarget({ type: 'question' }, $event)" (input)="setVariableTarget({ type: 'question' }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.multipleChoicePlaceholder' | translate }}"
                           cdkTextareaAutosize
                           cdkAutosizeMinRows="2"
                           cdkAutosizeMaxRows="10"></textarea>
+                <mat-hint align="end" *ngIf="shouldShowTextLimitHint(example.question, textLimits.question)">{{ getTextLength(example.question) }} / {{ textLimits.question }}</mat-hint>
               </mat-form-field>
 
               <div class="panel-box multiple-choice-options">
@@ -158,7 +184,8 @@
                   </mat-checkbox>
 
                   <mat-form-field appearance="outline" class="item-input">
-                    <input matInput [(ngModel)]="opt.text" name="option{{i}}" (focus)="setVariableTarget({ type: 'option', index: i }, $event)" (click)="setVariableTarget({ type: 'option', index: i }, $event)" (keyup)="setVariableTarget({ type: 'option', index: i }, $event)" (select)="setVariableTarget({ type: 'option', index: i }, $event)" (input)="setVariableTarget({ type: 'option', index: i }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ ('exampleDialog.option' | translate) + ' ' + (i + 1) }}">
+                    <input matInput spellcheck="true" [attr.lang]="editorSpellcheckLang" [(ngModel)]="opt.text" name="option{{i}}" [attr.maxlength]="textLimits.option" (focus)="setVariableTarget({ type: 'option', index: i }, $event)" (click)="setVariableTarget({ type: 'option', index: i }, $event)" (keyup)="setVariableTarget({ type: 'option', index: i }, $event)" (select)="setVariableTarget({ type: 'option', index: i }, $event)" (input)="setVariableTarget({ type: 'option', index: i }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ ('exampleDialog.option' | translate) + ' ' + (i + 1) }}">
+                    <mat-hint align="end" *ngIf="shouldShowTextLimitHint(opt.text, textLimits.option)">{{ getTextLength(opt.text) }} / {{ textLimits.option }}</mat-hint>
                   </mat-form-field>
 
                   <button mat-icon-button color="warn" (click)="removeOption(i)" type="button" [attr.aria-label]="'exampleDialog.removeOption' | translate">
@@ -175,10 +202,11 @@
             <ng-container *ngIf="example.type === ExampleTypes.GAP_FILL">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>{{ 'collection.question' | translate }}</mat-label>
-                <textarea matInput [(ngModel)]="example.question" name="question" (focus)="setVariableTarget({ type: 'question' }, $event)" (click)="setVariableTarget({ type: 'question' }, $event)" (keyup)="setVariableTarget({ type: 'question' }, $event)" (select)="setVariableTarget({ type: 'question' }, $event)" (input)="setVariableTarget({ type: 'question' }, $event); syncVariablesFromContent(); updateGapsFromText(); markDirty()" placeholder="{{ 'exampleDialog.gapFillPlaceholder' | translate }}"
+                <textarea spellcheck="true" [attr.lang]="editorSpellcheckLang" matInput [(ngModel)]="example.question" name="question" [attr.maxlength]="textLimits.question" (focus)="setVariableTarget({ type: 'question' }, $event)" (click)="setVariableTarget({ type: 'question' }, $event)" (keyup)="setVariableTarget({ type: 'question' }, $event)" (select)="setVariableTarget({ type: 'question' }, $event)" (input)="setVariableTarget({ type: 'question' }, $event); syncVariablesFromContent(); updateGapsFromText(); markDirty()" placeholder="{{ 'exampleDialog.gapFillPlaceholder' | translate }}"
                           cdkTextareaAutosize
                           cdkAutosizeMinRows="2"
                           cdkAutosizeMaxRows="10"></textarea>
+                <mat-hint align="end" *ngIf="shouldShowTextLimitHint(example.question, textLimits.question)">{{ getTextLength(example.question) }} / {{ textLimits.question }}</mat-hint>
                 <button mat-stroked-button type="button" (click)="insertGapAtCursor()" matTooltip="{{ 'exampleDialog.insertGapTooltip' | translate }}" class="insert-gap-btn">
                   <mat-icon>add</mat-icon> {{ 'exampleDialog.gap' | translate }}
                 </button>
@@ -213,7 +241,8 @@
 
                       <mat-form-field appearance="outline" class="option-input">
                         <mat-label>{{ ('exampleDialog.answerOption' | translate) + ' ' + (oi + 1) }}</mat-label>
-                        <input matInput [(ngModel)]="gap.options[oi].text" name="gapOption{{gi}}_{{oi}}" (focus)="setVariableTarget({ type: 'gapOption', gapIndex: gi, optionIndex: oi }, $event)" (click)="setVariableTarget({ type: 'gapOption', gapIndex: gi, optionIndex: oi }, $event)" (keyup)="setVariableTarget({ type: 'gapOption', gapIndex: gi, optionIndex: oi }, $event)" (select)="setVariableTarget({ type: 'gapOption', gapIndex: gi, optionIndex: oi }, $event)" (input)="setVariableTarget({ type: 'gapOption', gapIndex: gi, optionIndex: oi }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.answerOptionPlaceholder' | translate }}">
+                        <input matInput spellcheck="true" [attr.lang]="editorSpellcheckLang" [(ngModel)]="gap.options[oi].text" name="gapOption{{gi}}_{{oi}}" [attr.maxlength]="textLimits.gapOption" (focus)="setVariableTarget({ type: 'gapOption', gapIndex: gi, optionIndex: oi }, $event)" (click)="setVariableTarget({ type: 'gapOption', gapIndex: gi, optionIndex: oi }, $event)" (keyup)="setVariableTarget({ type: 'gapOption', gapIndex: gi, optionIndex: oi }, $event)" (select)="setVariableTarget({ type: 'gapOption', gapIndex: gi, optionIndex: oi }, $event)" (input)="setVariableTarget({ type: 'gapOption', gapIndex: gi, optionIndex: oi }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.answerOptionPlaceholder' | translate }}">
+                        <mat-hint align="end" *ngIf="shouldShowTextLimitHint(gap.options[oi].text, textLimits.gapOption)">{{ getTextLength(gap.options[oi].text) }} / {{ textLimits.gapOption }}</mat-hint>
                       </mat-form-field>
 
                       <button mat-icon-button color="warn" type="button" (click)="removeGapOption(gi, oi)" [attr.aria-label]="'exampleDialog.removeOption' | translate">
@@ -238,7 +267,8 @@
                   <div>
                     <mat-form-field appearance="outline" class="item-input">
                       <mat-label>{{ 'exampleDialog.correctAnswer' | translate }}</mat-label>
-                      <input matInput [(ngModel)]="gap.solution" name="gapCorrectAnswer{{gi}}" (focus)="setVariableTarget({ type: 'gapSolution', index: gi }, $event)" (click)="setVariableTarget({ type: 'gapSolution', index: gi }, $event)" (keyup)="setVariableTarget({ type: 'gapSolution', index: gi }, $event)" (select)="setVariableTarget({ type: 'gapSolution', index: gi }, $event)" (input)="setVariableTarget({ type: 'gapSolution', index: gi }, $event); onGapSolutionChange(gap)" placeholder="{{ 'exampleDialog.correctAnswerPlaceholder' | translate }}">
+                      <input matInput spellcheck="true" [attr.lang]="editorSpellcheckLang" [(ngModel)]="gap.solution" name="gapCorrectAnswer{{gi}}" [attr.maxlength]="textLimits.gapSolution" (focus)="setVariableTarget({ type: 'gapSolution', index: gi }, $event)" (click)="setVariableTarget({ type: 'gapSolution', index: gi }, $event)" (keyup)="setVariableTarget({ type: 'gapSolution', index: gi }, $event)" (select)="setVariableTarget({ type: 'gapSolution', index: gi }, $event)" (input)="setVariableTarget({ type: 'gapSolution', index: gi }, $event); onGapSolutionChange(gap)" placeholder="{{ 'exampleDialog.correctAnswerPlaceholder' | translate }}">
+                      <mat-hint align="end" *ngIf="shouldShowTextLimitHint(gap.solution, textLimits.gapSolution)">{{ getTextLength(gap.solution) }} / {{ textLimits.gapSolution }}</mat-hint>
                     </mat-form-field>
 
                     <mat-form-field appearance="outline" class="gap-width-input-field">
@@ -272,10 +302,11 @@
             <ng-container *ngIf="example.type === ExampleTypes.CONSTRUCTION">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>{{ 'collection.question' | translate }}</mat-label>
-                <textarea matInput [(ngModel)]="example.question" name="question" (focus)="setVariableTarget({ type: 'question' }, $event)" (click)="setVariableTarget({ type: 'question' }, $event)" (keyup)="setVariableTarget({ type: 'question' }, $event)" (select)="setVariableTarget({ type: 'question' }, $event)" (input)="setVariableTarget({ type: 'question' }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.constructionPlaceholder' | translate }}"
+                <textarea spellcheck="true" [attr.lang]="editorSpellcheckLang" matInput [(ngModel)]="example.question" name="question" [attr.maxlength]="textLimits.question" (focus)="setVariableTarget({ type: 'question' }, $event)" (click)="setVariableTarget({ type: 'question' }, $event)" (keyup)="setVariableTarget({ type: 'question' }, $event)" (select)="setVariableTarget({ type: 'question' }, $event)" (input)="setVariableTarget({ type: 'question' }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.constructionPlaceholder' | translate }}"
                           cdkTextareaAutosize
                           cdkAutosizeMinRows="2"
                           cdkAutosizeMaxRows="10"></textarea>
+                <mat-hint align="end" *ngIf="shouldShowTextLimitHint(example.question, textLimits.question)">{{ getTextLength(example.question) }} / {{ textLimits.question }}</mat-hint>
               </mat-form-field>
 
               <app-construction-image-card
@@ -290,37 +321,22 @@
                 [selectedFile]="selectedConstructionImageFile"
                 [width]="example.imageWidth || defaultImageWidth"
                 (imageSelected)="onImageSelected($event.event, $event.kind)"
+                (imageDropped)="onImageDropped($event)"
                 (imageRemoved)="removeSelectedImage($event)"
                 (widthChange)="example.imageWidth = $event; markDirty()"
-                (fileTooLarge)="openTranslatedSnack('exampleDialog.snackbar.imageSizeError')"
-              ></app-construction-image-card>
-
-              <mat-divider></mat-divider>
-
-              <app-construction-image-card
-                kind="solution"
-                titleKey="exampleDialog.solutionImage"
-                previewAltKey="exampleDialog.solutionImagePreviewAlt"
-                emptyIcon="imagesmode"
-                emptyTextKey="exampleDialog.noSolutionImage"
-                widthLabelKey="exampleDialog.solutionImageWidth"
-                widthName="solutionImageWidth"
-                [previewUrl]="constructionSolutionPreviewUrl"
-                [selectedFile]="selectedConstructionSolutionFile"
-                [width]="example.solutionImageWidth || defaultImageWidth"
-                (imageSelected)="onImageSelected($event.event, $event.kind)"
-                (imageRemoved)="removeSelectedImage($event)"
-                (widthChange)="example.solutionImageWidth = $event; markDirty()"
+                (fileTooLarge)="openTranslatedSnack('exampleDialog.snackbar.imageSizeError', 'common.ok', 3000, { maxSizeMb: $event.maxSizeMb })"
+                (invalidFileType)="openTranslatedSnack('exampleDialog.snackbar.invalidImageType')"
               ></app-construction-image-card>
             </ng-container>
 
             <ng-container *ngIf="example.type === ExampleTypes.ASSIGN">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>{{ 'collection.question' | translate }}</mat-label>
-                <textarea matInput [(ngModel)]="example.question" name="question" (focus)="setVariableTarget({ type: 'question' }, $event)" (click)="setVariableTarget({ type: 'question' }, $event)" (keyup)="setVariableTarget({ type: 'question' }, $event)" (select)="setVariableTarget({ type: 'question' }, $event)" (input)="setVariableTarget({ type: 'question' }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.assignPlaceholder' | translate }}"
+                <textarea spellcheck="true" [attr.lang]="editorSpellcheckLang" matInput [(ngModel)]="example.question" name="question" [attr.maxlength]="textLimits.question" (focus)="setVariableTarget({ type: 'question' }, $event)" (click)="setVariableTarget({ type: 'question' }, $event)" (keyup)="setVariableTarget({ type: 'question' }, $event)" (select)="setVariableTarget({ type: 'question' }, $event)" (input)="setVariableTarget({ type: 'question' }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.assignPlaceholder' | translate }}"
                           cdkTextareaAutosize
                           cdkAutosizeMinRows="2"
                           cdkAutosizeMaxRows="10"></textarea>
+                <mat-hint align="end" *ngIf="shouldShowTextLimitHint(example.question, textLimits.question)">{{ getTextLength(example.question) }} / {{ textLimits.question }}</mat-hint>
               </mat-form-field>
 
               <div class="assign-board">
@@ -328,7 +344,8 @@
                   <div class="column-title">{{ 'exampleDialog.assignLeftColumn' | translate }}</div>
                   <div *ngFor="let assign of example.assigns; let li = index; trackBy: trackByIndex" class="assign-row">
                     <mat-form-field appearance="outline" class="item-input">
-                      <input matInput [(ngModel)]="assign.left" name="assignLeft{{li}}" (focus)="setVariableTarget({ type: 'assignLeft', index: li }, $event)" (click)="setVariableTarget({ type: 'assignLeft', index: li }, $event)" (keyup)="setVariableTarget({ type: 'assignLeft', index: li }, $event)" (select)="setVariableTarget({ type: 'assignLeft', index: li }, $event)" (input)="setVariableTarget({ type: 'assignLeft', index: li }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.assignLeftPlaceholder' | translate }}">
+                      <input matInput spellcheck="true" [attr.lang]="editorSpellcheckLang" [(ngModel)]="assign.left" name="assignLeft{{li}}" [attr.maxlength]="textLimits.assignLeft" (focus)="setVariableTarget({ type: 'assignLeft', index: li }, $event)" (click)="setVariableTarget({ type: 'assignLeft', index: li }, $event)" (keyup)="setVariableTarget({ type: 'assignLeft', index: li }, $event)" (select)="setVariableTarget({ type: 'assignLeft', index: li }, $event)" (input)="setVariableTarget({ type: 'assignLeft', index: li }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.assignLeftPlaceholder' | translate }}">
+                      <mat-hint align="end" *ngIf="shouldShowTextLimitHint(assign.left, textLimits.assignLeft)">{{ getTextLength(assign.left) }} / {{ textLimits.assignLeft }}</mat-hint>
                     </mat-form-field>
 
                     <mat-form-field appearance="outline" class="assign-select">
@@ -351,7 +368,8 @@
                   <div class="column-title">{{ 'exampleDialog.assignRightColumn' | translate }}</div>
                   <div *ngFor="let right of example.assignRightItems; let ri = index; trackBy: trackByIndex" class="assign-row">
                     <mat-form-field appearance="outline" class="item-input">
-                      <input matInput [(ngModel)]="example.assignRightItems[ri]" name="assignRight{{ri}}" (focus)="setVariableTarget({ type: 'assignRight', index: ri }, $event)" (click)="setVariableTarget({ type: 'assignRight', index: ri }, $event)" (keyup)="setVariableTarget({ type: 'assignRight', index: ri }, $event)" (select)="setVariableTarget({ type: 'assignRight', index: ri }, $event)" (input)="setVariableTarget({ type: 'assignRight', index: ri }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.assignRightPlaceholder' | translate }}">
+                      <input matInput spellcheck="true" [attr.lang]="editorSpellcheckLang" [(ngModel)]="example.assignRightItems[ri]" name="assignRight{{ri}}" [attr.maxlength]="textLimits.assignRight" (focus)="setVariableTarget({ type: 'assignRight', index: ri }, $event)" (click)="setVariableTarget({ type: 'assignRight', index: ri }, $event)" (keyup)="setVariableTarget({ type: 'assignRight', index: ri }, $event)" (select)="setVariableTarget({ type: 'assignRight', index: ri }, $event)" (input)="setVariableTarget({ type: 'assignRight', index: ri }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ 'exampleDialog.assignRightPlaceholder' | translate }}">
+                      <mat-hint align="end" *ngIf="shouldShowTextLimitHint(example.assignRightItems[ri], textLimits.assignRight)">{{ getTextLength(example.assignRightItems[ri]) }} / {{ textLimits.assignRight }}</mat-hint>
                     </mat-form-field>
 
                     <button mat-icon-button color="warn" (click)="removeAssignRightItem(ri)" type="button" [attr.aria-label]="'exampleDialog.assignRemoveRight' | translate"><mat-icon>delete</mat-icon></button>
@@ -365,6 +383,47 @@
                 </div>
               </div>
             </ng-container>
+          </section>
+
+          <section class="panel-box global-solution-panel" *ngIf="example.type === ExampleTypes.OPEN || example.type === ExampleTypes.CONSTRUCTION">
+            <div class="panel-title">{{ 'exampleDialog.solution' | translate }}</div>
+            <mat-form-field appearance="outline" class="full-width global-solution-text">
+
+              <textarea spellcheck="true" [attr.lang]="editorSpellcheckLang"
+                        matInput
+                        [(ngModel)]="example.solution"
+                        name="globalSolution"
+                        [attr.maxlength]="textLimits.solution"
+                        (focus)="setVariableTarget({ type: 'solution' }, $event)"
+                        (click)="setVariableTarget({ type: 'solution' }, $event)"
+                        (keyup)="setVariableTarget({ type: 'solution' }, $event)"
+                        (select)="setVariableTarget({ type: 'solution' }, $event)"
+                        (input)="setVariableTarget({ type: 'solution' }, $event); syncVariablesFromContent(); markDirty()"
+                        placeholder="{{ 'exampleDialog.solutionPlaceholder' | translate }}"
+                        cdkTextareaAutosize
+                        cdkAutosizeMinRows="2"
+                        cdkAutosizeMaxRows="12"></textarea>
+              <mat-hint align="end" *ngIf="shouldShowTextLimitHint(example.solution, textLimits.solution)">{{ getTextLength(example.solution) }} / {{ textLimits.solution }}</mat-hint>
+            </mat-form-field>
+
+            <app-construction-image-card
+              kind="solution"
+              titleKey="exampleDialog.solutionImage"
+              previewAltKey="exampleDialog.solutionImagePreviewAlt"
+              emptyIcon="imagesmode"
+              emptyTextKey="exampleDialog.noSolutionImage"
+              widthLabelKey="exampleDialog.solutionImageWidth"
+              widthName="solutionImageWidth"
+              [previewUrl]="constructionSolutionPreviewUrl"
+              [selectedFile]="selectedConstructionSolutionFile"
+              [width]="example.solutionImageWidth || defaultImageWidth"
+              (imageSelected)="onImageSelected($event.event, $event.kind)"
+              (imageDropped)="onImageDropped($event)"
+              (imageRemoved)="removeSelectedImage($event)"
+              (widthChange)="example.solutionImageWidth = $event; markDirty()"
+              (fileTooLarge)="openTranslatedSnack('exampleDialog.snackbar.imageSizeError', 'common.ok', 3000, { maxSizeMb: $event.maxSizeMb })"
+              (invalidFileType)="openTranslatedSnack('exampleDialog.snackbar.invalidImageType')"
+            ></app-construction-image-card>
           </section>
 
           <section class="panel-box side-collapsible display-settings-panel" [class.collapsed]="displaySettingsCollapsed">
@@ -487,9 +546,14 @@
                 <td class="variable-name">{{ variable.key }}</td>
                 <td>
                   <input
+                    spellcheck="true" [attr.lang]="editorSpellcheckLang"
                     [(ngModel)]="variable.defaultValue"
                     name="variableDefault-{{ variable.key }}"
+                    [attr.maxlength]="textLimits.variableDefaultValue"
                     (ngModelChange)="markDirty()">
+                  <div class="text-limit-hint" *ngIf="shouldShowTextLimitHint(variable.defaultValue, textLimits.variableDefaultValue)">
+                    {{ getTextLength(variable.defaultValue) }} / {{ textLimits.variableDefaultValue }}
+                  </div>
                 </td>
                 <td class="insert-col">
                   <button
