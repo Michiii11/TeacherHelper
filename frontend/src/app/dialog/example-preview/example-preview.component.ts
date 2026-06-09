@@ -148,12 +148,14 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
     example: CreateExampleDTO,
     exampleId?: string,
   ): Promise<CreateExampleDTO> {
-    if (example.type !== ExampleTypes.CONSTRUCTION || !exampleId) {
+    if (!exampleId || (example.type !== ExampleTypes.CONSTRUCTION && example.type !== ExampleTypes.OPEN)) {
       return example;
     }
 
     const [image, solutionUrl] = await Promise.all([
-      this.loadExampleImageObjectUrl(exampleId, false),
+      example.type === ExampleTypes.CONSTRUCTION
+        ? this.loadExampleImageObjectUrl(exampleId, false)
+        : Promise.resolve(""),
       this.loadExampleImageObjectUrl(exampleId, true),
     ]);
 
@@ -239,22 +241,26 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private buildRendererExample(example: CreateExampleDTO): CreateExampleDTO {
-    if (example.type !== ExampleTypes.CONSTRUCTION) {
+    if (example.type !== ExampleTypes.CONSTRUCTION && example.type !== ExampleTypes.OPEN) {
       return example;
     }
 
     return {
       ...example,
       image:
-        this.getPreviewImageUrl() ||
-        (example as any).imageUrl ||
-        (example as any).image ||
-        "",
+        example.type === ExampleTypes.CONSTRUCTION
+          ? this.getPreviewImageUrl() ||
+          (example as any).imageUrl ||
+          (example as any).image ||
+          ""
+          : (example as any).image || "",
       imageUrl:
-        this.getPreviewImageUrl() ||
-        (example as any).imageUrl ||
-        (example as any).image ||
-        "",
+        example.type === ExampleTypes.CONSTRUCTION
+          ? this.getPreviewImageUrl() ||
+          (example as any).imageUrl ||
+          (example as any).image ||
+          ""
+          : (example as any).imageUrl || "",
       solutionUrl:
         this.getPreviewSolutionImageUrl() || (example as any).solutionUrl || "",
     } as CreateExampleDTO;

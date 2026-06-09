@@ -585,6 +585,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   saveTest(): void {
+    this.normalizeSelectedExamplePoints();
     this.test.collectionId = this.test.collectionId || this.data.schoolId;
     this.test.exampleList = this.selectedExamplesInternal;
     (this.test as any).folderId = this.data.folderId ?? (this.test as any).folderId ?? null;
@@ -720,12 +721,14 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   onPointsInput(entry: TestExampleDTO, value: number | string | null): void {
-    entry.points = this.normalizeDecimalValue(value, 1);
+    // Beim Tippen nicht sofort in eine Number umwandeln.
+    // Sonst wird aus Zwischenwerten wie "1." sofort "1" und Dezimaleingaben wirken kaputt.
+    (entry as any).points = String(value ?? '').replace(',', '.');
     this.markDirty();
   }
 
   onPointsBlur(entry: TestExampleDTO): void {
-    entry.points = this.normalizeDecimalValue(entry.points, 1);
+    entry.points = this.normalizeDecimalValue((entry as any).points, 1);
     if (!this.useAutomaticGrading) {
       this.normalizeManualThresholds();
     }
@@ -1212,12 +1215,12 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   private async hydrateConstructionImage(example: Example | ExampleDTO): Promise<Example> {
-    if (!example || example.type !== ExampleTypes.CONSTRUCTION || !example.id) {
+    if (!example || !example.id || (example.type !== ExampleTypes.CONSTRUCTION && example.type !== ExampleTypes.OPEN)) {
       return <Example>example;
     }
 
     const normalizedExample = this.toExample(example);
-    const hasTaskImage = !!((normalizedExample as any).imageUrl || (normalizedExample as any).image);
+    const hasTaskImage = example.type === ExampleTypes.CONSTRUCTION && !!((normalizedExample as any).imageUrl || (normalizedExample as any).image);
     const hasSolutionImage = !!((normalizedExample as any).solutionUrl);
     const taskImageUrl = hasTaskImage
       ? await this.getAuthorizedExampleImageObjectUrl(normalizedExample.id, false)
@@ -1228,9 +1231,9 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
     return {
       ...normalizedExample,
-      imageUrl: taskImageUrl,
-      image: taskImageUrl,
-      solutionUrl: solutionImageUrl,
+      imageUrl: taskImageUrl || (normalizedExample as any).imageUrl || '',
+      image: taskImageUrl || (normalizedExample as any).image || '',
+      solutionUrl: solutionImageUrl || (normalizedExample as any).solutionUrl || '',
     } as Example & { image?: string };
   }
 
@@ -1272,6 +1275,14 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
   private syncSelectionToTest(selected: TestExampleDTO[]): void {
     this.test.exampleList = [...selected];
+  }
+
+  private normalizeSelectedExamplePoints(): void {
+    this.selectedExamplesInternal = this.selectedExamplesInternal.map(entry => ({
+      ...entry,
+      points: this.normalizeDecimalValue((entry as any).points, 1),
+    }));
+    this.syncSelectionToTest(this.selectedExamplesInternal);
   }
 
   private initializeTaskSpacing(): void {
@@ -1399,7 +1410,11 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   private normalizeDecimalValue(value: number | string | null | undefined, decimals = 1): number {
-    const numeric = Number(value ?? 0);
+    const normalized = String(value ?? '0')
+      .trim()
+      .replace(',', '.');
+
+    const numeric = Number(normalized);
     if (!Number.isFinite(numeric)) return 0;
 
     const factor = Math.pow(10, decimals);

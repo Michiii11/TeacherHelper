@@ -17,7 +17,7 @@ export type ConstructionImageKind = 'preview' | 'solution';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConstructionImageCardComponent {
-  private static readonly MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+  private static readonly MAX_FILE_SIZE_MB = 2;
   private readonly allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
 
   @Input({ required: true }) kind!: ConstructionImageKind;
@@ -30,6 +30,7 @@ export class ConstructionImageCardComponent {
   @Input() selectedFile: File | null = null;
   @Input() width = 320;
   @Input() widthName = 'imageWidth';
+  @Input() maxSizeMb = ConstructionImageCardComponent.MAX_FILE_SIZE_MB;
 
   @Output() imageSelected = new EventEmitter<{ event: Event; kind: ConstructionImageKind }>();
   @Output() imageDropped = new EventEmitter<{ file: File; kind: ConstructionImageKind }>();
@@ -106,8 +107,8 @@ export class ConstructionImageCardComponent {
       return false;
     }
 
-    if (file.size > ConstructionImageCardComponent.MAX_FILE_SIZE_BYTES) {
-      this.fileTooLarge.emit({ kind: this.kind, maxSizeMb: 5 });
+    if (file.size > this.maxSizeMb * 1024 * 1024) {
+      this.fileTooLarge.emit({ kind: this.kind, maxSizeMb: this.maxSizeMb });
       return false;
     }
 

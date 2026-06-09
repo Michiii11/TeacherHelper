@@ -2,6 +2,7 @@ import { Component, ElementRef, HostListener, ViewChild, inject, OnDestroy, OnIn
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { TextFieldModule } from '@angular/cdk/text-field';
 
 import { MAT_DIALOG_DATA, MatDialog, MatDialogActions, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -100,9 +101,9 @@ type TextSelectionState = {
     MatButtonToggleModule,
     MatDialogActions,
     MatTooltip,
-    MatDivider,
     MatSliderModule,
     ReactiveFormsModule,
+    TextFieldModule,
     MatChipsModule,
     TranslateModule,
     MatProgressBar,
@@ -133,7 +134,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   constructionImagePreviewUrl: string | null = null;
   constructionSolutionPreviewUrl: string | null = null;
 
-  readonly maxImageBytes = 5 * 1024 * 1024;
+  readonly maxImageBytes = 2 * 1024 * 1024;
   readonly allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
   readonly defaultImageWidth = 320;
 
@@ -408,9 +409,9 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
             };
             this.isEditMode = true;
 
-            if (this.example.type === ExampleTypes.CONSTRUCTION && this.data.exampleId) {
+            if (this.data.exampleId) {
               this.setConstructionImagePreviewUrl(
-                this.example.image
+                this.example.type === ExampleTypes.CONSTRUCTION && this.example.image
                   ? await this.loadStoredConstructionImagePreview(false)
                   : null
               );
@@ -1564,7 +1565,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     }
 
     if (file.size > this.maxImageBytes) {
-      this.openTranslatedSnack('exampleDialog.snackbar.imageSizeError');
+      this.openTranslatedSnack('exampleDialog.snackbar.imageSizeError', 'common.ok', 3000, { maxSizeMb: 2 });
       return;
     }
 
@@ -1677,12 +1678,12 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   }
 
   private async uploadConstructionAssets(exampleId: string): Promise<void> {
-    if (this.selectedConstructionImageFile) {
+    if (this.example.type === ExampleTypes.CONSTRUCTION && this.selectedConstructionImageFile) {
       const imageKey = await firstValueFrom(this.http.uploadExampleImage(exampleId, this.selectedConstructionImageFile, false));
       this.example.image = imageKey || this.example.image || '';
     }
 
-    if (this.selectedConstructionSolutionFile) {
+    if ((this.example.type === ExampleTypes.OPEN || this.example.type === ExampleTypes.CONSTRUCTION) && this.selectedConstructionSolutionFile) {
       const solutionKey = await firstValueFrom(this.http.uploadExampleImage(exampleId, this.selectedConstructionSolutionFile, true));
       this.example.solutionUrl = solutionKey || this.example.solutionUrl || '';
     }
@@ -1691,7 +1692,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     this.selectedConstructionSolutionFile = null;
 
     this.setConstructionImagePreviewUrl(
-      this.example.image
+      this.example.type === ExampleTypes.CONSTRUCTION && this.example.image
         ? await this.http.getExampleImageObjectUrl(exampleId, false)
         : null
     );
@@ -1805,7 +1806,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
         const updatedIdRaw = await firstValueFrom(this.http.updateExample(this.data.exampleId, payload));
         const updatedId = updatedIdRaw || this.data.exampleId;
 
-        if (this.example.type === ExampleTypes.CONSTRUCTION) {
+        if (this.example.type === ExampleTypes.OPEN || this.example.type === ExampleTypes.CONSTRUCTION) {
           await this.uploadConstructionAssets(updatedId as string);
         }
 
@@ -1817,7 +1818,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
           throw new Error('Example-ID fehlt nach dem Erstellen.');
         }
 
-        if (this.example.type === ExampleTypes.CONSTRUCTION) {
+        if (this.example.type === ExampleTypes.OPEN || this.example.type === ExampleTypes.CONSTRUCTION) {
           await this.uploadConstructionAssets(createdId);
         }
 

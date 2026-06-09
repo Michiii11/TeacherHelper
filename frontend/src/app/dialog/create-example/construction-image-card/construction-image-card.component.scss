@@ -89,6 +89,27 @@
   color: var(--text-subtle);
 }
 
+.file-limit-hint {
+  margin-top: -2px;
+}
+
+.file-limit-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  color: var(--text-subtle);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.file-limit-row mat-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  flex: 0 0 auto;
+}
+
 .drop-overlay {
   position: absolute;
   inset: 0;

@@ -54,6 +54,7 @@
         <mat-icon>{{ isDragOver ? 'cloud_upload' : emptyIcon }}</mat-icon>
         <span>{{ emptyTextKey | translate }}</span>
         <small>Bild hierher ziehen oder auswählen</small>
+        <small class="file-limit-hint">PNG, JPG oder WebP · max. {{ maxSizeMb }} MB</small>
       </div>
     }
   </div>

@@ -479,12 +479,14 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
   }
 
   private async hydrateConstructionImage(example: Example): Promise<Example> {
-    if (!example || example.type !== ExampleTypes.CONSTRUCTION || !example.id) {
+    if (!example || !example.id || (example.type !== ExampleTypes.CONSTRUCTION && example.type !== ExampleTypes.OPEN)) {
       return example;
     }
 
     const [taskImageUrl, solutionImageUrl] = await Promise.all([
-      this.getAuthorizedExampleImageObjectUrl(example.id, false),
+      example.type === ExampleTypes.CONSTRUCTION
+        ? this.getAuthorizedExampleImageObjectUrl(example.id, false)
+        : Promise.resolve(''),
       this.getAuthorizedExampleImageObjectUrl(example.id, true),
     ]);
 

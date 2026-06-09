@@ -131,28 +131,6 @@
           </textarea>
                 <mat-hint align="end" *ngIf="shouldShowTextLimitHint(example.question, textLimits.question)">{{ getTextLength(example.question) }} / {{ textLimits.question }}</mat-hint>
               </mat-form-field>
-
-              <mat-divider></mat-divider>
-
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>{{ 'exampleDialog.solution' | translate }}</mat-label>
-                <textarea spellcheck="true" [attr.lang]="editorSpellcheckLang"
-                          matInput
-                          [(ngModel)]="example.solution"
-                          name="solution"
-                          [attr.maxlength]="textLimits.solution"
-                          (focus)="setVariableTarget({ type: 'solution' }, $event)"
-                          (click)="setVariableTarget({ type: 'solution' }, $event)"
-                          (keyup)="setVariableTarget({ type: 'solution' }, $event)"
-                          (select)="setVariableTarget({ type: 'solution' }, $event)"
-                          (input)="setVariableTarget({ type: 'solution' }, $event); syncVariablesFromContent(); markDirty()"
-                          placeholder="{{ 'exampleDialog.solutionPlaceholder' | translate }}"
-                          cdkTextareaAutosize
-                          cdkAutosizeMinRows="2"
-                          cdkAutosizeMaxRows="10">
-          </textarea>
-                <mat-hint align="end" *ngIf="shouldShowTextLimitHint(example.solution, textLimits.solution)">{{ getTextLength(example.solution) }} / {{ textLimits.solution }}</mat-hint>
-              </mat-form-field>
             </ng-container>
 
             <ng-container *ngIf="example.type === ExampleTypes.HALF_OPEN">
@@ -172,8 +150,11 @@
                     <input matInput spellcheck="true" [attr.lang]="editorSpellcheckLang" [(ngModel)]="example.answers[i][0]" name="halfOpenAnswer{{i}}" [attr.maxlength]="textLimits.halfOpenAnswer" (focus)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event)" (click)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event)" (keyup)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event)" (select)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event)" (input)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 0 }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ ('exampleDialog.answer' | translate) + ' ' + (i + 1) }}">
                     <mat-hint align="end" *ngIf="shouldShowTextLimitHint(example.answers[i][0], textLimits.halfOpenAnswer)">{{ getTextLength(example.answers[i][0]) }} / {{ textLimits.halfOpenAnswer }}</mat-hint>
                   </mat-form-field>
-                  <mat-form-field appearance="outline" class="item-input">
-                    <input matInput spellcheck="true" [attr.lang]="editorSpellcheckLang" [(ngModel)]="example.answers[i][1]" name="halfOpenCorrectAnswer{{i}}" [attr.maxlength]="textLimits.halfOpenCorrectAnswer" (focus)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (click)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (keyup)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (select)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (input)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ ('exampleDialog.correctSolution' | translate) + ' ' + (i + 1) }}">
+                  <mat-form-field appearance="outline" class="item-input half-open-solution-input">
+                    <textarea matInput spellcheck="true" [attr.lang]="editorSpellcheckLang" [(ngModel)]="example.answers[i][1]" name="halfOpenCorrectAnswer{{i}}" [attr.maxlength]="textLimits.halfOpenCorrectAnswer" (focus)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (click)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (keyup)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (select)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event)" (input)="setVariableTarget({ type: 'halfOpenAnswer', index: i, answerIndex: 1 }, $event); syncVariablesFromContent(); markDirty()" placeholder="{{ ('exampleDialog.correctSolution' | translate) + ' ' + (i + 1) }}"
+                              cdkTextareaAutosize
+                              cdkAutosizeMinRows="1"
+                              cdkAutosizeMaxRows="6"></textarea>
                     <mat-hint align="end" *ngIf="shouldShowTextLimitHint(example.answers[i][1], textLimits.halfOpenCorrectAnswer)">{{ getTextLength(example.answers[i][1]) }} / {{ textLimits.halfOpenCorrectAnswer }}</mat-hint>
                   </mat-form-field>
                   <button mat-icon-button color="warn" type="button" (click)="removeHalfOpenAnswer(i)" [attr.aria-label]="'exampleDialog.removeAnswer' | translate">
@@ -343,28 +324,7 @@
                 (imageDropped)="onImageDropped($event)"
                 (imageRemoved)="removeSelectedImage($event)"
                 (widthChange)="example.imageWidth = $event; markDirty()"
-                (fileTooLarge)="openTranslatedSnack('exampleDialog.snackbar.imageSizeError')"
-                (invalidFileType)="openTranslatedSnack('exampleDialog.snackbar.invalidImageType')"
-              ></app-construction-image-card>
-
-              <mat-divider></mat-divider>
-
-              <app-construction-image-card
-                kind="solution"
-                titleKey="exampleDialog.solutionImage"
-                previewAltKey="exampleDialog.solutionImagePreviewAlt"
-                emptyIcon="imagesmode"
-                emptyTextKey="exampleDialog.noSolutionImage"
-                widthLabelKey="exampleDialog.solutionImageWidth"
-                widthName="solutionImageWidth"
-                [previewUrl]="constructionSolutionPreviewUrl"
-                [selectedFile]="selectedConstructionSolutionFile"
-                [width]="example.solutionImageWidth || defaultImageWidth"
-                (imageSelected)="onImageSelected($event.event, $event.kind)"
-                (imageDropped)="onImageDropped($event)"
-                (imageRemoved)="removeSelectedImage($event)"
-                (widthChange)="example.solutionImageWidth = $event; markDirty()"
-                (fileTooLarge)="openTranslatedSnack('exampleDialog.snackbar.imageSizeError')"
+                (fileTooLarge)="openTranslatedSnack('exampleDialog.snackbar.imageSizeError', 'common.ok', 3000, { maxSizeMb: $event.maxSizeMb })"
                 (invalidFileType)="openTranslatedSnack('exampleDialog.snackbar.invalidImageType')"
               ></app-construction-image-card>
             </ng-container>
@@ -423,6 +383,47 @@
                 </div>
               </div>
             </ng-container>
+          </section>
+
+          <section class="panel-box global-solution-panel" *ngIf="example.type === ExampleTypes.OPEN || example.type === ExampleTypes.CONSTRUCTION">
+            <div class="panel-title">{{ 'exampleDialog.solution' | translate }}</div>
+            <mat-form-field appearance="outline" class="full-width global-solution-text">
+
+              <textarea spellcheck="true" [attr.lang]="editorSpellcheckLang"
+                        matInput
+                        [(ngModel)]="example.solution"
+                        name="globalSolution"
+                        [attr.maxlength]="textLimits.solution"
+                        (focus)="setVariableTarget({ type: 'solution' }, $event)"
+                        (click)="setVariableTarget({ type: 'solution' }, $event)"
+                        (keyup)="setVariableTarget({ type: 'solution' }, $event)"
+                        (select)="setVariableTarget({ type: 'solution' }, $event)"
+                        (input)="setVariableTarget({ type: 'solution' }, $event); syncVariablesFromContent(); markDirty()"
+                        placeholder="{{ 'exampleDialog.solutionPlaceholder' | translate }}"
+                        cdkTextareaAutosize
+                        cdkAutosizeMinRows="2"
+                        cdkAutosizeMaxRows="12"></textarea>
+              <mat-hint align="end" *ngIf="shouldShowTextLimitHint(example.solution, textLimits.solution)">{{ getTextLength(example.solution) }} / {{ textLimits.solution }}</mat-hint>
+            </mat-form-field>
+
+            <app-construction-image-card
+              kind="solution"
+              titleKey="exampleDialog.solutionImage"
+              previewAltKey="exampleDialog.solutionImagePreviewAlt"
+              emptyIcon="imagesmode"
+              emptyTextKey="exampleDialog.noSolutionImage"
+              widthLabelKey="exampleDialog.solutionImageWidth"
+              widthName="solutionImageWidth"
+              [previewUrl]="constructionSolutionPreviewUrl"
+              [selectedFile]="selectedConstructionSolutionFile"
+              [width]="example.solutionImageWidth || defaultImageWidth"
+              (imageSelected)="onImageSelected($event.event, $event.kind)"
+              (imageDropped)="onImageDropped($event)"
+              (imageRemoved)="removeSelectedImage($event)"
+              (widthChange)="example.solutionImageWidth = $event; markDirty()"
+              (fileTooLarge)="openTranslatedSnack('exampleDialog.snackbar.imageSizeError', 'common.ok', 3000, { maxSizeMb: $event.maxSizeMb })"
+              (invalidFileType)="openTranslatedSnack('exampleDialog.snackbar.invalidImageType')"
+            ></app-construction-image-card>
           </section>
 
           <section class="panel-box side-collapsible display-settings-panel" [class.collapsed]="displaySettingsCollapsed">

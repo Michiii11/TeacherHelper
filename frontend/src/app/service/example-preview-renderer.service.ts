@@ -150,10 +150,21 @@ export class ExamplePreviewRendererService {
     const isSolution = options.isSolution === true;
 
     switch (example.type) {
-      case ExampleTypes.OPEN:
-        return isSolution
-          ? `<div class="solution-box rich-text multiline-text">${this.renderMathHtml((example as any).solution || "", example.variables) || `<span class="muted">${this.escapeHtml(labels.noSolution ?? "")}</span>`}</div>`
-          : "";
+      case ExampleTypes.OPEN: {
+        if (!isSolution) {
+          return "";
+        }
+
+        const solutionText = this.renderMathHtml((example as any).solution || "", example.variables);
+        const solutionImage = this.getConstructionSolutionImage(example);
+        const solutionImageWidth = this.normalizeImageWidth((example as any).solutionImageWidth);
+        const fallback = `<span class="muted">${this.escapeHtml(labels.noSolution ?? "")}</span>`;
+
+        return `
+          <div class="solution-box rich-text multiline-text">${solutionText || (!solutionImage ? fallback : "")}</div>
+          ${solutionImage ? `<div class="solution-image-preview image-preview-frame"><img src="${this.escapeHtml(solutionImage)}" alt="${this.escapeHtml(labels.imagePreviewAlt ?? "")}" class="image-preview" style="width:${solutionImageWidth}px;max-width:100%;height:auto;" /></div>` : ""}
+        `;
+      }
 
       case ExampleTypes.HALF_OPEN:
         return `
@@ -330,8 +341,11 @@ export class ExamplePreviewRendererService {
         word-break: normal;
       }
       .preview-panel p {
-        margin: 0 0 0.9rem;
+        margin-block: .75rem;
         color: var(--text-muted, #333);
+      }
+      .preview-panel p:first-child{
+        margin-top: 0;
       }
       .preview-panel strong { color: var(--text, #111); }
       .multiline-text,
@@ -884,9 +898,7 @@ export class ExamplePreviewRendererService {
   private getConstructionSolutionImage(
     example: Example | CreateExampleDTO,
   ): string | null {
-    return (
-      (example as any)?.solutionUrl || this.getConstructionTaskImage(example)
-    );
+    return (example as any)?.solutionUrl || null;
   }
 
   private getDisplaySettings(example: Example | CreateExampleDTO): {
