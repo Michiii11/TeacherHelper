@@ -8,7 +8,7 @@ import {catchError, finalize, firstValueFrom, forkJoin, of, Subject, Subscriptio
 import { HttpService } from '../../service/http.service';
 import { CollectionDTO } from '../../model/Collection';
 import { ExampleOverviewDTO, ExampleTypeLabels, ExampleTypes, Focus } from '../../model/Example';
-import { TestOverviewDTO } from '../../model/Test';
+import { CreateTestDTO, TestOverviewDTO } from '../../model/Test';
 import { FolderDTO } from '../../model/Folder';
 
 import { MatDialog } from '@angular/material/dialog';
@@ -35,6 +35,7 @@ import { NavbarActionsService } from '../navigation/navbar-actions.service';
 import {NgIf} from '@angular/common'
 
 type ExplorerItemType = 'examples' | 'tests';
+type ClipboardItemType = 'example' | 'test';
 type SortOption = 'nameAsc' | 'nameDesc' | 'createdDesc' | 'createdAsc' | 'authorAsc' | 'typeAsc';
 type ViewMode = 'grid' | 'compact';
 
@@ -99,6 +100,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
   private readonly collectionStatePrefix = 'collectionExplorerState';
   private readonly testExampleTypeCache = new Map<string, Set<string>>();
   private readonly loadingTestExampleTypeIds = new Set<string>();
+  private readonly copiedItemStorageKey = 'teacher-helper:collection-clipboard';
 
   school: CollectionDTO = {} as CollectionDTO;
   schoolId: string | null = null;
@@ -111,6 +113,8 @@ export class CollectionComponent implements OnInit, OnDestroy {
   logoUrl: string | null = null;
 
   selectedFolderId: string | null = null;
+  expandedFolderIds = new Set<string>();
+  private folderExpansionStateRestored = false;
   private _search = '';
   sort: SortOption = 'nameAsc';
   currentViewMode: ViewMode = 'grid';
@@ -136,6 +140,13 @@ export class CollectionComponent implements OnInit, OnDestroy {
   deletingFolderIds = new Set<string>();
   deletingExampleIds = new Set<string>();
   deletingTestIds = new Set<number | string>();
+
+  copiedItemType: ClipboardItemType | null = null;
+  copiedItemId: string | null = null;
+  copiedItemName = '';
+  copiedItemCollectionId: string | null = null;
+  shortcutTargetItem: ExplorerItem | null = null;
+  isPastingItem = false;
 
   isSchoolLoading = true;
 
@@ -169,6 +180,8 @@ export class CollectionComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.restoreCopiedItem();
+
     this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.applyFolderFromUrlOrStorage();
     });
@@ -193,6 +206,40 @@ export class CollectionComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.navbarActions.clearAll();
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleClipboardShortcuts(event: KeyboardEvent): void {
+    const target = event.target as HTMLElement | null;
+    const tagName = target?.tagName?.toLowerCase();
+    const isEditable = !!target && (
+      tagName === 'input'
+      || tagName === 'textarea'
+      || tagName === 'select'
+      || target.isContentEditable
+    );
+
+    if (isEditable) {
+      return;
+    }
+
+    const hasModifier = event.ctrlKey || event.metaKey;
+    if (!hasModifier || event.altKey) {
+      return;
+    }
+
+    const key = event.key.toLowerCase();
+
+    if (key === 'c' && this.shortcutTargetItem) {
+      event.preventDefault();
+      this.copyItem(this.shortcutTargetItem);
+      return;
+    }
+
+    if (key === 'v' && this.hasCopiedItem) {
+      event.preventDefault();
+      this.pasteCopiedItem();
+    }
   }
 
   @HostListener('document:click')
@@ -251,6 +298,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
         this.examples = (examples as ExampleOverviewDTO[]).map(example => ({ ...example, folderId: example.folderId ?? null }));
         this.tests = (tests as TestOverviewDTO[]).map(test => ({ ...test, folderId: test.folderId ?? null }));
         this.ensureSelectedFolderStillExists();
+        this.initializeDefaultFolderExpansion();
         this.requestTestExampleTypesForFilters();
         this.setNavbarActions();
       });
@@ -363,6 +411,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
         this.examples = (examples as ExampleOverviewDTO[]).map(example => ({ ...example, folderId: example.folderId ?? null }));
         this.tests = (tests as TestOverviewDTO[]).map(test => ({ ...test, folderId: test.folderId ?? null }));
         this.ensureSelectedFolderStillExists();
+        this.initializeDefaultFolderExpansion();
         this.requestTestExampleTypesForFilters();
         this.setNavbarActions();
       });
@@ -382,18 +431,82 @@ export class CollectionComponent implements OnInit, OnDestroy {
 
 
   get folderNavNodes(): FolderNavNode[] {
-    const sorted = [...this.folders].sort((a, b) => a.name.localeCompare(b.name, this.translate.currentLang || 'de', { sensitivity: 'base' }));
+    const sorted = [...this.folders].sort((a, b) =>
+      a.name.localeCompare(
+        b.name,
+        this.translate.currentLang || 'de',
+        { sensitivity: 'base' }
+      )
+    );
     const result: FolderNavNode[] = [];
 
     const appendChildren = (parentId: string | null, depth: number) => {
       for (const folder of sorted.filter(item => (item.parentId ?? null) === parentId)) {
         result.push({ ...folder, depth });
-        appendChildren(folder.id, depth + 1);
+
+        if (this.expandedFolderIds.has(folder.id)) {
+          appendChildren(folder.id, depth + 1);
+        }
       }
     };
 
     appendChildren(null, 0);
     return result;
+  }
+
+  hasFolderChildren(folderId: string): boolean {
+    return this.folders.some(folder => (folder.parentId ?? null) === folderId);
+  }
+
+  isFolderExpanded(folderId: string): boolean {
+    return this.expandedFolderIds.has(folderId);
+  }
+
+  toggleFolderExpanded(folder: ExplorerFolder, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!this.hasFolderChildren(folder.id)) {
+      return;
+    }
+
+    if (this.expandedFolderIds.has(folder.id)) {
+      this.expandedFolderIds.delete(folder.id);
+    } else {
+      this.expandedFolderIds.add(folder.id);
+    }
+
+    this.expandedFolderIds = new Set(this.expandedFolderIds);
+    this.persistExplorerState();
+  }
+
+  private getCurrentFolderExpansionPath(): string[] {
+    if (!this.selectedFolderId) {
+      return [];
+    }
+
+    return this.buildBreadcrumbs(this.selectedFolderId).map(folder => folder.id);
+  }
+
+  private ensureCurrentFolderPathExpanded(): void {
+    const next = new Set(this.expandedFolderIds);
+
+    for (const folderId of this.getCurrentFolderExpansionPath()) {
+      next.add(folderId);
+    }
+
+    this.expandedFolderIds = next;
+  }
+
+  private initializeDefaultFolderExpansion(): void {
+    if (this.folderExpansionStateRestored) {
+      this.ensureCurrentFolderPathExpanded();
+      return;
+    }
+
+    this.expandedFolderIds = new Set(this.getCurrentFolderExpansionPath());
+    this.folderExpansionStateRestored = true;
+    this.persistExplorerState();
   }
 
   isFolderInCurrentPath(folderId: string | null): boolean {
@@ -634,6 +747,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
         selectedExampleTypes: string[];
         selectedExampleFocuses: string[];
         selectedAuthors: string[];
+        expandedFolderIds: string[];
       }>;
 
       this.selectedFolderId = typeof state.folderId === 'string' ? state.folderId : null;
@@ -644,8 +758,18 @@ export class CollectionComponent implements OnInit, OnDestroy {
       this.selectedExampleTypes = Array.isArray(state.selectedExampleTypes) ? state.selectedExampleTypes.map(String) : [];
       this.selectedExampleFocuses = Array.isArray(state.selectedExampleFocuses) ? state.selectedExampleFocuses.map(String) : [];
       this.selectedAuthors = Array.isArray(state.selectedAuthors) ? state.selectedAuthors.map(String) : [];
+
+      if (Array.isArray(state.expandedFolderIds)) {
+        this.expandedFolderIds = new Set(state.expandedFolderIds.map(String));
+        this.folderExpansionStateRestored = true;
+      } else {
+        this.expandedFolderIds = new Set<string>();
+        this.folderExpansionStateRestored = false;
+      }
     } catch {
       localStorage.removeItem(this.collectionStateStorageKey);
+      this.expandedFolderIds = new Set<string>();
+      this.folderExpansionStateRestored = false;
     }
   }
 
@@ -661,7 +785,8 @@ export class CollectionComponent implements OnInit, OnDestroy {
       selectedItemTypes: this.selectedItemTypes,
       selectedExampleTypes: this.selectedExampleTypes,
       selectedExampleFocuses: this.selectedExampleFocuses,
-      selectedAuthors: this.selectedAuthors
+      selectedAuthors: this.selectedAuthors,
+      expandedFolderIds: [...this.expandedFolderIds]
     };
 
     localStorage.setItem(this.collectionStateStorageKey, JSON.stringify(state));
@@ -675,6 +800,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
     const folderFromUrl = this.route.snapshot.queryParamMap.get('folder');
     if (folderFromUrl !== null) {
       this.selectedFolderId = folderFromUrl && folderFromUrl !== 'root' ? folderFromUrl : null;
+      this.ensureCurrentFolderPathExpanded();
       this.persistExplorerState();
       this.setNavbarActions();
     }
@@ -876,8 +1002,14 @@ export class CollectionComponent implements OnInit, OnDestroy {
   }
 
   private ensureSelectedFolderStillExists(): void {
+    const validFolderIds = new Set(this.folders.map(folder => folder.id));
+    this.expandedFolderIds = new Set(
+      [...this.expandedFolderIds].filter(folderId => validFolderIds.has(folderId))
+    );
+
     if (!this.selectedFolderId) return;
-    if (!this.folders.some(folder => folder.id === this.selectedFolderId)) {
+
+    if (!validFolderIds.has(this.selectedFolderId)) {
       this.selectedFolderId = null;
       this.persistExplorerState();
       this.updateFolderQueryParam();
@@ -1004,6 +1136,265 @@ export class CollectionComponent implements OnInit, OnDestroy {
     }
   }
 
+  get hasCopiedItem(): boolean {
+    return !!this.copiedItemType && !!this.copiedItemId;
+  }
+
+  get copiedItemLabel(): string {
+    if (!this.hasCopiedItem) return '';
+
+    const typeLabel = this.copiedItemType === 'test'
+      ? this.t('collection.test')
+      : this.t('collection.example');
+
+    return this.translate.currentLang?.toLowerCase().startsWith('en')
+      ? `Paste ${typeLabel}`
+      : `${typeLabel} einfügen`;
+  }
+
+  setShortcutTarget(item: ExplorerItem): void {
+    this.shortcutTargetItem = item;
+  }
+
+  copyItem(item: ExplorerItem, event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    this.shortcutTargetItem = item;
+    this.copiedItemType = item.type === 'tests' ? 'test' : 'example';
+    this.copiedItemId = String(item.id);
+    this.copiedItemName = (item.title || this.t(item.type === 'tests' ? 'collection.test' : 'collection.example')).trim();
+    this.copiedItemCollectionId = this.schoolId;
+
+    this.persistCopiedItem();
+
+    const typeLabel = item.type === 'tests'
+      ? this.t('collection.test')
+      : this.t('collection.example');
+
+    this.showSuccessSnack(
+      this.translate.currentLang?.toLowerCase().startsWith('en')
+        ? `${typeLabel} "${this.copiedItemName}" copied.`
+        : `${typeLabel} „${this.copiedItemName}“ kopiert.`
+    );
+  }
+
+  pasteCopiedItem(): void {
+    this.isCreateMenuOpen = false;
+
+    if (!this.hasCopiedItem || !this.schoolId || this.isPastingItem) {
+      return;
+    }
+
+    if (this.copiedItemType === 'test') {
+      this.pasteCopiedTest();
+      return;
+    }
+
+    this.pasteCopiedExample();
+  }
+
+  private pasteCopiedTest(): void {
+    if (!this.copiedItemId || !this.schoolId) return;
+
+    this.isPastingItem = true;
+
+    this.service.getTest(this.copiedItemId)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isPastingItem = false)
+      )
+      .subscribe({
+        next: source => {
+          const copiedName = this.buildCopiedName(source.name || this.copiedItemName);
+
+          const payload: CreateTestDTO = {
+            ...source,
+            collectionId: this.schoolId as string,
+            folderId: this.selectedFolderId,
+            name: copiedName,
+            exampleList: (source.exampleList ?? []).map((entry: any) => ({
+              ...entry,
+              variableValues: { ...(entry.variableValues ?? {}) }
+            })),
+            taskSpacingMap: { ...(source.taskSpacingMap ?? {}) },
+            gradingSchema: (source.gradingSchema ?? []).map((level: any) => ({ ...level })),
+            gradePercentages: { ...(source.gradePercentages ?? {}) },
+            manualGradeMinimums: { ...(source.manualGradeMinimums ?? {}) }
+          };
+
+          this.service.createTest(payload)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: () => {
+                this.loadTests();
+                this.showPasteSuccess(copiedName, 'test');
+                this.clearCopiedItem();
+              },
+              error: err => this.showErrorSnack(err)
+            });
+        },
+        error: err => {
+          this.clearCopiedItem();
+          this.showErrorSnack(err);
+        }
+      });
+  }
+
+  private pasteCopiedExample(): void {
+    if (!this.copiedItemId || !this.schoolId) return;
+
+    const targetCollectionId = this.schoolId;
+    const targetFolderId = this.selectedFolderId ?? '';
+
+    this.isPastingItem = true;
+
+    this.service.getExample(this.copiedItemId)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isPastingItem = false)
+      )
+      .subscribe({
+        next: source => {
+          const copiedInstruction = this.buildCopiedName(
+            source.instruction || this.copiedItemName || this.t('collection.example')
+          );
+
+          const payload = {
+            ...source,
+            collectionId: targetCollectionId,
+            folderId: targetFolderId,
+            instruction: copiedInstruction,
+
+            // A new Example must not reuse another Example's media object keys.
+            // Media can be added again from the editor after the copy is created.
+            image: '',
+            solutionUrl: '',
+
+            answers: (source.answers ?? []).map((answer: any) =>
+              Array.isArray(answer) ? [...answer] : answer
+            ),
+            options: (source.options ?? []).map((option: any) => ({
+              ...option,
+              id: crypto.randomUUID()
+            })),
+            gaps: (source.gaps ?? []).map((gap: any) => ({
+              ...gap,
+              id: crypto.randomUUID(),
+              options: (gap.options ?? []).map((option: any) => ({
+                ...option,
+                id: crypto.randomUUID()
+              }))
+            })),
+            assigns: (source.assigns ?? []).map((assign: any) => ({ ...assign })),
+            assignRightItems: [...(source.assignRightItems ?? [])],
+            focusList: (source.focusList ?? []).map((focus: any) => ({ ...focus })),
+            variables: (source.variables ?? []).map((variable: any) => ({
+              ...variable,
+              id: crypto.randomUUID()
+            })),
+            displaySettings: source.displaySettings
+              ? { ...source.displaySettings }
+              : source.displaySettings
+          };
+
+          this.service.createExample(payload)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: () => {
+                this.loadExamples();
+                this.showPasteSuccess(copiedInstruction, 'example');
+                this.clearCopiedItem();
+              },
+              error: err => this.showErrorSnack(err)
+            });
+        },
+        error: err => {
+          this.clearCopiedItem();
+          this.showErrorSnack(err);
+        }
+      });
+  }
+
+  private buildCopiedName(sourceName: string): string {
+    const base = (sourceName || '').trim();
+    const suffix = this.translate.currentLang?.toLowerCase().startsWith('en')
+      ? ' (Copy)'
+      : ' (Kopie)';
+
+    return base.endsWith(suffix) ? base : `${base}${suffix}`;
+  }
+
+  private showPasteSuccess(name: string, type: ClipboardItemType): void {
+    const typeLabel = type === 'test'
+      ? this.t('collection.test')
+      : this.t('collection.example');
+
+    this.showSuccessSnack(
+      this.translate.currentLang?.toLowerCase().startsWith('en')
+        ? `${typeLabel} "${name}" pasted.`
+        : `${typeLabel} „${name}“ eingefügt.`
+    );
+  }
+
+  private persistCopiedItem(): void {
+    try {
+      localStorage.setItem(this.copiedItemStorageKey, JSON.stringify({
+        type: this.copiedItemType,
+        id: this.copiedItemId,
+        name: this.copiedItemName,
+        collectionId: this.copiedItemCollectionId
+      }));
+    } catch {
+      // Copy remains available for the current page.
+    }
+  }
+
+  private restoreCopiedItem(): void {
+    try {
+      const raw = localStorage.getItem(this.copiedItemStorageKey);
+      if (!raw) return;
+
+      const copied = JSON.parse(raw) as {
+        type?: ClipboardItemType;
+        id?: string;
+        name?: string;
+        collectionId?: string;
+      };
+
+      if (copied.type !== 'example' && copied.type !== 'test') {
+        this.clearCopiedItem();
+        return;
+      }
+
+      this.copiedItemType = copied.type;
+      this.copiedItemId = copied.id ? String(copied.id) : null;
+      this.copiedItemName = typeof copied.name === 'string' ? copied.name : '';
+      this.copiedItemCollectionId = copied.collectionId ? String(copied.collectionId) : null;
+    } catch {
+      this.clearCopiedItem();
+    }
+  }
+
+  cancelCopiedItem(event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+    this.clearCopiedItem();
+  }
+
+  private clearCopiedItem(): void {
+    this.copiedItemType = null;
+    this.copiedItemId = null;
+    this.copiedItemName = '';
+    this.copiedItemCollectionId = null;
+
+    try {
+      localStorage.removeItem(this.copiedItemStorageKey);
+    } catch {
+      // Ignore unavailable browser storage.
+    }
+  }
+
   createFolderFromMenu(): void {
     this.isCreateMenuOpen = false;
     this.createFolder();
@@ -1031,6 +1422,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
   selectFolder(folderId: string | null): void {
     this.closeFolderMenu();
     this.selectedFolderId = folderId;
+    this.ensureCurrentFolderPathExpanded();
     this.persistExplorerState();
     this.updateFolderQueryParam();
     this.setNavbarActions();
@@ -1814,8 +2206,15 @@ export class CollectionComponent implements OnInit, OnDestroy {
   }
 
   editExample(example: ExampleOverviewDTO): void {
-    const isMobile = window.innerWidth <= 768;
     const currentExample = this.examples.find(item => String(item.id) === String(example.id)) ?? example;
+    const explorerItem = this.toExplorerExample(currentExample);
+
+    if (!this.canManageItem(explorerItem)) {
+      this.openExample(currentExample);
+      return;
+    }
+
+    const isMobile = window.innerWidth <= 768;
 
     this.dialog.open(CreateExampleComponent, {
       width: isMobile ? '100vw' : 'min(96vw, 1400px)',
@@ -1848,8 +2247,15 @@ export class CollectionComponent implements OnInit, OnDestroy {
   }
 
   editTest(test: TestOverviewDTO): void {
-    const isMobile = window.innerWidth <= 768;
     const currentTest = this.tests.find(item => String(item.id) === String(test.id)) ?? test;
+    const explorerItem = this.toExplorerTest(currentTest);
+
+    if (!this.canManageItem(explorerItem)) {
+      this.openTest(currentTest);
+      return;
+    }
+
+    const isMobile = window.innerWidth <= 768;
 
     this.dialog.open(CreateTestComponent, {
       width: isMobile ? '100vw' : 'min(96vw, 1680px)',
@@ -1884,11 +2290,26 @@ export class CollectionComponent implements OnInit, OnDestroy {
     this.openTest(item.raw as TestOverviewDTO);
   }
 
+  handleItemClick(item: ExplorerItem): void {
+    if (this.canManageItem(item)) {
+      this.editItem(item);
+      return;
+    }
+
+    this.openItem(item);
+  }
+
   editItem(item: ExplorerItem): void {
+    if (!this.canManageItem(item)) {
+      this.openItem(item);
+      return;
+    }
+
     if (item.type === 'examples') {
       this.editExample(item.raw as ExampleOverviewDTO);
       return;
     }
+
     this.editTest(item.raw as TestOverviewDTO);
   }
 

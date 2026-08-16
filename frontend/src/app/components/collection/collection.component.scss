@@ -1951,3 +1951,74 @@ mat-icon { overflow: visible; line-height: 1; }
     bottom: 0.5rem;
   }
 }
+
+
+/* Collapsible folder tree */
+.folder-tree-toggle {
+  width: 26px;
+  height: 30px;
+  flex: 0 0 26px;
+  margin-left: calc(var(--level, 0) * 1rem);
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.folder-tree-toggle:hover:not(.placeholder) {
+  background: var(--surface-soft);
+}
+
+.folder-tree-toggle.placeholder {
+  cursor: default;
+  pointer-events: none;
+}
+
+.folder-tree-toggle mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
+.folder-tree-entry {
+  padding-left: 0;
+}
+
+.folder-tree-entry .folder-tree-node {
+  padding-left: 0.2rem;
+}
+
+
+/* Clipboard actions */
+.toolbar-paste-btn {
+  gap: 0.45rem;
+  white-space: nowrap;
+}
+
+.toolbar-paste-btn .shortcut-hint {
+  opacity: 0.62;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-left: 0.15rem;
+}
+
+.content-card.item-card:focus-visible,
+.compact-row:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.toolbar-clipboard-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.toolbar-cancel-copy-btn {
+  flex: 0 0 auto;
+}

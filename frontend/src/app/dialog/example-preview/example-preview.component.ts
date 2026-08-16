@@ -61,6 +61,7 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
   @Input() constructionImagePreviewUrl: string | null = null;
   @Input() constructionSolutionPreviewUrl: string | null = null;
   @Input() showHeader = true;
+  @Input() refreshKey = 0;
 
   isLoading = true;
   previewHtml: SafeHtml = "";
@@ -130,7 +131,8 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
     if (
       changes["example"] ||
       changes["constructionImagePreviewUrl"] ||
-      changes["constructionSolutionPreviewUrl"]
+      changes["constructionSolutionPreviewUrl"] ||
+      changes["refreshKey"]
     ) {
       this.isLoading = false;
       this.refreshPreviewHtml();

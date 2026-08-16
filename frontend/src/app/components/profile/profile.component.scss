@@ -524,7 +524,6 @@
 .danger-btn {
   min-height: 44px;
   white-space: nowrap;
-  box-shadow: 0 12px 24px rgba(185, 28, 28, 0.18);
 }
 
 @media (max-width: 1080px) {
@@ -624,3 +623,121 @@
     color: #fecaca;
   }
 }
+
+
+/* Profile image drag & drop */
+.avatar-drop-zone {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 24px;
+  cursor: pointer;
+  outline: 2px solid transparent;
+  outline-offset: 3px;
+  transition: outline-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.avatar-drop-zone:hover {
+  transform: translateY(-1px);
+}
+
+.avatar-drop-zone.drag-active {
+  outline-color: var(--primary);
+  box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.12);
+}
+
+.avatar-drop-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.5rem;
+  border-radius: 24px;
+  background: rgba(15, 23, 42, 0.68);
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  pointer-events: none;
+  text-align: center;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.avatar-drop-overlay mat-icon {
+  width: 22px;
+  height: 22px;
+  font-size: 22px;
+}
+
+.avatar-drop-zone:hover .avatar-drop-overlay,
+.avatar-drop-zone.drag-active .avatar-drop-overlay {
+  opacity: 1;
+}
+
+/* Cleaner account deletion section */
+.danger-panel {
+  border: 1px solid rgba(239, 68, 68, 0.22);
+  background: var(--bg-soft);
+  overflow: hidden;
+}
+
+.danger-panel::before {
+  display: none;
+}
+
+.danger-panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: 1.35rem;
+}
+
+.danger-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.danger-icon {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.danger-icon mat-icon {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+}
+
+.danger-text {
+  min-width: 0;
+}
+
+.danger-title {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.danger-subtitle {
+  margin: 0.28rem 0 0;
+  color: var(--text-soft);
+  line-height: 1.45;
+}
+
+.danger-btn {
+  width: 100%;
+  min-height: 42px;
+  border-radius: 10px !important;
+  font-weight: 700;
+}
+

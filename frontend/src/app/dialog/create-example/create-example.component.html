@@ -385,9 +385,25 @@
             </ng-container>
           </section>
 
-          <section class="panel-box global-solution-panel" *ngIf="example.type === ExampleTypes.OPEN || example.type === ExampleTypes.CONSTRUCTION">
-            <div class="panel-title">{{ 'exampleDialog.solution' | translate }}</div>
-            <mat-form-field appearance="outline" class="full-width global-solution-text">
+          <section
+            class="panel-box side-collapsible global-solution-panel"
+            [class.collapsed]="solutionCollapsed"
+            *ngIf="example.type === ExampleTypes.OPEN || example.type === ExampleTypes.CONSTRUCTION"
+          >
+            <div
+              class="side-collapse-head"
+              role="button"
+              tabindex="0"
+              (click)="toggleSection('solution')"
+              (keydown.enter)="toggleSection('solution')"
+              (keydown.space)="$event.preventDefault(); toggleSection('solution')"
+            >
+              <mat-icon class="collapse-icon">{{ solutionCollapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
+              <span class="panel-title">{{ 'exampleDialog.solution' | translate }}</span>
+            </div>
+
+            <div class="side-collapse-body" *ngIf="!solutionCollapsed">
+              <mat-form-field appearance="outline" class="full-width global-solution-text">
 
               <textarea spellcheck="true" [attr.lang]="editorSpellcheckLang"
                         matInput
@@ -403,31 +419,35 @@
                         cdkTextareaAutosize
                         cdkAutosizeMinRows="2"
                         cdkAutosizeMaxRows="12"></textarea>
-              <mat-hint align="end" *ngIf="shouldShowTextLimitHint(example.solution, textLimits.solution)">{{ getTextLength(example.solution) }} / {{ textLimits.solution }}</mat-hint>
-            </mat-form-field>
+                <mat-hint align="end" *ngIf="shouldShowTextLimitHint(example.solution, textLimits.solution)">{{ getTextLength(example.solution) }} / {{ textLimits.solution }}</mat-hint>
+              </mat-form-field>
 
-            <app-construction-image-card
-              kind="solution"
-              titleKey="exampleDialog.solutionImage"
-              previewAltKey="exampleDialog.solutionImagePreviewAlt"
-              emptyIcon="imagesmode"
-              emptyTextKey="exampleDialog.noSolutionImage"
-              widthLabelKey="exampleDialog.solutionImageWidth"
-              widthName="solutionImageWidth"
-              [previewUrl]="constructionSolutionPreviewUrl"
-              [selectedFile]="selectedConstructionSolutionFile"
-              [width]="example.solutionImageWidth || defaultImageWidth"
-              (imageSelected)="onImageSelected($event.event, $event.kind)"
-              (imageDropped)="onImageDropped($event)"
-              (imageRemoved)="removeSelectedImage($event)"
-              (widthChange)="example.solutionImageWidth = $event; markDirty()"
-              (fileTooLarge)="openTranslatedSnack('exampleDialog.snackbar.imageSizeError', 'common.ok', 3000, { maxSizeMb: $event.maxSizeMb })"
-              (invalidFileType)="openTranslatedSnack('exampleDialog.snackbar.invalidImageType')"
-            ></app-construction-image-card>
+              <app-construction-image-card
+                kind="solution"
+                titleKey="exampleDialog.solutionImage"
+                previewAltKey="exampleDialog.solutionImagePreviewAlt"
+                emptyIcon="imagesmode"
+                emptyTextKey="exampleDialog.noSolutionImage"
+                widthLabelKey="exampleDialog.solutionImageWidth"
+                widthName="solutionImageWidth"
+                [previewUrl]="constructionSolutionPreviewUrl"
+                [selectedFile]="selectedConstructionSolutionFile"
+                [width]="example.solutionImageWidth || defaultImageWidth"
+                (imageSelected)="onImageSelected($event.event, $event.kind)"
+                (imageDropped)="onImageDropped($event)"
+                (imageRemoved)="removeSelectedImage($event)"
+                (widthChange)="example.solutionImageWidth = $event; markDirty()"
+                (fileTooLarge)="openTranslatedSnack('exampleDialog.snackbar.imageSizeError', 'common.ok', 3000, { maxSizeMb: $event.maxSizeMb })"
+                (invalidFileType)="openTranslatedSnack('exampleDialog.snackbar.invalidImageType')"
+              ></app-construction-image-card>
+            </div>
           </section>
 
           <section class="panel-box side-collapsible display-settings-panel" [class.collapsed]="displaySettingsCollapsed">
-            <div class="side-collapse-head" role="button" tabindex="0" (click)="displaySettingsCollapsed = !displaySettingsCollapsed">
+            <div class="side-collapse-head" role="button" tabindex="0"
+                 (click)="toggleSection('displaySettings')"
+                 (keydown.enter)="toggleSection('displaySettings')"
+                 (keydown.space)="$event.preventDefault(); toggleSection('displaySettings')">
               <mat-icon class="collapse-icon">{{ displaySettingsCollapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
               <span class="panel-title">{{ 'exampleDialog.displaySettings.title' | translate }}</span>
             </div>
@@ -495,7 +515,10 @@
 
       <div class="create-example-layout">
         <section class="panel-box side-collapsible preview-panel" [class.collapsed]="previewCollapsed">
-          <div class="side-collapse-head" role="button" tabindex="0" (click)="previewCollapsed = !previewCollapsed">
+          <div class="side-collapse-head" role="button" tabindex="0"
+               (click)="toggleSection('preview')"
+               (keydown.enter)="toggleSection('preview')"
+               (keydown.space)="$event.preventDefault(); toggleSection('preview')">
             <mat-icon class="collapse-icon">{{ previewCollapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
             <span class="panel-title">{{ 'exampleDialog.preview' | translate }}</span>
           </div>
@@ -505,6 +528,7 @@
               [example]="example"
               [constructionImagePreviewUrl]="constructionImagePreviewUrl"
               [constructionSolutionPreviewUrl]="constructionSolutionPreviewUrl"
+              [refreshKey]="previewRevision"
               [showHeader]="false"
             ></app-example-preview>
           </div>
@@ -512,7 +536,10 @@
 
         <section class="panel-box side-collapsible compact-variable-table" [class.collapsed]="variablesCollapsed">
           <div class="variable-collapse-head-row">
-            <div class="side-collapse-head" role="button" tabindex="0" (click)="variablesCollapsed = !variablesCollapsed">
+            <div class="side-collapse-head" role="button" tabindex="0"
+                 (click)="toggleSection('variables')"
+                 (keydown.enter)="toggleSection('variables')"
+                 (keydown.space)="$event.preventDefault(); toggleSection('variables')">
               <mat-icon class="collapse-icon">{{ variablesCollapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
               <span class="panel-title">{{ 'exampleDialog.variables.title' | translate }}</span>
             </div>
@@ -574,7 +601,10 @@
         </section>
 
         <section class="panel-box side-collapsible tag-meta-panel" [class.collapsed]="tagsCollapsed">
-          <div class="side-collapse-head" role="button" tabindex="0" (click)="tagsCollapsed = !tagsCollapsed">
+          <div class="side-collapse-head" role="button" tabindex="0"
+               (click)="toggleSection('tags')"
+               (keydown.enter)="toggleSection('tags')"
+               (keydown.space)="$event.preventDefault(); toggleSection('tags')">
             <mat-icon class="collapse-icon">{{ tagsCollapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
             <span class="panel-title">{{ 'exampleDialog.tags' | translate }}</span>
           </div>

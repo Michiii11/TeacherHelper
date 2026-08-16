@@ -1795,3 +1795,8 @@ mat-dialog-actions {
 .global-solution-text {
   margin-bottom: 0.15rem;
 }
+
+
+.global-solution-panel.side-collapsible.collapsed {
+  padding-bottom: 0;
+}

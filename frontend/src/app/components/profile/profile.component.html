@@ -11,13 +11,29 @@
     <section class="hero-grid">
       <article class="profile-hero card">
         <div class="profile-hero-top">
-          <div class="avatar-shell">
+          <label
+            class="avatar-shell avatar-drop-zone"
+            for="avatarUpload"
+            [class.drag-active]="isDraggingAvatar"
+            (dragover)="onAvatarDragOver($event)"
+            (dragleave)="onAvatarDragLeave($event)"
+            (drop)="onAvatarDrop($event)"
+          >
             @if (getAvatarUrl()) {
               <img [src]="getAvatarUrl()!" [alt]="'profile.avatarAlt' | translate" class="avatar-image">
             } @else {
               <div class="avatar-fallback">{{ getInitials() }}</div>
             }
-          </div>
+
+            <div class="avatar-drop-overlay">
+              <mat-icon>{{ isDraggingAvatar ? 'add_photo_alternate' : 'photo_camera' }}</mat-icon>
+              <span>
+                {{ isDraggingAvatar
+                ? ((translate.currentLang || '').toLowerCase().startsWith('en') ? 'Drop image' : 'Bild ablegen')
+                : ((translate.currentLang || '').toLowerCase().startsWith('en') ? 'Change image' : 'Bild ändern') }}
+              </span>
+            </div>
+          </label>
 
           <div class="profile-main">
             <h2 class="profile-name">{{ getDisplayName() }}</h2>
@@ -136,30 +152,30 @@
         </form>
       </article>
 
-      <article class="panel danger-panel card">
+      <article class="panel danger-panel">
         <div class="danger-panel-content">
-          <div class="danger-icon-shell" aria-hidden="true">
-            <mat-icon>warning</mat-icon>
-          </div>
-
-          <div class="danger-copy">
-            <div class="panel-header danger-header">
-              <p class="eyebrow danger-eyebrow">{{ 'profile.dangerZoneEyebrow' | translate }}</p>
-              <h2 class="panel-title danger-title">
-                {{ 'profile.deleteAccount' | translate }}
-              </h2>
-              <p class="panel-subtitle danger-subtitle">
-                {{ 'profile.deleteAccountWarning' | translate }}
-              </p>
+          <div class="danger-heading">
+            <div class="danger-icon">
+              <mat-icon aria-hidden="true">delete_forever</mat-icon>
             </div>
 
-            <div class="panel-body danger-body">
-              <button mat-flat-button color="warn" type="button" class="danger-btn" [disabled]="deletingAccount" (click)="confirmDeleteAccount()">
-                <mat-icon>{{ deletingAccount ? 'hourglass_top' : 'delete_forever' }}</mat-icon>
-                {{ deletingAccount ? ('common.deleting' | translate) : ('profile.deleteAccountButton' | translate) }}
-              </button>
+            <div class="danger-text">
+              <h2 class="panel-title danger-title">{{ 'profile.deleteAccount' | translate }}</h2>
+              <p class="panel-subtitle danger-subtitle">{{ 'profile.deleteAccountWarning' | translate }}</p>
             </div>
           </div>
+
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            class="danger-btn"
+            [disabled]="deletingAccount"
+            (click)="confirmDeleteAccount()"
+          >
+            <mat-icon>{{ deletingAccount ? 'hourglass_top' : 'delete_forever' }}</mat-icon>
+            {{ deletingAccount ? ('common.deleting' | translate) : ('profile.deleteAccountButton' | translate) }}
+          </button>
         </div>
       </article>
     </section>

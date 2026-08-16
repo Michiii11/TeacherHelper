@@ -51,13 +51,27 @@
             >
               <button
                 type="button"
+                class="folder-tree-toggle"
+                [class.placeholder]="!hasFolderChildren(folder.id)"
+                [attr.aria-hidden]="!hasFolderChildren(folder.id)"
+                [attr.tabindex]="hasFolderChildren(folder.id) ? 0 : -1"
+                [attr.aria-label]="folder.name"
+                (click)="toggleFolderExpanded(folder, $event)"
+              >
+                @if (hasFolderChildren(folder.id)) {
+                  <mat-icon>{{ isFolderExpanded(folder.id) ? 'expand_more' : 'chevron_right' }}</mat-icon>
+                }
+              </button>
+
+              <button
+                type="button"
                 class="folder-tree-node"
                 [attr.draggable]="!isDeletingFolder(folder.id)"
                 (click)="openFolder(folder)"
                 (dragstart)="!isDeletingFolder(folder.id) && onFolderDragStart(folder, $event)"
                 (dragend)="onFolderDragEnd()"
               >
-                <mat-icon>folder</mat-icon>
+                <mat-icon>{{ isFolderExpanded(folder.id) && hasFolderChildren(folder.id) ? 'folder_open' : 'folder' }}</mat-icon>
                 <span class="tree-name">{{ folder.name }}</span>
               </button>
 
@@ -254,6 +268,34 @@
                 </button>
               </div>
 
+              @if (hasCopiedItem) {
+                <div class="toolbar-clipboard-actions">
+                  <button
+                    type="button"
+                    mat-flat-button
+                    class="toolbar-paste-btn outlined-control"
+                    (click)="pasteCopiedItem()"
+                    [disabled]="isPastingItem"
+                    [title]="copiedItemLabel + ' (Ctrl/⌘ + V)'"
+                  >
+                    <mat-icon>{{ isPastingItem ? 'hourglass_top' : 'content_paste' }}</mat-icon>
+                    <span class="toolbar-label">{{ copiedItemLabel }}</span>
+                    <span class="shortcut-hint">⌘V</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    mat-icon-button
+                    class="toolbar-cancel-copy-btn"
+                    (click)="cancelCopiedItem($event)"
+                    [disabled]="isPastingItem"
+                    [title]="(translate.currentLang || '').toLowerCase().startsWith('en') ? 'Cancel copied item' : 'Kopierung aufheben'"
+                  >
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              }
+
               <div class="create-menu-wrap" (click)="stopClick($event)">
                 <button type="button" mat-flat-button color="primary" class="new-icon-btn outlined-control" (click)="toggleCreateMenu($event)" [title]="'collection.newContent' | translate">
                   <mat-icon>add</mat-icon>
@@ -261,6 +303,30 @@
 
                 @if (isCreateMenuOpen) {
                   <div class="create-menu-panel">
+                    @if (hasCopiedItem) {
+                      <button
+                        type="button"
+                        class="create-menu-item"
+                        (click)="pasteCopiedItem()"
+                        [disabled]="isPastingItem"
+                      >
+                        <mat-icon>{{ isPastingItem ? 'hourglass_top' : 'content_paste' }}</mat-icon>
+                        <span>{{ copiedItemLabel }}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="create-menu-item"
+                        (click)="cancelCopiedItem($event)"
+                        [disabled]="isPastingItem"
+                      >
+                        <mat-icon>close</mat-icon>
+                        <span>
+                          {{ (translate.currentLang || '').toLowerCase().startsWith('en') ? 'Cancel copied item' : 'Kopierung aufheben' }}
+                        </span>
+                      </button>
+                    }
+
                     <button type="button" class="create-menu-item" (click)="createFolderFromMenu()">
                       <mat-icon>create_new_folder</mat-icon>
                       <span>{{ 'collection.newFolder' | translate }}</span>
@@ -329,6 +395,7 @@
             @for (item of visibleItems; track item.type + '-' + item.id) {
               <div
                 class="content-card item-card"
+                tabindex="0"
                 [class.example-card]="item.type === 'examples'"
                 [class.test-card]="item.type === 'tests'"
                 [class.draggable]="canManageItem(item)"
@@ -337,7 +404,10 @@
                 [attr.draggable]="canManageItem(item) && !isDeletingItem(item)"
                 (dragstart)="canManageItem(item) && !isDeletingItem(item) && onItemDragStart(item.type, item.id, $event)"
                 (dragend)="onItemDragEnd()"
-                (click)="editItem(item)"
+                (focus)="setShortcutTarget(item)"
+                (mouseenter)="setShortcutTarget(item)"
+                (click)="handleItemClick(item)"
+                (keydown.enter)="handleItemClick(item)"
               >
                 <div class="card-leading item-leading"><mat-icon>{{ getItemIcon(item) }}</mat-icon></div>
                 <div class="card-copy">
@@ -351,9 +421,18 @@
                     }
                   </div>
                   <div class="action-buttons">
+                    <button
+                      mat-icon-button
+                      type="button"
+                      (click)="copyItem(item, $event)"
+                      [disabled]="isDeletingItem(item)"
+                      [title]="(translate.currentLang || '').toLowerCase().startsWith('en') ? 'Copy (Ctrl/⌘ + C)' : 'Kopieren (Ctrl/⌘ + C)'"
+                    >
+                      <mat-icon>content_copy</mat-icon>
+                    </button>
                     <button mat-icon-button type="button" (click)="openItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>visibility</mat-icon></button>
                     @if (canManageItem(item)) {
-                      <button mat-icon-button type="button" (click)="editItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>edit</mat-icon></button>
+                      <button mat-icon-button type="button" (click)="handleItemClick(item)" [disabled]="isDeletingItem(item)"><mat-icon>edit</mat-icon></button>
                       <button mat-icon-button type="button" (click)="moveItemWithPicker(item)" [disabled]="isDeletingItem(item)"><mat-icon>drive_file_move</mat-icon></button>
                       <button mat-icon-button type="button" color="warn" (click)="$event.preventDefault(); deleteItem(item)" [disabled]="isDeletingItem(item)">
                         <mat-icon>{{ isDeletingItem(item) ? 'hourglass_top' : 'delete' }}</mat-icon>
@@ -414,6 +493,7 @@
             @for (item of visibleItems; track item.type + '-' + item.id) {
               <div
                 class="compact-row"
+                tabindex="0"
                 [class.example-row]="item.type === 'examples'"
                 [class.test-row]="item.type === 'tests'"
                 [class.draggable]="canManageItem(item)"
@@ -422,7 +502,10 @@
                 [attr.draggable]="canManageItem(item) && !isDeletingItem(item)"
                 (dragstart)="canManageItem(item) && !isDeletingItem(item) && onItemDragStart(item.type, item.id, $event)"
                 (dragend)="onItemDragEnd()"
-                (click)="editItem(item)"
+                (focus)="setShortcutTarget(item)"
+                (mouseenter)="setShortcutTarget(item)"
+                (click)="handleItemClick(item)"
+                (keydown.enter)="handleItemClick(item)"
               >
                 <div class="compact-title-wrap">
                   <mat-icon class="compact-icon item">{{ getItemIcon(item) }}</mat-icon>
@@ -438,9 +521,18 @@
                     }
                   </div>
                   <div class="action-buttons">
+                    <button
+                      mat-icon-button
+                      type="button"
+                      (click)="copyItem(item, $event)"
+                      [disabled]="isDeletingItem(item)"
+                      [title]="(translate.currentLang || '').toLowerCase().startsWith('en') ? 'Copy (Ctrl/⌘ + C)' : 'Kopieren (Ctrl/⌘ + C)'"
+                    >
+                      <mat-icon>content_copy</mat-icon>
+                    </button>
                     <button mat-icon-button type="button" (click)="openItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>visibility</mat-icon></button>
                     @if (canManageItem(item)) {
-                      <button mat-icon-button type="button" (click)="editItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>edit</mat-icon></button>
+                      <button mat-icon-button type="button" (click)="handleItemClick(item)" [disabled]="isDeletingItem(item)"><mat-icon>edit</mat-icon></button>
                       <button mat-icon-button type="button" (click)="moveItemWithPicker(item)" [disabled]="isDeletingItem(item)"><mat-icon>drive_file_move</mat-icon></button>
                       <button mat-icon-button type="button" color="warn" (click)="deleteItem(item)" [disabled]="isDeletingItem(item)">
                         <mat-icon>{{ isDeletingItem(item) ? 'hourglass_top' : 'delete' }}</mat-icon>

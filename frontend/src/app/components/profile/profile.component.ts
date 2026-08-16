@@ -40,7 +40,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private readonly themeService = inject(ThemeService);
   private readonly languageService = inject(LanguageService);
-  private readonly translate = inject(TranslateService);
+  protected readonly translate = inject(TranslateService);
   private readonly navbarActions = inject(NavbarActionsService);
   private readonly auth = inject(AuthService);
 
@@ -55,6 +55,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   savingAvatar = false;
   savingSettings = false;
   deletingAccount = false;
+  isDraggingAvatar = false;
 
   private settingsReady = false;
   private lastSavedSettings: ProfileSettings = { darkMode: false, language: 'de', allowInvitations: true };
@@ -239,23 +240,67 @@ export class ProfileComponent implements OnInit, OnDestroy {
   onAvatarSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
+
+    if (file) {
+      this.setAvatarFile(file);
+    }
+
+    input.value = '';
+  }
+
+  onAvatarDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy';
+    }
+
+    this.isDraggingAvatar = true;
+  }
+
+  onAvatarDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const currentTarget = event.currentTarget as HTMLElement | null;
+    const relatedTarget = event.relatedTarget as Node | null;
+
+    if (currentTarget && relatedTarget && currentTarget.contains(relatedTarget)) {
+      return;
+    }
+
+    this.isDraggingAvatar = false;
+  }
+
+  onAvatarDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDraggingAvatar = false;
+
+    const file = event.dataTransfer?.files?.[0] ?? null;
     if (!file) return;
 
+    this.setAvatarFile(file);
+  }
+
+  private setAvatarFile(file: File): void {
     if (!this.allowedAvatarTypes.includes(file.type)) {
       this.snack.open(this.translate.instant('snackbar.imageTypeError'), 'OK', { duration: 3000 });
-      input.value = '';
       return;
     }
 
     if (file.size > this.maxAvatarBytes) {
       this.snack.open(this.translate.instant('snackbar.imageSizeError'), 'OK', { duration: 3200 });
-      input.value = '';
       return;
     }
 
     this.selectedAvatarFile = file;
+
     const reader = new FileReader();
-    reader.onload = () => this.avatarPreviewUrl = reader.result as string;
+    reader.onload = () => {
+      this.avatarPreviewUrl = reader.result as string;
+    };
     reader.readAsDataURL(file);
   }
 

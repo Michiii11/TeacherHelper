@@ -86,6 +86,10 @@ type TextSelectionState = {
   end: number;
 };
 
+type CollapseSection = 'preview' | 'variables' | 'displaySettings' | 'tags' | 'solution';
+
+type CollapseState = Record<CollapseSection, boolean>;
+
 @Component({
   selector: 'app-create-example',
   standalone: true,
@@ -124,6 +128,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   private readonly translate = inject(TranslateService);
 
   hasUnsavedChanges = false;
+  previewRevision = 0;
   isEditMode = false;
   isSaving = false;
   isExampleLoading = true;
@@ -161,9 +166,12 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   variablesCollapsed = true;
   editorCollapsed = false;
   displaySettingsCollapsed = true;
+  solutionCollapsed = true;
   activeEditorToolbarGroupIndex = 0;
   tagsCollapsed = true;
   proofreadingOpen = false;
+
+  private readonly collapseStateStorageKey = 'teacher-helper:create-example:collapse-state';
   proofreadIssues: ProofreadingIssue[] = [];
 
   get editorSpellcheckLang(): string {
@@ -383,6 +391,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.loadCollapseState();
     this.isExampleLoading = true;
 
     this.http.getAllFocus(this.data.schoolId)
@@ -441,6 +450,61 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
     }
   }
 
+  toggleSection(section: CollapseSection): void {
+    switch (section) {
+      case 'preview':
+        this.previewCollapsed = !this.previewCollapsed;
+        break;
+      case 'variables':
+        this.variablesCollapsed = !this.variablesCollapsed;
+        break;
+      case 'displaySettings':
+        this.displaySettingsCollapsed = !this.displaySettingsCollapsed;
+        break;
+      case 'tags':
+        this.tagsCollapsed = !this.tagsCollapsed;
+        break;
+      case 'solution':
+        this.solutionCollapsed = !this.solutionCollapsed;
+        break;
+    }
+
+    this.saveCollapseState();
+  }
+
+  private loadCollapseState(): void {
+    try {
+      const raw = localStorage.getItem(this.collapseStateStorageKey);
+      if (!raw) return;
+
+      const stored = JSON.parse(raw) as Partial<CollapseState>;
+
+      if (typeof stored.preview === 'boolean') this.previewCollapsed = stored.preview;
+      if (typeof stored.variables === 'boolean') this.variablesCollapsed = stored.variables;
+      if (typeof stored.displaySettings === 'boolean') this.displaySettingsCollapsed = stored.displaySettings;
+      if (typeof stored.tags === 'boolean') this.tagsCollapsed = stored.tags;
+      if (typeof stored.solution === 'boolean') this.solutionCollapsed = stored.solution;
+    } catch {
+      // Invalid/unavailable localStorage must never block the editor.
+    }
+  }
+
+  private saveCollapseState(): void {
+    const state: CollapseState = {
+      preview: this.previewCollapsed,
+      variables: this.variablesCollapsed,
+      displaySettings: this.displaySettingsCollapsed,
+      tags: this.tagsCollapsed,
+      solution: this.solutionCollapsed,
+    };
+
+    try {
+      localStorage.setItem(this.collapseStateStorageKey, JSON.stringify(state));
+    } catch {
+      // Ignore browser storage errors.
+    }
+  }
+
   ngOnDestroy(): void {
     this.revokeObjectUrl(this.constructionImagePreviewUrl);
     this.revokeObjectUrl(this.constructionSolutionPreviewUrl);
@@ -475,6 +539,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
   markDirty(): void {
     this.hasUnsavedChanges = true;
+    this.previewRevision += 1;
   }
 
   setVariableTarget(target: VariableTarget, event?: Event): void {
@@ -1138,6 +1203,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
 
   insertVariableAtCursor(): void {
     this.variablesCollapsed = false;
+    this.saveCollapseState();
     this.insertTextAtActiveTarget(this.getNextVariablePlaceholder());
   }
 
