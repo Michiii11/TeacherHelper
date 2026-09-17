@@ -116,6 +116,80 @@
         </nav>
       </aside>
 
+      <div class="mobile-folder-nav" (click)="stopClick($event)">
+        @if (currentFolder) {
+          <button
+            type="button"
+            class="mobile-folder-up-btn"
+            (click)="goToParentFolder()"
+            [attr.aria-label]="'collection.root' | translate"
+          >
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+        }
+
+        <button
+          type="button"
+          class="mobile-folder-trigger"
+          [class.open]="isMobileFolderNavOpen"
+          (click)="toggleMobileFolderNav($event)"
+          [attr.aria-expanded]="isMobileFolderNavOpen"
+          aria-controls="mobile-folder-panel"
+        >
+          <span class="mobile-folder-leading">
+            <mat-icon>{{ currentFolder ? 'folder_open' : 'collections_bookmark' }}</mat-icon>
+          </span>
+          <span class="mobile-folder-copy">
+            <small>{{ school.name }}</small>
+            <strong>{{ currentFolderLabel }}</strong>
+          </span>
+          <mat-icon class="mobile-folder-chevron">{{ isMobileFolderNavOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+        </button>
+
+        @if (isMobileFolderNavOpen) {
+          <div class="mobile-folder-panel" id="mobile-folder-panel">
+            <button
+              type="button"
+              class="mobile-folder-root"
+              [class.active]="!selectedFolderId && !isSearching"
+              (click)="selectFolder(null)"
+            >
+              <mat-icon>collections_bookmark</mat-icon>
+              <span>{{ 'collection.root' | translate }}</span>
+            </button>
+
+            <div class="mobile-folder-tree">
+              @for (folder of folderNavNodes; track folder.id) {
+                <div
+                  class="mobile-folder-entry"
+                  [class.active]="selectedFolderId === folder.id && !isSearching"
+                  [class.in-path]="isFolderInCurrentPath(folder.id)"
+                  [style.--level]="folder.depth"
+                >
+                  <button
+                    type="button"
+                    class="mobile-folder-toggle"
+                    [class.placeholder]="!hasFolderChildren(folder.id)"
+                    [attr.tabindex]="hasFolderChildren(folder.id) ? 0 : -1"
+                    [attr.aria-hidden]="!hasFolderChildren(folder.id)"
+                    (click)="toggleFolderExpanded(folder, $event)"
+                  >
+                    @if (hasFolderChildren(folder.id)) {
+                      <mat-icon>{{ isFolderExpanded(folder.id) ? 'expand_more' : 'chevron_right' }}</mat-icon>
+                    }
+                  </button>
+
+                  <button type="button" class="mobile-folder-node" (click)="openFolder(folder)">
+                    <mat-icon>{{ isFolderExpanded(folder.id) && hasFolderChildren(folder.id) ? 'folder_open' : 'folder' }}</mat-icon>
+                    <span>{{ folder.name }}</span>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
       <article class="explorer-main">
         <header class="topbar compact-topbar one-line-topbar">
           <div class="single-toolbar-row">
@@ -171,7 +245,7 @@
               </div>
 
               <div class="filter-popup-wrap" (click)="stopClick($event)">
-                <button type="button" class="toolbar-pill-btn outlined-control" (click)="toggleFilterPopup($event)">
+                <button type="button" class="toolbar-pill-btn outlined-control" (click)="toggleFilterPopup($event)" [attr.aria-expanded]="isFilterPopupOpen" aria-controls="collection-filter-panel" [attr.aria-label]="'common.filter' | translate" [title]="'common.filter' | translate">
                   <mat-icon>filter_list</mat-icon>
                   <span class="toolbar-label">{{ 'common.filter' | translate }}</span>
                   @if (activeFilterCount > 0) {
@@ -180,7 +254,7 @@
                 </button>
 
                 @if (isFilterPopupOpen) {
-                  <div class="filter-popup-panel">
+                  <div class="filter-popup-panel" id="collection-filter-panel" (keydown.escape)="isFilterPopupOpen = false">
                     <div class="filter-popup-section">
                       <div class="filter-popup-title">{{ 'common.type' | translate }}</div>
                       <button type="button" class="filter-option" [class.checked]="isItemTypeSelected('examples')" (click)="toggleItemType('examples')">
@@ -243,7 +317,7 @@
               </div>
 
               <div class="sort-popup-wrap" (click)="stopClick($event)">
-                <button type="button" class="toolbar-pill-btn outlined-control" (click)="toggleSortPopup($event)">
+                <button type="button" class="toolbar-pill-btn outlined-control" (click)="toggleSortPopup($event)" [attr.aria-expanded]="isSortPopupOpen" [attr.aria-label]="'common.sort' | translate" [title]="getSortLabel(sort)">
                   <mat-icon>swap_vert</mat-icon>
                   <span class="toolbar-label">{{ getSortLabel(sort) }}</span>
                 </button>
@@ -259,14 +333,6 @@
                 }
               </div>
 
-              <div class="view-toggle outlined-control" role="tablist" [attr.aria-label]="'collection.viewAria' | translate">
-                <button type="button" class="view-toggle-btn" [class.active]="currentViewMode === 'grid'" (click)="setCurrentViewMode('grid')">
-                  <mat-icon>grid_view</mat-icon>
-                </button>
-                <button type="button" class="view-toggle-btn" [class.active]="currentViewMode === 'compact'" (click)="setCurrentViewMode('compact')">
-                  <mat-icon>table_rows</mat-icon>
-                </button>
-              </div>
 
               @if (hasCopiedItem) {
                 <div class="toolbar-clipboard-actions">
@@ -358,203 +424,102 @@
           </div>
         }
 
-        @if (currentViewMode === 'grid') {
-          <section class="content-grid">
-            @for (folder of visibleFolders; track folder.id) {
-              <div
-                class="content-card folder-card"
-                [class.drop-active]="dropTarget === 'folder-' + folder.id"
-                [class.drop-source]="draggedFolder?.folderId === folder.id"
-                [class.deleting]="isDeletingFolder(folder.id)"
-                [attr.draggable]="!isDeletingFolder(folder.id)"
-                (click)="openFolder(folder)"
-                (dragstart)="!isDeletingFolder(folder.id) && onFolderDragStart(folder, $event)"
-                (dragend)="onFolderDragEnd()"
-                (dragover)="allowDrop($event, 'folder-' + folder.id)"
-                (dragleave)="onDropLeave($event, 'folder-' + folder.id)"
-                (drop)="onDropToFolder($event, folder.id)"
-              >
-                <div class="card-leading folder-leading"><mat-icon>folder</mat-icon></div>
-                <div class="card-copy">
-                  <strong>{{ folder.name }}</strong>
-                  <span>{{ 'collection.folders' | translate }}</span>
+        <section class="content-grid">
+          @for (folder of visibleFolders; track folder.id) {
+            <div
+              class="content-card folder-card"
+              [class.drop-active]="dropTarget === 'folder-' + folder.id"
+              [class.drop-source]="draggedFolder?.folderId === folder.id"
+              [class.deleting]="isDeletingFolder(folder.id)"
+              [attr.draggable]="!isDeletingFolder(folder.id)"
+              (click)="openFolder(folder)"
+              (dragstart)="!isDeletingFolder(folder.id) && onFolderDragStart(folder, $event)"
+              (dragend)="onFolderDragEnd()"
+              (dragover)="allowDrop($event, 'folder-' + folder.id)"
+              (dragleave)="onDropLeave($event, 'folder-' + folder.id)"
+              (drop)="onDropToFolder($event, folder.id)"
+            >
+              <div class="card-leading folder-leading"><mat-icon>folder</mat-icon></div>
+              <div class="card-copy">
+                <strong>{{ folder.name }}</strong>
+                <span>{{ 'collection.folders' | translate }}</span>
+              </div>
+              <div class="card-actions" (click)="$event.stopPropagation()">
+                <button mat-icon-button type="button" (click)="renameFolder(folder, $event)" [disabled]="isDeletingFolder(folder.id)"><mat-icon>edit</mat-icon></button>
+                <button mat-icon-button type="button" (click)="moveFolderWithPicker(folder, $event)" [disabled]="isDeletingFolder(folder.id)"><mat-icon>drive_file_move</mat-icon></button>
+                <button mat-icon-button type="button" color="warn" (click)="deleteFolder(folder, $event)" [disabled]="isDeletingFolder(folder.id)">
+                  <mat-icon>{{ isDeletingFolder(folder.id) ? 'hourglass_top' : 'delete' }}</mat-icon>
+                </button>
+              </div>
+              @if (isDeletingFolder(folder.id)) {
+                <mat-progress-bar class="delete-progress" mode="indeterminate"></mat-progress-bar>
+              }
+            </div>
+          }
+
+          @for (item of visibleItems; track item.type + '-' + item.id) {
+            <div
+              class="content-card item-card"
+              tabindex="0"
+              [class.example-card]="item.type === 'examples'"
+              [class.test-card]="item.type === 'tests'"
+              [class.draggable]="canManageItem(item)"
+              [class.drop-source]="draggedItem?.type === item.type && draggedItem?.itemId === item.id"
+              [class.deleting]="isDeletingItem(item)"
+              [attr.draggable]="canManageItem(item) && !isDeletingItem(item)"
+              (dragstart)="canManageItem(item) && !isDeletingItem(item) && onItemDragStart(item.type, item.id, $event)"
+              (dragend)="onItemDragEnd()"
+              (focus)="setShortcutTarget(item)"
+              (mouseenter)="setShortcutTarget(item)"
+              (click)="handleItemClick(item)"
+              (keydown.enter)="handleItemClick(item)"
+            >
+              <div class="card-leading item-leading"><mat-icon>{{ getItemIcon(item) }}</mat-icon></div>
+              <div class="card-copy">
+                <strong class="rendered-preview-title" [innerHTML]="getRenderedPreviewTitle(item)"></strong>
+                <span>{{ getItemMeta(item) }}</span>
+              </div>
+              <div class="card-actions item-bottom-bar" (click)="$event.stopPropagation()">
+                <div class="item-tags" [attr.aria-label]="'collection.tagsAria' | translate">
+                  @for (tag of getItemTags(item); track tag) {
+                    <span class="item-tag">{{ tag }}</span>
+                  }
                 </div>
-                <div class="card-actions" (click)="$event.stopPropagation()">
-                  <button mat-icon-button type="button" (click)="renameFolder(folder, $event)" [disabled]="isDeletingFolder(folder.id)"><mat-icon>edit</mat-icon></button>
-                  <button mat-icon-button type="button" (click)="moveFolderWithPicker(folder, $event)" [disabled]="isDeletingFolder(folder.id)"><mat-icon>drive_file_move</mat-icon></button>
-                  <button mat-icon-button type="button" color="warn" (click)="deleteFolder(folder, $event)" [disabled]="isDeletingFolder(folder.id)">
-                    <mat-icon>{{ isDeletingFolder(folder.id) ? 'hourglass_top' : 'delete' }}</mat-icon>
+                <div class="action-buttons">
+                  <button
+                    mat-icon-button
+                    type="button"
+                    (click)="copyItem(item, $event)"
+                    [disabled]="isDeletingItem(item)"
+                    [title]="(translate.currentLang || '').toLowerCase().startsWith('en') ? 'Copy (Ctrl/⌘ + C)' : 'Kopieren (Ctrl/⌘ + C)'"
+                  >
+                    <mat-icon>content_copy</mat-icon>
                   </button>
-                </div>
-                @if (isDeletingFolder(folder.id)) {
-                  <mat-progress-bar class="delete-progress" mode="indeterminate"></mat-progress-bar>
-                }
-              </div>
-            }
-
-            @for (item of visibleItems; track item.type + '-' + item.id) {
-              <div
-                class="content-card item-card"
-                tabindex="0"
-                [class.example-card]="item.type === 'examples'"
-                [class.test-card]="item.type === 'tests'"
-                [class.draggable]="canManageItem(item)"
-                [class.drop-source]="draggedItem?.type === item.type && draggedItem?.itemId === item.id"
-                [class.deleting]="isDeletingItem(item)"
-                [attr.draggable]="canManageItem(item) && !isDeletingItem(item)"
-                (dragstart)="canManageItem(item) && !isDeletingItem(item) && onItemDragStart(item.type, item.id, $event)"
-                (dragend)="onItemDragEnd()"
-                (focus)="setShortcutTarget(item)"
-                (mouseenter)="setShortcutTarget(item)"
-                (click)="handleItemClick(item)"
-                (keydown.enter)="handleItemClick(item)"
-              >
-                <div class="card-leading item-leading"><mat-icon>{{ getItemIcon(item) }}</mat-icon></div>
-                <div class="card-copy">
-                  <strong class="rendered-preview-title" [innerHTML]="getRenderedPreviewTitle(item)"></strong>
-                  <span>{{ getItemMeta(item) }}</span>
-                </div>
-                <div class="card-actions item-bottom-bar" (click)="$event.stopPropagation()">
-                  <div class="item-tags" [attr.aria-label]="'collection.tagsAria' | translate">
-                    @for (tag of getItemTags(item); track tag) {
-                      <span class="item-tag">{{ tag }}</span>
-                    }
-                  </div>
-                  <div class="action-buttons">
-                    <button
-                      mat-icon-button
-                      type="button"
-                      (click)="copyItem(item, $event)"
-                      [disabled]="isDeletingItem(item)"
-                      [title]="(translate.currentLang || '').toLowerCase().startsWith('en') ? 'Copy (Ctrl/⌘ + C)' : 'Kopieren (Ctrl/⌘ + C)'"
-                    >
-                      <mat-icon>content_copy</mat-icon>
+                  <button mat-icon-button type="button" (click)="openItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>visibility</mat-icon></button>
+                  @if (canManageItem(item)) {
+                    <button mat-icon-button type="button" (click)="handleItemClick(item)" [disabled]="isDeletingItem(item)"><mat-icon>edit</mat-icon></button>
+                    <button mat-icon-button type="button" (click)="moveItemWithPicker(item)" [disabled]="isDeletingItem(item)"><mat-icon>drive_file_move</mat-icon></button>
+                    <button mat-icon-button type="button" color="warn" (click)="$event.preventDefault(); deleteItem(item)" [disabled]="isDeletingItem(item)">
+                      <mat-icon>{{ isDeletingItem(item) ? 'hourglass_top' : 'delete' }}</mat-icon>
                     </button>
-                    <button mat-icon-button type="button" (click)="openItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>visibility</mat-icon></button>
-                    @if (canManageItem(item)) {
-                      <button mat-icon-button type="button" (click)="handleItemClick(item)" [disabled]="isDeletingItem(item)"><mat-icon>edit</mat-icon></button>
-                      <button mat-icon-button type="button" (click)="moveItemWithPicker(item)" [disabled]="isDeletingItem(item)"><mat-icon>drive_file_move</mat-icon></button>
-                      <button mat-icon-button type="button" color="warn" (click)="$event.preventDefault(); deleteItem(item)" [disabled]="isDeletingItem(item)">
-                        <mat-icon>{{ isDeletingItem(item) ? 'hourglass_top' : 'delete' }}</mat-icon>
-                      </button>
-                    }
-                  </div>
+                  }
                 </div>
-                @if (isDeletingItem(item)) {
-                  <mat-progress-bar class="delete-progress" mode="indeterminate"></mat-progress-bar>
-                }
               </div>
-            }
+              @if (isDeletingItem(item)) {
+                <mat-progress-bar class="delete-progress" mode="indeterminate"></mat-progress-bar>
+              }
+            </div>
+          }
 
-            @if (!visibleFolders.length && !visibleItems.length) {
-              <div class="empty-state">
-                <mat-icon>folder_off</mat-icon>
-                <h3>{{ 'collection.emptyExamplesTitle' | translate }}</h3>
-                <p>{{ 'collection.emptyExamplesText' | translate }}</p>
-              </div>
-            }
-          </section>
-        } @else {
-          <section class="compact-list">
-            @for (folder of visibleFolders; track folder.id) {
-              <div
-                class="compact-row folder-row"
-                [class.drop-active]="dropTarget === 'folder-' + folder.id"
-                [class.drop-source]="draggedFolder?.folderId === folder.id"
-                [class.deleting]="isDeletingFolder(folder.id)"
-                [attr.draggable]="!isDeletingFolder(folder.id)"
-                (click)="openFolder(folder)"
-                (dragstart)="!isDeletingFolder(folder.id) && onFolderDragStart(folder, $event)"
-                (dragend)="onFolderDragEnd()"
-                (dragover)="allowDrop($event, 'folder-' + folder.id)"
-                (dragleave)="onDropLeave($event, 'folder-' + folder.id)"
-                (drop)="onDropToFolder($event, folder.id)"
-              >
-                <div class="compact-title-wrap">
-                  <mat-icon class="compact-icon folder">folder</mat-icon>
-                  <div>
-                    <strong>{{ folder.name }}</strong>
-                    <span>{{ 'collection.folders' | translate }}</span>
-                  </div>
-                </div>
-                <div class="compact-actions" (click)="$event.stopPropagation()">
-                  <button mat-icon-button type="button" (click)="renameFolder(folder, $event)" [disabled]="isDeletingFolder(folder.id)"><mat-icon>edit</mat-icon></button>
-                  <button mat-icon-button type="button" (click)="moveFolderWithPicker(folder, $event)" [disabled]="isDeletingFolder(folder.id)"><mat-icon>drive_file_move</mat-icon></button>
-                  <button mat-icon-button type="button" color="warn" (click)="deleteFolder(folder, $event)" [disabled]="isDeletingFolder(folder.id)">
-                    <mat-icon>{{ isDeletingFolder(folder.id) ? 'hourglass_top' : 'delete' }}</mat-icon>
-                  </button>
-                </div>
-                @if (isDeletingFolder(folder.id)) {
-                  <mat-progress-bar class="delete-progress" mode="indeterminate"></mat-progress-bar>
-                }
-              </div>
-            }
+          @if (!visibleFolders.length && !visibleItems.length) {
+            <div class="empty-state">
+              <mat-icon>folder_off</mat-icon>
+              <h3>{{ 'collection.emptyExamplesTitle' | translate }}</h3>
+              <p>{{ 'collection.emptyExamplesText' | translate }}</p>
+            </div>
+          }
+        </section>
 
-            @for (item of visibleItems; track item.type + '-' + item.id) {
-              <div
-                class="compact-row"
-                tabindex="0"
-                [class.example-row]="item.type === 'examples'"
-                [class.test-row]="item.type === 'tests'"
-                [class.draggable]="canManageItem(item)"
-                [class.drop-source]="draggedItem?.type === item.type && draggedItem?.itemId === item.id"
-                [class.deleting]="isDeletingItem(item)"
-                [attr.draggable]="canManageItem(item) && !isDeletingItem(item)"
-                (dragstart)="canManageItem(item) && !isDeletingItem(item) && onItemDragStart(item.type, item.id, $event)"
-                (dragend)="onItemDragEnd()"
-                (focus)="setShortcutTarget(item)"
-                (mouseenter)="setShortcutTarget(item)"
-                (click)="handleItemClick(item)"
-                (keydown.enter)="handleItemClick(item)"
-              >
-                <div class="compact-title-wrap">
-                  <mat-icon class="compact-icon item">{{ getItemIcon(item) }}</mat-icon>
-                  <div>
-                    <strong class="rendered-preview-title" [innerHTML]="getRenderedPreviewTitle(item)"></strong>
-                    <span>{{ getItemMeta(item) }}</span>
-                  </div>
-                </div>
-                <div class="compact-actions item-bottom-bar" (click)="$event.stopPropagation()">
-                  <div class="item-tags" [attr.aria-label]="'collection.tagsAria' | translate">
-                    @for (tag of getItemTags(item); track tag) {
-                      <span class="item-tag"><mat-icon>sell</mat-icon>{{ tag }}</span>
-                    }
-                  </div>
-                  <div class="action-buttons">
-                    <button
-                      mat-icon-button
-                      type="button"
-                      (click)="copyItem(item, $event)"
-                      [disabled]="isDeletingItem(item)"
-                      [title]="(translate.currentLang || '').toLowerCase().startsWith('en') ? 'Copy (Ctrl/⌘ + C)' : 'Kopieren (Ctrl/⌘ + C)'"
-                    >
-                      <mat-icon>content_copy</mat-icon>
-                    </button>
-                    <button mat-icon-button type="button" (click)="openItem(item)" [disabled]="isDeletingItem(item)"><mat-icon>visibility</mat-icon></button>
-                    @if (canManageItem(item)) {
-                      <button mat-icon-button type="button" (click)="handleItemClick(item)" [disabled]="isDeletingItem(item)"><mat-icon>edit</mat-icon></button>
-                      <button mat-icon-button type="button" (click)="moveItemWithPicker(item)" [disabled]="isDeletingItem(item)"><mat-icon>drive_file_move</mat-icon></button>
-                      <button mat-icon-button type="button" color="warn" (click)="deleteItem(item)" [disabled]="isDeletingItem(item)">
-                        <mat-icon>{{ isDeletingItem(item) ? 'hourglass_top' : 'delete' }}</mat-icon>
-                      </button>
-                    }
-                  </div>
-                </div>
-                @if (isDeletingItem(item)) {
-                  <mat-progress-bar class="delete-progress" mode="indeterminate"></mat-progress-bar>
-                }
-              </div>
-            }
-
-            @if (!visibleFolders.length && !visibleItems.length) {
-              <div class="empty-state">
-                <mat-icon>folder_off</mat-icon>
-                <h3>{{ 'collection.emptyExamplesTitle' | translate }}</h3>
-                <p>{{ 'collection.emptyExamplesText' | translate }}</p>
-              </div>
-            }
-          </section>
-        }
       </article>
     </section>
   </main>

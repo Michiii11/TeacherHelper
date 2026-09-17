@@ -1,21 +1,59 @@
 <main class="admin-dashboard">
+  <header class="admin-page-header">
+    <div class="admin-page-copy">
+      <span class="admin-eyebrow">Administration</span>
+      <h1>Admin Dashboard</h1>
+    </div>
+
+    <button
+      mat-icon-button
+      type="button"
+      class="refresh-button"
+      [disabled]="isDashboardLoading"
+      (click)="loadDashboard()"
+      title="Dashboard aktualisieren"
+      aria-label="Dashboard aktualisieren"
+    >
+      <mat-icon [class.spinning]="isDashboardLoading">refresh</mat-icon>
+    </button>
+  </header>
+
   <section class="summary-grid">
     @for (card of userStatCards; track card.key) {
-      <mat-card class="hero-card stat-card" [ngClass]="card.toneClass">
-        <div class="stat-kicker">{{ card.label }}</div>
+      <mat-card
+        class="hero-card stat-card"
+        [ngClass]="card.toneClass"
+      >
+        <div class="stat-card-head">
+          <div class="stat-kicker">{{ card.label }}</div>
+          <div class="stat-icon-wrap"><mat-icon>{{ card.icon }}</mat-icon></div>
+        </div>
         <div class="stat-value">{{ getStatValue(card.key) }}</div>
       </mat-card>
     }
 
     @for (card of aboStatCards; track card.key) {
-      <mat-card class="hero-card stat-card" [ngClass]="card.toneClass">
-        <div class="stat-kicker">{{ card.label }}</div>
+      <mat-card
+        class="hero-card stat-card"
+        [ngClass]="card.toneClass"
+      >
+        <div class="stat-card-head">
+          <div class="stat-kicker">{{ card.label }}</div>
+          <div class="stat-icon-wrap"><mat-icon>{{ card.icon }}</mat-icon></div>
+        </div>
         <div class="stat-value">{{ getStatValue(card.key) }}</div>
       </mat-card>
     }
   </section>
 
-  <section class="section">
+  <section class="section activity-section">
+    <div class="section-heading">
+      <div>
+        <span class="section-eyebrow">Aktivität</span>
+        <h2>Inhalte im Zeitverlauf</h2>
+      </div>
+    </div>
+
     <div class="metric-panels">
       @for (panel of metricPanels; track panel.key) {
         <mat-card class="metric-card">
@@ -37,9 +75,18 @@
     </div>
   </section>
 
-  <section class="section layout-grid">
+  <section class="section layout-grid" [class.has-selection]="!!selectedUser">
     <article class="panel user-list-panel">
       <div class="panel-header sticky-header">
+        <div class="panel-heading-copy">
+          <span class="section-eyebrow">User</span>
+          <div class="panel-heading-line">
+            <h2>Benutzer</h2>
+            <span class="count-chip">{{ visibleUsers.length }}</span>
+          </div>
+          <p>{{ visibleUsers.length }} von {{ dash.users.length }} angezeigt</p>
+        </div>
+
         <div class="admin-toolbar" (click)="stopClick($event)">
           <div
             class="search-wrap compact-search outlined-control"
@@ -116,11 +163,15 @@
           }
         } @else {
           @for (user of visibleUsers; track trackByUserId($index, user)) {
-            <button
-              type="button"
+            <div
               class="user-card"
+              role="button"
+              tabindex="0"
+              [attr.aria-pressed]="selectedUserId === user.id"
               [class.selected]="selectedUserId === user.id"
               (click)="selectUser(user)"
+              (keydown.enter)="selectUser(user)"
+              (keydown.space)="selectUser(user); $event.preventDefault()"
             >
               <div class="user-card-top">
                 <div class="avatar">
@@ -165,7 +216,7 @@
                   </div>
                 }
               </div>
-            </button>
+            </div>
           }
 
           @if (!visibleUsers.length) {
@@ -182,6 +233,17 @@
     <aside class="panel detail-panel">
       @if (selectedUser; as user) {
         <div class="detail-header">
+          <button
+            mat-icon-button
+            type="button"
+            class="mobile-detail-back"
+            (click)="clearSelectedUser()"
+            title="Zurück zu den Usern"
+            aria-label="Zurück zu den Usern"
+          >
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+
           <div class="detail-title-row">
             <div class="avatar">
               @if (getAvatarUrl(user); as avatarUrl) {

@@ -57,3 +57,51 @@ mat-chip-row {
 .focus-option-delete {
   flex: 0 0 auto;
 }
+
+/* Responsive tag selector */
+@media (max-width: 820px) {
+  :host,
+  .row,
+  .focus-field {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .focus-chip-grid {
+    width: 100%;
+    gap: .28rem;
+    padding: .1rem 0 .2rem;
+  }
+
+  .focus-input {
+    width: 100%;
+    min-width: 0;
+    font-size: 16px; // avoid iOS zoom
+  }
+
+  mat-chip-row {
+    max-width: 100%;
+    min-height: 30px;
+    font-size: .82rem;
+  }
+
+  mat-chip-row button[matChipRemove] {
+    min-width: 28px;
+    min-height: 28px;
+  }
+
+  .focus-option-row {
+    min-width: 0;
+    gap: .45rem;
+  }
+
+  .focus-option-label {
+    min-width: 0;
+  }
+
+  .focus-option-delete {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+  }
+}

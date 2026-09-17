@@ -8,7 +8,49 @@
   </main>
 } @else {
   <main class="create-test-shell">
-    <div class="editor-pane">
+    <div class="mobile-test-toolbar">
+      <div class="mobile-test-toolbar-top">
+        <div class="mobile-test-title">
+          <span>{{ 'collection.test' | translate }}</span>
+          <strong>{{ test.name || ('createTest.titlePlaceholder' | translate) }}</strong>
+        </div>
+
+        <button
+          mat-icon-button
+          type="button"
+          class="mobile-close-btn"
+          (click)="closeDialog()"
+          [disabled]="isSaving"
+          [attr.aria-label]="'common.cancel' | translate"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="mobile-test-tabs" role="tablist">
+        <button
+          type="button"
+          class="mobile-test-tab"
+          [class.active]="mobilePane === 'editor'"
+          (click)="mobilePane = 'editor'"
+        >
+          <mat-icon>edit_note</mat-icon>
+          <span>{{ 'common.edit' | translate }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="mobile-test-tab"
+          [class.active]="mobilePane === 'preview'"
+          (click)="mobilePane = 'preview'"
+        >
+          <mat-icon>visibility</mat-icon>
+          <span>{{ 'createTest.preview.title' | translate }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="editor-pane" [class.mobile-pane-hidden]="mobilePane !== 'editor'">
       <form class="example-form">
         <div class="row">
           <mat-form-field appearance="outline" class="full-width">
@@ -114,6 +156,7 @@
     </div>
 
     <app-test-print-preview-pane
+      [class.mobile-pane-hidden]="mobilePane !== 'preview'"
       [previewHtml]="previewHtml"
       [printCopies]="printCopies"
       [includeSolutionSheet]="includeSolutionSheet"
@@ -126,5 +169,28 @@
       (closeRequested)="closeDialog()"
       (saveRequested)="saveTest()"
     ></app-test-print-preview-pane>
+
+    <div class="mobile-test-actions">
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="mobilePane = mobilePane === 'editor' ? 'preview' : 'editor'"
+        [disabled]="isSaving"
+      >
+        <mat-icon>{{ mobilePane === 'editor' ? 'visibility' : 'edit_note' }}</mat-icon>
+        {{ mobilePane === 'editor' ? ('createTest.preview.title' | translate) : ('common.edit' | translate) }}
+      </button>
+
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        (click)="saveTest()"
+        [disabled]="isSaving"
+      >
+        <mat-icon>{{ isSaving ? 'hourglass_top' : 'save' }}</mat-icon>
+        {{ isSaving ? ('common.saving' | translate) : ('common.save' | translate) }}
+      </button>
+    </div>
   </main>
 }

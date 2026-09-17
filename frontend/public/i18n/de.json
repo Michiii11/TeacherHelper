@@ -15,7 +15,8 @@
     "type": "Typ",
     "sort": "Sortieren",
     "rename": "Umbenennen",
-    "move": "Verschieben"
+    "move": "Verschieben",
+    "edit": "Bearbeiten"
   },
   "profile": {
     "title": "Profil",
@@ -129,7 +130,10 @@
   "navbar": {
     "home": "Sammlungen",
     "collection": "Sammlung",
-    "help": "Hilfe"
+    "help": "Hilfe",
+    "infoHelp": "Info & Hilfe",
+    "admin": "Admin",
+    "more": "Mehr"
   },
   "notifications": {
     "title": "Nachrichten",
@@ -726,7 +730,8 @@
       "gradingKey": "Notenschlüssel",
       "goodLuck": "Viel Erfolg!",
       "exampleShort": "Bsp.",
-      "imagePreviewAlt": "Vorschau"
+      "imagePreviewAlt": "Vorschau",
+      "title": "Vorschau"
     },
     "print": {
       "onlyTest": "Nur Test",

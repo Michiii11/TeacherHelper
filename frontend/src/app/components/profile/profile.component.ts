@@ -209,8 +209,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     if (this.deletingAccount) return;
 
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '600px',
-      maxWidth: 'calc(100vw - 24px)',
+      width: 'min(92vw, 520px)',
+      maxWidth: '92vw',
       disableClose: true,
       data: {
         title: this.translate.instant('dialog.deleteAccountTitle'),

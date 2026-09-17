@@ -8,7 +8,7 @@
   </main>
 } @else {
   <main class="profile-page" [attr.aria-label]="'profile.ariaPage' | translate">
-    <section class="hero-grid">
+    <section class="hero-grid profile-top-grid">
       <article class="profile-hero card">
         <div class="profile-hero-top">
           <label
@@ -75,7 +75,7 @@
           }
         </div>
 
-        <div class="info-text small">
+        <div class="info-text small profile-upload-note">
           {{ 'profile.publicInfoAvatar' | translate }}
         </div>
       </article>
@@ -83,8 +83,11 @@
       <article class="settings-hero card">
         <div class="settings-hero-body" [formGroup]="settingsForm">
           <div class="setting-card">
-            <div class="setting-copy">
-              <div class="setting-title">{{ 'profile.darkMode' | translate }}</div>
+            <div class="setting-leading">
+              <div class="setting-icon" aria-hidden="true"><mat-icon>dark_mode</mat-icon></div>
+              <div class="setting-copy">
+                <div class="setting-title">{{ 'profile.darkMode' | translate }}</div>
+              </div>
             </div>
 
             <label class="switch" [attr.aria-label]="'profile.darkModeToggle' | translate">
@@ -94,8 +97,11 @@
           </div>
 
           <div class="setting-language-card">
-            <div class="setting-copy">
-              <div class="setting-title">{{ 'profile.language' | translate }}</div>
+            <div class="setting-leading">
+              <div class="setting-icon" aria-hidden="true"><mat-icon>language</mat-icon></div>
+              <div class="setting-copy">
+                <div class="setting-title">{{ 'profile.language' | translate }}</div>
+              </div>
             </div>
 
             <select formControlName="language" class="native-select">
@@ -105,9 +111,12 @@
           </div>
 
           <div class="setting-card">
-            <div class="setting-copy">
-              <div class="setting-title">{{ 'profile.allowInvitations' | translate }}</div>
-              <div class="setting-description small">{{ 'profile.allowInvitationsDesc' | translate }}</div>
+            <div class="setting-leading">
+              <div class="setting-icon" aria-hidden="true"><mat-icon>group_add</mat-icon></div>
+              <div class="setting-copy">
+                <div class="setting-title">{{ 'profile.allowInvitations' | translate }}</div>
+                <div class="setting-description small">{{ 'profile.allowInvitationsDesc' | translate }}</div>
+              </div>
             </div>
 
             <label class="switch" [attr.aria-label]="'profile.allowInvitationsToggle' | translate">
@@ -119,7 +128,7 @@
       </article>
     </section>
 
-    <section class="hero-grid">
+    <section class="hero-grid profile-bottom-grid">
       <article class="panel">
         <div class="panel-header">
           <h2 class="panel-title">
@@ -153,29 +162,31 @@
       </article>
 
       <article class="panel danger-panel">
-        <div class="danger-panel-content">
-          <div class="danger-heading">
-            <div class="danger-icon">
-              <mat-icon aria-hidden="true">delete_forever</mat-icon>
-            </div>
+        <div class="panel-header danger-panel-header">
+          <h2 class="panel-title danger-title">
+            <mat-icon aria-hidden="true">person_remove</mat-icon>
+            {{ 'profile.deleteAccount' | translate }}
+          </h2>
+        </div>
 
-            <div class="danger-text">
-              <h2 class="panel-title danger-title">{{ 'profile.deleteAccount' | translate }}</h2>
-              <p class="panel-subtitle danger-subtitle">{{ 'profile.deleteAccountWarning' | translate }}</p>
-            </div>
+        <div class="panel-body danger-panel-body">
+          <p class="panel-subtitle danger-subtitle">
+            {{ 'profile.deleteAccountWarning' | translate }}
+          </p>
+
+          <div class="danger-actions">
+            <button
+              mat-stroked-button
+              color="warn"
+              type="button"
+              class="danger-btn"
+              [disabled]="deletingAccount"
+              (click)="confirmDeleteAccount()"
+            >
+              <mat-icon>{{ deletingAccount ? 'hourglass_top' : 'delete_outline' }}</mat-icon>
+              {{ deletingAccount ? ('common.deleting' | translate) : ('profile.deleteAccountButton' | translate) }}
+            </button>
           </div>
-
-          <button
-            mat-flat-button
-            color="primary"
-            type="button"
-            class="danger-btn"
-            [disabled]="deletingAccount"
-            (click)="confirmDeleteAccount()"
-          >
-            <mat-icon>{{ deletingAccount ? 'hourglass_top' : 'delete_forever' }}</mat-icon>
-            {{ deletingAccount ? ('common.deleting' | translate) : ('profile.deleteAccountButton' | translate) }}
-          </button>
         </div>
       </article>
     </section>

@@ -15,7 +15,8 @@
     "type": "Type",
     "sort": "Sort",
     "rename": "Rename",
-    "move": "Move"
+    "move": "Move",
+    "edit": "Edit"
   },
   "profile": {
     "title": "Profile",
@@ -129,7 +130,10 @@
   "navbar": {
     "home": "Collections",
     "collection": "Collection",
-    "help": "Help"
+    "help": "Help",
+    "infoHelp": "Info & Help",
+    "admin": "Admin",
+    "more": "More"
   },
   "notifications": {
     "title": "Notifications",
@@ -672,7 +676,8 @@
       "goodLuck": "Good luck!",
       "exerciseShort": "Ex.",
       "imagePreviewAlt": "Preview",
-      "exampleShort": "Ex."
+      "exampleShort": "Ex.",
+      "title": "Preview"
     },
     "print": {
       "onlyTest": "Test only",

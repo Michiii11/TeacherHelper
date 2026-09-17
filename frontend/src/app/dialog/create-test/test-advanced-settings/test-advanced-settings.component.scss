@@ -128,3 +128,157 @@
     align-items: stretch;
   }
 }
+
+
+/* =========================================================
+   Mobile advanced settings
+   ========================================================= */
+
+@media (max-width: 768px) {
+  .advanced-settings {
+    gap: 10px;
+  }
+
+  .settings-card {
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  .settings-head {
+    margin-bottom: 9px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .settings-head h3 {
+    font-size: 0.92rem;
+  }
+
+  .spacing-card .layout-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: start;
+  }
+
+  .spacing-card .toolbar-actions {
+    display: block;
+  }
+
+  .spacing-card .toolbar-actions button {
+    min-height: 48px;
+    padding-inline: 12px;
+    white-space: nowrap;
+  }
+
+  .grading-card .settings-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .grading-card .settings-head h3 {
+    grid-column: 1 / -1;
+  }
+
+  .grading-card mat-button-toggle-group {
+    width: 100%;
+  }
+
+  .grading-card mat-button-toggle {
+    flex: 1 1 0;
+  }
+
+  .preset-toolbar {
+    margin: 0 -10px 10px;
+    padding: 0 10px 3px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .preset-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .preset-toolbar button {
+    flex: 0 0 auto;
+    min-height: 38px;
+    padding-inline: 12px;
+    border-radius: 11px !important;
+  }
+
+  .grading-level-list {
+    gap: 8px;
+  }
+
+  .grading-level-card {
+    padding: 9px;
+    border-radius: 12px;
+    background: var(--surface);
+  }
+
+  .grading-level-header {
+    margin-bottom: 8px;
+    align-items: center;
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .grading-level-header strong {
+    min-width: 0;
+    flex: 1;
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+
+  .level-actions {
+    flex: 0 0 auto;
+    gap: 3px;
+  }
+
+  .level-actions .mat-mdc-icon-button {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 9px !important;
+  }
+
+  .level-actions mat-icon {
+    width: 17px;
+    height: 17px;
+    font-size: 17px;
+  }
+
+  .task-settings-grid.compact-grid.four-cols {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .grading-level-card input {
+    font-size: 16px;
+  }
+
+  .grading-footer-actions {
+    margin-top: 9px;
+  }
+
+  .grading-footer-actions button {
+    width: 100%;
+    min-height: 40px;
+    border-radius: 11px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .spacing-card .layout-toolbar,
+  .task-settings-grid.compact-grid.four-cols {
+    grid-template-columns: 1fr;
+  }
+
+  .spacing-card .toolbar-actions button {
+    width: 100%;
+  }
+}

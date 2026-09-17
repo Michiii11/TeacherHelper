@@ -122,3 +122,131 @@ mat-dialog-actions {
     box-sizing: border-box;
   }
 }
+
+
+/* =========================================================
+   Mobile preview pane
+   ========================================================= */
+
+@media (max-width: 768px) {
+  :host {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .preview-pane {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+    padding: 10px 10px 14px !important;
+    gap: 10px;
+    overflow: hidden;
+    box-sizing: border-box;
+    backdrop-filter: none;
+  }
+
+  .print-controls.settings-card {
+    flex: 0 0 auto;
+    padding: 9px;
+    border-radius: 13px;
+  }
+
+  .print-controls-grid {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+  }
+
+  .print-controls-grid .section {
+    min-width: 0;
+  }
+
+  .print-controls-grid .section:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .stepper {
+    gap: 4px;
+  }
+
+  .stepper .mat-mdc-icon-button {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 10px !important;
+  }
+
+  .stepper input {
+    width: 44px;
+    min-width: 44px;
+    height: 34px;
+    padding: 0 4px;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+
+  mat-button-toggle-group {
+    width: 100%;
+    min-width: 0;
+  }
+
+  mat-button-toggle {
+    min-width: 0;
+    flex: 1 1 0;
+  }
+
+  ::ng-deep mat-button-toggle .mat-button-toggle-label-content,
+  ::ng-deep mat-button-toggle .mat-mdc-button-toggle-label-content {
+    padding-inline: 8px !important;
+    font-size: 0.74rem;
+    white-space: normal;
+    line-height: 1.2;
+  }
+
+  .print-controls-grid .section:last-child button {
+    width: 100%;
+    min-height: 40px;
+    border-radius: 11px !important;
+  }
+
+  .preview-surface.print-area {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+    border-radius: 13px;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .print-page {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 100%;
+    padding: 18px 14px;
+    overflow: visible;
+    box-sizing: border-box;
+    border-radius: 12px;
+  }
+
+  mat-dialog-actions {
+    display: none !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .print-controls-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .print-controls-grid .section:last-child {
+    grid-column: auto;
+  }
+
+  .stepper {
+    justify-content: center;
+  }
+}

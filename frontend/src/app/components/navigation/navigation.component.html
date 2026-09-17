@@ -43,7 +43,7 @@
                 @if (action.icon) {
                   <mat-icon>{{ action.icon }}</mat-icon>
                 }
-                {{ action.labelKey ? (action.labelKey | translate) : action.label }}
+                <span class="navbar-action-label">{{ action.labelKey ? (action.labelKey | translate) : action.label }}</span>
               </button>
             } @else {
               <button
@@ -57,7 +57,7 @@
                 @if (action.icon) {
                   <mat-icon>{{ action.icon }}</mat-icon>
                 }
-                {{ action.labelKey ? (action.labelKey | translate) : action.label }}
+                <span class="navbar-action-label">{{ action.labelKey ? (action.labelKey | translate) : action.label }}</span>
               </button>
             }
           }
@@ -77,12 +77,12 @@
 
         <mat-divider class="navbar-divider" [vertical]="true"></mat-divider>
 
-        <button mat-icon-button class="icon-btn" routerLink="/help">
+        <button mat-icon-button class="icon-btn utility-help" routerLink="/help">
           <mat-icon>help</mat-icon>
         </button>
 
         @if (adminVisible) {
-          <button mat-icon-button class="icon-btn" routerLink="/admin">
+          <button mat-icon-button class="icon-btn utility-admin" routerLink="/admin">
             <mat-icon>dashboard</mat-icon>
           </button>
         }
@@ -94,7 +94,7 @@
           }
         </button>
 
-        <button mat-button class="avatar-btn" routerLink="/profile">
+        <button mat-button class="avatar-btn" routerLink="/profile" aria-label="Profil" matTooltip="Profil">
           @if (getAvatarUrl()) {
             <img class="avatar-image" [src]="getAvatarUrl()!" alt="Profilbild">
           } @else {
@@ -106,125 +106,50 @@
       <button
         mat-icon-button
         type="button"
-        class="mobile-menu-trigger"
-        [matMenuTriggerFor]="mobileNavMenu"
-        aria-label="Navigation öffnen">
+        class="mobile-notification-trigger"
+        [class.has-unread]="unreadCount > 0"
+        [matMenuTriggerFor]="notifMenu"
+        [attr.aria-label]="'notifications.title' | translate"
+        [matTooltip]="'notifications.title' | translate">
+        <mat-icon>notifications</mat-icon>
+        @if (unreadCount > 0) {
+          <span class="notif-badge mobile-notif-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+        }
+      </button>
+
+      <button
+        mat-icon-button
+        type="button"
+        class="mobile-utility-trigger"
+        [matMenuTriggerFor]="mobileUtilityMenu"
+        [attr.aria-label]="'navbar.more' | translate"
+        [matTooltip]="'navbar.more' | translate">
         <mat-icon>menu</mat-icon>
       </button>
+
     </div>
   </mat-toolbar>
 
+  <mat-menu #mobileUtilityMenu="matMenu" class="mobile-utility-menu">
+    <button mat-menu-item routerLink="/help">
+      <mat-icon>info</mat-icon>
+      <span>{{ 'navbar.infoHelp' | translate }}</span>
+    </button>
 
-  <mat-menu #mobileNavMenu="matMenu" class="mobile-nav-menu">
-    <div class="mobile-nav-panel">
-      <div class="mobile-nav-section mobile-nav-breadcrumbs">
-        <button mat-icon-button routerLink="/home" class="mobile-home-btn">
-          <mat-icon>home</mat-icon>
-        </button>
+    @if (adminVisible) {
+      <button mat-menu-item routerLink="/admin">
+        <mat-icon>dashboard</mat-icon>
+        <span>{{ 'navbar.admin' | translate }}</span>
+      </button>
+    }
 
-        @for (crumb of breadcrumbs; track crumb.route || crumb.labelKey || crumb.label || $index) {
-          <div>/</div>
-
-          <a
-            mat-button
-            [routerLink]="crumb.route"
-            routerLinkActive="active-link"
-            [routerLinkActiveOptions]="{ exact: true }">
-            {{ crumb.labelKey ? (crumb.labelKey | translate) : crumb.label }}
-          </a>
-        }
-      </div>
-
-      @if (navbarActions.length > 0) {
-        <div class="mobile-nav-section mobile-nav-actions">
-          @for (action of navbarActions; track action.labelKey || action.label || $index) {
-            @if (action.variant === 'icon') {
-              <button
-                mat-icon-button
-                type="button"
-                class="navbar-action-btn"
-                [disabled]="!!action.disabled"
-                (click)="handleNavbarAction(action)">
-                <mat-icon>{{ action.icon }}</mat-icon>
-              </button>
-            } @else if (action.variant === 'stroked') {
-              <button
-                mat-stroked-button
-                type="button"
-                class="navbar-action-btn"
-                [disabled]="!!action.disabled"
-                (click)="handleNavbarAction(action)">
-                @if (action.icon) {
-                  <mat-icon>{{ action.icon }}</mat-icon>
-                }
-                {{ action.labelKey ? (action.labelKey | translate) : action.label }}
-              </button>
-            } @else {
-              <button
-                mat-flat-button
-                color="primary"
-                type="button"
-                class="navbar-action-btn"
-                [disabled]="!!action.disabled"
-                (click)="handleNavbarAction(action)">
-                @if (action.icon) {
-                  <mat-icon>{{ action.icon }}</mat-icon>
-                }
-                {{ action.labelKey ? (action.labelKey | translate) : action.label }}
-              </button>
-            }
-          }
-        </div>
-      }
-
-      @if (!(auth0.isAuthenticated$ | async)) {
-        <div class="mobile-nav-section mobile-nav-auth">
-          <button mat-stroked-button type="button" class="navbar-auth-btn" (click)="login()">
-            <mat-icon>login</mat-icon>
-            Login
-          </button>
-
-          <button mat-flat-button color="primary" type="button" class="navbar-auth-btn" (click)="register()">
-            <mat-icon>person_add</mat-icon>
-            Registrieren
-          </button>
-        </div>
-      }
-
-      <div class="mobile-nav-section mobile-nav-links">
-        <button mat-menu-item routerLink="/help">
-          <mat-icon>help</mat-icon>
-          <span>Hilfe</span>
-        </button>
-
-        @if (adminVisible) {
-          <button mat-menu-item routerLink="/admin">
-            <mat-icon>dashboard</mat-icon>
-            <span>Admin</span>
-          </button>
-        }
-
-        <button mat-menu-item [matMenuTriggerFor]="notifMenu">
-          <mat-icon>notifications</mat-icon>
-          <span>Benachrichtigungen</span>
-          @if (unreadCount > 0) {
-            <span class="mobile-notif-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
-          }
-        </button>
-
-        <button mat-menu-item routerLink="/profile">
-          @if (getAvatarUrl()) {
-            <img class="mobile-avatar-image" [src]="getAvatarUrl()!" alt="Profilbild">
-          } @else {
-            <div class="mobile-avatar-circle">{{ getInitials() }}</div>
-          }
-          <span>Profil</span>
-        </button>
-      </div>
-    </div>
+    <button mat-menu-item routerLink="/profile">
+      <mat-icon>person</mat-icon>
+      <span>{{ 'profile.title' | translate }}</span>
+    </button>
   </mat-menu>
 
-  <mat-menu #notifMenu="matMenu" class="notif-menu">
+  <mat-menu #notifMenu="matMenu" class="notif-menu" xPosition="before" yPosition="below" [overlapTrigger]="false">
     <div class="notif-panel" (click)="$event.stopPropagation()">
       <div class="notif-header">
         <div class="notif-heading-row">
@@ -348,7 +273,7 @@
               class="notif-item"
               [class.notif-read]="n.read"
               [class.notif-history]="isHandled(n)"
-              [class.notif-history-expanded]="isHistoryOpen()"
+              [class.notif-history-expanded]="isHistoryItemExpanded(n)"
               [class.notif-clickable]="isNavigationAllowed(n)"
               [class.notif-processing]="isProcessing(n)"
               [class.notif-result-accepted]="n.type === 'INVITATION_ACCEPTED'"
@@ -372,55 +297,71 @@
 
                     <div class="notif-title-actions">
                       <div class="notif-type-badge">{{ getBadgeLabel(n.type) }}</div>
+
+                      @if (isHandled(n)) {
+                        <button
+                          mat-icon-button
+                          type="button"
+                          class="notif-expand-btn"
+                          [class.expanded]="isHistoryItemExpanded(n)"
+                          [attr.aria-expanded]="isHistoryItemExpanded(n)"
+                          (click)="toggleHistoryItem(n, $event)">
+                          <mat-icon>expand_more</mat-icon>
+                        </button>
+                      }
                     </div>
                   </div>
 
-                  <div class="notif-message">{{getNotificationMessage(n)}}</div>
+                  <div class="notif-details">
+                    <div class="notif-details-inner">
+                      <div class="notif-message">{{ getNotificationMessage(n) }}</div>
 
-                  <div class="notif-footer-row">
-                    <div class="notif-date">{{ n.createdAt | date:'dd.MM.yyyy • HH:mm' }}</div>
+                      <div class="notif-footer-row">
+                        <div class="notif-date">{{ n.createdAt | date:'dd.MM.yyyy • HH:mm' }}</div>
 
-                    <div class="notif-actions">
-                      @if (!isHandled(n) && n.primaryAction) {
-                        <button
-                          mat-flat-button
-                          color="primary"
-                          [disabled]="isProcessing(n)"
-                          (click)="runAction(n, n.primaryAction, $event)">
-                          {{ getActionLabel(n.primaryAction) }}
-                        </button>
-                      }
+                        <div class="notif-actions">
+                          @if (!isHandled(n) && n.primaryAction) {
+                            <button
+                              mat-flat-button
+                              color="primary"
+                              [disabled]="isProcessing(n)"
+                              (click)="runAction(n, n.primaryAction, $event)">
+                              {{ getActionLabel(n.primaryAction) }}
+                            </button>
+                          }
 
-                      @if (!isHandled(n) && n.secondaryAction) {
-                        <button
-                          mat-stroked-button
-                          [disabled]="isProcessing(n)"
-                          (click)="runAction(n, n.secondaryAction, $event)">
-                          {{ getActionLabel(n.secondaryAction) }}
-                        </button>
-                      }
+                          @if (!isHandled(n) && n.secondaryAction) {
+                            <button
+                              mat-stroked-button
+                              [disabled]="isProcessing(n)"
+                              (click)="runAction(n, n.secondaryAction, $event)">
+                              {{ getActionLabel(n.secondaryAction) }}
+                            </button>
+                          }
 
-                      @if (canMarkAsRead(n)) {
-                        <button
-                          mat-icon-button
-                          type="button"
-                          [disabled]="isProcessing(n)"
-                          (click)="markAsRead(n, $event)"
-                          [matTooltip]="'notifications.actions.markAsRead' | translate">
-                          <mat-icon>done</mat-icon>
-                        </button>
-                      }
+                          @if (canMarkAsRead(n)) {
+                            <button
+                              mat-icon-button
+                              type="button"
+                              [disabled]="isProcessing(n)"
+                              (click)="markAsRead(n, $event)"
+                              [matTooltip]="'notifications.actions.markAsRead' | translate">
+                              <mat-icon>done</mat-icon>
+                            </button>
+                          }
 
-                      @if (canDelete(n)) {
-                        <button
-                          mat-icon-button
-                          type="button"
-                          [disabled]="isProcessing(n)"
-                          (click)="deleteNotification(n, $event)"
-                          [matTooltip]="'common.delete' | translate">
-                          <mat-icon>delete</mat-icon>
-                        </button>
-                      }
+                          @if (canDelete(n)) {
+                            <button
+                              mat-icon-button
+                              type="button"
+                              [disabled]="isProcessing(n)"
+                              (click)="deleteNotification(n, $event)"
+                              [matTooltip]="'common.delete' | translate">
+                              <mat-icon>delete</mat-icon>
+                            </button>
+                          }
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

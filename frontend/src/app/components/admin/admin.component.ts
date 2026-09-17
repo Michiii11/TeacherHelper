@@ -51,6 +51,7 @@ interface StatCardConfig {
   label: string;
   key: AdminDashboardKey;
   toneClass: string;
+  icon: string;
 }
 
 interface MetricPanelConfig {
@@ -115,17 +116,17 @@ export class AdminComponent implements OnInit, OnDestroy {
   private loadingAvatarIds = new Set<string>();
 
   readonly userStatCards: StatCardConfig[] = [
-    { label: "User gesamt", key: "amountUsers", toneClass: "tone-users" },
-    { label: "Aktiv im Monat", key: "activeUsersMonth", toneClass: "tone-active-month" },
-    { label: "Aktiv in der Woche", key: "activeUsersWeek", toneClass: "tone-active-week" },
-    { label: "Neue User im Monat", key: "newUsersMonth", toneClass: "tone-new-users" },
+    { label: "User gesamt", key: "amountUsers", toneClass: "tone-users", icon: "group" },
+    { label: "Aktiv im Monat", key: "activeUsersMonth", toneClass: "tone-active-month", icon: "calendar_month" },
+    { label: "Aktiv in der Woche", key: "activeUsersWeek", toneClass: "tone-active-week", icon: "date_range" },
+    { label: "Neue User im Monat", key: "newUsersMonth", toneClass: "tone-new-users", icon: "person_add" },
   ];
 
   readonly aboStatCards: StatCardConfig[] = [
-    { label: "Free Abos", key: "freeAbos", toneClass: "tone-free" },
-    { label: "Pro Abos", key: "proAbos", toneClass: "tone-pro" },
-    { label: "Collection Abos", key: "schoolAbos", toneClass: "tone-collection" },
-    { label: "Geschätzter Umsatz / Monat", key: "cashflow", toneClass: "tone-revenue" },
+    { label: "Free Abos", key: "freeAbos", toneClass: "tone-free", icon: "person_outline" },
+    { label: "Pro Abos", key: "proAbos", toneClass: "tone-pro", icon: "workspace_premium" },
+    { label: "Collection Abos", key: "schoolAbos", toneClass: "tone-collection", icon: "domain" },
+    { label: "Geschätzter Umsatz / Monat", key: "cashflow", toneClass: "tone-revenue", icon: "payments" },
   ];
 
   readonly metricPanels: MetricPanelConfig[] = [
@@ -243,6 +244,15 @@ export class AdminComponent implements OnInit, OnDestroy {
       },
       complete: () => (this.isDashboardLoading = false),
     });
+  }
+
+  clearSelectedUser(): void {
+    this.selectedUserId = null;
+    this.expandedCollectionId = null;
+    this.collectionSearch = "";
+    this.selectedUserDTO = { id: "", collections: [] };
+    this.isUserLoading = false;
+    this.closeFloatingControls();
   }
 
   selectUser(user: AdminUserDashboardDTO): void {

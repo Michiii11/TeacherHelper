@@ -64,6 +64,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   breadcrumbs: NavbarBreadcrumb[] = [];
 
   historyExpanded = false;
+  expandedHistoryIds = new Set<string>();
 
   showSystemInfoComposer = false;
   isSendingSystemInfo = false;
@@ -360,10 +361,31 @@ export class NavigationComponent implements OnInit, OnDestroy {
   toggleAllHistoryExpanded(event: MouseEvent): void {
     event.stopPropagation();
     this.historyExpanded = !this.historyExpanded;
+
+    if (!this.historyExpanded) {
+      this.expandedHistoryIds.clear();
+    }
   }
 
   isHistoryOpen(): boolean {
     return this.selectedTab === 'history' && this.historyExpanded;
+  }
+
+  isHistoryItemExpanded(n: NotificationDTO): boolean {
+    return this.isHandled(n) && (this.isHistoryOpen() || this.expandedHistoryIds.has(n.id));
+  }
+
+  toggleHistoryItem(n: NotificationDTO, event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!this.isHandled(n)) {
+      return;
+    }
+
+    const next = new Set(this.expandedHistoryIds);
+    next.has(n.id) ? next.delete(n.id) : next.add(n.id);
+    this.expandedHistoryIds = next;
   }
 
   onNotificationClick(n: NotificationDTO): void {
@@ -706,4 +728,3 @@ export class NavigationComponent implements OnInit, OnDestroy {
     return this.translate.instant('notifications.notificationActions.' + action);
   }
 }
-

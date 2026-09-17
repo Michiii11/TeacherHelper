@@ -188,3 +188,151 @@
 :host ::ng-deep .rendered-preview-text .katex-display {
   margin: 0;
 }
+
+
+/* =========================================================
+   Mobile task cards
+   ========================================================= */
+
+@media (max-width: 768px) {
+  .selected-section {
+    gap: 10px;
+  }
+
+  .selected-task-card {
+    padding: 10px;
+    gap: 10px;
+    border-radius: 14px;
+    box-shadow: none;
+  }
+
+  .selected-task-main {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 8px;
+  }
+
+  .task-index-badge {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+  }
+
+  .task-copy {
+    width: auto;
+    min-width: 0;
+    padding-top: 1px;
+  }
+
+  .selected-task-heading {
+    max-height: calc(1.3em * 2);
+    font-size: 0.88rem;
+    line-height: 1.3;
+  }
+
+  .task-subline {
+    margin-top: 2px;
+    font-size: 0.72rem;
+    line-height: 1.3;
+  }
+
+  .task-main-actions {
+    width: auto;
+    margin: 0;
+    display: inline-flex;
+    justify-content: flex-end;
+    gap: 3px;
+  }
+
+  .task-main-actions .mat-mdc-icon-button {
+    width: 30px !important;
+    height: 30px !important;
+    padding: 0 !important;
+    border-radius: 9px !important;
+  }
+
+  .task-main-actions .mat-mdc-icon-button mat-icon {
+    width: 17px;
+    height: 17px;
+    font-size: 17px;
+  }
+
+  .task-settings-grid.compact-grid.three-cols {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .task-settings-grid > mat-form-field:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .selected-task-card .mat-mdc-form-field {
+    min-width: 0;
+  }
+
+  .selected-task-card ::ng-deep .mat-mdc-text-field-wrapper {
+    min-height: 48px;
+  }
+
+  .selected-task-card ::ng-deep .mat-mdc-form-field-infix {
+    min-height: 48px;
+    padding-top: 15px;
+    padding-bottom: 7px;
+  }
+
+  .selected-task-card input {
+    font-size: 16px;
+  }
+
+  .task-variable-block {
+    padding: 10px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+
+  .task-variable-head strong {
+    font-size: 0.86rem;
+  }
+
+  .task-variable-head span {
+    font-size: 0.74rem;
+  }
+
+  .task-variable-grid {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .task-variable-preview {
+    display: block;
+    font-size: 0.75rem;
+  }
+
+  .variable-preview-title {
+    margin-top: 3px;
+    font-size: 0.84rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .selected-task-main {
+    grid-template-columns: 28px minmax(0, 1fr);
+  }
+
+  .task-main-actions {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  .task-settings-grid.compact-grid.three-cols {
+    grid-template-columns: 1fr;
+  }
+
+  .task-settings-grid > mat-form-field:first-child {
+    grid-column: auto;
+  }
+}

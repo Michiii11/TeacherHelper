@@ -1800,3 +1800,512 @@ mat-dialog-actions {
 .global-solution-panel.side-collapsible.collapsed {
   padding-bottom: 0;
 }
+
+// -----------------------------------------------------------------------------
+// Responsive polish 2026 — mobile-first editor experience
+// -----------------------------------------------------------------------------
+
+@media (max-width: 1180px) {
+  .grid {
+    gap: .85rem;
+  }
+
+  .example-form,
+  .create-example-layout {
+    height: auto;
+    max-height: none;
+  }
+
+  .create-example-layout {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 820px) {
+  :host {
+    padding: 0;
+    overflow: visible;
+  }
+
+  .create-example-shell {
+    width: 100%;
+    height: auto;
+    min-height: 100dvh;
+    padding: 0 12px calc(84px + env(safe-area-inset-bottom));
+    box-sizing: border-box;
+    overflow: visible;
+  }
+
+  app-example-type-selector {
+    position: sticky;
+    top: 0;
+    z-index: 18;
+    display: block;
+    margin: 0 -12px;
+    padding: 8px 12px 7px;
+    background: color-mix(in srgb, var(--bg-base, var(--bg)) 94%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .grid {
+    display: block;
+    width: 100%;
+  }
+
+  .create-example-dialog,
+  .create-example-layout {
+    width: 100%;
+    max-width: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .example-form {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    gap: .72rem;
+    padding-top: 10px;
+    padding-bottom: 4px;
+  }
+
+  .create-example-layout {
+    position: static;
+    height: auto;
+    max-height: none;
+    gap: .62rem;
+    padding-top: .15rem;
+  }
+
+  .panel-box,
+  .side-collapsible,
+  .preview-panel,
+  .compact-variable-table,
+  .tag-meta-panel {
+    border-radius: 13px !important;
+  }
+
+  .half-open-answers,
+  .multiple-choice-options,
+  .gap-fill-luecken,
+  .image-upload,
+  .assign-column,
+  .gap-editor-card {
+    padding: .75rem;
+  }
+
+  .row {
+    gap: .55rem;
+  }
+
+  .editor-ribbon-panel {
+    margin: 0 0 .65rem;
+    border-radius: 12px;
+  }
+
+  .editor-ribbon-tabs {
+    flex-wrap: nowrap;
+    gap: 3px;
+    padding: 5px 6px 0;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .editor-ribbon-tab {
+    flex: 0 0 auto;
+    height: 32px !important;
+    padding: 0 11px !important;
+    font-size: .78rem !important;
+    line-height: 32px !important;
+    scroll-snap-align: start;
+  }
+
+  .editor-ribbon-toolbar,
+  .editor-ribbon-toolbar.greek-toolbar {
+    flex-wrap: nowrap;
+    min-height: 48px;
+    max-height: none;
+    padding: 7px 6px;
+    gap: 5px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+  }
+
+  .editor-ribbon-command,
+  .editor-ribbon-toolbar.greek-toolbar .editor-ribbon-command {
+    flex: 0 0 40px;
+    min-width: 40px !important;
+    width: 40px;
+    height: 36px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    scroll-snap-align: start;
+
+    span,
+    .editor-command-example {
+      display: none !important;
+    }
+
+    mat-icon {
+      width: 19px;
+      height: 19px;
+      margin: 0 !important;
+      font-size: 19px;
+      line-height: 19px;
+    }
+  }
+
+  .editor-ribbon-toolbar.greek-toolbar .editor-ribbon-command {
+    font-size: .95rem !important;
+    font-weight: 800 !important;
+  }
+
+  .proofreading-panel {
+    margin: 0 6px 6px;
+    padding: .65rem;
+  }
+
+  .proofreading-head {
+    align-items: flex-start;
+  }
+
+  .proofreading-item {
+    align-items: stretch;
+    flex-direction: column;
+    gap: .55rem;
+  }
+
+  .proofreading-item button {
+    width: 100%;
+  }
+
+  .example-panel {
+    gap: .8rem;
+  }
+
+  .multiple-choice-options .item-row,
+  .gap-option-row {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) 40px;
+    gap: .4rem;
+    align-items: start;
+  }
+
+  .multiple-choice-options .item-row > mat-checkbox,
+  .gap-option-row > mat-checkbox {
+    margin-top: 8px;
+  }
+
+  .multiple-choice-options .item-row > button[mat-icon-button],
+  .gap-option-row > button[mat-icon-button] {
+    margin-top: 4px;
+  }
+
+  .half-open-answers .item-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 40px;
+    gap: .25rem .45rem;
+    align-items: start;
+    padding-bottom: .55rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  }
+
+  .half-open-answers .item-row:last-of-type {
+    border-bottom: 0;
+  }
+
+  .half-open-answers .item-row .item-input {
+    grid-column: 1;
+  }
+
+  .half-open-answers .item-row > button[mat-icon-button] {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .assign-board {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .7rem;
+  }
+
+  .assign-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 40px;
+    gap: .35rem .45rem;
+    align-items: start;
+  }
+
+  .assign-row .item-input,
+  .assign-row .assign-select {
+    grid-column: 1;
+  }
+
+  .assign-row > button[mat-icon-button] {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .styled-toggle-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .styled-toggle-group mat-button-toggle {
+    min-width: 0;
+  }
+
+  .gap-editor-card {
+    border-radius: 14px;
+  }
+
+  .gap-editor-head,
+  .gap-editor-head-input {
+    margin-bottom: .65rem;
+    gap: .45rem;
+  }
+
+  .gap-width-controls {
+    grid-template-columns: 1fr;
+    gap: .45rem;
+  }
+
+  .gap-width-input-field {
+    max-width: none;
+    width: 100%;
+  }
+
+  .gap-editor-preview,
+  .gap-editor-preview-input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .display-settings-list {
+    gap: .5rem;
+  }
+
+  .display-setting-card {
+    padding: .68rem .75rem;
+    border-radius: 13px;
+    gap: .7rem;
+  }
+
+  .display-setting-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .switch-track {
+    width: 52px;
+    height: 30px;
+  }
+
+  .switch-thumb {
+    width: 22px;
+    height: 22px;
+  }
+
+  .switch input:checked + .switch-track .switch-thumb {
+    transform: translateX(22px);
+  }
+
+  .side-collapse-head,
+  .variable-collapse-head-row {
+    min-height: 46px;
+    height: 46px;
+  }
+
+  .side-collapse-head {
+    padding-inline: .68rem;
+  }
+
+  .side-collapse-body {
+    padding: 0 .68rem .68rem !important;
+  }
+
+  .side-collapsible.collapsed,
+  .preview-panel.collapsed,
+  .compact-variable-table.collapsed,
+  .tag-meta-panel.collapsed {
+    flex-basis: 46px !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    max-height: 46px !important;
+  }
+
+  .preview-panel:not(.collapsed) {
+    min-height: 0;
+    flex: none;
+  }
+
+  .preview-panel .side-collapse-body {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .preview-panel app-example-preview {
+    height: auto;
+    overflow: visible;
+  }
+
+  .compact-variable-table .side-collapse-body {
+    overflow: visible;
+  }
+
+  .compact-variable-table table,
+  .compact-variable-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .compact-variable-table thead {
+    display: none;
+  }
+
+  .compact-variable-table tr {
+    display: grid;
+    grid-template-columns: minmax(82px, .8fr) minmax(0, 1.4fr) 38px;
+    align-items: center;
+    gap: .35rem;
+    padding: .5rem;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: color-mix(in srgb, var(--surface) 72%, transparent);
+  }
+
+  .compact-variable-table tr + tr {
+    margin-top: .45rem;
+  }
+
+  .compact-variable-table td {
+    display: block;
+    width: auto !important;
+    min-width: 0;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  .compact-variable-table .variable-name {
+    overflow-wrap: anywhere;
+  }
+
+  .compact-variable-table .insert-col {
+    justify-self: end;
+  }
+
+  .variable-add-action {
+    margin-right: .45rem !important;
+  }
+
+  mat-dialog-actions {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    min-height: 68px;
+    margin: 0 !important;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom)) !important;
+    justify-content: stretch !important;
+    align-items: center !important;
+    gap: 8px;
+    background: color-mix(in srgb, var(--surface-solid, var(--bg-soft)) 94%, transparent);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -12px 30px rgba(0, 0, 0, .12);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  mat-dialog-actions button {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 46px;
+    border-radius: 12px;
+  }
+
+  .loading-dashboard {
+    min-height: 100dvh;
+    padding: 16px;
+    box-sizing: border-box;
+  }
+
+  .school-loading-card {
+    width: 100%;
+    max-width: 360px;
+    padding: 1.4rem;
+    border-radius: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .create-example-shell {
+    padding-inline: 9px;
+  }
+
+  app-example-type-selector {
+    margin-inline: -9px;
+    padding-inline: 9px;
+  }
+
+  .panel-title,
+  .column-title {
+    font-size: .88rem;
+  }
+
+  .half-open-answers,
+  .multiple-choice-options,
+  .gap-fill-luecken,
+  .assign-column,
+  .gap-editor-card {
+    padding: .62rem;
+  }
+
+  .multiple-choice-options .item-row,
+  .gap-option-row {
+    grid-template-columns: 30px minmax(0, 1fr) 36px;
+    gap: .3rem;
+  }
+
+  .collapse-head-action {
+    height: 32px !important;
+    padding-inline: .5rem !important;
+  }
+
+  .variable-collapse-head-row .panel-title {
+    font-size: .84rem;
+  }
+
+  .compact-variable-table tr {
+    grid-template-columns: minmax(70px, .72fr) minmax(0, 1.28fr) 34px;
+    padding: .42rem;
+  }
+
+  .compact-variable-table input {
+    height: 34px;
+    font-size: 16px; // prevents iOS zoom
+  }
+
+  .proofreading-replacement {
+    flex-wrap: wrap;
+  }
+
+  mat-dialog-actions {
+    min-height: 64px;
+    padding-inline: 9px !important;
+  }
+}

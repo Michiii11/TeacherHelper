@@ -2022,3 +2022,377 @@ mat-icon { overflow: visible; line-height: 1; }
 .toolbar-cancel-copy-btn {
   flex: 0 0 auto;
 }
+
+/* One toolbar row and downward-opening menus at every viewport size. */
+.collection-shell, .collection-shell * { box-sizing: border-box; }
+.collection-frame { overflow: visible; }
+.explorer-main { min-width: 0; }
+.one-line-topbar { position: relative; z-index: 40; overflow: visible; }
+.toolbar-actions {
+  position: relative;
+  display: flex;
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow: visible;
+}
+.toolbar-actions > * { flex-shrink: 0; }
+.toolbar-actions .filter-popup-wrap,
+.toolbar-actions .sort-popup-wrap,
+.toolbar-actions .create-menu-wrap { position: static; }
+.toolbar-actions .filter-popup-panel,
+.toolbar-actions .sort-popup-panel,
+.toolbar-actions .create-menu-panel {
+  position: absolute;
+  inset: calc(100% + 8px) 0 auto auto;
+  width: min(360px, 100%);
+  min-width: 0;
+  max-height: min(420px, 55dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  z-index: 100;
+}
+.toolbar-actions .filter-option { min-width: 0; }
+.filter-option > span:last-child { overflow-wrap: anywhere; }
+.content-grid { min-width: 0; }
+.content-card { min-width: 0; }
+
+@media (max-width: 1100px) {
+  .toolbar-actions { width: 100%; gap: 6px; }
+  .toolbar-actions .compact-search {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 38px;
+    max-width: 360px;
+    grid-column: auto;
+  }
+  .toolbar-actions .compact-search.open { width: auto; }
+  .toolbar-actions .toolbar-label,
+  .toolbar-actions .shortcut-hint { display: none; }
+  .toolbar-actions .toolbar-pill-btn,
+  .toolbar-actions .toolbar-paste-btn,
+  .toolbar-actions .new-icon-btn {
+    min-width: 40px;
+    height: 40px;
+    padding: 0 8px;
+    justify-content: center;
+  }
+  .toolbar-actions .toolbar-paste-btn mat-icon { margin: 0; }
+  .toolbar-actions .toolbar-cancel-copy-btn {
+    width: 38px;
+    height: 40px;
+    padding: 7px;
+  }
+  .toolbar-clipboard-actions { gap: 2px; }
+  .toolbar-actions .filter-popup-panel,
+  .toolbar-actions .sort-popup-panel,
+  .toolbar-actions .create-menu-panel { width: min(360px, 100%); }
+  .toolbar-actions .filter-badge { font-size: 0.65rem; }
+}
+
+@media (max-width: 480px) {
+  .toolbar-actions { gap: 4px; }
+  .single-toolbar-row { gap: 6px; }
+  .current-location { width: 100%; }
+  .toolbar-actions .compact-search { max-width: none; }
+  .toolbar-actions .filter-popup-panel { padding: 8px; }
+  .toolbar-actions .filter-option { min-height: 44px; }
+  .action-buttons { flex-wrap: wrap; }
+}
+
+
+/* Mobile folder navigation: keep the desktop explorer powerful, but collapse it on phones. */
+.mobile-folder-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .explorer-sidebar {
+    display: none;
+  }
+
+  .mobile-folder-nav {
+    position: relative;
+    z-index: 55;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 0.7rem 0;
+  }
+
+  .mobile-folder-up-btn,
+  .mobile-folder-trigger {
+    min-height: 50px;
+    border: 1px solid var(--border);
+    background: var(--surface-soft);
+    color: var(--text);
+    box-shadow: var(--shadow);
+  }
+
+  .mobile-folder-up-btn {
+    width: 48px;
+    flex: 0 0 48px;
+    border-radius: 15px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .mobile-folder-up-btn mat-icon {
+    width: 21px;
+    height: 21px;
+    font-size: 21px;
+  }
+
+  .mobile-folder-trigger {
+    flex: 1 1 auto;
+    min-width: 0;
+    border-radius: 16px;
+    padding: 0.45rem 0.55rem;
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) 28px;
+    align-items: center;
+    gap: 0.55rem;
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .mobile-folder-trigger.open {
+    border-color: var(--primary-border-medium);
+    background: var(--primary-soft);
+  }
+
+  .mobile-folder-leading {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    color: var(--folder-accent-strong);
+    background: var(--folder-surface);
+  }
+
+  .mobile-folder-leading mat-icon {
+    width: 21px;
+    height: 21px;
+    font-size: 21px;
+  }
+
+  .mobile-folder-copy {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.06rem;
+  }
+
+  .mobile-folder-copy small,
+  .mobile-folder-copy strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-folder-copy small {
+    color: var(--text-subtle, var(--text));
+    opacity: 0.7;
+    font-size: 0.7rem;
+    font-weight: 650;
+  }
+
+  .mobile-folder-copy strong {
+    font-size: 0.95rem;
+    line-height: 1.2;
+  }
+
+  .mobile-folder-chevron {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+    justify-self: center;
+    opacity: 0.75;
+  }
+
+  .mobile-folder-panel {
+    position: absolute;
+    top: calc(100% + 0.45rem);
+    left: 0.7rem;
+    right: 0.7rem;
+    max-height: min(56dvh, 430px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0.45rem;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--surface-solid);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .mobile-folder-root,
+  .mobile-folder-node {
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .mobile-folder-root {
+    width: 100%;
+    min-height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.65rem;
+    text-align: left;
+    font-weight: 750;
+  }
+
+  .mobile-folder-root:hover,
+  .mobile-folder-root.active {
+    color: var(--primary);
+    background: var(--primary-soft-strong);
+  }
+
+  .mobile-folder-root mat-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+  }
+
+  .mobile-folder-tree {
+    margin-top: 0.2rem;
+    padding-top: 0.2rem;
+    border-top: 1px solid var(--border-soft);
+  }
+
+  .mobile-folder-entry {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    padding-left: calc(var(--level, 0) * 0.85rem);
+    border-radius: 12px;
+  }
+
+  .mobile-folder-entry.active,
+  .mobile-folder-entry.in-path:not(.active) {
+    background: var(--primary-soft);
+  }
+
+  .mobile-folder-entry.active {
+    color: var(--primary);
+    background: var(--primary-soft-strong);
+  }
+
+  .mobile-folder-toggle {
+    width: 30px;
+    height: 42px;
+    flex: 0 0 30px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: inherit;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .mobile-folder-toggle.placeholder {
+    pointer-events: none;
+  }
+
+  .mobile-folder-toggle mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+
+  .mobile-folder-node {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.45rem 0.55rem 0.45rem 0.2rem;
+    text-align: left;
+  }
+
+  .mobile-folder-node mat-icon {
+    width: 19px;
+    height: 19px;
+    font-size: 19px;
+    flex: 0 0 auto;
+    color: var(--folder-accent-strong);
+  }
+
+  .mobile-folder-node span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* The collapsed folder bar replaces the duplicate breadcrumb row on phones. */
+  .smart-location {
+    display: none;
+  }
+
+  .single-toolbar-row {
+    padding-top: 0.6rem;
+  }
+
+  .toolbar-actions {
+    width: 100%;
+  }
+
+  .toolbar-actions .compact-search {
+    flex: 1 1 150px;
+    max-width: none;
+  }
+
+  /* Folder cards stay visible as content, but are visually lighter than tests/examples. */
+  .folder-card {
+    min-height: 88px;
+    padding: 0.75rem 0.8rem;
+  }
+
+  .folder-card .card-copy span {
+    display: none;
+  }
+
+  .folder-card .card-actions {
+    padding-top: 0.35rem;
+    border-top-color: color-mix(in srgb, var(--folder-accent) 16%, transparent);
+  }
+}
+
+@media (max-width: 480px) {
+  .mobile-folder-nav {
+    padding: 0.5rem 0.5rem 0;
+    gap: 0.4rem;
+  }
+
+  .mobile-folder-panel {
+    left: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .mobile-folder-up-btn {
+    width: 44px;
+    flex-basis: 44px;
+  }
+
+  .mobile-folder-trigger {
+    grid-template-columns: 34px minmax(0, 1fr) 24px;
+    gap: 0.45rem;
+  }
+
+  .mobile-folder-leading {
+    width: 34px;
+    height: 34px;
+  }
+}

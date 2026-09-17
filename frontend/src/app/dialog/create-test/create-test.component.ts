@@ -100,6 +100,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   private readonly exampleImageObjectUrlCache = new Map<string, string>();
 
   showAdvancedSettings = false;
+  mobilePane: 'editor' | 'preview' = 'editor';
   printCopies = 1;
   includeSolutionSheet = false;
   readonly defaultImageWidth = 320;
@@ -1452,14 +1453,18 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   openAddExampleDialog(): void {
+    const isMobile = window.innerWidth <= 768;
+
     const ref = this.dialog.open(ExamplePickerDialogComponent, {
-      width: 'min(1168px, calc(100vw - 48px))',
-      height: 'min(720px, calc(100vh - 48px))',
-      maxWidth: 'calc(100vw - 48px)',
-      maxHeight: 'calc(100vh - 48px)',
+      width: isMobile ? '100vw' : 'min(1168px, calc(100vw - 48px))',
+      height: isMobile ? '100dvh' : 'min(720px, calc(100vh - 48px))',
+      maxWidth: isMobile ? '100vw' : 'calc(100vw - 48px)',
+      maxHeight: isMobile ? '100dvh' : 'calc(100vh - 48px)',
       autoFocus: false,
       restoreFocus: false,
-      panelClass: 'example-picker-dialog-panel',
+      panelClass: isMobile
+        ? ['example-picker-dialog-panel', 'mobile-fullscreen-dialog']
+        : 'example-picker-dialog-panel',
       data: {
         examples: this.allExamples,
         selectedIds: this.selectedExamples.map(entry => entry.example.id),

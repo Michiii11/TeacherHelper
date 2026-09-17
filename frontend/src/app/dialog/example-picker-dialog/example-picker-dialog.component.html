@@ -1,7 +1,22 @@
 <div class="picker-shell" [class.selected-view]="selectionViewMode === 'selected'" (click)="isSortMenuOpen = false; isTypeMenuOpen = false">
   <header class="picker-header">
     <div class="picker-title-block">
-      <h2>{{ 'createTest.examplePicker.title' | translate }}</h2>
+      <div class="picker-title-copy">
+        <h2>{{ 'createTest.examplePicker.title' | translate }}</h2>
+        <span class="mobile-selection-summary">
+          {{ 'createTest.examplePicker.selectedExamplesCount' | translate:{ count: selectedCount } }}
+        </span>
+      </div>
+
+      <button
+        mat-icon-button
+        type="button"
+        class="picker-mobile-close"
+        (click)="close()"
+        [attr.aria-label]="'common.close' | translate"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
     </div>
 
     <div class="toolbar-actions">
