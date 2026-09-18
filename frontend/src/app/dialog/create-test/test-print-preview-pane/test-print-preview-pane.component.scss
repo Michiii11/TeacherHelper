@@ -250,3 +250,148 @@ mat-dialog-actions {
     justify-content: center;
   }
 }
+
+
+/* =========================================================
+   Refined mobile preview controls
+   ========================================================= */
+@media (max-width: 768px) {
+  .preview-pane {
+    padding: 8px 10px 10px !important;
+    gap: 8px;
+  }
+
+  .print-controls.settings-card {
+    padding: 8px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--surface) 78%, transparent);
+    box-shadow: none;
+  }
+
+  .print-controls-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "copies print"
+      "mode mode";
+    gap: 7px;
+    align-items: center;
+  }
+
+  .print-controls-grid .section:nth-child(1) {
+    grid-area: copies;
+  }
+
+  .print-controls-grid .section:nth-child(2) {
+    grid-area: mode;
+  }
+
+  .print-controls-grid .section:nth-child(3) {
+    grid-area: print;
+  }
+
+  .stepper {
+    width: fit-content;
+    gap: 4px;
+  }
+
+  .stepper .mat-mdc-icon-button {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
+    border-radius: 9px !important;
+  }
+
+  .stepper .mat-mdc-icon-button mat-icon {
+    width: 17px;
+    height: 17px;
+    font-size: 17px;
+  }
+
+  .stepper input {
+    width: 40px;
+    min-width: 40px;
+    height: 32px;
+    padding: 0 3px;
+    border-radius: 9px;
+    font-size: 15px;
+  }
+
+  .print-controls-grid .section:nth-child(3) button {
+    width: auto !important;
+    min-width: 88px;
+    min-height: 34px;
+    padding-inline: 12px;
+    border-radius: 10px !important;
+    white-space: nowrap;
+  }
+
+  .print-controls-grid .section:nth-child(3) button mat-icon {
+    margin-left: 5px;
+  }
+
+  mat-button-toggle-group {
+    width: 100%;
+    height: 36px;
+    min-height: 36px;
+    border-radius: 10px !important;
+    overflow: hidden;
+  }
+
+  mat-button-toggle {
+    min-width: 0;
+    flex: 1 1 0;
+  }
+
+  ::ng-deep mat-button-toggle .mat-button-toggle-label-content,
+  ::ng-deep mat-button-toggle .mat-mdc-button-toggle-label-content {
+    min-height: 34px;
+    padding: 0 10px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .preview-surface.print-area {
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--bg-soft) 88%, var(--surface));
+  }
+
+  .print-page {
+    padding: 14px 12px;
+    border-radius: 10px;
+  }
+}
+
+@media (max-width: 370px) {
+  .print-controls-grid {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-areas:
+      "copies print"
+      "mode mode" !important;
+  }
+
+  .print-controls-grid .section:last-child {
+    grid-column: auto !important;
+  }
+
+  .stepper {
+    justify-content: flex-start !important;
+  }
+
+  .print-controls-grid .section:nth-child(3) button {
+    min-width: 78px;
+    padding-inline: 9px;
+  }
+
+  ::ng-deep mat-button-toggle .mat-button-toggle-label-content,
+  ::ng-deep mat-button-toggle .mat-mdc-button-toggle-label-content {
+    padding-inline: 7px !important;
+    font-size: 0.69rem;
+  }
+}

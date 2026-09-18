@@ -12,10 +12,12 @@ import jakarta.ws.rs.core.Response;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import org.jboss.logging.Logger;
 
 @ApplicationScoped
 @Transactional
 public class FolderRepository {
+    private static final Logger LOG = Logger.getLogger(FolderRepository.class);
 
     @Inject
     EntityManager em;
@@ -67,6 +69,8 @@ public class FolderRepository {
         em.persist(folder);
         em.flush();
         CollectionSocket.broadcast(folder.getCollection().getId());
+        LOG.infof("event=folder.created userId=%s collectionId=%s folderId=%s parentId=%s",
+                userId, collectionId, folder.getId(), dto.parentId());
         return Response.ok(folder.toDto()).build();
     }
 
@@ -77,6 +81,8 @@ public class FolderRepository {
         }
 
         if (!collectionRepository.isUserPartOfCollection(folder.getCollection().getId(), userId)) {
+            LOG.warnf("event=folder.update.denied userId=%s folderId=%s collectionId=%s",
+                    userId, folderId, folder.getCollection().getId());
             return Response.status(Response.Status.FORBIDDEN).entity("Nicht berechtigt.").build();
         }
 
@@ -112,6 +118,8 @@ public class FolderRepository {
         em.merge(folder);
         em.flush();
         CollectionSocket.broadcast(folder.getCollection().getId());
+        LOG.infof("event=folder.updated userId=%s collectionId=%s folderId=%s parentId=%s",
+                userId, folder.getCollection().getId(), folderId, dto.parentId());
         return Response.ok(folder.toDto()).build();
     }
 
@@ -127,6 +135,8 @@ public class FolderRepository {
         UUID collectionId = folder.getCollection().getId();
 
         if (!collectionRepository.isUserPartOfCollection(collectionId, userId)) {
+            LOG.warnf("event=folder.delete.denied userId=%s folderId=%s collectionId=%s",
+                    userId, folderId, collectionId);
             return Response.status(Response.Status.FORBIDDEN)
                     .entity("Nicht berechtigt.")
                     .build();
@@ -144,6 +154,8 @@ public class FolderRepository {
         em.clear();
         CollectionSocket.broadcast(collectionId);
 
+        LOG.infof("event=folder.deleted userId=%s collectionId=%s folderId=%s childFolders=%d examples=%d tests=%d",
+                userId, collectionId, folderId, childFolderCount, exampleCount, testCount);
         return Response.ok(
                 "Ordner wurde gelöscht. Entfernt: " + childFolderCount + " Unterordner, " + exampleCount + " Beispiele, " + testCount + " Tests."
         ).build();

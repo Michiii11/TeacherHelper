@@ -1296,3 +1296,62 @@
     font-size: 0.78rem;
   }
 }
+
+
+/* =========================================================
+   Mobile preview cleanup
+   - tabs calmer
+   - no duplicate Edit action at the bottom
+   ========================================================= */
+@media (max-width: 768px) {
+  .mobile-test-toolbar {
+    padding-bottom: 8px;
+  }
+
+  .mobile-test-tabs {
+    margin-top: 8px;
+    padding: 3px;
+    gap: 3px;
+    border-radius: 11px;
+    background: color-mix(in srgb, var(--surface) 55%, var(--bg-soft));
+  }
+
+  .mobile-test-tab {
+    min-height: 36px;
+    border: 0 !important;
+    outline: 0;
+    border-radius: 8px;
+    color: var(--text-soft);
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .mobile-test-tab.active {
+    color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 12%, var(--surface)) !important;
+    box-shadow: none !important;
+  }
+
+  .mobile-test-tab:focus {
+    outline: none;
+  }
+
+  .mobile-test-tab:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+    outline-offset: -2px;
+  }
+
+  .mobile-test-actions {
+    grid-template-columns: 1fr;
+    padding-top: 8px;
+  }
+
+  .mobile-test-actions > button:first-child {
+    display: none !important;
+  }
+
+  .mobile-test-actions > button:last-child {
+    width: 100%;
+    min-height: 44px;
+  }
+}

@@ -17,9 +17,11 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.jboss.resteasy.reactive.RestPath;
+import org.jboss.logging.Logger;
 
 @ApplicationScoped
 public class Auth0ManagementService {
+    private static final Logger LOG = Logger.getLogger(Auth0ManagementService.class);
 
     @Inject
     @RestClient
@@ -43,17 +45,23 @@ public class Auth0ManagementService {
             return;
         }
 
-        Auth0TokenResponse token = tokenClient.getToken(new Auth0TokenRequest(
-                clientId,
-                clientSecret,
-                audience,
-                "client_credentials"
-        ));
+        try {
+            Auth0TokenResponse token = tokenClient.getToken(new Auth0TokenRequest(
+                    clientId,
+                    clientSecret,
+                    audience,
+                    "client_credentials"
+            ));
 
-        managementClient.deleteUser(
-                auth0Id,
-                "Bearer " + token.accessToken()
-        );
+            managementClient.deleteUser(
+                    auth0Id,
+                    "Bearer " + token.accessToken()
+            );
+            LOG.info("event=auth0.user.deleted");
+        } catch (RuntimeException e) {
+            LOG.error("event=auth0.user.delete.failed", e);
+            throw e;
+        }
     }
 
     public record Auth0TokenRequest(

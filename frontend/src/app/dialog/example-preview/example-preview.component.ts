@@ -12,7 +12,7 @@ import {
 import { DomSanitizer, SafeHtml } from "@angular/platform-browser";
 import * as katex from "katex";
 import { NgIf, NgForOf } from "@angular/common";
-import { MAT_DIALOG_DATA } from "@angular/material/dialog";
+import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { MatPseudoCheckbox } from "@angular/material/core";
 import { Subject } from "rxjs";
 
@@ -48,6 +48,7 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
     MAT_DIALOG_DATA,
     { optional: true },
   );
+  private readonly dialogRef = inject(MatDialogRef<ExamplePreviewComponent>, { optional: true });
   private readonly http = inject(HttpService);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly previewRenderer = inject(ExamplePreviewRendererService);
@@ -137,6 +138,10 @@ export class ExamplePreviewComponent implements OnInit, OnChanges, OnDestroy {
       this.isLoading = false;
       this.refreshPreviewHtml();
     }
+  }
+
+  close(): void {
+    this.dialogRef?.close();
   }
 
   ngOnDestroy(): void {

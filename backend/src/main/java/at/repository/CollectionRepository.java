@@ -30,10 +30,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import org.jboss.logging.Logger;
 
 @ApplicationScoped
 @Transactional
 public class CollectionRepository {
+    private static final Logger LOG = Logger.getLogger(CollectionRepository.class);
     private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
     private static final long MAX_PROFILE_IMAGE_SIZE = 2L * 1024L * 1024L;
 
@@ -220,6 +222,7 @@ public class CollectionRepository {
         em.persist(collection);
         em.flush();
 
+        LOG.infof("event=collection.created userId=%s collectionId=%s", userId, collection.getId());
         return Response.ok(collection.toDTO()).build();
     }
 
@@ -231,6 +234,7 @@ public class CollectionRepository {
         }
 
         if (!collection.getAdmin().getId().equals(userId)) {
+            LOG.warnf("event=collection.delete.denied userId=%s collectionId=%s", userId, collectionId);
             return Response.status(Response.Status.FORBIDDEN).entity("Only the collection admin can delete the collection").build();
         }
 
@@ -314,6 +318,8 @@ public class CollectionRepository {
         em.clear();
 
         CollectionSocket.broadcast(collectionId);
+        LOG.infof("event=collection.deleted userId=%s collectionId=%s tests=%d examples=%d folders=%d",
+                userId, collectionId, testIds.size(), exampleIds.size(), folderIds.size());
         return Response.ok().build();
     }
 
@@ -514,6 +520,7 @@ public class CollectionRepository {
 
         CollectionSocket.broadcast(collectionId);
 
+        LOG.infof("event=collection.left userId=%s collectionId=%s", userId, collectionId);
         return Response.ok().build();
     }
 
@@ -527,6 +534,8 @@ public class CollectionRepository {
         }
 
         if (!collection.getAdmin().getId().equals(userId)) {
+            LOG.warnf("event=collection.teacher.remove.denied userId=%s collectionId=%s teacherId=%s",
+                    userId, collectionId, teacherId);
             return Response.status(Response.Status.FORBIDDEN).entity("Only the collection admin can remove teachers").build();
         }
 
@@ -540,6 +549,8 @@ public class CollectionRepository {
 
         CollectionSocket.broadcast(collectionId);
 
+        LOG.infof("event=collection.teacher.removed userId=%s collectionId=%s teacherId=%s",
+                userId, collectionId, teacherId);
         return Response.ok().build();
     }
 
@@ -557,6 +568,7 @@ public class CollectionRepository {
         }
 
         if (!collection.getAdmin().getId().equals(userId)) {
+            LOG.warnf("event=collection.invite.denied userId=%s collectionId=%s", userId, collectionId);
             return Response.status(Response.Status.FORBIDDEN).entity("Only the collection admin can invite teachers").build();
         }
 
@@ -611,6 +623,8 @@ public class CollectionRepository {
                 NotificationActionType.DECLINE_INVITATION
         );
 
+        LOG.infof("event=collection.invite.created userId=%s collectionId=%s recipientId=%s inviteId=%s",
+                userId, collectionId, teacher.getId(), invite.getId());
         return Response.ok(toCollectionInviteDTO(invite)).build();
     }
 
@@ -622,6 +636,7 @@ public class CollectionRepository {
         }
 
         if (!invite.getRecipient().getId().equals(userId)) {
+            LOG.warnf("event=collection.invite.respond.denied userId=%s inviteId=%s", userId, inviteId);
             return Response.status(Response.Status.FORBIDDEN).entity("You are not allowed to respond to this invite").build();
         }
 
@@ -671,6 +686,8 @@ public class CollectionRepository {
             );
         }
 
+        LOG.infof("event=collection.invite.responded userId=%s collectionId=%s inviteId=%s accepted=%s",
+                userId, collection.getId(), inviteId, accept);
         return Response.ok(toCollectionInviteDTO(invite)).build();
     }
 
@@ -709,6 +726,7 @@ public class CollectionRepository {
         em.merge(collection);
 
         CollectionSocket.broadcast(collectionId);
+        LOG.infof("event=collection.settings.updated userId=%s collectionId=%s", userId, collectionId);
 
         return Response.ok(collection.toDTO()).build();
     }
@@ -811,6 +829,7 @@ public class CollectionRepository {
             String objectName = mediaStorageService.uploadCollectionLogo(collectionId, file.uploadedFile());
             return updateCollectionLogo(collectionId, userId, objectName);
         } catch (IOException e) {
+            LOG.errorf(e, "event=collection.logo.upload.failed userId=%s collectionId=%s", userId, collectionId);
             return Response.serverError().entity("Logo upload failed").build();
         }
     }

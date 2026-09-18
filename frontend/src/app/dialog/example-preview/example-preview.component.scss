@@ -653,3 +653,200 @@
     padding-left: 1.35rem;
   }
 }
+
+
+/* =========================================================
+   Full-screen mobile example preview
+   ========================================================= */
+
+.preview-header-copy {
+  min-width: 0;
+}
+
+.preview-eyebrow {
+  display: none;
+}
+
+.preview-close-button {
+  display: none;
+}
+
+.preview-content-scroll {
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  app-example-preview:not(.embedded-preview) {
+    display: block;
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+    background: var(--menu-bg);
+  }
+
+  app-example-preview:not(.embedded-preview) .preview-dialog {
+    width: 100%;
+    height: 100dvh;
+    min-height: 0;
+    max-height: none;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+    background: var(--menu-bg);
+  }
+
+  app-example-preview:not(.embedded-preview) .preview-header {
+    position: relative;
+    z-index: 3;
+    min-height: 58px;
+    padding:
+      max(10px, env(safe-area-inset-top))
+      10px
+      9px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--menu-bg) 97%, transparent);
+    backdrop-filter: blur(16px);
+  }
+
+  app-example-preview:not(.embedded-preview) .preview-header-copy {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  app-example-preview:not(.embedded-preview) .preview-eyebrow {
+    display: block;
+    margin-bottom: 1px;
+    color: var(--text-soft);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  app-example-preview:not(.embedded-preview) .preview-header h1 {
+    overflow: hidden;
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.18;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  app-example-preview:not(.embedded-preview) .preview-close-button {
+    display: grid;
+    place-items: center;
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  app-example-preview:not(.embedded-preview) .preview-close-button mat-icon {
+    width: 19px;
+    height: 19px;
+    font-size: 19px;
+  }
+
+  app-example-preview:not(.embedded-preview) .preview-content-scroll {
+    min-height: 0;
+    padding: 10px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    background: var(--bg-soft);
+  }
+
+  app-example-preview:not(.embedded-preview) .preview-content-scroll > div {
+    width: 100%;
+    min-width: 0;
+  }
+
+  app-example-preview:not(.embedded-preview) .preview-panel {
+    width: 100%;
+    min-height: 0;
+    padding: 12px;
+    border-radius: 14px;
+    background: var(--surface);
+    box-shadow: none;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+
+  app-example-preview:not(.embedded-preview) .image-preview,
+  app-example-preview:not(.embedded-preview) .solution-image-preview {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  app-example-preview:not(.embedded-preview) table {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 390px) {
+  app-example-preview:not(.embedded-preview) .preview-header {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  app-example-preview:not(.embedded-preview) .preview-content-scroll {
+    padding: 8px;
+  }
+
+  app-example-preview:not(.embedded-preview) .preview-panel {
+    padding: 10px;
+    border-radius: 12px;
+  }
+}
+
+
+/* Standalone example preview: close action like Test Preview */
+app-example-preview:not(.embedded-preview) .preview-close-button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+app-example-preview:not(.embedded-preview) .preview-close-button:hover {
+  background: var(--surface-hover, var(--bg-soft));
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+}
+
+app-example-preview:not(.embedded-preview) .preview-close-button mat-icon {
+  width: 19px;
+  height: 19px;
+  font-size: 19px;
+}
+
+@media (max-width: 768px) {
+  app-example-preview:not(.embedded-preview) .preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

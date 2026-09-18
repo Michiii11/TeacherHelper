@@ -24,10 +24,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.jboss.logging.Logger;
 
 @ApplicationScoped
 @Transactional
 public class ExampleRepository {
+    private static final Logger LOG = Logger.getLogger(ExampleRepository.class);
     private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
     private static final long MAX_PROFILE_IMAGE_SIZE = 2L * 1024L * 1024L;
 
@@ -213,6 +215,8 @@ public class ExampleRepository {
         em.flush();
 
         CollectionSocket.broadcast(dto.collectionId());
+        LOG.infof("event=example.created userId=%s collectionId=%s exampleId=%s type=%s",
+                userId, dto.collectionId(), example.getId(), dto.type());
 
         return Response.ok(example.getId()).build();
     }
@@ -224,6 +228,8 @@ public class ExampleRepository {
         }
 
         if (!example.getAdmin().getId().equals(userId) && !example.getCollection().getAdmin().getId().equals(userId)) {
+            LOG.warnf("event=example.delete.denied userId=%s exampleId=%s collectionId=%s",
+                    userId, exampleId, example.getCollection().getId());
             return Response.status(403)
                     .entity("Not allowed to delete this Example.")
                     .build();
@@ -254,9 +260,12 @@ public class ExampleRepository {
         if (example.getSolutionUrl() != null) {
             mediaStorageService.delete(example.getSolutionUrl());
         }
+        UUID collectionId = example.getCollection().getId();
         em.remove(example);
 
-        CollectionSocket.broadcast(example.getCollection().getId());
+        CollectionSocket.broadcast(collectionId);
+        LOG.infof("event=example.deleted userId=%s collectionId=%s exampleId=%s",
+                userId, collectionId, exampleId);
 
         return Response.ok().build();
     }
@@ -268,6 +277,8 @@ public class ExampleRepository {
         }
 
         if (!example.getAdmin().getId().equals(userId) && !example.getCollection().getAdmin().getId().equals(userId)) {
+            LOG.warnf("event=example.update.denied userId=%s exampleId=%s collectionId=%s",
+                    userId, exampleId, example.getCollection().getId());
             return Response.status(Response.Status.FORBIDDEN)
                     .entity("Not allowed to update this Example.")
                     .build();
@@ -323,6 +334,8 @@ public class ExampleRepository {
 
         em.merge(example);
         CollectionSocket.broadcast(example.getCollection().getId());
+        LOG.infof("event=example.updated userId=%s collectionId=%s exampleId=%s type=%s",
+                userId, example.getCollection().getId(), exampleId, dto.type());
         return Response.ok(example.getId()).build();
     }
 
@@ -333,6 +346,8 @@ public class ExampleRepository {
         }
 
         if (!example.getAdmin().getId().equals(userId) && !example.getCollection().getAdmin().getId().equals(userId)) {
+            LOG.warnf("event=example.move.denied userId=%s exampleId=%s collectionId=%s",
+                    userId, exampleId, example.getCollection().getId());
             return Response.status(Response.Status.FORBIDDEN)
                     .entity("Not allowed to move this Example.")
                     .build();
@@ -349,6 +364,8 @@ public class ExampleRepository {
         example.setFolder(folder);
         em.merge(example);
         CollectionSocket.broadcast(example.getCollection().getId());
+        LOG.infof("event=example.moved userId=%s collectionId=%s exampleId=%s folderId=%s",
+                userId, example.getCollection().getId(), exampleId, folderId);
         return Response.ok().build();
     }
 
@@ -383,6 +400,8 @@ public class ExampleRepository {
         }
 
         if (!example.getAdmin().getId().equals(userId) && !example.getCollection().getAdmin().getId().equals(userId)) {
+            LOG.warnf("event=example.image.upload.denied userId=%s exampleId=%s collectionId=%s",
+                    userId, exampleId, example.getCollection().getId());
             return Response.status(Response.Status.FORBIDDEN)
                     .entity("Not allowed to upload image for this Example.")
                     .build();
@@ -422,8 +441,12 @@ public class ExampleRepository {
 
             em.merge(example);
             CollectionSocket.broadcast(example.getCollection().getId());
+            LOG.infof("event=example.image.uploaded userId=%s collectionId=%s exampleId=%s solution=%s",
+                    userId, example.getCollection().getId(), exampleId, isSolution);
             return Response.ok(objectKey).build();
         } catch (IOException e) {
+            LOG.errorf(e, "event=example.image.upload.failed userId=%s exampleId=%s solution=%s",
+                    userId, exampleId, isSolution);
             return Response.serverError().entity("Failed to upload image.").build();
         }
     }
@@ -452,6 +475,8 @@ public class ExampleRepository {
 
         em.merge(example);
         CollectionSocket.broadcast(example.getCollection().getId());
+        LOG.infof("event=example.image.deleted userId=%s collectionId=%s exampleId=%s solution=%s",
+                userId, example.getCollection().getId(), exampleId, isSolution);
         return Response.ok().build();
     }
 

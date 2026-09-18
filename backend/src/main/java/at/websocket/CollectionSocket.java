@@ -14,10 +14,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import org.jboss.logging.Logger;
 
 @ApplicationScoped
 @ServerEndpoint("/socket/collection/{collectionId}")
 public class CollectionSocket {
+    private static final Logger LOG = Logger.getLogger(CollectionSocket.class);
 
     private static final Map<UUID, Set<Session>> sessionsByCollection = new ConcurrentHashMap<>();
 
@@ -28,6 +30,7 @@ public class CollectionSocket {
         try {
             collectionId = UUID.fromString(rawCollectionId);
         } catch (IllegalArgumentException e) {
+            LOG.warnf("event=socket.collection.invalid-id sessionId=%s", session.getId());
             session.close(new CloseReason(
                     CloseReason.CloseCodes.VIOLATED_POLICY,
                     "Invalid collectionId"
@@ -40,20 +43,29 @@ public class CollectionSocket {
         sessionsByCollection
                 .computeIfAbsent(collectionId, ignored -> ConcurrentHashMap.newKeySet())
                 .add(session);
+
+        LOG.debugf("event=socket.collection.open collectionId=%s sessionId=%s active=%d",
+                collectionId, session.getId(), sessionsByCollection.get(collectionId).size());
     }
 
     @OnClose
     public void onClose(Session session) {
+        LOG.debugf("event=socket.collection.close sessionId=%s", session.getId());
         removeSession(session);
     }
 
     @OnError
     public void onError(Session session, Throwable throwable) {
+        String sessionId = session != null ? session.getId() : "unknown";
         if (throwable != null) {
-            throwable.printStackTrace();
+            LOG.errorf(throwable, "event=socket.collection.error sessionId=%s", sessionId);
+        } else {
+            LOG.warnf("event=socket.collection.error sessionId=%s error=unknown", sessionId);
         }
 
-        removeSession(session);
+        if (session != null) {
+            removeSession(session);
+        }
     }
 
     public static void broadcast(UUID collectionId) {

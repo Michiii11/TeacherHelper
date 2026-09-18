@@ -13,10 +13,24 @@
   <div class="preview-dialog">
     @if (showHeader) {
       <div class="preview-header">
-        <h1>{{ "createTest.preview.previewTitle" | translate }}</h1>
+        <div class="preview-header-copy">
+          <span class="preview-eyebrow">{{ "collection.example" | translate }}</span>
+          <h1>{{ "createTest.preview.previewTitle" | translate }}</h1>
+        </div>
+
+        <button
+          type="button"
+          class="preview-close-button"
+          (click)="close()"
+          [attr.aria-label]="'common.close' | translate"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
       </div>
     }
 
-    <div [innerHTML]="previewHtml"></div>
+    <div class="preview-content-scroll">
+      <div [innerHTML]="previewHtml"></div>
+    </div>
   </div>
 }

@@ -27,10 +27,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.security.SecureRandom;
+import org.jboss.logging.Logger;
 
 @ApplicationScoped
 @Transactional
 public class UserRepository {
+    private static final Logger LOG = Logger.getLogger(UserRepository.class);
     private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
     private static final long MAX_PROFILE_IMAGE_SIZE = 2L * 1024L * 1024L;
     private static final Set<String> SUPPORTED_LANGUAGES = Set.of("de", "en");
@@ -61,6 +63,7 @@ public class UserRepository {
         }
 
         String auth0Id = user.getAuth0Id();
+        LOG.infof("event=user.delete.started userId=%s", userId);
 
         List<Collection> collections = em.createQuery(
                 "SELECT s FROM Collection s WHERE s.admin.id = :userId",
@@ -98,6 +101,7 @@ public class UserRepository {
 
         auth0ManagementService.deleteUser(auth0Id);
 
+        LOG.infof("event=user.deleted userId=%s", userId);
         return Response.ok().build();
     }
 
@@ -118,6 +122,7 @@ public class UserRepository {
 
         user.setUsername(normalized);
         em.merge(user);
+        LOG.infof("event=user.username.updated userId=%s", userId);
         return Response.ok().build();
     }
 
@@ -171,9 +176,11 @@ public class UserRepository {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Failed to update user profile with the new image.").build();
             }
 
+            LOG.infof("event=user.profile-image.uploaded userId=%s", userId);
             return Response.ok(objectKey).build();
         } catch (IOException e) {
-            return Response.serverError().entity(e.getMessage()).build();
+            LOG.errorf(e, "event=user.profile-image.upload.failed userId=%s", userId);
+            return Response.serverError().entity("Profile image upload failed.").build();
         }
     }
 
@@ -201,6 +208,7 @@ public class UserRepository {
         mediaStorageService.delete(user.getProfileImageUrl());
         updateProfileImageUrl(userId, null);
 
+        LOG.infof("event=user.profile-image.deleted userId=%s", userId);
         return Response.ok().build();
     }
 
@@ -444,7 +452,9 @@ public class UserRepository {
         if (existingByEmail != null) {
             existingByEmail.setAuth0Id(auth0Id);
             existingByEmail.newActivity();
-            return em.merge(existingByEmail);
+            User linkedUser = em.merge(existingByEmail);
+            LOG.infof("event=user.auth-linked userId=%s", linkedUser.getId());
+            return linkedUser;
         }
 
         String emailPrefix = email.contains("@")
@@ -462,6 +472,7 @@ public class UserRepository {
         em.persist(user);
         em.flush();
 
+        LOG.infof("event=user.created userId=%s", user.getId());
         return user;
     }
 

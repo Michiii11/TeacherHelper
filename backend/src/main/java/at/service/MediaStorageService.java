@@ -12,9 +12,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.UUID;
+import org.jboss.logging.Logger;
 
 @ApplicationScoped
 public class MediaStorageService {
+    private static final Logger LOG = Logger.getLogger(MediaStorageService.class);
 
     private static final String IMAGE_CONTENT_TYPE = "image/jpeg";
     private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream";
@@ -64,6 +66,7 @@ public class MediaStorageService {
 
         storage.create(blobInfo, imageData);
 
+        LOG.debugf("event=media.uploaded object=%s bytes=%d", objectName, imageData.length);
         return objectName;
     }
 
@@ -87,6 +90,7 @@ public class MediaStorageService {
         Blob blob = storage.get(bucketName, objectName);
 
         if (blob == null || !blob.exists()) {
+            LOG.debugf("event=media.not-found object=%s", objectName);
             return null;
         }
 
@@ -104,7 +108,12 @@ public class MediaStorageService {
             return;
         }
 
-        storage.delete(bucketName, objectName);
+        boolean deleted = storage.delete(bucketName, objectName);
+        if (deleted) {
+            LOG.debugf("event=media.deleted object=%s", objectName);
+        } else {
+            LOG.warnf("event=media.delete.missing object=%s", objectName);
+        }
     }
 
     private enum ExampleImageVariant {

@@ -10,9 +10,22 @@
   <main class="test-preview-shell">
     <mat-dialog-content class="test-preview-layout">
       <div class="preview-toolbar no-print">
-        <div class="preview-toolbar-text">
-          <h1>{{ test.name || (labels.previewTitle || 'Test preview') }}</h1>
-          <p>{{ labels.previewSubtitle }}</p>
+        <div class="preview-toolbar-heading">
+          <div class="preview-toolbar-text">
+            <span class="preview-eyebrow">{{ 'collection.test' | translate }}</span>
+            <h1>{{ test.name || (labels.previewTitle || 'Test preview') }}</h1>
+            <p>{{ labels.previewSubtitle }}</p>
+          </div>
+
+          <button
+            mat-icon-button
+            type="button"
+            class="preview-close-btn"
+            (click)="close()"
+            [attr.aria-label]="'common.close' | translate"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
         </div>
 
         <div class="preview-toolbar-actions">

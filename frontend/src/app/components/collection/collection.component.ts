@@ -2216,11 +2216,19 @@ export class CollectionComponent implements OnInit, OnDestroy {
     const isMobile = window.innerWidth <= 768;
 
     this.dialog.open(ExamplePreviewComponent, {
-      width: isMobile ? '100vw' : '40vw',
+      width: isMobile ? '100dvw' : 'min(720px, 92vw)',
+      minWidth: isMobile ? '100dvw' : undefined,
+      maxWidth: isMobile ? '100dvw' : '92vw',
+      height: isMobile ? '100dvh' : undefined,
       minHeight: isMobile ? '100dvh' : '40vh',
-      maxHeight: isMobile ? '100dvh' : '70vh',
-      panelClass: isMobile ? 'mobile-fullscreen-dialog' : undefined,
-      data: { schoolId: this.schoolId, exampleId: example.id }
+      maxHeight: isMobile ? '100dvh' : '82vh',
+      position: isMobile ? { top: '0', left: '0' } : undefined,
+      panelClass: isMobile
+        ? ['example-preview-dialog', 'mobile-fullscreen-dialog']
+        : 'example-preview-dialog',
+      data: { schoolId: this.schoolId, exampleId: example.id },
+      autoFocus: false,
+      restoreFocus: false
     }).afterClosed().subscribe(() => {
       this.loadExamples();
     });
@@ -2318,13 +2326,22 @@ export class CollectionComponent implements OnInit, OnDestroy {
   }
 
   openTest(test: TestOverviewDTO): void {
+    const isMobile = window.innerWidth <= 768;
+
     this.dialog.open(TestPreviewComponent, {
-      width: 'min(80vw, 950px)',
-      maxWidth: '80vw',
-      height: '92vh',
-      maxHeight: '92vh',
-      panelClass: 'test-preview-dialog',
-      data: this.buildSchoolDialogData({ testId: test.id })
+      width: isMobile ? '100dvw' : 'min(92vw, 1100px)',
+      minWidth: isMobile ? '100dvw' : undefined,
+      maxWidth: isMobile ? '100dvw' : '1100px',
+      height: isMobile ? '100dvh' : '92dvh',
+      minHeight: isMobile ? '100dvh' : undefined,
+      maxHeight: isMobile ? '100dvh' : '92dvh',
+      position: isMobile ? { top: '0', left: '0' } : undefined,
+      panelClass: isMobile
+        ? ['test-preview-dialog', 'mobile-fullscreen-dialog']
+        : 'test-preview-dialog',
+      data: this.buildSchoolDialogData({ testId: test.id }),
+      autoFocus: false,
+      restoreFocus: false
     }).afterClosed().subscribe(() => {
       this.loadTests();
     });

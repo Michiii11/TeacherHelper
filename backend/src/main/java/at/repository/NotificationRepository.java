@@ -17,10 +17,12 @@ import jakarta.ws.rs.core.Response;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import org.jboss.logging.Logger;
 
 @ApplicationScoped
 @Transactional
 public class NotificationRepository {
+    private static final Logger LOG = Logger.getLogger(NotificationRepository.class);
 
     @Inject
     EntityManager em;
@@ -39,6 +41,8 @@ public class NotificationRepository {
 
         if (recipient != null && recipient.getId() != null) {
             NotificationSocket.notifyUser(recipient.getId());
+            LOG.debugf("event=notification.created recipientId=%s notificationId=%s type=%s",
+                    recipient.getId(), notification.getId(), type);
         }
 
         return notification;
@@ -69,6 +73,7 @@ public class NotificationRepository {
         }
 
         if (!notification.getRecipient().getId().equals(userId)) {
+            LOG.warnf("event=notification.modify.denied userId=%s notificationId=%s", userId, id);
             return Response.status(Response.Status.FORBIDDEN).entity("You are not allowed to modify this notification").build();
         }
 
@@ -87,6 +92,7 @@ public class NotificationRepository {
         }
 
         if (!notification.getRecipient().getId().equals(userId)) {
+            LOG.warnf("event=notification.delete.denied userId=%s notificationId=%s", userId, id);
             return Response.status(Response.Status.FORBIDDEN).entity("You are not allowed to delete this notification").build();
         }
 
@@ -104,6 +110,8 @@ public class NotificationRepository {
         }
 
         if (!notification.getRecipient().getId().equals(userId)) {
+            LOG.warnf("event=notification.action.denied userId=%s notificationId=%s action=%s",
+                    userId, notificationId, action);
             return Response.status(Response.Status.FORBIDDEN).entity("You are not allowed to modify this notification").build();
         }
 
@@ -169,6 +177,8 @@ public class NotificationRepository {
         }
 
         if (!sender.isAdmin()) {
+            LOG.warnf("event=notification.system-info.denied userId=%s collectionId=%s all=%s",
+                    senderId, collectionId, isForAll);
             return Response.status(Response.Status.FORBIDDEN)
                     .entity("Only developer accounts can send system infos")
                     .build();
@@ -217,6 +227,8 @@ public class NotificationRepository {
             sentCount++;
         }
 
+        LOG.infof("event=notification.system-info.sent userId=%s collectionId=%s all=%s recipients=%d",
+                senderId, collectionId, isForAll, sentCount);
         return Response.ok("System-Info sent to " + sentCount + " user(s)").build();
     }
 }

@@ -18,9 +18,11 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import java.util.Map;
 import java.util.UUID;
+import org.jboss.logging.Logger;
 
 @Path("user")
 public class UserResource {
+    private static final Logger LOG = Logger.getLogger(UserResource.class);
 
     @Inject
     UserRepository repository;
@@ -103,6 +105,7 @@ public class UserResource {
     public Response getAdminDashboard() {
         User user = currentUser();
         if (!user.isAdmin()) {
+            LOG.warnf("event=admin.dashboard.denied userId=%s", user.getId());
             return Response.status(Response.Status.FORBIDDEN).entity("Access denied: Admins only").build();
         }
         return repository.getAdminDashboard();
@@ -113,6 +116,7 @@ public class UserResource {
     public Response getUserAdminDashboard(@PathParam("id") UUID id) {
         User user = currentUser();
         if (!user.isAdmin()) {
+            LOG.warnf("event=admin.user-dashboard.denied userId=%s targetUserId=%s", user.getId(), id);
             return Response.status(Response.Status.FORBIDDEN).entity("Access denied: Admins only").build();
         }
         return repository.getUserAdminDashboard(id);
