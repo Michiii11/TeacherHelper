@@ -22,6 +22,7 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -37,6 +38,7 @@ public class UserRepository {
     private static final long MAX_PROFILE_IMAGE_SIZE = 2L * 1024L * 1024L;
     private static final Set<String> SUPPORTED_LANGUAGES = Set.of("de", "en");
     private static final SecureRandom CODE_RANDOM = new SecureRandom();
+    private static final Duration ACTIVITY_WRITE_INTERVAL = Duration.ofMinutes(5);
 
     @Inject
     EntityManager em;
@@ -427,12 +429,28 @@ public class UserRepository {
 
         String auth0Id = jwt.getSubject();
 
-        lockAuth0UserCreation(auth0Id);
-
+        /*
+         * Fast path for normal requests:
+         * - no PostgreSQL advisory lock
+         * - no UPDATE of lastActivity on every single API call
+         */
         User existingByAuth0Id = findByAuth0Id(auth0Id);
         if (existingByAuth0Id != null) {
-            existingByAuth0Id.newActivity();
-            return em.merge(existingByAuth0Id);
+            touchActivityIfNeeded(existingByAuth0Id);
+            return existingByAuth0Id;
+        }
+
+        /*
+         * The advisory lock is only needed while linking/creating a user.
+         * Re-check after acquiring it because another request may have created
+         * the user while this request was waiting.
+         */
+        lockAuth0UserCreation(auth0Id);
+
+        existingByAuth0Id = findByAuth0Id(auth0Id);
+        if (existingByAuth0Id != null) {
+            touchActivityIfNeeded(existingByAuth0Id);
+            return existingByAuth0Id;
         }
 
         String email = normalizeEmail(readStringClaim(
@@ -474,6 +492,15 @@ public class UserRepository {
 
         LOG.infof("event=user.created userId=%s", user.getId());
         return user;
+    }
+
+    private void touchActivityIfNeeded(User user) {
+        LocalDateTime lastActivity = user.getLastActivityAt();
+        LocalDateTime updateBefore = AppTime.now().minus(ACTIVITY_WRITE_INTERVAL);
+
+        if (lastActivity == null || lastActivity.isBefore(updateBefore)) {
+            user.newActivity();
+        }
     }
 
     private void lockAuth0UserCreation(String auth0Id) {

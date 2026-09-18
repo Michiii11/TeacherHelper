@@ -26,10 +26,13 @@ import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.jboss.logging.Logger;
 
 @ApplicationScoped
@@ -49,113 +52,190 @@ public class CollectionRepository {
     MediaStorageService mediaStorageService;
 
     public Response getYourCollections(UUID userId) {
-        User user = em.find(User.class, userId);
-
-        if (user == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("User not found").build();
-        }
-
+        /*
+         * One collection query plus a fixed number of batch queries.
+         * This replaces the previous per-collection Example/Test/Folder queries
+         * and avoids the N+1 behaviour as the number of collections grows.
+         */
         List<Collection> collections = em.createQuery(
                         """
                         SELECT DISTINCT c
                         FROM Collection c
                         LEFT JOIN FETCH c.admin
+                        LEFT JOIN c.users member
                         WHERE c.admin.id = :userId
-                           OR :user MEMBER OF c.users
+                           OR member.id = :userId
                         ORDER BY c.name
                         """, Collection.class)
                 .setParameter("userId", userId)
-                .setParameter("user", user)
                 .getResultList();
 
-        return Response.ok(collections.stream()
-                .map(this::toCollectionDTOWithCounts)
-                .toList()).build();
+        if (collections.isEmpty()) {
+            return Response.ok(List.of()).build();
+        }
+
+        List<UUID> collectionIds = collections.stream()
+                .map(Collection::getId)
+                .toList();
+
+        /*
+         * Initialize users and focus lists in two batch queries instead of
+         * triggering lazy-load queries once per collection while mapping DTOs.
+         * They are intentionally fetched separately to avoid multiple-bag fetches.
+         */
+        em.createQuery(
+                        """
+                        SELECT DISTINCT c
+                        FROM Collection c
+                        LEFT JOIN FETCH c.users
+                        WHERE c.id IN :collectionIds
+                        """, Collection.class)
+                .setParameter("collectionIds", collectionIds)
+                .getResultList();
+
+        em.createQuery(
+                        """
+                        SELECT DISTINCT c
+                        FROM Collection c
+                        LEFT JOIN FETCH c.focusList
+                        WHERE c.id IN :collectionIds
+                        """, Collection.class)
+                .setParameter("collectionIds", collectionIds)
+                .getResultList();
+
+        Map<UUID, List<ExampleOverviewDTO>> examplesByCollection =
+                loadExampleOverviews(collectionIds);
+        Map<UUID, List<TestOverviewDTO>> testsByCollection =
+                loadTestOverviews(collectionIds);
+        Map<UUID, List<FolderDTO>> foldersByCollection =
+                loadFolderDtos(collectionIds);
+
+        List<CollectionDTO> result = collections.stream()
+                .map(collection -> toCollectionDTOWithCounts(
+                        collection,
+                        examplesByCollection.getOrDefault(collection.getId(), List.of()),
+                        testsByCollection.getOrDefault(collection.getId(), List.of()),
+                        foldersByCollection.getOrDefault(collection.getId(), List.of())
+                ))
+                .toList();
+
+        return Response.ok(result).build();
     }
 
-
-    private CollectionDTO toCollectionDTOWithCounts(Collection collection) {
-        List<ExampleOverviewDTO> examples = em.createQuery(
+    private Map<UUID, List<ExampleOverviewDTO>> loadExampleOverviews(List<UUID> collectionIds) {
+        List<Example> examples = em.createQuery(
                         """
                         SELECT DISTINCT e
                         FROM Example e
                         LEFT JOIN FETCH e.focusList
                         LEFT JOIN FETCH e.admin
                         LEFT JOIN FETCH e.folder
-                        WHERE e.collection.id = :collectionId
-                        ORDER BY e.createdAt DESC
+                        WHERE e.collection.id IN :collectionIds
+                        ORDER BY e.collection.id, e.createdAt DESC
                         """,
                         Example.class
                 )
-                .setParameter("collectionId", collection.getId())
-                .getResultList()
-                .stream()
-                .map(e -> new ExampleOverviewDTO(
-                        e.getId(),
-                        e.getType(),
-                        e.getInstruction(),
-                        e.getQuestion(),
-                        e.getAdmin() != null ? e.getAdmin().getUsername() : null,
-                        e.getAdmin() != null ? e.getAdmin().getId() : null,
-                        e.getFocusList() != null
-                                ? new java.util.LinkedList<>(e.getFocusList())
-                                : List.of(),
-                        e.getFolder() != null ? e.getFolder().getId() : null,
-                        e.getCreatedAt(),
-                        e.getUpdatedAt()
-                ))
-                .toList();
+                .setParameter("collectionIds", collectionIds)
+                .getResultList();
 
-        List<TestOverviewDTO> tests = em.createQuery(
+        return examples.stream()
+                .collect(Collectors.groupingBy(
+                        e -> e.getCollection().getId(),
+                        LinkedHashMap::new,
+                        Collectors.mapping(
+                                e -> new ExampleOverviewDTO(
+                                        e.getId(),
+                                        e.getType(),
+                                        e.getInstruction(),
+                                        e.getQuestion(),
+                                        e.getAdmin() != null ? e.getAdmin().getUsername() : null,
+                                        e.getAdmin() != null ? e.getAdmin().getId() : null,
+                                        e.getFocusList() != null
+                                                ? new java.util.LinkedList<>(e.getFocusList())
+                                                : List.of(),
+                                        e.getFolder() != null ? e.getFolder().getId() : null,
+                                        e.getCreatedAt(),
+                                        e.getUpdatedAt()
+                                ),
+                                Collectors.toList()
+                        )
+                ));
+    }
+
+    private Map<UUID, List<TestOverviewDTO>> loadTestOverviews(List<UUID> collectionIds) {
+        List<Object[]> rows = em.createQuery(
                         """
-                        SELECT DISTINCT t
+                        SELECT t.collection.id,
+                               new at.dtos.Test.TestOverviewDTO(
+                                   t.id,
+                                   t.name,
+                                   SIZE(t.exampleList),
+                                   t.duration,
+                                   admin.username,
+                                   admin.id,
+                                   t.createdAt,
+                                   t.updatedAt,
+                                   folder.id
+                               )
                         FROM Test t
-                        LEFT JOIN FETCH t.admin
-                        LEFT JOIN FETCH t.folder
-                        WHERE t.collection.id = :collectionId
-                        ORDER BY t.createdAt DESC
+                        LEFT JOIN t.admin admin
+                        LEFT JOIN t.folder folder
+                        WHERE t.collection.id IN :collectionIds
+                        ORDER BY t.collection.id, t.createdAt DESC
                         """,
-                        Test.class
+                        Object[].class
                 )
-                .setParameter("collectionId", collection.getId())
-                .getResultList()
-                .stream()
-                .map(t -> new TestOverviewDTO(
-                        t.getId(),
-                        t.getName(),
-                        t.getExampleList() != null ? t.getExampleList().size() : 0,
-                        t.getDuration(),
-                        t.getAdmin() != null ? t.getAdmin().getUsername() : null,
-                        t.getAdmin() != null ? t.getAdmin().getId() : null,
-                        t.getCreatedAt(),
-                        t.getUpdatedAt(),
-                        t.getFolder() != null ? t.getFolder().getId() : null
-                ))
-                .toList();
+                .setParameter("collectionIds", collectionIds)
+                .getResultList();
 
-        List<FolderDTO> folders = em.createQuery(
+        Map<UUID, List<TestOverviewDTO>> result = new LinkedHashMap<>();
+        for (Object[] row : rows) {
+            UUID collectionId = (UUID) row[0];
+            TestOverviewDTO dto = (TestOverviewDTO) row[1];
+            result.computeIfAbsent(collectionId, ignored -> new ArrayList<>()).add(dto);
+        }
+
+        return result;
+    }
+
+    private Map<UUID, List<FolderDTO>> loadFolderDtos(List<UUID> collectionIds) {
+        List<Folder> folders = em.createQuery(
                         """
                         SELECT DISTINCT f
                         FROM Folder f
                         LEFT JOIN FETCH f.parent
-                        WHERE f.collection.id = :collectionId
-                        ORDER BY f.createdAt DESC
+                        WHERE f.collection.id IN :collectionIds
+                        ORDER BY f.collection.id, f.createdAt DESC
                         """,
                         Folder.class
                 )
-                .setParameter("collectionId", collection.getId())
-                .getResultList()
-                .stream()
-                .map(f -> new FolderDTO(
-                        f.getId(),
-                        f.getName(),
-                        f.getCollection().getId(),
-                        f.getParent() != null ? f.getParent().getId() : null,
-                        f.getCreatedAt(),
-                        f.getUpdatedAt()
-                ))
-                .toList();
+                .setParameter("collectionIds", collectionIds)
+                .getResultList();
 
+        return folders.stream()
+                .collect(Collectors.groupingBy(
+                        f -> f.getCollection().getId(),
+                        LinkedHashMap::new,
+                        Collectors.mapping(
+                                f -> new FolderDTO(
+                                        f.getId(),
+                                        f.getName(),
+                                        f.getCollection().getId(),
+                                        f.getParent() != null ? f.getParent().getId() : null,
+                                        f.getCreatedAt(),
+                                        f.getUpdatedAt()
+                                ),
+                                Collectors.toList()
+                        )
+                ));
+    }
+
+    private CollectionDTO toCollectionDTOWithCounts(
+            Collection collection,
+            List<ExampleOverviewDTO> examples,
+            List<TestOverviewDTO> tests,
+            List<FolderDTO> folders
+    ) {
         return new CollectionDTO(
                 collection.getId(),
                 collection.getName(),
