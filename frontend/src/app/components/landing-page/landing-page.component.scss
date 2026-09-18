@@ -425,9 +425,9 @@
     radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--primary-surface) 30%, transparent), transparent 24rem),
     radial-gradient(circle at 88% 14%, color-mix(in srgb, var(--primary) 5%, transparent), transparent 28rem),
     linear-gradient(180deg,
-      var(--surface-solid) 0%,
-      color-mix(in srgb, var(--primary-surface) 6%, var(--surface-solid)) 42%,
-      var(--surface-solid) 100%);
+    var(--surface-solid) 0%,
+    color-mix(in srgb, var(--primary-surface) 6%, var(--surface-solid)) 42%,
+    var(--surface-solid) 100%);
 }
 
 .features-section::after {
@@ -872,83 +872,548 @@
 }
 
 @media (max-width: 640px) {
-  .landing-shell,
-  .landing-topbar {
-    width: min(100% - 1.5rem, 1180px);
+  .landing-page {
+    overflow-x: hidden;
   }
 
+  .landing-shell,
   .landing-topbar {
-    border-radius: 22px;
+    width: calc(100% - 1.5rem);
+  }
+
+  /* Topbar */
+  .landing-topbar {
+    top: 0.65rem;
+    gap: 0.65rem;
+    padding: 0.6rem 0.65rem 0.6rem 0.8rem;
+    border-radius: 18px;
   }
 
   .brand {
-    width: 145px;
+    width: min(132px, 42vw);
   }
 
-  .topbar-button mat-icon,
-  .main-button mat-icon {
+  .topbar-button {
+    min-width: 0 !important;
+    min-height: 38px !important;
+    padding-inline: 0.85rem !important;
+    font-size: 0.82rem !important;
+  }
+
+  .topbar-button mat-icon {
     display: none;
   }
 
+  /* Hero */
+  .hero-section {
+    padding: 1.25rem 0 3.6rem;
+    background:
+      radial-gradient(circle at 88% 8%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 15rem),
+      radial-gradient(circle at 8% 20%, color-mix(in srgb, var(--primary-2) 10%, transparent), transparent 14rem),
+      linear-gradient(155deg, var(--surface-soft) 0%, var(--bg) 58%, color-mix(in srgb, var(--primary-surface) 20%, var(--bg)) 100%);
+  }
+
+  .hero-section::before {
+    height: 92px;
+    clip-path: ellipse(80% 58% at 50% 100%);
+  }
+
+  .hero-section::after {
+    opacity: 0.2;
+    background-size: 120px 120px, 36px 36px;
+  }
+
   .hero {
-    padding-top: 3rem;
+    gap: 2rem;
+    padding-top: 2.4rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .hero-copy {
+    text-align: left;
+  }
+
+  .eyebrow {
+    margin-bottom: 0.65rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.13em;
   }
 
   .hero h1 {
-    font-size: clamp(3rem, 16vw, 4.25rem);
+    max-width: 10ch;
+    font-size: clamp(2.75rem, 14.5vw, 4rem);
+    line-height: 0.94;
+    letter-spacing: -0.048em;
   }
 
-  .hero-actions,
-  .feature-grid,
-  .benefit-list,
-  .stats-row {
-    grid-template-columns: 1fr;
+  .hero-text {
+    margin-top: 1rem;
+    font-size: 0.98rem;
+    line-height: 1.58;
   }
 
   .hero-actions {
     display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+    margin-top: 1.35rem;
   }
 
   .main-button {
     width: 100%;
+    min-height: 46px !important;
+    padding-inline: 1rem !important;
   }
 
-  .screenshot-card,
-  .cta-card {
-    border-radius: 24px;
+  .main-button mat-icon {
+    display: inline-block;
   }
 
+  .hero-visual {
+    width: 100%;
+  }
+
+  .visual-orbit {
+    display: none;
+  }
+
+  .screenshot-card {
+    transform: none;
+    border-radius: 18px;
+  }
+
+  .screenshot-card::before {
+    width: 180px;
+    height: 180px;
+  }
+
+  .screenshot-card-head {
+    min-height: 42px;
+    padding-inline: 0.8rem;
+    font-size: 0.72rem;
+  }
+
+  .screenshot-card-head::before {
+    width: 42px;
+    height: 10px;
+    background:
+      radial-gradient(circle at 5px 5px, var(--border-strong) 0 4px, transparent 4.5px),
+      radial-gradient(circle at 21px 5px, var(--primary-surface) 0 4px, transparent 4.5px),
+      radial-gradient(circle at 37px 5px, var(--primary) 0 4px, transparent 4.5px);
+  }
+
+  .screenshot-image {
+    max-height: none;
+    padding: 0.35rem;
+  }
+
+  /* Shared section headings */
   .section-head,
   .feature-intro {
+    max-width: none;
+    margin-inline: 0;
+    text-align: left;
+  }
+
+  .section-head {
+    margin-bottom: 1.45rem;
+  }
+
+  .section-head h2,
+  .feature-intro h2,
+  .benefits-copy h2,
+  .cta-card h2 {
+    font-size: clamp(2rem, 10vw, 2.75rem);
+    line-height: 1.03;
+    letter-spacing: -0.045em;
+  }
+
+  .section-head.compact p:last-child,
+  .feature-intro p,
+  .benefits-copy > p,
+  .cta-card p {
+    margin-top: 0.75rem;
+    line-height: 1.55;
+  }
+
+  /* Workflow: compact mobile steps instead of large centered blocks */
+  .workflow-section {
+    padding: 3.1rem 0;
+  }
+
+  .workflow-section::before {
+    display: none;
+  }
+
+  .workflow-section::after {
+    height: 62px;
+    opacity: 0.6;
+  }
+
+  .workflow-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+    max-width: none;
+  }
+
+  .workflow-item {
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr);
+    column-gap: 0.8rem;
+    row-gap: 0.15rem;
+    align-items: center;
+    padding: 0.9rem;
+    border: 1px solid var(--border-soft-2);
+    border-radius: 17px;
+    background: color-mix(in srgb, var(--surface-soft) 88%, var(--surface-solid));
+    text-align: left;
+  }
+
+  .workflow-item:not(:last-child)::after {
+    display: none;
+  }
+
+  .workflow-icon {
+    grid-row: 1 / span 2;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+  }
+
+  .workflow-icon mat-icon {
+    width: 23px;
+    height: 23px;
+    font-size: 23px;
+  }
+
+  .workflow-item h3 {
+    margin: 0;
+    font-size: 0.98rem;
+  }
+
+  .workflow-item p {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+
+  /* Features */
+  .features-section {
+    padding: 4.2rem 0 3.8rem;
+  }
+
+  .features-section::after {
+    height: 90px;
+  }
+
+  .feature-layout {
+    gap: 1.6rem;
+    padding-top: 0.5rem;
+  }
+
+  .feature-grid {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+
+  .feature-card {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    column-gap: 0.8rem;
+    row-gap: 0.18rem;
+    min-height: 0;
+    padding: 0.95rem;
+    border-radius: 17px;
+  }
+
+  .feature-card:hover {
+    transform: none;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .feature-icon {
+    grid-row: 1 / span 2;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+  }
+
+  .feature-icon mat-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 24px;
+  }
+
+  .feature-card h3 {
+    align-self: end;
+    margin: 0;
+    font-size: 0.98rem;
+  }
+
+  .feature-card p {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+
+  /* Benefits */
+  .benefits-section {
+    padding: 4.2rem 0;
+  }
+
+  .benefits-section::before,
+  .benefits-section::after {
+    height: 72px;
+  }
+
+  .benefits-layout {
+    gap: 2rem;
+  }
+
+  .benefits-copy {
+    order: 1;
     text-align: left;
   }
 
   .benefits-art {
-    min-height: 270px;
+    order: 2;
+    min-height: 245px;
+  }
+
+  .benefit-list {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+    margin-top: 1.2rem;
+  }
+
+  .benefit-item {
+    gap: 0.55rem;
+    font-size: 0.92rem;
+  }
+
+  .benefit-item mat-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
   }
 
   .art-card-main {
     left: 0;
-    width: 82%;
-    padding: 1.35rem;
+    top: 14%;
+    width: 84%;
+    padding: 1.2rem;
+    border-radius: 20px;
+    transform: rotate(-2deg);
+  }
+
+  .art-card-main mat-icon {
+    width: 46px;
+    height: 46px;
+    font-size: 46px;
+  }
+
+  .art-card-main strong {
+    font-size: 1.08rem;
+  }
+
+  .art-card-main span {
+    font-size: 0.9rem;
+    line-height: 1.5;
   }
 
   .art-card-small {
-    width: 76px;
-    height: 76px;
+    width: 62px;
+    height: 62px;
+    border-radius: 18px;
+  }
+
+  .art-card-small mat-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 30px;
+  }
+
+  .art-card-small.one {
+    top: 0;
+    right: 2%;
+  }
+
+  .art-card-small.two {
+    right: 0;
+    bottom: 7%;
+  }
+
+  /* Pricing */
+  .pricing-section {
+    padding: 3.6rem 0 4rem;
+  }
+
+  .pricing-section::before {
+    width: 55vw;
+    opacity: 0.55;
+  }
+
+  .plan-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    max-width: none;
+  }
+
+  .plan-card,
+  .plan-card.highlight,
+  .plan-card.highlight:hover,
+  .plan-card.highlight:focus-visible {
+    transform: none;
+  }
+
+  .plan-card {
+    gap: 0.85rem;
+    padding: 1.05rem;
+    border-radius: 19px;
+  }
+
+  .plan-card:hover {
+    transform: none;
+  }
+
+  .plan-badge {
+    position: static;
+    width: fit-content;
+    margin-bottom: -0.15rem;
   }
 
   .plan-head {
     padding-right: 0;
   }
 
-  .plan-badge {
-    position: static;
-    width: fit-content;
+  .plan-head h3 {
+    margin-top: 0;
+    font-size: 1.12rem;
+  }
+
+  .plan-price {
+    margin-top: 0.5rem;
+    font-size: clamp(1.8rem, 9vw, 2.4rem);
+  }
+
+  .plan-head p {
+    min-height: 0;
+    margin-top: 0.45rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .plan-list {
+    gap: 0.6rem;
+  }
+
+  .plan-item {
+    align-items: flex-start;
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .plan-action {
+    width: 100%;
+    min-height: 43px !important;
+    margin-top: 0.1rem;
+  }
+
+  /* Stats: two columns instead of one very tall list */
+  .stats-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin-top: 1.8rem;
+  }
+
+  .stat {
+    padding: 0.8rem 0.5rem;
+    border: 1px solid var(--border-soft-2);
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--surface-soft) 80%, transparent);
+  }
+
+  .stat strong {
+    font-size: 1.7rem;
+  }
+
+  .stat span {
+    font-size: 0.82rem;
+  }
+
+  /* CTA */
+  .cta-section {
+    padding: 3.4rem 0 3.8rem;
+  }
+
+  .cta-section::before {
+    height: 78px;
   }
 
   .cta-card {
     align-items: stretch;
     flex-direction: column;
+    gap: 1.25rem;
+    padding: 1.2rem;
+    border-radius: 20px;
+  }
+
+  .cta-card .main-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .landing-shell,
+  .landing-topbar {
+    width: calc(100% - 1rem);
+  }
+
+  .brand {
+    width: 118px;
+  }
+
+  .topbar-button {
+    padding-inline: 0.7rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  .hero {
+    padding-top: 2rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.45rem, 14vw, 3.2rem);
+  }
+
+  .hero-text {
+    font-size: 0.93rem;
+  }
+
+  .workflow-item,
+  .feature-card {
+    grid-template-columns: 42px minmax(0, 1fr);
+    column-gap: 0.7rem;
+    padding: 0.8rem;
+  }
+
+  .workflow-icon,
+  .feature-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+  }
+
+  .benefits-art {
+    min-height: 220px;
+  }
+
+  .art-card-main {
+    width: 86%;
+  }
+
+  .stats-row {
+    gap: 0.55rem;
   }
 }
