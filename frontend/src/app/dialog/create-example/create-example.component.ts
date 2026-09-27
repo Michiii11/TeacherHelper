@@ -34,6 +34,7 @@ import {
   ExampleVariable, ExampleDisplaySettings
 } from '../../model/Example';
 import { HttpService } from '../../service/http.service';
+import { ApiErrorMessageService } from '../../service/api-error-message.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatProgressBar } from '@angular/material/progress-bar';
@@ -124,6 +125,7 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   private readonly http = inject(HttpService);
+  private readonly apiErrorMessages = inject(ApiErrorMessageService);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly translate = inject(TranslateService);
 
@@ -1895,7 +1897,17 @@ export class CreateExampleComponent implements OnInit, OnDestroy {
       this.dialogRef.close(true);
     } catch (error) {
       console.error(error);
-      this.openTranslatedSnack('exampleDialog.snackbar.saveError', 'common.ok', 3500);
+
+      const message = this.apiErrorMessages.getMessage(
+        error,
+        this.t('exampleDialog.snackbar.saveError')
+      );
+
+      this.snackBar.open(
+        message,
+        this.t('common.ok'),
+        { duration: 4200 }
+      );
     } finally {
       this.isSaving = false;
     }

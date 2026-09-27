@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import {catchError, finalize, firstValueFrom, forkJoin, of, Subject, Subscription, takeUntil} from 'rxjs';
 
 import { HttpService } from '../../service/http.service';
+import { ApiErrorMessageService } from '../../service/api-error-message.service';
 import { CollectionDTO } from '../../model/Collection';
 import { ExampleOverviewDTO, ExampleTypeLabels, ExampleTypes, Focus } from '../../model/Example';
 import { CreateTestDTO, TestOverviewDTO } from '../../model/Test';
@@ -90,6 +91,7 @@ interface FolderNavNode extends ExplorerFolder {
 })
 export class CollectionComponent implements OnInit, OnDestroy {
   service = inject(HttpService);
+  apiErrorMessages = inject(ApiErrorMessageService);
   dialog = inject(MatDialog);
   translate = inject(TranslateService);
   snack = inject(MatSnackBar);
@@ -2192,21 +2194,14 @@ export class CollectionComponent implements OnInit, OnDestroy {
     const isMobile = window.innerWidth <= 768;
 
     this.dialog.open(CreateExampleComponent, {
-      width: isMobile ? '100dvw' : 'min(94vw, 1480px)',
-      minWidth: isMobile ? '100dvw' : undefined,
-      maxWidth: isMobile ? '100dvw' : '1480px',
-      height: isMobile ? '100dvh' : 'min(92dvh, 980px)',
-      minHeight: isMobile ? '100dvh' : undefined,
-      maxHeight: isMobile ? '100dvh' : '92dvh',
-      position: isMobile ? { top: '0', left: '0' } : undefined,
-      panelClass: isMobile
-        ? ['create-example-dialog-panel', 'mobile-fullscreen-dialog']
-        : 'create-example-dialog-panel',
+      width: isMobile ? '100vw' : 'min(96vw, 1400px)',
+      maxWidth: isMobile ? '100vw' : '70vw',
+      maxHeight: isMobile ? '100dvh' : '90vh',
+      panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-example-dialog-panel',
       data: this.buildSchoolDialogData({
         folderId: this.selectedFolderId
       }),
-      autoFocus: false,
-      restoreFocus: false
+      autoFocus: false
     }).afterClosed().subscribe(() => {
       this.loadExamples();
     });
@@ -2216,19 +2211,11 @@ export class CollectionComponent implements OnInit, OnDestroy {
     const isMobile = window.innerWidth <= 768;
 
     this.dialog.open(ExamplePreviewComponent, {
-      width: isMobile ? '100dvw' : 'min(720px, 92vw)',
-      minWidth: isMobile ? '100dvw' : undefined,
-      maxWidth: isMobile ? '100dvw' : '92vw',
-      height: isMobile ? '100dvh' : undefined,
+      width: isMobile ? '100vw' : '40vw',
       minHeight: isMobile ? '100dvh' : '40vh',
-      maxHeight: isMobile ? '100dvh' : '82vh',
-      position: isMobile ? { top: '0', left: '0' } : undefined,
-      panelClass: isMobile
-        ? ['example-preview-dialog', 'mobile-fullscreen-dialog']
-        : 'example-preview-dialog',
-      data: { schoolId: this.schoolId, exampleId: example.id },
-      autoFocus: false,
-      restoreFocus: false
+      maxHeight: isMobile ? '100dvh' : '70vh',
+      panelClass: isMobile ? 'mobile-fullscreen-dialog' : undefined,
+      data: { schoolId: this.schoolId, exampleId: example.id }
     }).afterClosed().subscribe(() => {
       this.loadExamples();
     });
@@ -2246,23 +2233,13 @@ export class CollectionComponent implements OnInit, OnDestroy {
     const isMobile = window.innerWidth <= 768;
 
     this.dialog.open(CreateExampleComponent, {
-      width: isMobile ? '100dvw' : 'min(94vw, 1480px)',
-      minWidth: isMobile ? '100dvw' : undefined,
-      maxWidth: isMobile ? '100dvw' : '1480px',
-      height: isMobile ? '100dvh' : 'min(92dvh, 980px)',
-      minHeight: isMobile ? '100dvh' : undefined,
-      maxHeight: isMobile ? '100dvh' : '92dvh',
-      position: isMobile ? { top: '0', left: '0' } : undefined,
-      panelClass: isMobile
-        ? ['create-example-dialog-panel', 'mobile-fullscreen-dialog']
-        : 'create-example-dialog-panel',
-      data: {
-        schoolId: this.schoolId,
-        exampleId: currentExample.id,
-        folderId: currentExample.folderId ?? null
-      },
-      autoFocus: false,
-      restoreFocus: false
+      width: isMobile ? '100vw' : 'min(96vw, 1400px)',
+      maxWidth: isMobile ? '100vw' : '70vw',
+      height: isMobile ? '100dvh' : '90vh',
+      maxHeight: isMobile ? '100dvh' : '90vh',
+      panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-example-dialog-panel',
+      data: { schoolId: this.schoolId, exampleId: currentExample.id, folderId: currentExample.folderId ?? null },
+      autoFocus: false
     }).afterClosed().subscribe(() => {
       this.loadExamples();
     });
@@ -2272,21 +2249,14 @@ export class CollectionComponent implements OnInit, OnDestroy {
     const isMobile = window.innerWidth <= 768;
 
     this.dialog.open(CreateTestComponent, {
-      width: isMobile ? '100dvw' : 'min(96vw, 1720px)',
-      minWidth: isMobile ? '100dvw' : undefined,
-      maxWidth: isMobile ? '100dvw' : '1720px',
-      height: isMobile ? '100dvh' : 'min(92dvh, 1040px)',
-      minHeight: isMobile ? '100dvh' : undefined,
-      maxHeight: isMobile ? '100dvh' : '92dvh',
-      position: isMobile ? { top: '0', left: '0' } : undefined,
-      panelClass: isMobile
-        ? ['create-test-dialog-panel', 'mobile-fullscreen-dialog']
-        : 'create-test-dialog-panel',
+      width: isMobile ? '100vw' : 'min(96vw, 1680px)',
+      maxWidth: isMobile ? '100vw' : '96vw',
+      height: isMobile ? '100dvh' : '90vh',
+      maxHeight: isMobile ? '100dvh' : '90vh',
+      panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-test-dialog-panel',
       data: this.buildSchoolDialogData({
         folderId: this.selectedFolderId
-      }),
-      autoFocus: false,
-      restoreFocus: false
+      })
     }).afterClosed().subscribe(() => {
       this.loadTests();
     });
@@ -2304,44 +2274,25 @@ export class CollectionComponent implements OnInit, OnDestroy {
     const isMobile = window.innerWidth <= 768;
 
     this.dialog.open(CreateTestComponent, {
-      width: isMobile ? '100dvw' : 'min(96vw, 1720px)',
-      minWidth: isMobile ? '100dvw' : undefined,
-      maxWidth: isMobile ? '100dvw' : '1720px',
-      height: isMobile ? '100dvh' : 'min(92dvh, 1040px)',
-      minHeight: isMobile ? '100dvh' : undefined,
-      maxHeight: isMobile ? '100dvh' : '92dvh',
-      position: isMobile ? { top: '0', left: '0' } : undefined,
-      panelClass: isMobile
-        ? ['create-test-dialog-panel', 'mobile-fullscreen-dialog']
-        : 'create-test-dialog-panel',
-      data: this.buildSchoolDialogData({
-        testId: currentTest.id,
-        folderId: currentTest.folderId ?? null
-      }),
-      autoFocus: false,
-      restoreFocus: false
+      width: isMobile ? '100vw' : 'min(96vw, 1680px)',
+      maxWidth: isMobile ? '100vw' : '96vw',
+      height: isMobile ? '100dvh' : '90vh',
+      maxHeight: isMobile ? '100dvh' : '90vh',
+      panelClass: isMobile ? 'mobile-fullscreen-dialog' : 'create-test-dialog-panel',
+      data: this.buildSchoolDialogData({ testId: currentTest.id, folderId: currentTest.folderId ?? null })
     }).afterClosed().subscribe(() => {
       this.loadTests();
     });
   }
 
   openTest(test: TestOverviewDTO): void {
-    const isMobile = window.innerWidth <= 768;
-
     this.dialog.open(TestPreviewComponent, {
-      width: isMobile ? '100dvw' : 'min(92vw, 1100px)',
-      minWidth: isMobile ? '100dvw' : undefined,
-      maxWidth: isMobile ? '100dvw' : '1100px',
-      height: isMobile ? '100dvh' : '92dvh',
-      minHeight: isMobile ? '100dvh' : undefined,
-      maxHeight: isMobile ? '100dvh' : '92dvh',
-      position: isMobile ? { top: '0', left: '0' } : undefined,
-      panelClass: isMobile
-        ? ['test-preview-dialog', 'mobile-fullscreen-dialog']
-        : 'test-preview-dialog',
-      data: this.buildSchoolDialogData({ testId: test.id }),
-      autoFocus: false,
-      restoreFocus: false
+      width: 'min(80vw, 950px)',
+      maxWidth: '80vw',
+      height: '92vh',
+      maxHeight: '92vh',
+      panelClass: 'test-preview-dialog',
+      data: this.buildSchoolDialogData({ testId: test.id })
     }).afterClosed().subscribe(() => {
       this.loadTests();
     });
@@ -2691,31 +2642,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
   }
 
   private extractBackendMessage(err: any, fallback: string): string {
-    if (typeof err?.error === 'string' && err.error.trim()) {
-      return err.error.trim();
-    }
-
-    if (err?.error?.message) {
-      return String(err.error.message);
-    }
-
-    if (err?.status === 0) {
-      return this.t('dialog.backend.unreachable');
-    }
-
-    if (err?.status === 403) {
-      return this.t('dialog.backend.forbidden');
-    }
-
-    if (err?.status === 404) {
-      return this.t('dialog.backend.notFound');
-    }
-
-    if (err?.message) {
-      return String(err.message);
-    }
-
-    return fallback;
+    return this.apiErrorMessages.getMessage(err, fallback);
   }
 
   openSettings(): void {

@@ -2,6 +2,8 @@ package at.model;
 
 import at.dtos.User.UserDTO;
 import at.enums.SubscriptionModel;
+import at.enums.SubscriptionSource;
+import at.enums.SubscriptionStatus;
 import at.model.helper.AppTime;
 import jakarta.persistence.*;
 
@@ -30,6 +32,34 @@ public class User {
     @Column(name = "subscription_model", nullable = false, length = 40)
     private SubscriptionModel subscriptionModel = SubscriptionModel.FREE;
 
+    private LocalDateTime subscriptionValidUntil;
+
+    @Column(name = "stripe_customer_id", unique = true, length = 255)
+    private String stripeCustomerId;
+
+    @Column(name = "stripe_subscription_id", unique = true, length = 255)
+    private String stripeSubscriptionId;
+
+    @Column(name = "subscription_seats")
+    private Integer subscriptionSeats;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "subscription_status", nullable = false, length = 30)
+    private SubscriptionStatus subscriptionStatus = SubscriptionStatus.ACTIVE;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "subscription_source", nullable = false, length = 30)
+    private SubscriptionSource subscriptionSource = SubscriptionSource.FREE;
+
+    @Column(name = "subscription_period_start")
+    private LocalDateTime subscriptionPeriodStart;
+
+    @Column(name = "subscription_period_end")
+    private LocalDateTime subscriptionPeriodEnd;
+
+    @Column(name = "cancel_at_period_end", nullable = false)
+    private Boolean cancelAtPeriodEnd = false;
+
     @Column(name = "profile_image_url", length = 500)
     private String profileImageUrl;
 
@@ -50,7 +80,6 @@ public class User {
 
     @Column(name = "locked", nullable = false)
     private Boolean locked = false;
-
 
     public User() {
     }
@@ -85,6 +114,9 @@ public class User {
                 ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
                 ", subscriptionModel=" + subscriptionModel +
+                ", subscriptionStatus=" + subscriptionStatus +
+                ", subscriptionSource=" + subscriptionSource +
+                ", subscriptionSeats=" + subscriptionSeats +
                 ", profileImageUrl='" + profileImageUrl + '\'' +
                 ", allowInvitations=" + allowInvitations +
                 ", darkMode=" + darkMode +
@@ -95,7 +127,7 @@ public class User {
                 '}';
     }
 
-    public void newActivity(){
+    public void newActivity() {
         this.setLastActivityAt(now());
     }
 
@@ -161,6 +193,78 @@ public class User {
 
     public void setSubscriptionModel(SubscriptionModel subscriptionModel) {
         this.subscriptionModel = subscriptionModel;
+    }
+
+    public LocalDateTime getSubscriptionValidUntil() {
+        return subscriptionValidUntil;
+    }
+
+    public void setSubscriptionValidUntil(LocalDateTime subscriptionValidUntil) {
+        this.subscriptionValidUntil = subscriptionValidUntil;
+    }
+
+    public String getStripeCustomerId() {
+        return stripeCustomerId;
+    }
+
+    public void setStripeCustomerId(String stripeCustomerId) {
+        this.stripeCustomerId = stripeCustomerId;
+    }
+
+    public String getStripeSubscriptionId() {
+        return stripeSubscriptionId;
+    }
+
+    public void setStripeSubscriptionId(String stripeSubscriptionId) {
+        this.stripeSubscriptionId = stripeSubscriptionId;
+    }
+
+    public Integer getSubscriptionSeats() {
+        return subscriptionSeats;
+    }
+
+    public void setSubscriptionSeats(Integer subscriptionSeats) {
+        this.subscriptionSeats = subscriptionSeats;
+    }
+
+    public SubscriptionStatus getSubscriptionStatus() {
+        return subscriptionStatus;
+    }
+
+    public void setSubscriptionStatus(SubscriptionStatus subscriptionStatus) {
+        this.subscriptionStatus = subscriptionStatus;
+    }
+
+    public SubscriptionSource getSubscriptionSource() {
+        return subscriptionSource;
+    }
+
+    public void setSubscriptionSource(SubscriptionSource subscriptionSource) {
+        this.subscriptionSource = subscriptionSource;
+    }
+
+    public LocalDateTime getSubscriptionPeriodStart() {
+        return subscriptionPeriodStart;
+    }
+
+    public void setSubscriptionPeriodStart(LocalDateTime subscriptionPeriodStart) {
+        this.subscriptionPeriodStart = subscriptionPeriodStart;
+    }
+
+    public LocalDateTime getSubscriptionPeriodEnd() {
+        return subscriptionPeriodEnd;
+    }
+
+    public void setSubscriptionPeriodEnd(LocalDateTime subscriptionPeriodEnd) {
+        this.subscriptionPeriodEnd = subscriptionPeriodEnd;
+    }
+
+    public Boolean getCancelAtPeriodEnd() {
+        return cancelAtPeriodEnd;
+    }
+
+    public void setCancelAtPeriodEnd(Boolean cancelAtPeriodEnd) {
+        this.cancelAtPeriodEnd = cancelAtPeriodEnd;
     }
 
     public String getProfileImageUrl() {

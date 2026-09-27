@@ -9,10 +9,12 @@ import at.model.*;
 import at.model.helper.ExampleVariable;
 import at.model.helper.Gap;
 import at.service.MediaStorageService;
+import at.service.SubscriptionLimitService;
 import at.websocket.CollectionSocket;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
@@ -21,6 +23,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -44,6 +47,9 @@ public class ExampleRepository {
 
     @Inject
     CollectionRepository collectionRepository;
+
+    @Inject
+    SubscriptionLimitService subscriptionLimitService;
 
     public Response getAllExamples(UUID collectionId, UUID userId) {
         if (!collectionRepository.isUserPartOfCollection(collectionId, userId)) {
@@ -167,6 +173,17 @@ public class ExampleRepository {
             return Response.status(Response.Status.NOT_FOUND).entity("Schule nicht gefunden.").build();
         }
 
+        User owner = em.find(
+                User.class,
+                collection.getAdmin().getId(),
+                LockModeType.PESSIMISTIC_WRITE
+        );
+
+        Response exampleLimitError = validateExampleCreationCapacity(owner);
+        if (exampleLimitError != null) {
+            return exampleLimitError;
+        }
+
         Folder folder = null;
         if (dto.folderId() != null) {
             folder = folderRepository.findById(dto.folderId());
@@ -219,6 +236,38 @@ public class ExampleRepository {
                 userId, dto.collectionId(), example.getId(), dto.type());
 
         return Response.ok(example.getId()).build();
+    }
+
+    private Response validateExampleCreationCapacity(User owner) {
+        if (owner == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("COLLECTION_OWNER_NOT_FOUND")
+                    .build();
+        }
+
+        var limits = subscriptionLimitService.limitsFor(owner);
+        int maxExamples = limits.maxExamples();
+
+        if (maxExamples == SubscriptionLimitService.UNLIMITED) {
+            return null;
+        }
+
+        long currentExamples = subscriptionLimitService.countExamplesInOwnedCollections(
+                owner.getId()
+        );
+
+        if (currentExamples < maxExamples) {
+            return null;
+        }
+
+        return Response.status(Response.Status.CONFLICT)
+                .entity(Map.of(
+                        "code", "EXAMPLE_LIMIT_REACHED",
+                        "current", currentExamples,
+                        "limit", maxExamples,
+                        "plan", subscriptionLimitService.effectivePlan(owner).name()
+                ))
+                .build();
     }
 
     public Response deleteExample(UUID userId, UUID exampleId) {

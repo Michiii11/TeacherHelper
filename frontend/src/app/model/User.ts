@@ -49,14 +49,21 @@ export interface AdminDashboardDTO {
   activeUsersMonth: number;
   activeUsersWeek: number;
   newUsersMonth: number;
+
   freeAbos: number;
   proAbos: number;
   schoolAbos: number;
-  cashflow: number;
+
+  revenueTotalCents: number;
+  revenueMonthCents: number;
+  successfulPayments: number;
+  failedPayments: number;
+  schoolSeatsTotal: number;
+
   collections: AdminCountPeriodDTO;
   examples: AdminCountPeriodDTO;
   tests: AdminCountPeriodDTO;
-  users: AdminUserDashboardDTO[]
+  users: AdminUserDashboardDTO[];
 }
 
 export interface AdminUserDashboardDTO {
@@ -65,9 +72,25 @@ export interface AdminUserDashboardDTO {
   profileImageUrl: string | null;
   createdAt: string;
   lastActive: string;
+
   collections: number;
   examples: number;
   tests: number;
+
+  subscriptionModel: 'FREE' | 'PRO' | 'SCHOOL' | 'ADMIN';
+  subscriptionStatus: 'ACTIVE' | 'CANCELED' | 'PAST_DUE' | 'INCOMPLETE';
+  subscriptionSource: 'FREE' | 'STRIPE' | 'ADMIN';
+
+  subscriptionSeats: number | null;
+  subscriptionValidUntil: string | null;
+  subscriptionPeriodStart: string | null;
+  subscriptionPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+
+  locked: boolean;
+
+  paymentCount: number;
+  totalPaidCents: number;
 }
 
 export interface AdminCountPeriodDTO{

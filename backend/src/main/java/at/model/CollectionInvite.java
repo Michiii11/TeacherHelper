@@ -2,6 +2,7 @@ package at.model;
 
 import at.enums.InviteStatus;
 import at.enums.InviteType;
+import at.model.helper.AppTime;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -43,12 +44,12 @@ public class CollectionInvite {
         this.recipient = recipient;
         this.type = type;
         this.message = message;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = AppTime.now();
     }
 
     @PrePersist
     public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = AppTime.now();
         if (this.createdAt == null) {
             this.createdAt = now;
         }

@@ -1,7 +1,5 @@
 package at.dtos.User;
 
-import at.dtos.User.AdminCountPeriodDTO;
-import at.dtos.User.AdminUserDashboardDTO;
 import java.util.List;
 
 public record AdminDashboardDTO(
@@ -9,10 +7,17 @@ public record AdminDashboardDTO(
         long activeUsersMonth,
         long activeUsersWeek,
         long newUsersMonth,
+
         long freeAbos,
         long proAbos,
         long schoolAbos,
-        long cashflow,
+
+        long revenueTotalCents,
+        long revenueMonthCents,
+        long successfulPayments,
+        long failedPayments,
+        long schoolSeatsTotal,
+
         AdminCountPeriodDTO collections,
         AdminCountPeriodDTO examples,
         AdminCountPeriodDTO tests,

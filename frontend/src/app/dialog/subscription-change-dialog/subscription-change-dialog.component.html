@@ -1,0 +1,112 @@
+<div class="billing-dialog">
+  <header class="billing-head">
+    <div class="billing-icon">
+      <mat-icon>receipt_long</mat-icon>
+    </div>
+
+    <div>
+      <span class="eyebrow">{{ 'profile.subscription.billingDialog.eyebrow' | translate }}</span>
+      <h2>{{ 'profile.subscription.billingDialog.title' | translate }}</h2>
+      <p>{{ 'profile.subscription.billingDialog.subtitle' | translate }}</p>
+    </div>
+  </header>
+
+  <section class="plan-switch">
+    <div class="plan-box">
+      <span>{{ 'profile.subscription.billingDialog.currentPlan' | translate }}</span>
+      <strong>{{ currentPlanLabel }}</strong>
+      <small>{{ money(data.currentMonthlyAmountCents) }} / {{ 'profile.subscription.billingDialog.month' | translate }}</small>
+    </div>
+
+    <mat-icon class="switch-arrow">arrow_forward</mat-icon>
+
+    <div class="plan-box plan-box--new">
+      <span>{{ 'profile.subscription.billingDialog.newPlan' | translate }}</span>
+      <strong>{{ targetPlanLabel }}</strong>
+      <small>{{ money(data.newMonthlyAmountCents) }} / {{ 'profile.subscription.billingDialog.month' | translate }}</small>
+    </div>
+  </section>
+
+  <section class="billing-summary">
+    <div class="summary-row">
+      <div>
+        <span>{{ 'profile.subscription.billingDialog.monthlyChange' | translate }}</span>
+        <small>{{ 'profile.subscription.billingDialog.monthlyChangeHint' | translate }}</small>
+      </div>
+      <strong [class.positive]="data.monthlyDifferenceCents > 0" [class.negative]="data.monthlyDifferenceCents < 0">
+        {{ money(data.monthlyDifferenceCents, true) }}
+      </strong>
+    </div>
+
+    <div class="summary-row">
+      <div>
+        <span>{{ adjustmentIsCharge
+          ? ('profile.subscription.billingDialog.currentPeriodCharge' | translate)
+          : ('profile.subscription.billingDialog.currentPeriodCredit' | translate) }}</span>
+        <small>
+          {{ date(data.prorationDate) }} – {{ date(data.nextBillingAt) }}
+        </small>
+      </div>
+      <strong [class.positive]="data.currentPeriodAdjustmentCents > 0" [class.negative]="data.currentPeriodAdjustmentCents < 0">
+        {{ money(data.currentPeriodAdjustmentCents, true) }}
+      </strong>
+    </div>
+
+    <div class="summary-row">
+      <div>
+        <span>{{ 'profile.subscription.billingDialog.nextFullMonth' | translate }}</span>
+        <small>{{ targetPlanLabel }}</small>
+      </div>
+      <strong>{{ money(data.newMonthlyAmountCents) }}</strong>
+    </div>
+  </section>
+
+  <section class="next-charge-card">
+    <div class="next-charge-copy">
+      <span>{{ 'profile.subscription.billingDialog.nextCharge' | translate }}</span>
+      <strong>{{ date(data.nextBillingAt) }}</strong>
+      <small>{{ 'profile.subscription.billingDialog.nextChargeHint' | translate }}</small>
+    </div>
+
+    <div class="next-charge-amount">
+      {{ money(data.nextInvoiceAmountCents) }}
+    </div>
+  </section>
+
+  <section class="afterwards">
+    <mat-icon>event_repeat</mat-icon>
+    <div>
+      <strong>{{ 'profile.subscription.billingDialog.afterwardsTitle' | translate }}</strong>
+      <span>
+        {{ money(data.newMonthlyAmountCents) }}
+        / {{ 'profile.subscription.billingDialog.month' | translate }}
+        · {{ 'profile.subscription.billingDialog.aroundDay' | translate:{ day: billingDay } }}
+      </span>
+    </div>
+  </section>
+
+  @if (data.cancelAtPeriodEnd) {
+    <section class="cancel-warning">
+      <mat-icon>event_available</mat-icon>
+      <span>{{ 'profile.subscription.billingDialog.cancelRemoved' | translate }}</span>
+    </section>
+  }
+
+  <p class="stripe-note">
+    <mat-icon>info</mat-icon>
+    <span>{{ 'profile.subscription.billingDialog.stripeNote' | translate }}</span>
+  </p>
+
+  <mat-dialog-actions align="end">
+    <button mat-stroked-button type="button" (click)="cancel()">
+      {{ 'common.cancel' | translate }}
+    </button>
+
+    <button mat-flat-button color="primary" type="button" (click)="confirm()">
+      <mat-icon>{{ isUpgrade ? 'payments' : 'published_with_changes' }}</mat-icon>
+      {{ isUpgrade
+      ? ('profile.subscription.billingDialog.confirmPaid' | translate)
+      : ('profile.subscription.billingDialog.confirm' | translate) }}
+    </button>
+  </mat-dialog-actions>
+</div>

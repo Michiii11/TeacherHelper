@@ -8,9 +8,10 @@ import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CollectionDTO } from '../../model/Collection';
 import { HttpService } from '../../service/http.service';
+import { ApiErrorMessageService } from '../../service/api-error-message.service';
 
 type AddCollectionDialogResult = CollectionDTO | { id: string } | false | undefined;
 
@@ -59,15 +60,15 @@ type AddCollectionDialogResult = CollectionDTO | { id: string } | false | undefi
             [(ngModel)]="schoolName"
             [placeholder]="'dialog.schoolPlaceholder' | translate"
             [disabled]="isSaving"
-            [class.input-error]="errorMessageKey"
+            [class.input-error]="errorMessage"
             (ngModelChange)="clearError()"
           />
         </mat-form-field>
 
-        @if (errorMessageKey) {
+        @if (errorMessage) {
           <div class="inline-error">
             <mat-icon>error</mat-icon>
-            <span>{{ errorMessageKey | translate }}</span>
+            <span>{{ errorMessage }}</span>
           </div>
         }
 
@@ -131,7 +132,7 @@ type AddCollectionDialogResult = CollectionDTO | { id: string } | false | undefi
 
     .inline-error {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: .55rem;
       margin-top: .35rem;
       padding: .75rem .85rem;
@@ -143,10 +144,12 @@ type AddCollectionDialogResult = CollectionDTO | { id: string } | false | undefi
     }
 
     .inline-error mat-icon {
-      margin: 0;
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
+      flex: 0 0 24px;
+      margin: 1px 0 0;
+      font-size: 24px;
+      line-height: 24px;
+      width: 24px;
+      height: 24px;
     }
 
     mat-progress-bar {
@@ -163,10 +166,12 @@ type AddCollectionDialogResult = CollectionDTO | { id: string } | false | undefi
 export class AddCollectionDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<AddCollectionDialogComponent, AddCollectionDialogResult>);
   private readonly service = inject(HttpService);
+  private readonly apiErrorMessages = inject(ApiErrorMessageService);
+  private readonly translate = inject(TranslateService);
 
   schoolName = '';
   isSaving = false;
-  errorMessageKey = '';
+  errorMessage = '';
 
   get canCreateSchool(): boolean {
     return this.normalizedSchoolName.length > 0;
@@ -183,7 +188,7 @@ export class AddCollectionDialogComponent {
     }
 
     this.isSaving = true;
-    this.errorMessageKey = '';
+    this.errorMessage = '';
     this.dialogRef.disableClose = true;
 
     this.service.addCollection(this.normalizedSchoolName).subscribe({
@@ -194,7 +199,7 @@ export class AddCollectionDialogComponent {
         this.dialogRef.disableClose = false;
 
         if (!createdId) {
-          this.errorMessageKey = 'dialog.collectionCreateError';
+          this.errorMessage = this.translate.instant('dialog.collectionCreateError');
           return;
         }
 
@@ -209,26 +214,17 @@ export class AddCollectionDialogComponent {
         this.isSaving = false;
         this.dialogRef.disableClose = false;
 
-        const backendCode = this.extractBackendCode(error);
-
-        if (error.status === 409 || backendCode === 'COLLECTION_NAME_EXISTS') {
-          this.errorMessageKey = 'dialog.collectionNameExists';
-          return;
-        }
-
-        if (backendCode === 'COLLECTION_NAME_EMPTY') {
-          this.errorMessageKey = 'dialog.collectionNameEmpty';
-          return;
-        }
-
-        this.errorMessageKey = 'dialog.collectionCreateError';
+        this.errorMessage = this.apiErrorMessages.getMessage(
+          error,
+          this.translate.instant('dialog.collectionCreateError')
+        );
       },
     });
   }
 
   clearError(): void {
-    if (this.errorMessageKey) {
-      this.errorMessageKey = '';
+    if (this.errorMessage) {
+      this.errorMessage = '';
     }
   }
 
@@ -249,22 +245,6 @@ export class AddCollectionDialogComponent {
     }
 
     return null;
-  }
-
-  private extractBackendCode(error: HttpErrorResponse): string {
-    if (typeof error.error === 'string') {
-      return error.error;
-    }
-
-    if (error.error?.code) {
-      return error.error.code;
-    }
-
-    if (error.error?.message) {
-      return error.error.message;
-    }
-
-    return '';
   }
 
   private get normalizedSchoolName(): string {

@@ -28,7 +28,7 @@
           <div class="stat-kicker">{{ card.label }}</div>
           <div class="stat-icon-wrap"><mat-icon>{{ card.icon }}</mat-icon></div>
         </div>
-        <div class="stat-value">{{ getStatValue(card.key) }}</div>
+        <div class="stat-value">{{ getStatDisplay(card) }}</div>
       </mat-card>
     }
 
@@ -41,7 +41,20 @@
           <div class="stat-kicker">{{ card.label }}</div>
           <div class="stat-icon-wrap"><mat-icon>{{ card.icon }}</mat-icon></div>
         </div>
-        <div class="stat-value">{{ getStatValue(card.key) }}</div>
+        <div class="stat-value">{{ getStatDisplay(card) }}</div>
+      </mat-card>
+    }
+
+    @for (card of billingStatCards; track card.key) {
+      <mat-card
+        class="hero-card stat-card billing-stat-card"
+        [ngClass]="card.toneClass"
+      >
+        <div class="stat-card-head">
+          <div class="stat-kicker">{{ card.label }}</div>
+          <div class="stat-icon-wrap"><mat-icon>{{ card.icon }}</mat-icon></div>
+        </div>
+        <div class="stat-value">{{ getStatDisplay(card) }}</div>
       </mat-card>
     }
   </section>
@@ -189,6 +202,12 @@
                 <div class="user-main">
                   <div class="user-name-row">
                     <div class="user-name">{{ user.username }}</div>
+                    <span class="plan-badge" [attr.data-plan]="user.subscriptionModel">
+                      {{ getPlanLabel(user.subscriptionModel) }}
+                    </span>
+                    @if (user.locked) {
+                      <span class="lock-badge" title="User gesperrt"><mat-icon>lock</mat-icon></span>
+                    }
                   </div>
 
                   <div class="user-meta-row">
@@ -215,6 +234,10 @@
                     <strong>{{ getUserMetricValue(user, metric.key) }}</strong>
                   </div>
                 }
+                <div class="mini-stat paid-mini-stat">
+                  <span>Bezahlt</span>
+                  <strong>{{ formatMoney(user.totalPaidCents) }}</strong>
+                </div>
               </div>
             </div>
           }
@@ -272,6 +295,209 @@
             <mat-icon>content_copy</mat-icon>
           </button>
         </div>
+
+        @if (!isUserLoading) {
+          <section class="account-overview-section detail-surface">
+            <div class="detail-status-line">
+              <span class="plan-badge large" [attr.data-plan]="selectedUserDTO.subscriptionModel">
+                {{ getPlanLabel(selectedUserDTO.subscriptionModel) }}
+              </span>
+              <span class="status-badge" [attr.data-status]="selectedUserDTO.subscriptionStatus">
+                {{ getStatusLabel(selectedUserDTO.subscriptionStatus) }}
+              </span>
+              <span class="source-badge">{{ getSourceLabel(selectedUserDTO.subscriptionSource) }}</span>
+              @if (selectedUserDTO.cancelAtPeriodEnd) {
+                <span class="cancel-badge"><mat-icon>event_busy</mat-icon> Kündigung vorgemerkt</span>
+              }
+            </div>
+
+            <div class="detail-info-grid">
+              <div class="info-cell">
+                <span>E-Mail</span>
+                <strong>{{ selectedUserDTO.email || "—" }}</strong>
+              </div>
+              <div class="info-cell">
+                <span>Bezahlt gesamt</span>
+                <strong>{{ formatMoney(selectedUserDTO.totalPaidCents) }}</strong>
+              </div>
+              <div class="info-cell">
+                <span>Erfolgreiche Zahlungen</span>
+                <strong>{{ selectedUserDTO.paymentCount }}</strong>
+              </div>
+              <div class="info-cell">
+                <span>Seit</span>
+                <strong>{{ getSubscriptionStartLabel() }}</strong>
+              </div>
+              <div class="info-cell">
+                <span>Gültig / Abrechnung bis</span>
+                <strong>{{ getSubscriptionEndLabel() }}</strong>
+              </div>
+              <div class="info-cell">
+                <span>School Seats</span>
+                <strong>{{ selectedUserDTO.subscriptionModel === "SCHOOL" ? (selectedUserDTO.subscriptionSeats || 20) : "—" }}</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="admin-actions-section detail-surface">
+            <div class="section-title-row">
+              <div>
+                <h3>Account & Tier verwalten</h3>
+                <p>Manuelle Freischaltung, Laufzeit und Sperrstatus.</p>
+              </div>
+            </div>
+
+            @if (isStripeManaged) {
+              <div class="admin-notice stripe-notice">
+                <mat-icon>info</mat-icon>
+                <div>
+                  <strong>Stripe verwaltet dieses Abo.</strong>
+                  <span>Tier und Laufzeit werden hier nicht manuell überschrieben, damit Abrechnung und Zugriff synchron bleiben.</span>
+                </div>
+              </div>
+            }
+
+            <div class="admin-form-grid" [class.disabled-form]="isStripeManaged">
+              <label class="admin-field">
+                <span>Tier</span>
+                <select [(ngModel)]="adminPlan" [disabled]="isStripeManaged || isSavingSubscription">
+                  <option value="FREE">Free</option>
+                  <option value="PRO">Pro</option>
+                  <option value="SCHOOL">School</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
+              </label>
+
+              @if (adminPlan !== "FREE") {
+                <label class="admin-field">
+                  <span>Dauer</span>
+                  <select
+                    [(ngModel)]="adminDurationPreset"
+                    (ngModelChange)="onDurationPresetChange($event)"
+                    [disabled]="isStripeManaged || isSavingSubscription"
+                  >
+                    <option value="unlimited">Unbegrenzt</option>
+                    <option value="1m">1 Monat</option>
+                    <option value="3m">3 Monate</option>
+                    <option value="6m">6 Monate</option>
+                    <option value="12m">1 Jahr</option>
+                    <option value="custom">Eigenes Datum</option>
+                  </select>
+                </label>
+
+                @if (adminDurationPreset !== "unlimited") {
+                  <label class="admin-field">
+                    <span>Gültig bis</span>
+                    <input
+                      type="date"
+                      [ngModel]="adminValidUntil"
+                      (ngModelChange)="onCustomDateChange($event)"
+                      [disabled]="isStripeManaged || isSavingSubscription"
+                    >
+                  </label>
+                }
+              }
+
+              @if (adminPlan === "SCHOOL") {
+                <label class="admin-field">
+                  <span>School Seats</span>
+                  <input
+                    type="number"
+                    min="20"
+                    step="1"
+                    [(ngModel)]="adminSeats"
+                    [disabled]="isStripeManaged || isSavingSubscription"
+                  >
+                  <small>Minimum 20 Nutzer</small>
+                </label>
+              }
+            </div>
+
+            <div class="admin-action-row">
+              <button
+                type="button"
+                class="primary-admin-button"
+                [disabled]="!canSaveAdminSubscription"
+                (click)="saveAdminSubscription()"
+              >
+                <mat-icon>{{ isSavingSubscription ? "hourglass_top" : "save" }}</mat-icon>
+                {{ isSavingSubscription ? "Speichern…" : "Tier speichern" }}
+              </button>
+
+              <button
+                type="button"
+                class="lock-action-button"
+                [class.unlock]="selectedUserDTO.locked"
+                [disabled]="isUpdatingLock"
+                (click)="setUserLocked(!selectedUserDTO.locked)"
+              >
+                <mat-icon>{{ selectedUserDTO.locked ? "lock_open" : "lock" }}</mat-icon>
+                {{ selectedUserDTO.locked ? "Entsperren" : "User sperren" }}
+              </button>
+            </div>
+          </section>
+
+          <section class="payments-section detail-surface">
+            <div class="section-title-row">
+              <div>
+                <h3>Zahlungen</h3>
+                <p>{{ selectedUserDTO.payments.length }} gespeicherte Zahlungsvorgänge</p>
+              </div>
+              <strong class="payment-total">{{ formatMoney(selectedUserDTO.totalPaidCents) }}</strong>
+            </div>
+
+            @if (selectedUserDTO.payments.length) {
+              <div class="payment-list">
+                @for (payment of selectedUserDTO.payments; track payment.id) {
+                  <div class="payment-row">
+                    <div class="payment-icon" [attr.data-status]="payment.status">
+                      <mat-icon>{{ payment.status === "PAID" ? "check" : payment.status === "REFUNDED" ? "replay" : "close" }}</mat-icon>
+                    </div>
+                    <div class="payment-main">
+                      <div class="payment-topline">
+                        <strong>{{ formatMoney(payment.amountCents, payment.currency) }}</strong>
+                        <span class="payment-status" [attr.data-status]="payment.status">{{ getPaymentStatusLabel(payment.status) }}</span>
+                      </div>
+                      <span>{{ formatDate(payment.paidAt || payment.createdAt) }} · {{ payment.stripeInvoiceId || "Keine Invoice-ID" }}</span>
+                    </div>
+                    <div class="payment-actions">
+                      @if (payment.status === "PAID" && payment.stripeInvoiceId) {
+                        <button
+                          class="refund-payment-button"
+                          type="button"
+                          [disabled]="refundingInvoiceId !== null"
+                          (click)="refundPayment(payment)"
+                          title="Zahlung vollständig erstatten"
+                        >
+                          <mat-icon>
+                            {{ refundingInvoiceId === payment.stripeInvoiceId ? "hourglass_top" : "undo" }}
+                          </mat-icon>
+                          <span>
+                            {{ refundingInvoiceId === payment.stripeInvoiceId ? "Wird erstattet…" : "Erstatten" }}
+                          </span>
+                        </button>
+                      }
+
+                      @if (payment.invoicePdfUrl || payment.invoiceUrl) {
+                        <a
+                          class="invoice-link"
+                          [href]="payment.invoicePdfUrl || payment.invoiceUrl"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Rechnung öffnen"
+                        >
+                          <mat-icon>open_in_new</mat-icon>
+                        </a>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="detail-empty-line payments-empty">Noch keine Zahlungen gespeichert.</div>
+            }
+          </section>
+        }
 
         <section class="collections-section">
           <div class="section-title-row collections-title-row">
@@ -494,7 +720,7 @@
         <div class="empty-state detail-empty">
           <mat-icon>touch_app</mat-icon>
           <h3>User auswählen</h3>
-          <p>Klicke links auf einen User, um seine Collections zu sehen.</p>
+          <p>Klicke links auf einen User, um Account, Abo, Zahlungen und Collections zu sehen.</p>
         </div>
       }
     </aside>

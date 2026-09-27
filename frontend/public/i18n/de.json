@@ -58,7 +58,197 @@
     "publicInfoAvatar": "Profilbild ist öffentlich sichtbar",
     "allowInvitationsDesc": "Andere Nutzer können dich zu Sammlungen einladen",
     "dangerZoneEyebrow": "Kritischer Bereich",
-    "deleteAccountWarning": "Diese Aktion löscht dein Profil dauerhaft. Bitte prüfe vorher, ob du alle wichtigen Daten gesichert hast."
+    "deleteAccountWarning": "Diese Aktion löscht dein Profil dauerhaft. Bitte prüfe vorher, ob du alle wichtigen Daten gesichert hast.",
+    "subscription": {
+      "title": "Abo & Nutzung",
+      "subtitle": "Dein aktueller Plan und deine verwendeten Kontingente.",
+      "loading": "Abo wird geladen...",
+      "loadError": "Abo-Daten konnten nicht geladen werden.",
+      "seats": "Nutzer",
+      "collections": "Sammlungen",
+      "examples": "Beispiele",
+      "tests": "Tests",
+      "users": "Nutzer",
+      "unlimited": "Unbegrenzt",
+      "plans": {
+        "free": "Free",
+        "pro": "Pro",
+        "school": "School",
+        "admin": "Admin"
+      },
+      "descriptions": {
+        "free": "Kostenloser Einstieg für einzelne Sammlungen.",
+        "pro": "Mehr Platz für Sammlungen, Beispiele, Tests und Zusammenarbeit.",
+        "school": "Skalierbarer Schulplan für größere Teams.",
+        "admin": "Interner Admin-Zugang ohne Nutzungslimits."
+      },
+      "statuses": {
+        "active": "Aktiv",
+        "canceled": "Gekündigt",
+        "past_due": "Zahlung offen",
+        "incomplete": "Unvollständig"
+      },
+      "billingPreview": {
+        "loading": "Preisvorschau wird bei Stripe berechnet...",
+        "failed": "Die Preisvorschau konnte nicht geladen werden. Der Plan wurde nicht geändert.",
+        "nextInvoice": "Voraussichtliche nächste Stripe-Rechnung",
+        "prorationHint": "Die Vorschau kann anteilige Belastungen oder Gutschriften für den laufenden Abrechnungszeitraum enthalten."
+      },
+      "billingDialog": {
+        "eyebrow": "Abo-Änderung",
+        "title": "Planwechsel prüfen",
+        "subtitle": "Noch wurde nichts geändert. Prüfe zuerst Preis, anteilige Verrechnung und nächste Abbuchung.",
+        "currentPlan": "Aktueller Plan",
+        "newPlan": "Neuer Plan",
+        "month": "Monat",
+        "users": "Nutzer",
+        "monthlyChange": "Dauerhafte Änderung pro Monat",
+        "monthlyChangeHint": "Das ist der Unterschied zum bisherigen Monatspreis.",
+        "currentPeriodCharge": "Anteilig für den laufenden Zeitraum",
+        "currentPeriodCredit": "Gutschrift für den laufenden Zeitraum",
+        "nextFullMonth": "Nächster voller Abrechnungsmonat",
+        "nextCharge": "Nächste Abbuchung",
+        "nextChargeHint": "Summe aus anteiliger Anpassung und nächstem vollen Abrechnungsmonat.",
+        "afterwardsTitle": "Danach regulär",
+        "aroundDay": "monatlich rund um den {{day}}.",
+        "cancelRemoved": "Deine vorgemerkte Kündigung wird durch diesen Planwechsel wieder aufgehoben.",
+        "stripeNote": "Die Beträge stammen aus einer aktuellen Stripe-Vorschau. Der Plan wird erst nach deiner Bestätigung geändert.",
+        "confirmPaid": "Kostenpflichtig wechseln",
+        "confirm": "Änderung bestätigen"
+      },
+      "billingOverview": {
+        "eyebrow": "Abrechnung",
+        "title": "Deine Abrechnung auf einen Blick",
+        "manage": "Zahlungen verwalten",
+        "monthlyPrice": "Aktueller Monatspreis",
+        "perMonth": "pro Monat",
+        "currentPeriod": "Aktueller Abrechnungszeitraum",
+        "currentPeriodHint": "Dieser Zeitraum ist aktuell bezahlt.",
+        "nextRenewal": "Nächste Verlängerung",
+        "renewsAutomatically": "Das Abo verlängert sich automatisch.",
+        "endsOn": "Abo endet am",
+        "noRenewal": "Danach erfolgt keine weitere Verlängerung."
+      },
+      "cancellation": {
+        "title": "Kündigung vorgemerkt",
+        "text": "Dein aktueller Plan bleibt bis {{date}} aktiv. Danach wechselst du automatisch zu Free.",
+        "resume": "Kündigung zurücknehmen"
+      },
+      "resumeDialog": {
+        "title": "Abo weiterlaufen lassen?",
+        "message": "Die vorgemerkte Kündigung wird aufgehoben. Dein aktueller Plan läuft nach dem {{date}} automatisch weiter und kostet regulär {{price}} pro Monat.",
+        "confirm": "Abo fortsetzen"
+      },
+      "resumeSuccess": "Kündigung wurde zurückgenommen. Dein Abo läuft weiter.",
+      "resumeError": "Die Kündigung konnte nicht zurückgenommen werden.",
+      "paymentHistory": {
+        "title": "Rechnungen & Zahlungen",
+        "subtitle": "Deine letzten Stripe-Abrechnungen und Zahlungsbelege.",
+        "count": "{{count}} Einträge",
+        "date": "Datum",
+        "status": "Status",
+        "amount": "Betrag",
+        "actions": "Belege",
+        "invoice": "Rechnung",
+        "pdf": "PDF",
+        "noInvoice": "Kein Beleg verfügbar",
+        "loading": "Zahlungen werden geladen...",
+        "loadError": "Der Zahlungsverlauf konnte nicht geladen werden.",
+        "retry": "Erneut laden",
+        "emptyTitle": "Noch keine Zahlungen",
+        "emptyText": "Sobald Stripe eine Rechnung erstellt hat, erscheint sie hier.",
+        "showMore": "Alle anzeigen",
+        "showLess": "Weniger anzeigen",
+        "statuses": {
+          "paid": "Bezahlt",
+          "failed": "Fehlgeschlagen",
+          "refunded": "Erstattet"
+        }
+      },
+      "checkoutReturn": {
+        "success": "Zahlung abgeschlossen. Dein Abo wird gerade mit Stripe synchronisiert.",
+        "cancelled": "Checkout abgebrochen. Es wurde nichts geändert."
+      },
+      "health": {
+        "manage": "Zahlung verwalten",
+        "past_due": {
+          "title": "Zahlung für dein Abo ist offen",
+          "text": "Stripe konnte eine Zahlung nicht erfolgreich abschließen. Prüfe bitte deine Zahlungsmethode, damit dein Abo aktiv bleibt."
+        },
+        "incomplete": {
+          "title": "Abo noch nicht vollständig aktiviert",
+          "text": "Für dieses Abo ist noch ein Zahlungsschritt offen. Öffne die Zahlungsverwaltung und schließe den Vorgang ab."
+        }
+      },
+      "planManagement": {
+        "title": "Plan ändern",
+        "subtitle": "Wähle den Plan, der zu deiner aktuellen Nutzung passt.",
+        "month": "Monat",
+        "current": "Aktuell",
+        "currentPlan": "Aktueller Plan",
+        "cancellationScheduled": "Kündigung vorgemerkt",
+        "switchToFree": "Zu Free wechseln",
+        "choosePro": "Pro wählen",
+        "switchToPro": "Zu Pro wechseln",
+        "proMembersPerCollection": "5 Mitglieder je Sammlung",
+        "usersCollections": "Nutzer / Sammlungen",
+        "schoolMinimum": "Mindestens 20 · 1 € pro Nutzer/Monat",
+        "updateSeats": "Nutzeranzahl aktualisieren",
+        "chooseSchool": "School wählen",
+        "switchToSchool": "Zu School wechseln",
+        "note": "Planwechsel erfolgen direkt hier. Beim Wechsel zu Free wird die Kündigung zum Ende des bezahlten Abrechnungszeitraums vorgemerkt.",
+        "schoolMinimumUsage": "Wegen deiner aktuellen Nutzung sind mindestens {{minimumSeats}} Plätze erforderlich.",
+        "proUsageTooHigh": "Für Pro musst du zuerst auf höchstens 5 Sammlungen, 500 Beispiele, 50 Tests und 5 Mitglieder je Sammlung reduzieren.",
+        "adminManaged": "Dieses Abo wird von einem Administrator verwaltet. Änderungen am Plan sind hier nicht möglich."
+      },
+      "cancelDialog": {
+        "title": "Zu Free wechseln?",
+        "message": "Dein aktueller Plan bleibt bis zum Ende des bereits bezahlten Abrechnungszeitraums aktiv. Danach wechselt dein Konto automatisch zu Free.",
+        "confirm": "Zu Free wechseln"
+      },
+      "messages": {
+        "existingPaidPlan": "Bestehende Abos werden direkt über die Aboverwaltung geändert.",
+        "checkoutError": "Checkout konnte nicht gestartet werden.",
+        "planChanged": "Plan wurde erfolgreich geändert.",
+        "planChangeError": "Plan konnte nicht geändert werden.",
+        "cancellationScheduled": "Kündigung vorgemerkt. Dein Plan bleibt bis zum Ende des Abrechnungszeitraums aktiv.",
+        "cancelError": "Abo konnte nicht gekündigt werden.",
+        "portalError": "Aboverwaltung konnte nicht geöffnet werden.",
+        "schoolCapacityBelowUsage": "Du verwendest aktuell mehr Plätze oder Sammlungen. Der School-Plan muss mindestens {{minimumSeats}} Plätze haben.",
+        "proCapacityBelowUsage": "Deine aktuelle Nutzung überschreitet die Pro-Limits. Reduziere zuerst Sammlungen, Beispiele, Tests oder Mitglieder."
+      },
+      "overLimit": {
+        "title": "Deine aktuelle Nutzung liegt über dem Plan-Limit",
+        "text": "Bestehende Inhalte bleiben erhalten. Für neue Inhalte oder zusätzliche Mitglieder musst du zuerst wieder innerhalb der Limits liegen oder den Plan wechseln.",
+        "footnote": "TeacherHelper löscht deine bestehenden Inhalte nicht automatisch.",
+        "items": {
+          "collections": "{{current}} Sammlungen · erlaubt {{limit}}",
+          "examples": "{{current}} Beispiele · erlaubt {{limit}}",
+          "tests": "{{current}} Tests · erlaubt {{limit}}",
+          "members": "Bis zu {{current}} Mitglieder in einer Sammlung · erlaubt {{limit}}",
+          "schoolUsers": "{{current}} School-Nutzer · erlaubt {{limit}}"
+        }
+      },
+      "cancellationImpact": {
+        "title": "Nach dem Wechsel zu Free liegst du über den Free-Limits",
+        "text": "Deine vorhandenen Inhalte bleiben bestehen. Nach Ablauf des bezahlten Zeitraums kannst du aber erst wieder neue Inhalte bzw. Mitglieder hinzufügen, wenn deine Nutzung in den Free-Plan passt oder du erneut einen bezahlten Plan aktivierst.",
+        "footnote": "Die Kündigung selbst bleibt davon unberührt.",
+        "items": {
+          "collections": "{{current}} Sammlungen · Free erlaubt {{limit}}",
+          "examples": "{{current}} Beispiele · Free erlaubt {{limit}}",
+          "tests": "{{current}} Tests · Free erlaubt {{limit}}",
+          "members": "Bis zu {{current}} Mitglieder in einer Sammlung · Free erlaubt keine Mitglieder"
+        }
+      }
+    },
+    "ariaPage": "Profil und Kontoeinstellungen",
+    "avatarAlt": "Profilbild",
+    "darkModeToggle": "Dark Mode ein- oder ausschalten",
+    "allowInvitationsToggle": "Einladungen erlauben oder deaktivieren",
+    "avatarDrop": {
+      "drop": "Bild ablegen",
+      "change": "Bild ändern"
+    }
   },
   "languages": {
     "de": "Deutsch",
@@ -133,7 +323,20 @@
     "help": "Hilfe",
     "infoHelp": "Info & Hilfe",
     "admin": "Admin",
-    "more": "Mehr"
+    "more": "Mehr",
+    "tooltips": {
+      "home": "Startseite",
+      "help": "Hilfe",
+      "admin": "Adminbereich",
+      "notifications": "Benachrichtigungen",
+      "profile": "Profil",
+      "settings": "Einstellungen",
+      "newFolder": "Neuer Ordner",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "save": "Speichern",
+      "add": "Hinzufügen"
+    }
   },
   "notifications": {
     "title": "Nachrichten",
@@ -193,6 +396,13 @@
       "MARK_AS_READ": "Als gelesen markieren",
       "OPEN_LINK": "Öffnen",
       "DELETE": "Löschen"
+    },
+    "snackbar": {
+      "actionUnavailable": "Diese Nachricht kann nicht verarbeitet werden.",
+      "inviteAccepted": "Einladung angenommen.",
+      "inviteAcceptError": "Einladung konnte nicht angenommen werden.",
+      "inviteDeclined": "Einladung abgelehnt.",
+      "inviteDeclineError": "Einladung konnte nicht abgelehnt werden."
     }
   },
   "home": {
@@ -289,8 +499,8 @@
         "f3": "50 Tests"
       },
       "school": {
-        "subtitle": "Für Schulen und Teams.",
-        "f1": "30 Sammlungen (∞ Mitglieder)",
+        "subtitle": "Für Schulen und größere Teams.",
+        "f1": "Ab 20 Nutzerplätze & 20 Sammlungen",
         "f2": "∞ Beispiele",
         "f3": "∞ Tests"
       }
@@ -1262,5 +1472,26 @@
     "title": "Was ist neu?",
     "close": "Schließen",
     "openChangelog": "Changelog"
+  },
+  "blocked": {
+    "eyebrow": "TeacherHelper",
+    "title": "Dein Account wurde gesperrt",
+    "text": "Du kannst TeacherHelper derzeit nicht verwenden. Bitte kontaktiere einen Administrator, wenn du Fragen zu deiner Sperre hast.",
+    "retry": "Erneut versuchen",
+    "logout": "Abmelden",
+    "hint": "Wurde dein Account inzwischen entsperrt, bringt dich „Erneut versuchen“ direkt zurück zu TeacherHelper."
+  },
+  "subscriptionLimitErrors": {
+    "collectionLimitReached": "Du hast die maximale Anzahl an Sammlungen für deinen aktuellen Plan erreicht.",
+    "exampleLimitReached": "Du hast die maximale Anzahl an Beispielen für deinen aktuellen Plan erreicht.",
+    "testLimitReached": "Du hast die maximale Anzahl an Tests für deinen aktuellen Plan erreicht.",
+    "collectionMemberLimitReached": "Diese Sammlung hat die maximale Mitgliederzahl deines aktuellen Plans erreicht.",
+    "schoolUserLimitReached": "Alle School-Plätze sind derzeit belegt. Erhöhe zuerst die Anzahl der Plätze oder entferne einen Nutzer.",
+    "collectionOwnerNotFound": "Der Besitzer der Sammlung konnte nicht gefunden werden.",
+    "collectionNameEmpty": "Bitte gib einen Namen für die Sammlung ein.",
+    "collectionNameExists": "Eine Sammlung mit diesem Namen existiert bereits.",
+    "userNotFound": "Der Benutzer konnte nicht gefunden werden.",
+    "schoolCapacityBelowUsage": "Die gewünschte School-Kapazität ist kleiner als deine aktuelle Nutzung. Erforderlich sind mindestens {{minimumSeats}} Plätze.",
+    "proCapacityBelowUsage": "Deine aktuelle Nutzung liegt über den Pro-Limits. Reduziere zuerst Sammlungen, Beispiele, Tests oder Mitglieder."
   }
 }

@@ -1,0 +1,33 @@
+<main class="blocked-page">
+  <section class="blocked-card" aria-labelledby="blocked-title">
+    <div class="blocked-icon" aria-hidden="true">
+      <mat-icon>lock</mat-icon>
+    </div>
+
+    <span class="blocked-eyebrow">{{ 'blocked.eyebrow' | translate }}</span>
+
+    <h1 id="blocked-title">
+      {{ 'blocked.title' | translate }}
+    </h1>
+
+    <p class="blocked-text">
+      {{ 'blocked.text' | translate }}
+    </p>
+
+    <div class="blocked-actions">
+      <button mat-flat-button type="button" (click)="retry()">
+        <mat-icon>refresh</mat-icon>
+        {{ 'blocked.retry' | translate }}
+      </button>
+
+      <button mat-stroked-button type="button" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        {{ 'blocked.logout' | translate }}
+      </button>
+    </div>
+
+    <p class="blocked-hint">
+      {{ 'blocked.hint' | translate }}
+    </p>
+  </section>
+</main>

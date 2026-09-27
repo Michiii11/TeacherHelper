@@ -14,6 +14,17 @@ import { AdminDashboardDTO, AuthResult, User, UserDTO, UserSettings } from '../m
 import { NotificationActionType, NotificationDTO } from '../model/Notification';
 import { CreateFolderDTO, FolderDTO } from '../model/Folder';
 import { AppLanguage } from './language.service';
+import {
+  PaidSubscriptionPlan,
+  SubscriptionActionResultDTO,
+  SubscriptionCheckoutDTO,
+  SubscriptionCheckoutConfirmationDTO,
+  SubscriptionDTO,
+  SubscriptionPlanChangePreviewDTO,
+  SubscriptionPlanChangeResultDTO,
+  SubscriptionPortalDTO,
+} from '../model/Subscription';
+import { PaymentRecordDTO } from '../model/Payment';
 import { catchError, map } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
@@ -247,6 +258,32 @@ export class HttpService {
   }
   // endregion
 
+  // region Payment
+  /** Payment **/
+  getMyPayments(limit = 12): Observable<PaymentRecordDTO[]> {
+    const safeLimit = Math.max(1, Math.min(Math.floor(limit), 100));
+
+    return this.http.get<PaymentRecordDTO[]>(
+      `${Config.API_URL}/payments/me?limit=${safeLimit}`,
+    );
+  }
+
+  refundAdminPayment(stripeInvoiceId: string): Observable<{
+    code: string;
+    fullyRefunded: boolean;
+    refundsCreated: number;
+  }> {
+    return this.http.post<{
+      code: string;
+      fullyRefunded: boolean;
+      refundsCreated: number;
+    }>(
+      `${Config.API_URL}/payments/admin/invoice/${encodeURIComponent(stripeInvoiceId)}/refund`,
+      {},
+    );
+  }
+  // endregion
+
   // region User
   /** User **/
   getUsernames() {
@@ -377,12 +414,97 @@ export class HttpService {
     return this.http.delete<string>(`${Config.API_URL}/user/profile-image`);
   }
 
+  // region Subscription
+  /** Subscription **/
+  getSubscription(): Observable<SubscriptionDTO> {
+    return this.http.get<SubscriptionDTO>(`${Config.API_URL}/subscription/me`);
+  }
+
+  createSubscriptionCheckout(plan: PaidSubscriptionPlan, seats?: number) {
+    return this.http.post<SubscriptionCheckoutDTO>(
+      `${Config.API_URL}/subscription/checkout`,
+      {
+        plan,
+        seats: seats ?? null,
+      },
+    );
+  }
+
+  confirmSubscriptionCheckout(sessionId: string) {
+    return this.http.post<SubscriptionCheckoutConfirmationDTO>(
+      `${Config.API_URL}/subscription/confirm-checkout`,
+      { sessionId },
+    );
+  }
+
+  previewSubscriptionPlanChange(plan: PaidSubscriptionPlan, seats?: number) {
+    return this.http.post<SubscriptionPlanChangePreviewDTO>(
+      `${Config.API_URL}/subscription/preview-change`,
+      {
+        plan,
+        seats: seats ?? null,
+      },
+    );
+  }
+
+  changeSubscriptionPlan(
+    plan: PaidSubscriptionPlan,
+    seats?: number,
+    prorationDate?: number,
+  ) {
+    return this.http.post<SubscriptionPlanChangeResultDTO>(
+      `${Config.API_URL}/subscription/change-plan`,
+      {
+        plan,
+        seats: seats ?? null,
+        prorationDate: prorationDate ?? null,
+      },
+    );
+  }
+
+  cancelSubscription() {
+    return this.http.post<SubscriptionActionResultDTO>(
+      `${Config.API_URL}/subscription/cancel`,
+      {},
+    );
+  }
+
+  resumeSubscription() {
+    return this.http.post<SubscriptionActionResultDTO>(
+      `${Config.API_URL}/subscription/resume`,
+      {},
+    );
+  }
+
+  createSubscriptionPortal() {
+    return this.http.post<SubscriptionPortalDTO>(
+      `${Config.API_URL}/subscription/portal`,
+      {},
+    );
+  }
+  // endregion
+
   getAdminDashboard() {
     return this.http.get<AdminDashboardDTO>(`${Config.API_URL}/user/admin`);
   }
 
   getUserAdminDashboard(userId: string) {
     return this.http.get(`${Config.API_URL}/user/admin/${userId}`);
+  }
+
+  updateAdminSubscription(
+    userId: string,
+    payload: {
+      subscriptionModel: 'FREE' | 'PRO' | 'SCHOOL' | 'ADMIN';
+      validUntil: string | null;
+      seats: number | null;
+    },
+  ) {
+    return this.http.put(`${Config.API_URL}/user/admin/${userId}/subscription`, payload);
+  }
+
+  updateAdminLock(userId: string, locked: boolean) {
+    return this.http.put(`${Config.API_URL}/user/admin/${userId}/lock`, { locked });
   }
 
   getUserInitials(user: User | null | UserDTO): string {

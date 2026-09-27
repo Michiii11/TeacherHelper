@@ -18,7 +18,6 @@ import { ExampleOverviewDTO } from "../../model/Example";
 import { TestOverviewDTO } from "../../model/Test";
 import { Subject } from "rxjs";
 import { takeUntil } from "rxjs/operators";
-import {TranslatePipe} from '@ngx-translate/core'
 
 type AdminSortKey = "newest" | "oldest" | "lastActive" | "nameAsc" | "nameDesc";
 type CollectionSortKey =
@@ -36,7 +35,11 @@ type AdminDashboardKey = keyof Pick<
   | "freeAbos"
   | "proAbos"
   | "schoolAbos"
-  | "cashflow"
+  | "schoolSeatsTotal"
+  | "revenueTotalCents"
+  | "revenueMonthCents"
+  | "successfulPayments"
+  | "failedPayments"
 >;
 type AdminPeriodKey = keyof Pick<
   AdminDashboardDTO,
@@ -52,6 +55,7 @@ interface StatCardConfig {
   key: AdminDashboardKey;
   toneClass: string;
   icon: string;
+  format?: "number" | "currency";
 }
 
 interface MetricPanelConfig {
@@ -80,8 +84,44 @@ interface UserMetricConfig {
   key: AdminUserMetricKey;
 }
 
+type SubscriptionModel = "FREE" | "PRO" | "SCHOOL" | "ADMIN";
+type SubscriptionStatus = "ACTIVE" | "CANCELED" | "PAST_DUE" | "INCOMPLETE";
+type SubscriptionSource = "FREE" | "STRIPE" | "ADMIN";
+type DurationPreset = "unlimited" | "1m" | "3m" | "6m" | "12m" | "custom";
+
+interface AdminPaymentDTO {
+  id: string;
+  stripeInvoiceId: string;
+  amountCents: number;
+  currency: string;
+  status: "PAID" | "FAILED" | "REFUNDED";
+  invoiceUrl: string | null;
+  invoicePdfUrl: string | null;
+  paidAt: string | null;
+  createdAt: string;
+}
+
 interface AdminUserDetailDTO {
   id: string;
+  username: string;
+  email: string;
+  createdAt: string;
+  lastActive: string;
+
+  subscriptionModel: SubscriptionModel;
+  subscriptionStatus: SubscriptionStatus;
+  subscriptionSource: SubscriptionSource;
+  subscriptionSeats: number | null;
+  subscriptionValidUntil: string | null;
+  subscriptionPeriodStart: string | null;
+  subscriptionPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+
+  locked: boolean;
+
+  paymentCount: number;
+  totalPaidCents: number;
+  payments: AdminPaymentDTO[];
   collections: CollectionDTO[];
 }
 
@@ -125,8 +165,15 @@ export class AdminComponent implements OnInit, OnDestroy {
   readonly aboStatCards: StatCardConfig[] = [
     { label: "Free Abos", key: "freeAbos", toneClass: "tone-free", icon: "person_outline" },
     { label: "Pro Abos", key: "proAbos", toneClass: "tone-pro", icon: "workspace_premium" },
-    { label: "Collection Abos", key: "schoolAbos", toneClass: "tone-collection", icon: "domain" },
-    { label: "Geschätzter Umsatz / Monat", key: "cashflow", toneClass: "tone-revenue", icon: "payments" },
+    { label: "School Abos", key: "schoolAbos", toneClass: "tone-collection", icon: "domain" },
+    { label: "School Seats", key: "schoolSeatsTotal", toneClass: "tone-seats", icon: "groups" },
+  ];
+
+  readonly billingStatCards: StatCardConfig[] = [
+    { label: "Umsatz gesamt", key: "revenueTotalCents", toneClass: "tone-revenue", icon: "payments", format: "currency" },
+    { label: "Umsatz letzter Monat", key: "revenueMonthCents", toneClass: "tone-revenue-month", icon: "calendar_month", format: "currency" },
+    { label: "Erfolgreiche Zahlungen", key: "successfulPayments", toneClass: "tone-payments", icon: "check_circle" },
+    { label: "Fehlgeschlagene Zahlungen", key: "failedPayments", toneClass: "tone-failed", icon: "error_outline" },
   ];
 
   readonly metricPanels: MetricPanelConfig[] = [
@@ -171,10 +218,19 @@ export class AdminComponent implements OnInit, OnDestroy {
   collectionSort: CollectionSortKey = "nameAsc";
   selectedUserId: string | null = null;
   expandedCollectionId: string | null = null;
-  selectedUserDTO: AdminUserDetailDTO = { id: "", collections: [] };
+  selectedUserDTO: AdminUserDetailDTO = this.emptyUserDetail();
   dash: AdminDashboardDTO = this.createEmptyDashboard();
+
+  adminPlan: SubscriptionModel = "FREE";
+  adminDurationPreset: DurationPreset = "unlimited";
+  adminValidUntil = "";
+  adminSeats = 20;
+
   isDashboardLoading = false;
   isUserLoading = false;
+  isSavingSubscription = false;
+  isUpdatingLock = false;
+  refundingInvoiceId: string | null = null;
   isUserSearchOpen = false;
   isUserSortPopupOpen = false;
   isCollectionSearchOpen = false;
@@ -235,7 +291,7 @@ export class AdminComponent implements OnInit, OnDestroy {
         ) {
           this.selectedUserId = null;
           this.expandedCollectionId = null;
-          this.selectedUserDTO = { id: "", collections: [] };
+          this.selectedUserDTO = this.emptyUserDetail();
         }
       },
       error: () => {
@@ -250,7 +306,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.selectedUserId = null;
     this.expandedCollectionId = null;
     this.collectionSearch = "";
-    this.selectedUserDTO = { id: "", collections: [] };
+    this.selectedUserDTO = this.emptyUserDetail();
     this.isUserLoading = false;
     this.closeFloatingControls();
   }
@@ -259,43 +315,227 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.selectedUserId = user.id;
     this.expandedCollectionId = null;
     this.collectionSearch = "";
-    this.selectedUserDTO = { id: user.id, collections: [] };
-    this.isUserLoading = true;
+    this.selectedUserDTO = this.emptyUserDetail(user.id);
+    this.loadUserDetail(user.id);
+  }
 
-    this.service.getUserAdminDashboard(user.id).subscribe({
-      next: (data) => {
-        if (this.selectedUserId !== user.id) {
-          return;
+  get isStripeManaged(): boolean {
+    return this.selectedUserDTO.subscriptionSource === "STRIPE";
+  }
+
+  get canSaveAdminSubscription(): boolean {
+    if (!this.selectedUserId || this.isSavingSubscription || this.isStripeManaged) {
+      return false;
+    }
+
+    if (this.adminPlan === "SCHOOL" && Number(this.adminSeats) < 20) {
+      return false;
+    }
+
+    if (this.adminPlan !== "FREE" && this.adminDurationPreset === "custom" && !this.adminValidUntil) {
+      return false;
+    }
+
+    return true;
+  }
+
+  onDurationPresetChange(preset: DurationPreset): void {
+    this.adminDurationPreset = preset;
+
+    if (preset === "unlimited") {
+      this.adminValidUntil = "";
+      return;
+    }
+
+    if (preset === "custom") {
+      return;
+    }
+
+    const months = preset === "1m" ? 1 : preset === "3m" ? 3 : preset === "6m" ? 6 : 12;
+    const date = new Date();
+    date.setMonth(date.getMonth() + months);
+    this.adminValidUntil = this.toDateInput(date);
+  }
+
+  onCustomDateChange(value: string): void {
+    this.adminValidUntil = value;
+    this.adminDurationPreset = "custom";
+  }
+
+  saveAdminSubscription(): void {
+    if (!this.selectedUserId || !this.canSaveAdminSubscription) {
+      return;
+    }
+
+    this.isSavingSubscription = true;
+
+    const payload = {
+      subscriptionModel: this.adminPlan,
+      validUntil: this.adminPlan === "FREE" ? null : this.buildValidUntil(),
+      seats: this.adminPlan === "SCHOOL" ? Math.max(20, Number(this.adminSeats) || 20) : null,
+    };
+
+    this.service.updateAdminSubscription(this.selectedUserId, payload).subscribe({
+      next: () => {
+        this.showMessage("Tier wurde aktualisiert.");
+        const userId = this.selectedUserId;
+        this.loadDashboard();
+        if (userId) {
+          this.loadUserDetail(userId);
         }
-
-        const dto = data as Partial<AdminUserDetailDTO> & { schools?: CollectionDTO[] };
-        const collections = Array.isArray(dto.collections)
-          ? dto.collections
-          : Array.isArray(dto.schools)
-            ? dto.schools
-            : [];
-
-        this.selectedUserDTO = {
-          id: dto.id ?? user.id,
-          collections: collections.map((collection) => this.normalizeCollection(collection)),
-        };
-
-        this.loadSelectedUserCollectionAvatars();
       },
-      error: () => {
-        if (this.selectedUserId === user.id) {
-          this.selectedUserDTO = { id: user.id, collections: [] };
-          this.isUserLoading = false;
-        }
+      error: (error) => {
+        this.showMessage(this.getApiErrorMessage(error, "Tier konnte nicht aktualisiert werden."), 3500);
+        this.isSavingSubscription = false;
+      },
+      complete: () => (this.isSavingSubscription = false),
+    });
+  }
 
-        this.showMessage("User-Collections konnten nicht geladen werden.", 3000);
+  setUserLocked(locked: boolean): void {
+    if (!this.selectedUserId || this.isUpdatingLock) {
+      return;
+    }
+
+    this.isUpdatingLock = true;
+    const userId = this.selectedUserId;
+
+    this.service.updateAdminLock(userId, locked).subscribe({
+      next: () => {
+        this.selectedUserDTO = { ...this.selectedUserDTO, locked };
+        const dashboardUser = this.dash.users.find((entry) => entry.id === userId);
+        if (dashboardUser) {
+          dashboardUser.locked = locked;
+        }
+        this.showMessage(locked ? "User wurde gesperrt." : "User wurde entsperrt.");
+      },
+      error: (error) => {
+        this.showMessage(this.getApiErrorMessage(error, "Sperrstatus konnte nicht geändert werden."), 3500);
+        this.isUpdatingLock = false;
+      },
+      complete: () => (this.isUpdatingLock = false),
+    });
+  }
+
+  getSubscriptionEndLabel(): string {
+    const value = this.selectedUserDTO.subscriptionValidUntil ?? this.selectedUserDTO.subscriptionPeriodEnd;
+    if (value) {
+      return this.formatDate(value);
+    }
+
+    if (this.selectedUserDTO.subscriptionSource === "ADMIN" && this.selectedUserDTO.subscriptionModel !== "FREE") {
+      return "Unbegrenzt";
+    }
+
+    return "—";
+  }
+
+  getSubscriptionStartLabel(): string {
+    return this.selectedUserDTO.subscriptionPeriodStart
+      ? this.formatDate(this.selectedUserDTO.subscriptionPeriodStart)
+      : "—";
+  }
+
+  getPlanLabel(plan: SubscriptionModel | null | undefined): string {
+    switch (plan) {
+      case "PRO": return "Pro";
+      case "SCHOOL": return "School";
+      case "ADMIN": return "Admin";
+      default: return "Free";
+    }
+  }
+
+  getStatusLabel(status: SubscriptionStatus | null | undefined): string {
+    switch (status) {
+      case "PAST_DUE": return "Zahlung offen";
+      case "INCOMPLETE": return "Unvollständig";
+      case "CANCELED": return "Gekündigt";
+      default: return "Aktiv";
+    }
+  }
+
+  getSourceLabel(source: SubscriptionSource | null | undefined): string {
+    switch (source) {
+      case "STRIPE": return "Stripe";
+      case "ADMIN": return "Manuell";
+      default: return "Free";
+    }
+  }
+
+  refundPayment(payment: AdminPaymentDTO): void {
+    if (
+      payment.status !== "PAID" ||
+      !payment.stripeInvoiceId ||
+      this.refundingInvoiceId !== null
+    ) {
+      return;
+    }
+
+    const amount = this.formatMoney(payment.amountCents, payment.currency);
+    const confirmed = window.confirm(
+      `${amount} vollständig erstatten?\n\nDie Rückerstattung wird direkt bei Stripe ausgelöst.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const userId = this.selectedUserId;
+    this.refundingInvoiceId = payment.stripeInvoiceId;
+
+    this.service.refundAdminPayment(payment.stripeInvoiceId).subscribe({
+      next: (result) => {
+        this.showMessage(
+          result.fullyRefunded
+            ? "Zahlung wurde vollständig erstattet."
+            : "Rückerstattung wurde bei Stripe ausgelöst.",
+          3000,
+        );
+
+        this.loadDashboard();
+        if (userId) {
+          this.loadUserDetail(userId);
+        }
+      },
+      error: (error) => {
+        this.showMessage(
+          this.getApiErrorMessage(
+            error,
+            "Rückerstattung konnte nicht durchgeführt werden.",
+          ),
+          4000,
+        );
+        this.refundingInvoiceId = null;
       },
       complete: () => {
-        if (this.selectedUserId === user.id) {
-          this.isUserLoading = false;
-        }
+        this.refundingInvoiceId = null;
       },
     });
+  }
+
+  getPaymentStatusLabel(status: AdminPaymentDTO["status"]): string {
+    switch (status) {
+      case "FAILED": return "Fehlgeschlagen";
+      case "REFUNDED": return "Erstattet";
+      default: return "Bezahlt";
+    }
+  }
+
+  formatMoney(amountCents: number | null | undefined, currency = "EUR"): string {
+    const amount = Number(amountCents ?? 0) / 100;
+    try {
+      return new Intl.NumberFormat("de-AT", {
+        style: "currency",
+        currency: (currency || "EUR").toUpperCase(),
+      }).format(amount);
+    } catch {
+      return `${amount.toFixed(2)} €`;
+    }
+  }
+
+  formatDate(value: string | null | undefined): string {
+    const date = this.parseDate(value);
+    return date ? new Intl.DateTimeFormat("de-AT").format(date) : "—";
   }
 
   toggleCollectionDetails(collection: CollectionDTO): void {
@@ -391,8 +631,9 @@ export class AdminComponent implements OnInit, OnDestroy {
     return this.dash[period]?.[key] ?? 0;
   }
 
-  getStatValue(key: AdminDashboardKey): number {
-    return Number(this.dash[key] ?? 0);
+  getStatDisplay(card: StatCardConfig): string {
+    const value = Number(this.dash[card.key] ?? 0);
+    return card.format === "currency" ? this.formatMoney(value) : value.toLocaleString("de-AT");
   }
 
   getUserMetricValue(user: AdminUserDashboardDTO, key: AdminUserMetricKey): number {
@@ -492,6 +733,154 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   trackByTest(index: number, test: TestOverviewDTO): string {
     return test.id ?? `${this.getTestTitle(test)}-${index}`;
+  }
+
+  private loadUserDetail(userId: string): void {
+    this.isUserLoading = true;
+
+    this.service.getUserAdminDashboard(userId).subscribe({
+      next: (data) => {
+        if (this.selectedUserId !== userId) {
+          return;
+        }
+
+        const dto = data as Partial<AdminUserDetailDTO> & { schools?: CollectionDTO[] };
+        const collections = Array.isArray(dto.collections)
+          ? dto.collections
+          : Array.isArray(dto.schools)
+            ? dto.schools
+            : [];
+
+        const dashboardUser = this.dash.users.find((entry) => entry.id === userId);
+        this.selectedUserDTO = {
+          ...this.emptyUserDetail(userId),
+          username: dto.username ?? dashboardUser?.username ?? "",
+          email: dto.email ?? "",
+          createdAt: dto.createdAt ?? dashboardUser?.createdAt ?? "",
+          lastActive: dto.lastActive ?? dashboardUser?.lastActive ?? "",
+          subscriptionModel: dto.subscriptionModel ?? dashboardUser?.subscriptionModel ?? "FREE",
+          subscriptionStatus: dto.subscriptionStatus ?? dashboardUser?.subscriptionStatus ?? "ACTIVE",
+          subscriptionSource: dto.subscriptionSource ?? dashboardUser?.subscriptionSource ?? "FREE",
+          subscriptionSeats: dto.subscriptionSeats ?? dashboardUser?.subscriptionSeats ?? null,
+          subscriptionValidUntil: dto.subscriptionValidUntil ?? dashboardUser?.subscriptionValidUntil ?? null,
+          subscriptionPeriodStart: dto.subscriptionPeriodStart ?? dashboardUser?.subscriptionPeriodStart ?? null,
+          subscriptionPeriodEnd: dto.subscriptionPeriodEnd ?? dashboardUser?.subscriptionPeriodEnd ?? null,
+          cancelAtPeriodEnd: dto.cancelAtPeriodEnd ?? dashboardUser?.cancelAtPeriodEnd ?? false,
+          locked: dto.locked ?? dashboardUser?.locked ?? false,
+          paymentCount: Number(dto.paymentCount ?? dashboardUser?.paymentCount ?? 0),
+          totalPaidCents: Number(dto.totalPaidCents ?? dashboardUser?.totalPaidCents ?? 0),
+          payments: Array.isArray(dto.payments) ? dto.payments : [],
+          collections: collections.map((collection) => this.normalizeCollection(collection)),
+        };
+
+        this.syncDashboardUserFromDetail(userId);
+        this.applyDetailToEditor();
+        this.loadSelectedUserCollectionAvatars();
+      },
+      error: () => {
+        if (this.selectedUserId === userId) {
+          this.selectedUserDTO = this.emptyUserDetail(userId);
+          this.isUserLoading = false;
+        }
+        this.showMessage("User-Details konnten nicht geladen werden.", 3000);
+      },
+      complete: () => {
+        if (this.selectedUserId === userId) {
+          this.isUserLoading = false;
+        }
+      },
+    });
+  }
+
+  private syncDashboardUserFromDetail(userId: string): void {
+    const index = this.dash.users.findIndex((entry) => entry.id === userId);
+    if (index < 0) {
+      return;
+    }
+
+    const current = this.dash.users[index];
+    const detail = this.selectedUserDTO;
+
+    this.dash.users[index] = {
+      ...current,
+      subscriptionModel: detail.subscriptionModel,
+      subscriptionStatus: detail.subscriptionStatus,
+      subscriptionSource: detail.subscriptionSource,
+      subscriptionSeats: detail.subscriptionSeats,
+      subscriptionValidUntil: detail.subscriptionValidUntil,
+      subscriptionPeriodStart: detail.subscriptionPeriodStart,
+      subscriptionPeriodEnd: detail.subscriptionPeriodEnd,
+      cancelAtPeriodEnd: detail.cancelAtPeriodEnd,
+      locked: detail.locked,
+      paymentCount: detail.paymentCount,
+      totalPaidCents: detail.totalPaidCents,
+    };
+
+    // Replace the array reference as well so Angular reliably refreshes the row.
+    this.dash = {
+      ...this.dash,
+      users: [...this.dash.users],
+    };
+  }
+
+  private applyDetailToEditor(): void {
+    this.adminPlan = this.selectedUserDTO.subscriptionModel;
+    this.adminSeats = Math.max(20, Number(this.selectedUserDTO.subscriptionSeats ?? 20));
+    this.adminValidUntil = this.selectedUserDTO.subscriptionValidUntil
+      ? this.toDateInput(new Date(this.selectedUserDTO.subscriptionValidUntil))
+      : "";
+    this.adminDurationPreset = this.adminValidUntil ? "custom" : "unlimited";
+  }
+
+  private buildValidUntil(): string | null {
+    if (this.adminDurationPreset === "unlimited" || !this.adminValidUntil) {
+      return null;
+    }
+    return `${this.adminValidUntil}T23:59:59`;
+  }
+
+  private toDateInput(date: Date): string {
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  private emptyUserDetail(id = ""): AdminUserDetailDTO {
+    return {
+      id,
+      username: "",
+      email: "",
+      createdAt: "",
+      lastActive: "",
+      subscriptionModel: "FREE",
+      subscriptionStatus: "ACTIVE",
+      subscriptionSource: "FREE",
+      subscriptionSeats: null,
+      subscriptionValidUntil: null,
+      subscriptionPeriodStart: null,
+      subscriptionPeriodEnd: null,
+      cancelAtPeriodEnd: false,
+      locked: false,
+      paymentCount: 0,
+      totalPaidCents: 0,
+      payments: [],
+      collections: [],
+    };
+  }
+
+  private getApiErrorMessage(error: any, fallback: string): string {
+    const entity = error?.error;
+    if (typeof entity === "string" && entity.trim()) {
+      return entity;
+    }
+    if (entity?.message) {
+      return String(entity.message);
+    }
+    return fallback;
   }
 
   private loadDashboardAvatars(): void {
@@ -659,7 +1048,11 @@ export class AdminComponent implements OnInit, OnDestroy {
       freeAbos: 0,
       proAbos: 0,
       schoolAbos: 0,
-      cashflow: 0,
+      revenueTotalCents: 0,
+      revenueMonthCents: 0,
+      successfulPayments: 0,
+      failedPayments: 0,
+      schoolSeatsTotal: 0,
       collections: this.emptyPeriod(),
       examples: this.emptyPeriod(),
       tests: this.emptyPeriod(),
@@ -681,7 +1074,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     return this.parseDate(value)?.getTime() ?? 0;
   }
 
-  private parseDate(value: string): Date | null {
+  private parseDate(value: string | null | undefined): Date | null {
     if (!value) {
       return null;
     }

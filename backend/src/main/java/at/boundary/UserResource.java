@@ -1,9 +1,12 @@
 package at.boundary;
 
+import at.dtos.User.AdminLockUpdateDTO;
+import at.dtos.User.AdminSubscriptionUpdateDTO;
 import at.dtos.User.UserProfileDTO;
 import at.dtos.User.UserSettingsDTO;
 import at.model.User;
 import at.repository.UserRepository;
+import at.service.StripeBillingSyncService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -18,14 +21,15 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import java.util.Map;
 import java.util.UUID;
-import org.jboss.logging.Logger;
 
 @Path("user")
 public class UserResource {
-    private static final Logger LOG = Logger.getLogger(UserResource.class);
 
     @Inject
     UserRepository repository;
+
+    @Inject
+    StripeBillingSyncService stripeBillingSyncService;
 
     @Inject
     JsonWebToken jwt;
@@ -105,7 +109,6 @@ public class UserResource {
     public Response getAdminDashboard() {
         User user = currentUser();
         if (!user.isAdmin()) {
-            LOG.warnf("event=admin.dashboard.denied userId=%s", user.getId());
             return Response.status(Response.Status.FORBIDDEN).entity("Access denied: Admins only").build();
         }
         return repository.getAdminDashboard();
@@ -116,10 +119,52 @@ public class UserResource {
     public Response getUserAdminDashboard(@PathParam("id") UUID id) {
         User user = currentUser();
         if (!user.isAdmin()) {
-            LOG.warnf("event=admin.user-dashboard.denied userId=%s targetUserId=%s", user.getId(), id);
             return Response.status(Response.Status.FORBIDDEN).entity("Access denied: Admins only").build();
         }
+
+        // Backfill current Stripe period + historical paid invoices before
+        // returning the admin detail. This makes old subscriptions visible too.
+        stripeBillingSyncService.syncUser(id);
+
         return repository.getUserAdminDashboard(id);
+    }
+
+    @PUT
+    @Path("admin/{id}/subscription")
+    public Response updateAdminSubscription(
+            @PathParam("id") UUID id,
+            AdminSubscriptionUpdateDTO request
+    ) {
+        User admin = currentUser();
+        if (!admin.isAdmin()) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("Access denied: Admins only")
+                    .build();
+        }
+
+        return repository.updateAdminSubscription(id, request);
+    }
+
+    @PUT
+    @Path("admin/{id}/lock")
+    public Response updateAdminLock(
+            @PathParam("id") UUID id,
+            AdminLockUpdateDTO request
+    ) {
+        User admin = currentUser();
+        if (!admin.isAdmin()) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("Access denied: Admins only")
+                    .build();
+        }
+
+        if (request == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Request body required")
+                    .build();
+        }
+
+        return repository.updateAdminLock(id, request.locked(), admin.getId());
     }
 
     @GET

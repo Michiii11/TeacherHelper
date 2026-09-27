@@ -28,9 +28,7 @@
             <div class="avatar-drop-overlay">
               <mat-icon>{{ isDraggingAvatar ? 'add_photo_alternate' : 'photo_camera' }}</mat-icon>
               <span>
-                {{ isDraggingAvatar
-                ? ((translate.currentLang || '').toLowerCase().startsWith('en') ? 'Drop image' : 'Bild ablegen')
-                : ((translate.currentLang || '').toLowerCase().startsWith('en') ? 'Change image' : 'Bild ändern') }}
+                {{ (isDraggingAvatar ? 'profile.avatarDrop.drop' : 'profile.avatarDrop.change') | translate }}
               </span>
             </div>
           </label>
@@ -126,6 +124,656 @@
           </div>
         </div>
       </article>
+    </section>
+
+
+    <section class="subscription-panel panel">
+      <div class="panel-header subscription-header">
+        <div>
+          <h2 class="panel-title">
+            <mat-icon>workspace_premium</mat-icon>
+            {{ 'profile.subscription.title' | translate }}
+          </h2>
+        </div>
+
+        @if (subscription) {
+          <span class="subscription-plan-badge">{{ getSubscriptionPlanLabel() }}</span>
+        }
+      </div>
+
+      <div class="panel-body subscription-body">
+        @if (subscriptionLoading) {
+          <div class="subscription-loading">
+            <span>{{ 'profile.subscription.loading' | translate }}</span>
+            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+          </div>
+        } @else if (subscription) {
+          <div class="subscription-summary">
+            <div class="subscription-plan-copy">
+              <div class="subscription-plan-name">{{ getSubscriptionPlanLabel() }}</div>
+              <p>{{ getSubscriptionPlanDescription() }}</p>
+            </div>
+
+            <div class="subscription-meta">
+              <span
+                class="subscription-status"
+                [class.subscription-status--warning]="subscription.status === 'PAST_DUE' || subscription.status === 'INCOMPLETE'"
+                [class.subscription-status--canceled]="subscription.status === 'CANCELED'">
+                <span class="subscription-status-dot"></span>
+                {{ getSubscriptionStatusLabel() }}
+              </span>
+
+              @if (isSchoolPlan() && subscription.seats) {
+                <span class="subscription-seats">
+                  <mat-icon>groups</mat-icon>
+                  {{ subscription.seats }} {{ 'profile.subscription.seats' | translate }}
+                </span>
+              }
+            </div>
+          </div>
+
+          @if (hasSubscriptionIssue()) {
+            <div
+              class="subscription-health-banner"
+              [class.subscription-health-banner--danger]="subscription.status === 'PAST_DUE'"
+              [class.subscription-health-banner--warning]="subscription.status === 'INCOMPLETE'">
+              <div class="subscription-health-icon" aria-hidden="true">
+                <mat-icon>{{ getSubscriptionIssueIcon() }}</mat-icon>
+              </div>
+
+              <div class="subscription-health-copy">
+                <strong>{{ getSubscriptionIssueTitle() }}</strong>
+                <span>{{ getSubscriptionIssueText() }}</span>
+              </div>
+
+              @if (isStripeManagedSubscription()) {
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [disabled]="openingPortal"
+                  (click)="openSubscriptionPortal()">
+                  <mat-icon>{{ openingPortal ? 'hourglass_top' : 'credit_card' }}</mat-icon>
+                  {{ 'profile.subscription.health.manage' | translate }}
+                </button>
+              }
+            </div>
+          }
+
+          @if (isStripeManagedSubscription()) {
+            <div class="billing-overview">
+              <div class="billing-overview-head">
+                <div>
+                  <div class="billing-overview-eyebrow">{{ 'profile.subscription.billingOverview.eyebrow' | translate }}</div>
+                  <div class="billing-overview-title">{{ 'profile.subscription.billingOverview.title' | translate }}</div>
+                </div>
+
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [disabled]="openingPortal"
+                  (click)="openSubscriptionPortal()">
+                  <mat-icon>{{ openingPortal ? 'hourglass_top' : 'credit_card' }}</mat-icon>
+                  {{ 'profile.subscription.billingOverview.manage' | translate }}
+                </button>
+              </div>
+
+              <div class="billing-overview-grid">
+                <article class="billing-info-card">
+                  <div class="billing-info-icon"><mat-icon>payments</mat-icon></div>
+                  <div>
+                    <span>{{ 'profile.subscription.billingOverview.monthlyPrice' | translate }}</span>
+                    <strong>{{ formatSubscriptionMoney(getCurrentMonthlyPriceCents()) }}</strong>
+                    <small>{{ 'profile.subscription.billingOverview.perMonth' | translate }}</small>
+                  </div>
+                </article>
+
+                <article class="billing-info-card">
+                  <div class="billing-info-icon"><mat-icon>date_range</mat-icon></div>
+                  <div>
+                    <span>{{ 'profile.subscription.billingOverview.currentPeriod' | translate }}</span>
+                    <strong>
+                      {{ formatSubscriptionDate(getSubscriptionPeriodStart()) }}
+                      –
+                      {{ formatSubscriptionDate(getSubscriptionPeriodEnd()) }}
+                    </strong>
+                    <small>{{ 'profile.subscription.billingOverview.currentPeriodHint' | translate }}</small>
+                  </div>
+                </article>
+
+                <article class="billing-info-card">
+                  <div class="billing-info-icon">
+                    <mat-icon>{{ subscription.cancelAtPeriodEnd ? 'event_busy' : 'event_repeat' }}</mat-icon>
+                  </div>
+                  <div>
+                    <span>
+                      {{ subscription.cancelAtPeriodEnd
+                      ? ('profile.subscription.billingOverview.endsOn' | translate)
+                      : ('profile.subscription.billingOverview.nextRenewal' | translate) }}
+                    </span>
+                    <strong>{{ formatSubscriptionDate(getSubscriptionPeriodEnd()) }}</strong>
+                    <small>
+                      {{ subscription.cancelAtPeriodEnd
+                      ? ('profile.subscription.billingOverview.noRenewal' | translate)
+                      : ('profile.subscription.billingOverview.renewsAutomatically' | translate) }}
+                    </small>
+                  </div>
+                </article>
+              </div>
+
+              @if (subscription.cancelAtPeriodEnd) {
+                <div class="subscription-cancel-banner">
+                  <div class="subscription-cancel-icon">
+                    <mat-icon>schedule</mat-icon>
+                  </div>
+
+                  <div class="subscription-cancel-copy">
+                    <strong>{{ 'profile.subscription.cancellation.title' | translate }}</strong>
+                    <span>
+                      {{ 'profile.subscription.cancellation.text' | translate:{
+                      date: formatSubscriptionDate(getSubscriptionPeriodEnd())
+                    } }}
+                    </span>
+                  </div>
+
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    type="button"
+                    [disabled]="resumingSubscription"
+                    (click)="confirmResumeSubscription()">
+                    <mat-icon>{{ resumingSubscription ? 'hourglass_top' : 'restart_alt' }}</mat-icon>
+                    {{ 'profile.subscription.cancellation.resume' | translate }}
+                  </button>
+
+                  @if (willExceedFreePlanAfterCancellation()) {
+                    <div class="cancellation-impact">
+                      <div class="cancellation-impact-title">
+                        <mat-icon>info</mat-icon>
+                        <strong>{{ 'profile.subscription.cancellationImpact.title' | translate }}</strong>
+                      </div>
+
+                      <p>{{ 'profile.subscription.cancellationImpact.text' | translate }}</p>
+
+                      <ul>
+                        @for (item of getFreePlanDowngradeItems(); track item) {
+                          <li>{{ item }}</li>
+                        }
+                      </ul>
+
+                      <p class="cancellation-impact-footnote">
+                        {{ 'profile.subscription.cancellationImpact.footnote' | translate }}
+                      </p>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          @if (isStripeManagedSubscription()) {
+            <section class="payment-history" [attr.aria-label]="'profile.subscription.paymentHistory.title' | translate">
+              <div class="payment-history-head">
+                <div class="payment-history-heading">
+                  <div class="payment-history-icon" aria-hidden="true">
+                    <mat-icon>receipt_long</mat-icon>
+                  </div>
+
+                  <div>
+                    <div class="payment-history-title">
+                      {{ 'profile.subscription.paymentHistory.title' | translate }}
+                    </div>
+                    <div class="payment-history-subtitle">
+                      {{ 'profile.subscription.paymentHistory.subtitle' | translate }}
+                    </div>
+                  </div>
+                </div>
+
+                @if (!paymentsLoading && !paymentsLoadError && payments.length > 0) {
+                  <span class="payment-history-count">
+                    {{ 'profile.subscription.paymentHistory.count' | translate:{ count: payments.length } }}
+                  </span>
+                }
+              </div>
+
+              @if (paymentsLoading) {
+                <div class="payment-history-loading">
+                  <span>{{ 'profile.subscription.paymentHistory.loading' | translate }}</span>
+                  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+                </div>
+              } @else if (paymentsLoadError) {
+                <div class="payment-history-state payment-history-state--error">
+                  <div class="payment-history-state-icon">
+                    <mat-icon>error_outline</mat-icon>
+                  </div>
+
+                  <div class="payment-history-state-copy">
+                    <strong>{{ 'profile.subscription.paymentHistory.loadError' | translate }}</strong>
+                  </div>
+
+                  <button mat-stroked-button type="button" (click)="loadPayments()">
+                    <mat-icon>refresh</mat-icon>
+                    {{ 'profile.subscription.paymentHistory.retry' | translate }}
+                  </button>
+                </div>
+              } @else if (payments.length === 0) {
+                <div class="payment-history-state">
+                  <div class="payment-history-state-icon">
+                    <mat-icon>receipt</mat-icon>
+                  </div>
+
+                  <div class="payment-history-state-copy">
+                    <strong>{{ 'profile.subscription.paymentHistory.emptyTitle' | translate }}</strong>
+                    <span>{{ 'profile.subscription.paymentHistory.emptyText' | translate }}</span>
+                  </div>
+                </div>
+              } @else {
+                <div class="payment-history-table">
+                  <div class="payment-history-table-head" aria-hidden="true">
+                    <span>{{ 'profile.subscription.paymentHistory.date' | translate }}</span>
+                    <span>{{ 'profile.subscription.paymentHistory.status' | translate }}</span>
+                    <span>{{ 'profile.subscription.paymentHistory.amount' | translate }}</span>
+                    <span class="payment-history-actions-head">
+                      {{ 'profile.subscription.paymentHistory.actions' | translate }}
+                    </span>
+                  </div>
+
+                  <div class="payment-history-list">
+                    @for (payment of visiblePayments; track payment.id) {
+                      <article class="payment-row">
+                        <div class="payment-cell payment-date">
+                          <span class="payment-mobile-label">
+                            {{ 'profile.subscription.paymentHistory.date' | translate }}
+                          </span>
+                          <strong>{{ formatPaymentDate(payment) }}</strong>
+                        </div>
+
+                        <div class="payment-cell">
+                          <span class="payment-mobile-label">
+                            {{ 'profile.subscription.paymentHistory.status' | translate }}
+                          </span>
+
+                          <span
+                            class="payment-status"
+                            [class.payment-status--paid]="payment.status === 'PAID'"
+                            [class.payment-status--failed]="payment.status === 'FAILED'"
+                            [class.payment-status--refunded]="payment.status === 'REFUNDED'">
+                            <span class="payment-status-dot"></span>
+                            {{ getPaymentStatusLabel(payment) }}
+                          </span>
+                        </div>
+
+                        <div class="payment-cell payment-amount">
+                          <span class="payment-mobile-label">
+                            {{ 'profile.subscription.paymentHistory.amount' | translate }}
+                          </span>
+                          <strong>{{ formatPaymentMoney(payment) }}</strong>
+                        </div>
+
+                        <div class="payment-cell payment-actions">
+                          <span class="payment-mobile-label">
+                            {{ 'profile.subscription.paymentHistory.actions' | translate }}
+                          </span>
+
+                          <div class="payment-action-buttons">
+                            @if (payment.invoiceUrl) {
+                              <a
+                                class="payment-link"
+                                [href]="payment.invoiceUrl"
+                                target="_blank"
+                                rel="noopener noreferrer">
+                                <mat-icon>open_in_new</mat-icon>
+                                {{ 'profile.subscription.paymentHistory.invoice' | translate }}
+                              </a>
+                            }
+
+                            @if (payment.invoicePdfUrl) {
+                              <a
+                                class="payment-link payment-link--secondary"
+                                [href]="payment.invoicePdfUrl"
+                                target="_blank"
+                                rel="noopener noreferrer">
+                                <mat-icon>picture_as_pdf</mat-icon>
+                                {{ 'profile.subscription.paymentHistory.pdf' | translate }}
+                              </a>
+                            }
+
+                            @if (!payment.invoiceUrl && !payment.invoicePdfUrl) {
+                              <span class="payment-no-document">
+                                {{ 'profile.subscription.paymentHistory.noInvoice' | translate }}
+                              </span>
+                            }
+                          </div>
+                        </div>
+                      </article>
+                    }
+                  </div>
+                </div>
+
+                @if (hasMorePayments) {
+                  <button
+                    class="payment-history-toggle"
+                    mat-stroked-button
+                    type="button"
+                    (click)="togglePaymentHistory()">
+                    <mat-icon>{{ paymentHistoryExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+                    {{ (paymentHistoryExpanded
+                    ? 'profile.subscription.paymentHistory.showLess'
+                    : 'profile.subscription.paymentHistory.showMore') | translate }}
+                  </button>
+                }
+              }
+            </section>
+          }
+
+          @if (isCurrentPlanOverLimit()) {
+            <section class="plan-limit-warning plan-limit-warning--current">
+              <div class="plan-limit-warning-icon" aria-hidden="true">
+                <mat-icon>warning_amber</mat-icon>
+              </div>
+
+              <div class="plan-limit-warning-copy">
+                <strong>{{ 'profile.subscription.overLimit.title' | translate }}</strong>
+                <span>{{ 'profile.subscription.overLimit.text' | translate }}</span>
+
+                <ul>
+                  @for (item of getCurrentPlanOverLimitItems(); track item) {
+                    <li>{{ item }}</li>
+                  }
+                </ul>
+
+                <span class="plan-limit-warning-footnote">
+                  {{ 'profile.subscription.overLimit.footnote' | translate }}
+                </span>
+              </div>
+            </section>
+          }
+
+          <div class="subscription-usage-grid">
+            <article class="usage-card">
+              <div class="usage-card-head">
+                <div class="usage-icon"><mat-icon>folder_copy</mat-icon></div>
+                <div>
+                  <div class="usage-label">{{ 'profile.subscription.collections' | translate }}</div>
+                  <div class="usage-value">
+                    {{ getUsageText(subscription.usage.collections, subscription.limits.collections) }}
+                  </div>
+                </div>
+              </div>
+              @if (subscription.limits.collections !== null) {
+                <mat-progress-bar
+                  mode="determinate"
+                  [value]="getUsagePercent(subscription.usage.collections, subscription.limits.collections)">
+                </mat-progress-bar>
+              } @else {
+                <div class="usage-unlimited">{{ 'profile.subscription.unlimited' | translate }}</div>
+              }
+            </article>
+
+            <article class="usage-card">
+              <div class="usage-card-head">
+                <div class="usage-icon"><mat-icon>description</mat-icon></div>
+                <div>
+                  <div class="usage-label">{{ 'profile.subscription.examples' | translate }}</div>
+                  <div class="usage-value">
+                    {{ getUsageText(subscription.usage.examples, subscription.limits.examples) }}
+                  </div>
+                </div>
+              </div>
+              @if (subscription.limits.examples !== null) {
+                <mat-progress-bar
+                  mode="determinate"
+                  [value]="getUsagePercent(subscription.usage.examples, subscription.limits.examples)">
+                </mat-progress-bar>
+              } @else {
+                <div class="usage-unlimited">{{ 'profile.subscription.unlimited' | translate }}</div>
+              }
+            </article>
+
+            <article class="usage-card">
+              <div class="usage-card-head">
+                <div class="usage-icon"><mat-icon>quiz</mat-icon></div>
+                <div>
+                  <div class="usage-label">{{ 'profile.subscription.tests' | translate }}</div>
+                  <div class="usage-value">
+                    {{ getUsageText(subscription.usage.tests, subscription.limits.tests) }}
+                  </div>
+                </div>
+              </div>
+              @if (subscription.limits.tests !== null) {
+                <mat-progress-bar
+                  mode="determinate"
+                  [value]="getUsagePercent(subscription.usage.tests, subscription.limits.tests)">
+                </mat-progress-bar>
+              } @else {
+                <div class="usage-unlimited">{{ 'profile.subscription.unlimited' | translate }}</div>
+              }
+            </article>
+
+            @if (isSchoolPlan()) {
+              <article class="usage-card">
+                <div class="usage-card-head">
+                  <div class="usage-icon"><mat-icon>group</mat-icon></div>
+                  <div>
+                    <div class="usage-label">{{ 'profile.subscription.users' | translate }}</div>
+                    <div class="usage-value">
+                      {{ getUsageText(subscription.usage.schoolUsers, subscription.limits.schoolUsers) }}
+                    </div>
+                  </div>
+                </div>
+                @if (subscription.limits.schoolUsers !== null) {
+                  <mat-progress-bar
+                    mode="determinate"
+                    [value]="getUsagePercent(subscription.usage.schoolUsers, subscription.limits.schoolUsers)">
+                  </mat-progress-bar>
+                } @else {
+                  <div class="usage-unlimited">{{ 'profile.subscription.unlimited' | translate }}</div>
+                }
+              </article>
+            }
+          </div>
+
+          @if (getCurrentPlan() !== 'ADMIN') {
+            <div class="plan-management">
+              <div class="plan-management-heading">
+                <div>
+                  <div class="plan-management-title">
+                    {{ 'profile.subscription.planManagement.title' | translate }}
+                  </div>
+                  <div class="plan-management-subtitle">
+                    {{ 'profile.subscription.planManagement.subtitle' | translate }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="plan-grid">
+                <article class="plan-option" [class.plan-option--active]="isCurrentPlan('FREE')">
+                  <div class="plan-option-head">
+                    <div>
+                      <div class="plan-option-name">Free</div>
+                      <div class="plan-price">
+                        <strong>€0</strong>
+                        <span>/ {{ 'profile.subscription.planManagement.month' | translate }}</span>
+                      </div>
+                    </div>
+                    @if (isCurrentPlan('FREE')) {
+                      <span class="plan-badge">
+                        {{ 'profile.subscription.planManagement.current' | translate }}
+                      </span>
+                    }
+                  </div>
+
+                  <div class="plan-feature-list">
+                    <div class="feature-row"><mat-icon>check_circle</mat-icon><span>1 {{ 'profile.subscription.collections' | translate }}</span></div>
+                    <div class="feature-row"><mat-icon>check_circle</mat-icon><span>50 {{ 'profile.subscription.examples' | translate }}</span></div>
+                    <div class="feature-row"><mat-icon>check_circle</mat-icon><span>5 {{ 'profile.subscription.tests' | translate }}</span></div>
+                  </div>
+
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    [disabled]="isCurrentPlan('FREE') || isAdminManagedSubscription() || cancelingSubscription || subscription.cancelAtPeriodEnd"
+                    (click)="confirmCancelSubscription()">
+                    <mat-icon>
+                      {{ cancelingSubscription
+                      ? 'hourglass_top'
+                      : (isCurrentPlan('FREE')
+                        ? 'check'
+                        : (subscription.cancelAtPeriodEnd ? 'schedule' : 'cancel')) }}
+                    </mat-icon>
+                    {{ (isCurrentPlan('FREE')
+                    ? 'profile.subscription.planManagement.currentPlan'
+                    : (subscription.cancelAtPeriodEnd
+                      ? 'profile.subscription.planManagement.cancellationScheduled'
+                      : 'profile.subscription.planManagement.switchToFree')) | translate }}
+                  </button>
+                </article>
+
+                <article class="plan-option plan-option--pro" [class.plan-option--active]="isCurrentPlan('PRO')">
+                  <div class="plan-option-head">
+                    <div>
+                      <div class="plan-option-name">Pro</div>
+                      <div class="plan-price">
+                        <strong>€5</strong>
+                        <span>/ {{ 'profile.subscription.planManagement.month' | translate }}</span>
+                      </div>
+                    </div>
+                    @if (isCurrentPlan('PRO')) {
+                      <span class="plan-badge">
+                        {{ 'profile.subscription.planManagement.current' | translate }}
+                      </span>
+                    }
+                  </div>
+
+                  <div class="plan-feature-list">
+                    <div class="feature-row"><mat-icon>check_circle</mat-icon><span>5 {{ 'profile.subscription.collections' | translate }}</span></div>
+                    <div class="feature-row"><mat-icon>check_circle</mat-icon><span>500 {{ 'profile.subscription.examples' | translate }}</span></div>
+                    <div class="feature-row"><mat-icon>check_circle</mat-icon><span>50 {{ 'profile.subscription.tests' | translate }}</span></div>
+                    <div class="feature-row">
+                      <mat-icon>check_circle</mat-icon>
+                      <span>{{ 'profile.subscription.planManagement.proMembersPerCollection' | translate }}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    type="button"
+                    [disabled]="isCurrentPlan('PRO')
+                      || isAdminManagedSubscription()
+                      || startingCheckout
+                      || changingPlan
+                      || (getCurrentPlan() === 'SCHOOL' && !canUseProPlan())"
+                    (click)="getCurrentPlan() === 'FREE' ? startCheckout('PRO') : changePlan('PRO')">
+                    <mat-icon>
+                      {{ (startingCheckout || changingPlan)
+                      ? 'hourglass_top'
+                      : (isCurrentPlan('PRO') ? 'check' : 'arrow_upward') }}
+                    </mat-icon>
+                    {{ (isCurrentPlan('PRO')
+                    ? 'profile.subscription.planManagement.currentPlan'
+                    : (getCurrentPlan() === 'FREE'
+                      ? 'profile.subscription.planManagement.choosePro'
+                      : 'profile.subscription.planManagement.switchToPro')) | translate }}
+                  </button>
+
+                  @if (getCurrentPlan() === 'SCHOOL' && !canUseProPlan()) {
+                    <div class="plan-management-note">
+                      <mat-icon>warning</mat-icon>
+                      <span>
+                        {{ 'profile.subscription.planManagement.proUsageTooHigh' | translate }}
+                      </span>
+                    </div>
+                  }
+                </article>
+
+                <article class="plan-option plan-option--school" [class.plan-option--active]="isCurrentPlan('SCHOOL')">
+                  <div class="plan-option-head">
+                    <div>
+                      <div class="plan-option-name">School</div>
+                      <div class="plan-price">
+                        <strong>€{{ schoolSeats }}</strong>
+                        <span>/ {{ 'profile.subscription.planManagement.month' | translate }}</span>
+                      </div>
+                    </div>
+                    @if (isCurrentPlan('SCHOOL')) {
+                      <span class="plan-badge">
+                        {{ 'profile.subscription.planManagement.current' | translate }}
+                      </span>
+                    }
+                  </div>
+
+                  <label class="seat-selector">
+                    <span>{{ 'profile.subscription.planManagement.usersCollections' | translate }}</span>
+                    <div class="seat-input-wrap">
+                      <mat-icon>groups</mat-icon>
+                      <input
+                        type="number"
+                        [min]="getMinimumSchoolSeatsRequired()"
+                        step="1"
+                        [value]="schoolSeats"
+                        [disabled]="startingCheckout || changingPlan || isAdminManagedSubscription()"
+                        (input)="updateSchoolSeats($event)">
+                    </div>
+                    <small>
+                      @if (getMinimumSchoolSeatsRequired() > minSchoolSeats) {
+                        {{ 'profile.subscription.planManagement.schoolMinimumUsage' | translate:{
+                        minimumSeats: getMinimumSchoolSeatsRequired()
+                      } }}
+                      } @else {
+                        {{ 'profile.subscription.planManagement.schoolMinimum' | translate }}
+                      }
+                    </small>
+                  </label>
+
+                  <div class="plan-feature-list">
+                    <div class="feature-row"><mat-icon>check_circle</mat-icon><span>{{ schoolSeats }} {{ 'profile.subscription.users' | translate }}</span></div>
+                    <div class="feature-row"><mat-icon>check_circle</mat-icon><span>{{ schoolSeats }} {{ 'profile.subscription.collections' | translate }}</span></div>
+                    <div class="feature-row"><mat-icon>check_circle</mat-icon><span>{{ 'profile.subscription.unlimited' | translate }} · {{ 'profile.subscription.examples' | translate }}</span></div>
+                    <div class="feature-row"><mat-icon>check_circle</mat-icon><span>{{ 'profile.subscription.unlimited' | translate }} · {{ 'profile.subscription.tests' | translate }}</span></div>
+                  </div>
+
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    type="button"
+                    [disabled]="isAdminManagedSubscription() || startingCheckout || changingPlan || (isCurrentPlan('SCHOOL') && !hasSchoolSeatChanges())"
+                    (click)="getCurrentPlan() === 'FREE' ? startCheckout('SCHOOL', schoolSeats) : changePlan('SCHOOL', schoolSeats)">
+                    <mat-icon>
+                      {{ (startingCheckout || changingPlan)
+                      ? 'hourglass_top'
+                      : (isCurrentPlan('SCHOOL') ? (hasSchoolSeatChanges() ? 'group_add' : 'check') : 'school') }}
+                    </mat-icon>
+                    {{ (isCurrentPlan('SCHOOL')
+                    ? (hasSchoolSeatChanges()
+                      ? 'profile.subscription.planManagement.updateSeats'
+                      : 'profile.subscription.planManagement.currentPlan')
+                    : (getCurrentPlan() === 'FREE'
+                      ? 'profile.subscription.planManagement.chooseSchool'
+                      : 'profile.subscription.planManagement.switchToSchool')) | translate }}
+                  </button>
+                </article>
+              </div>
+
+              @if (isAdminManagedSubscription()) {
+                <div class="plan-management-note">
+                  <mat-icon>admin_panel_settings</mat-icon>
+                  <span>{{ 'profile.subscription.planManagement.adminManaged' | translate }}</span>
+                </div>
+              } @else if (isStripeManagedSubscription()) {
+                <div class="plan-management-note">
+                  <mat-icon>info</mat-icon>
+                  <span>{{ 'profile.subscription.planManagement.note' | translate }}</span>
+                </div>
+              }
+            </div>
+          }
+        } @else {
+          <div class="subscription-error">
+            <mat-icon>error_outline</mat-icon>
+            {{ 'profile.subscription.loadError' | translate }}
+          </div>
+        }
+      </div>
     </section>
 
     <section class="hero-grid profile-bottom-grid">

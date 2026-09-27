@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideTranslateService } from '@ngx-translate/core';
+import { provideRouter } from '@angular/router';
 import { ProfileComponent } from './profile.component';
 
 describe('ProfileComponent', () => {
@@ -15,6 +16,7 @@ describe('ProfileComponent', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideRouter([]),
         provideTranslateService({
           fallbackLang: 'de',
           lang: 'de'

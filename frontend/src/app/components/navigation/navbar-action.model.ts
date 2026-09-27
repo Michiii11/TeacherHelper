@@ -1,6 +1,8 @@
 export interface NavbarAction {
   label?: string;
   labelKey?: string;
+  tooltip?: string;
+  tooltipKey?: string;
   icon?: string;
   variant?: 'flat' | 'stroked' | 'icon';
   action: () => void;

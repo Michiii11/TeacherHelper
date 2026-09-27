@@ -3,6 +3,7 @@ import { AsyncPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 import { MatToolbar } from '@angular/material/toolbar';
 import { MatAnchor, MatButton, MatIconButton } from '@angular/material/button';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
@@ -10,6 +11,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltip } from '@angular/material/tooltip';
 import { HttpService } from '../../service/http.service';
+import { ApiErrorMessageService } from '../../service/api-error-message.service';
 import { User } from '../../model/User';
 import { NotificationDTO, NotificationActionType, NotificationType } from '../../model/Notification';
 import {TranslatePipe, TranslateService} from '@ngx-translate/core';
@@ -48,6 +50,7 @@ import { AuthService as Auth0Service } from '@auth0/auth0-angular';
 })
 export class NavigationComponent implements OnInit, OnDestroy {
   service = inject(HttpService);
+  apiErrorMessages = inject(ApiErrorMessageService);
   snackBar = inject(MatSnackBar);
   navbarActionsService = inject(NavbarActionsService);
   translate = inject(TranslateService);
@@ -235,6 +238,29 @@ export class NavigationComponent implements OnInit, OnDestroy {
     });
   }
 
+
+  getNavbarActionTooltip(action: NavbarAction): string {
+    if (action.labelKey) {
+      return this.translate.instant(action.labelKey);
+    }
+
+    if (action.label) {
+      return action.label;
+    }
+
+    const iconTooltipKeys: Record<string, string> = {
+      settings: 'navbar.tooltips.settings',
+      create_new_folder: 'navbar.tooltips.newFolder',
+      edit: 'navbar.tooltips.edit',
+      delete: 'navbar.tooltips.delete',
+      save: 'navbar.tooltips.save',
+      add: 'navbar.tooltips.add'
+    };
+
+    const key = action.icon ? iconTooltipKeys[action.icon] : undefined;
+    return key ? this.translate.instant(key) : '';
+  }
+
   handleNavbarAction(action: NavbarAction): void {
     if (action.disabled) {
       return;
@@ -416,9 +442,11 @@ export class NavigationComponent implements OnInit, OnDestroy {
     }
 
     if (!n.relatedEntityId && this.requiresRelatedEntity(action)) {
-      this.snackBar.open('Diese Nachricht kann nicht verarbeitet werden.', 'Schließen', {
-        duration: 3000
-      });
+      this.snackBar.open(
+        this.translate.instant('notifications.snackbar.actionUnavailable'),
+        this.translate.instant('common.close'),
+        { duration: 3000 }
+      );
       return;
     }
 
@@ -426,38 +454,58 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
     switch (action) {
       case NotificationActionType.ACCEPT_INVITATION:
-        this.service.respondToInvite(n.relatedEntityId!, true).subscribe({
-          next: () => {
-            this.snackBar.open('Einladung angenommen.', 'OK', { duration: 2200 });
-            this.loadNotifications();
-            this.loadUser();
-            this.navbarActionsService.triggerReloadSchools();
-          },
-          error: (err) => {
-            console.error('Fehler beim Annehmen der Einladung:', err);
-            this.snackBar.open(this.extractError(err, 'Einladung konnte nicht angenommen werden.'), 'Schließen', {
-              duration: 3000
-            });
-          },
-          complete: () => this.processingIds.delete(n.id)
-        });
+        this.service.respondToInvite(n.relatedEntityId!, true)
+          .pipe(finalize(() => this.processingIds.delete(n.id)))
+          .subscribe({
+            next: () => {
+              this.snackBar.open(
+                this.translate.instant('notifications.snackbar.inviteAccepted'),
+                this.translate.instant('common.ok'),
+                { duration: 2200 }
+              );
+              this.loadNotifications();
+              this.loadUser();
+              this.navbarActionsService.triggerReloadSchools();
+            },
+            error: (err) => {
+              console.error('Fehler beim Annehmen der Einladung:', err);
+              this.snackBar.open(
+                this.extractError(
+                  err,
+                  this.translate.instant('notifications.snackbar.inviteAcceptError')
+                ),
+                this.translate.instant('common.close'),
+                { duration: 5000 }
+              );
+            }
+          });
         break;
 
       case NotificationActionType.DECLINE_INVITATION:
-        this.service.respondToInvite(n.relatedEntityId!, false).subscribe({
-          next: () => {
-            this.snackBar.open('Einladung abgelehnt.', 'OK', { duration: 2200 });
-            this.loadNotifications();
-            this.loadUser();
-          },
-          error: (err) => {
-            console.error('Fehler beim Ablehnen der Einladung:', err);
-            this.snackBar.open(this.extractError(err, 'Einladung konnte nicht abgelehnt werden.'), 'Schließen', {
-              duration: 3000
-            });
-          },
-          complete: () => this.processingIds.delete(n.id)
-        });
+        this.service.respondToInvite(n.relatedEntityId!, false)
+          .pipe(finalize(() => this.processingIds.delete(n.id)))
+          .subscribe({
+            next: () => {
+              this.snackBar.open(
+                this.translate.instant('notifications.snackbar.inviteDeclined'),
+                this.translate.instant('common.ok'),
+                { duration: 2200 }
+              );
+              this.loadNotifications();
+              this.loadUser();
+            },
+            error: (err) => {
+              console.error('Fehler beim Ablehnen der Einladung:', err);
+              this.snackBar.open(
+                this.extractError(
+                  err,
+                  this.translate.instant('notifications.snackbar.inviteDeclineError')
+                ),
+                this.translate.instant('common.close'),
+                { duration: 5000 }
+              );
+            }
+          });
         break;
 
       default:
@@ -662,7 +710,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   }
 
   private extractError(err: any, fallback: string): string {
-    return err?.error?.message || err?.error || fallback;
+    return this.apiErrorMessages.getMessage(err, fallback);
   }
 
   getLogo(): string {

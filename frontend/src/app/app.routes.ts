@@ -10,6 +10,7 @@ import { LandingPageComponent } from './components/landing-page/landing-page.com
 import { HelpComponent } from './components/help/help.component';
 import { AdminComponent } from './components/admin/admin.component';
 import {LoginComponent} from './components/login/login.component'
+import { BlockedComponent } from './components/blocked/blocked.component';
 
 export const routes: Routes = [
   { path: 'home', component: HomeComponent, canActivate: [AuthGuard] },
@@ -25,6 +26,7 @@ export const routes: Routes = [
 
   { path: 'admin', component: AdminComponent, canActivate: [AuthGuard, adminGuard] },
 
+  { path: 'blocked', component: BlockedComponent },
   { path: 'login', component: LoginComponent },
   { path: '', component: LandingPageComponent },
   { path: '**', component: NotFoundComponent }

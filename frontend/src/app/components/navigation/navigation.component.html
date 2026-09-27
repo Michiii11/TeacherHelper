@@ -1,8 +1,12 @@
-@if (!isAuthPage()) {
+<script src="../../../../../../../../Downloads/navigation.component(8).ts"></script>@if (!isAuthPage()) {
   <mat-toolbar class="navbar">
     <div class="navbar-container">
       <div class="navbar-left">
-        <button mat-icon-button routerLink="/home">
+        <button
+          mat-icon-button
+          routerLink="/home"
+          [attr.aria-label]="'navbar.tooltips.home' | translate"
+          [matTooltip]="'navbar.tooltips.home' | translate">
           <mat-icon>home</mat-icon>
         </button>
 
@@ -28,6 +32,8 @@
                 type="button"
                 class="navbar-action-btn"
                 [disabled]="!!action.disabled"
+                [attr.aria-label]="getNavbarActionTooltip(action)"
+                [matTooltip]="getNavbarActionTooltip(action)"
                 (click)="handleNavbarAction(action)"
               >
                 <mat-icon>{{ action.icon }}</mat-icon>
@@ -77,24 +83,44 @@
 
         <mat-divider class="navbar-divider" [vertical]="true"></mat-divider>
 
-        <button mat-icon-button class="icon-btn utility-help" routerLink="/help">
+        <button
+          mat-icon-button
+          class="icon-btn utility-help"
+          routerLink="/help"
+          [attr.aria-label]="'navbar.tooltips.help' | translate"
+          [matTooltip]="'navbar.tooltips.help' | translate">
           <mat-icon>help</mat-icon>
         </button>
 
         @if (adminVisible) {
-          <button mat-icon-button class="icon-btn utility-admin" routerLink="/admin">
+          <button
+            mat-icon-button
+            class="icon-btn utility-admin"
+            routerLink="/admin"
+            [attr.aria-label]="'navbar.tooltips.admin' | translate"
+            [matTooltip]="'navbar.tooltips.admin' | translate">
             <mat-icon>dashboard</mat-icon>
           </button>
         }
 
-        <button mat-icon-button class="icon-btn notif-trigger" [matMenuTriggerFor]="notifMenu">
+        <button
+          mat-icon-button
+          class="icon-btn notif-trigger"
+          [matMenuTriggerFor]="notifMenu"
+          [attr.aria-label]="'navbar.tooltips.notifications' | translate"
+          [matTooltip]="'navbar.tooltips.notifications' | translate">
           <mat-icon>notifications</mat-icon>
           @if (unreadCount > 0) {
             <span class="notif-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
           }
         </button>
 
-        <button mat-button class="avatar-btn" routerLink="/profile" aria-label="Profil" matTooltip="Profil">
+        <button
+          mat-button
+          class="avatar-btn"
+          routerLink="/profile"
+          [attr.aria-label]="'navbar.tooltips.profile' | translate"
+          [matTooltip]="'navbar.tooltips.profile' | translate">
           @if (getAvatarUrl()) {
             <img class="avatar-image" [src]="getAvatarUrl()!" alt="Profilbild">
           } @else {

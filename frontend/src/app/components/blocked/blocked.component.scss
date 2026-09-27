@@ -1,0 +1,104 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
+.blocked-page {
+  min-height: calc(100dvh - 100px);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #08111f;
+  color: #f7f9fc;
+}
+
+.blocked-card {
+  width: min(100%, 560px);
+  padding: clamp(28px, 5vw, 48px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 24px;
+  background: #0f1b2d;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+  text-align: center;
+}
+
+.blocked-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  background: rgba(244, 67, 54, 0.12);
+}
+
+.blocked-icon mat-icon {
+  width: 34px;
+  height: 34px;
+  font-size: 34px;
+}
+
+.blocked-eyebrow {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+h1 {
+  margin: 8px 0 14px;
+  font-size: clamp(28px, 5vw, 40px);
+  line-height: 1.08;
+}
+
+.blocked-text {
+  margin: 0 auto;
+  max-width: 460px;
+  line-height: 1.65;
+  opacity: 0.72;
+}
+
+.blocked-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 30px;
+  flex-wrap: wrap;
+}
+
+.blocked-actions button {
+  min-height: 44px;
+  padding-inline: 18px;
+}
+
+.blocked-actions mat-icon {
+  margin-right: 8px;
+}
+
+.blocked-hint {
+  margin: 24px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 0.5;
+}
+
+@media (max-width: 560px) {
+  .blocked-page {
+    padding: 16px;
+  }
+
+  .blocked-card {
+    padding: 28px 20px;
+    border-radius: 20px;
+  }
+
+  .blocked-actions {
+    flex-direction: column;
+  }
+
+  .blocked-actions button {
+    width: 100%;
+  }
+}

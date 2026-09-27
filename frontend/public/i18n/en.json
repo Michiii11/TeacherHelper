@@ -58,7 +58,197 @@
     "publicInfoAvatar": "Profile picture is publicly visible",
     "allowInvitationsDesc": "Other users can invite you to collections",
     "dangerZoneEyebrow": "Critical area",
-    "deleteAccountWarning": "This action permanently deletes your profile. Please make sure you have saved all important data before continuing."
+    "deleteAccountWarning": "This action permanently deletes your profile. Please make sure you have saved all important data before continuing.",
+    "subscription": {
+      "title": "Subscription & usage",
+      "subtitle": "Your current plan and usage at a glance.",
+      "loading": "Loading subscription...",
+      "loadError": "Subscription data could not be loaded.",
+      "seats": "users",
+      "collections": "Collections",
+      "examples": "Exercises",
+      "tests": "Tests",
+      "users": "Users",
+      "unlimited": "Unlimited",
+      "plans": {
+        "free": "Free",
+        "pro": "Pro",
+        "school": "School",
+        "admin": "Admin"
+      },
+      "descriptions": {
+        "free": "Free starter plan for a single collection.",
+        "pro": "More room for collections, exercises, tests and collaboration.",
+        "school": "Scalable school plan for larger teams.",
+        "admin": "Internal admin access without usage limits."
+      },
+      "statuses": {
+        "active": "Active",
+        "canceled": "Canceled",
+        "past_due": "Payment due",
+        "incomplete": "Incomplete"
+      },
+      "billingPreview": {
+        "loading": "Calculating price preview with Stripe...",
+        "failed": "The price preview could not be loaded. The plan was not changed.",
+        "nextInvoice": "Estimated next Stripe invoice",
+        "prorationHint": "The preview can include prorated charges or credits for the current billing period."
+      },
+      "billingDialog": {
+        "eyebrow": "Subscription change",
+        "title": "Review plan change",
+        "subtitle": "Nothing has changed yet. Review the price, proration and next charge first.",
+        "currentPlan": "Current plan",
+        "newPlan": "New plan",
+        "month": "month",
+        "users": "users",
+        "monthlyChange": "Permanent monthly change",
+        "monthlyChangeHint": "This is the difference from your current monthly price.",
+        "currentPeriodCharge": "Prorated charge for the current period",
+        "currentPeriodCredit": "Credit for the current period",
+        "nextFullMonth": "Next full billing month",
+        "nextCharge": "Next charge",
+        "nextChargeHint": "Total of the prorated adjustment and the next full billing month.",
+        "afterwardsTitle": "After that",
+        "aroundDay": "monthly around the {{day}}.",
+        "cancelRemoved": "Your scheduled cancellation will be removed by this plan change.",
+        "stripeNote": "These amounts come from a current Stripe preview. Your plan changes only after you confirm.",
+        "confirmPaid": "Switch and pay",
+        "confirm": "Confirm change"
+      },
+      "billingOverview": {
+        "eyebrow": "Billing",
+        "title": "Your billing at a glance",
+        "manage": "Manage payments",
+        "monthlyPrice": "Current monthly price",
+        "perMonth": "per month",
+        "currentPeriod": "Current billing period",
+        "currentPeriodHint": "This period is currently paid.",
+        "nextRenewal": "Next renewal",
+        "renewsAutomatically": "Your subscription renews automatically.",
+        "endsOn": "Subscription ends on",
+        "noRenewal": "There will be no further renewal after this date."
+      },
+      "cancellation": {
+        "title": "Cancellation scheduled",
+        "text": "Your current plan stays active until {{date}}. After that, you automatically switch to Free.",
+        "resume": "Undo cancellation"
+      },
+      "resumeDialog": {
+        "title": "Keep your subscription?",
+        "message": "The scheduled cancellation will be removed. Your current plan will continue automatically after {{date}} at the regular price of {{price}} per month.",
+        "confirm": "Keep subscription"
+      },
+      "resumeSuccess": "Cancellation removed. Your subscription will continue.",
+      "resumeError": "The cancellation could not be removed.",
+      "paymentHistory": {
+        "title": "Invoices & payments",
+        "subtitle": "Your latest Stripe invoices and payment receipts.",
+        "count": "{{count}} entries",
+        "date": "Date",
+        "status": "Status",
+        "amount": "Amount",
+        "actions": "Receipts",
+        "invoice": "Invoice",
+        "pdf": "PDF",
+        "noInvoice": "No receipt available",
+        "loading": "Loading payments...",
+        "loadError": "Payment history could not be loaded.",
+        "retry": "Try again",
+        "emptyTitle": "No payments yet",
+        "emptyText": "As soon as Stripe creates an invoice, it will appear here.",
+        "showMore": "Show all",
+        "showLess": "Show less",
+        "statuses": {
+          "paid": "Paid",
+          "failed": "Failed",
+          "refunded": "Refunded"
+        }
+      },
+      "checkoutReturn": {
+        "success": "Payment completed. Your subscription is now being synchronized with Stripe.",
+        "cancelled": "Checkout canceled. No changes were made."
+      },
+      "health": {
+        "manage": "Manage payment",
+        "past_due": {
+          "title": "Your subscription payment is overdue",
+          "text": "Stripe could not complete a payment successfully. Please check your payment method to keep your subscription active."
+        },
+        "incomplete": {
+          "title": "Subscription activation is not complete",
+          "text": "A payment step is still pending for this subscription. Open billing management and complete the process."
+        }
+      },
+      "planManagement": {
+        "title": "Change plan",
+        "subtitle": "Choose the plan that fits your current usage.",
+        "month": "month",
+        "current": "Current",
+        "currentPlan": "Current plan",
+        "cancellationScheduled": "Cancellation scheduled",
+        "switchToFree": "Switch to Free",
+        "choosePro": "Choose Pro",
+        "switchToPro": "Switch to Pro",
+        "proMembersPerCollection": "5 members per collection",
+        "usersCollections": "Users / collections",
+        "schoolMinimum": "Minimum 20 · €1 per user/month",
+        "updateSeats": "Update seats",
+        "chooseSchool": "Choose School",
+        "switchToSchool": "Switch to School",
+        "note": "Plan changes happen directly here. Switching to Free schedules cancellation for the end of the paid billing period.",
+        "schoolMinimumUsage": "Your current usage requires at least {{minimumSeats}} seats.",
+        "proUsageTooHigh": "To switch to Pro, first reduce your usage to at most 5 collections, 500 exercises, 50 tests and 5 members per collection.",
+        "adminManaged": "This subscription is managed by an administrator. Plan changes are not available here."
+      },
+      "cancelDialog": {
+        "title": "Switch to Free?",
+        "message": "Your current plan stays active until the end of the paid billing period. After that, your account switches to Free automatically.",
+        "confirm": "Switch to Free"
+      },
+      "messages": {
+        "existingPaidPlan": "Existing subscriptions are changed directly through subscription management.",
+        "checkoutError": "Checkout could not be started.",
+        "planChanged": "Plan changed successfully.",
+        "planChangeError": "Plan could not be changed.",
+        "cancellationScheduled": "Cancellation scheduled. Your plan remains active until the end of the billing period.",
+        "cancelError": "Subscription could not be cancelled.",
+        "portalError": "Subscription management could not be opened.",
+        "schoolCapacityBelowUsage": "Your current usage requires more seats or collections. The School plan must have at least {{minimumSeats}} seats.",
+        "proCapacityBelowUsage": "Your current usage exceeds the Pro limits. Reduce collections, exercises, tests or members first."
+      },
+      "overLimit": {
+        "title": "Your current usage is above your plan limits",
+        "text": "Existing content remains available. To add new content or members, reduce usage until it fits your plan or switch plans.",
+        "footnote": "TeacherHelper does not automatically delete your existing content.",
+        "items": {
+          "collections": "{{current}} collections · limit {{limit}}",
+          "examples": "{{current}} exercises · limit {{limit}}",
+          "tests": "{{current}} tests · limit {{limit}}",
+          "members": "Up to {{current}} members in one collection · limit {{limit}}",
+          "schoolUsers": "{{current}} School users · limit {{limit}}"
+        }
+      },
+      "cancellationImpact": {
+        "title": "Your usage will be above the Free limits",
+        "text": "Your existing content will remain. After the paid period ends, you can only add new content or members again once your usage fits the Free plan or you activate a paid plan again.",
+        "footnote": "This does not prevent or delay your cancellation.",
+        "items": {
+          "collections": "{{current}} collections · Free allows {{limit}}",
+          "examples": "{{current}} exercises · Free allows {{limit}}",
+          "tests": "{{current}} tests · Free allows {{limit}}",
+          "members": "Up to {{current}} members in one collection · Free does not allow members"
+        }
+      }
+    },
+    "ariaPage": "Profile and account settings",
+    "avatarAlt": "Profile picture",
+    "darkModeToggle": "Turn dark mode on or off",
+    "allowInvitationsToggle": "Allow or disable invitations",
+    "avatarDrop": {
+      "drop": "Drop image",
+      "change": "Change image"
+    }
   },
   "languages": {
     "de": "Deutsch",
@@ -133,7 +323,20 @@
     "help": "Help",
     "infoHelp": "Info & Help",
     "admin": "Admin",
-    "more": "More"
+    "more": "More",
+    "tooltips": {
+      "home": "Home",
+      "help": "Help",
+      "admin": "Admin",
+      "notifications": "Notifications",
+      "profile": "Profile",
+      "settings": "Settings",
+      "newFolder": "New folder",
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save",
+      "add": "Add"
+    }
   },
   "notifications": {
     "title": "Notifications",
@@ -193,6 +396,13 @@
       "MARK_AS_READ": "Mark as read",
       "OPEN_LINK": "Open",
       "DELETE": "Delete"
+    },
+    "snackbar": {
+      "actionUnavailable": "This notification cannot be processed.",
+      "inviteAccepted": "Invitation accepted.",
+      "inviteAcceptError": "The invitation could not be accepted.",
+      "inviteDeclined": "Invitation declined.",
+      "inviteDeclineError": "The invitation could not be declined."
     }
   },
   "home": {
@@ -298,8 +508,8 @@
         "f3": "50 tests"
       },
       "school": {
-        "subtitle": "For schools and teams.",
-        "f1": "30 collections (∞ members)",
+        "subtitle": "For schools and larger teams.",
+        "f1": "From 20 user seats & 20 collections",
         "f2": "∞ exercises",
         "f3": "∞ tests"
       }
@@ -1379,5 +1589,26 @@
     "title": "What’s new?",
     "close": "Close",
     "openChangelog": "Changelog"
+  },
+  "blocked": {
+    "eyebrow": "TeacherHelper",
+    "title": "Your account has been blocked",
+    "text": "You currently cannot use TeacherHelper. Please contact an administrator if you have questions about your account suspension.",
+    "retry": "Try again",
+    "logout": "Log out",
+    "hint": "If your account has been unblocked, “Try again” will take you straight back to TeacherHelper."
+  },
+  "subscriptionLimitErrors": {
+    "collectionLimitReached": "You have reached the maximum number of collections for your current plan.",
+    "exampleLimitReached": "You have reached the maximum number of exercises for your current plan.",
+    "testLimitReached": "You have reached the maximum number of tests for your current plan.",
+    "collectionMemberLimitReached": "This collection has reached the maximum number of members allowed by your current plan.",
+    "schoolUserLimitReached": "All School seats are currently in use. Increase the seat count or remove a user first.",
+    "collectionOwnerNotFound": "The collection owner could not be found.",
+    "collectionNameEmpty": "Please enter a collection name.",
+    "collectionNameExists": "A collection with this name already exists.",
+    "userNotFound": "The user could not be found.",
+    "schoolCapacityBelowUsage": "The requested School capacity is below your current usage. At least {{minimumSeats}} seats are required.",
+    "proCapacityBelowUsage": "Your current usage exceeds the Pro limits. Reduce collections, exercises, tests or members first."
   }
 }

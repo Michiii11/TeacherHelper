@@ -12,20 +12,20 @@ import at.model.*;
 import at.model.Collection;
 import at.model.helper.ExampleVariable;
 import at.model.helper.GradingLevel;
+import at.service.SubscriptionLimitService;
 import at.websocket.CollectionSocket;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
 import java.util.*;
-import org.jboss.logging.Logger;
 
 @ApplicationScoped
 @Transactional
 public class TestRepository {
-    private static final Logger LOG = Logger.getLogger(TestRepository.class);
     @Inject
     EntityManager em;
 
@@ -34,6 +34,9 @@ public class TestRepository {
 
     @Inject
     CollectionRepository collectionRepository;
+
+    @Inject
+    SubscriptionLimitService subscriptionLimitService;
 
     public Response getAllTest(UUID collectionId, UUID userId) {
         if (!collectionRepository.isUserPartOfCollection(collectionId, userId)) {
@@ -113,6 +116,17 @@ public class TestRepository {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
+        User owner = em.find(
+                User.class,
+                collection.getAdmin().getId(),
+                LockModeType.PESSIMISTIC_WRITE
+        );
+
+        Response testLimitError = validateTestCreationCapacity(owner);
+        if (testLimitError != null) {
+            return testLimitError;
+        }
+
         Folder folder = null;
         if (dto.folderId() != null) {
             folder = folderRepository.findById(dto.folderId());
@@ -127,12 +141,40 @@ public class TestRepository {
         em.persist(test);
 
         addExamplesToTest(test, dto.exampleList());
-        em.flush();
         CollectionSocket.broadcast(test.getCollection().getId());
-        LOG.infof("event=test.created userId=%s collectionId=%s testId=%s examples=%d",
-                userId, test.getCollection().getId(), test.getId(),
-                dto.exampleList() == null ? 0 : dto.exampleList().size());
         return Response.ok().build();
+    }
+
+    private Response validateTestCreationCapacity(User owner) {
+        if (owner == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("COLLECTION_OWNER_NOT_FOUND")
+                    .build();
+        }
+
+        var limits = subscriptionLimitService.limitsFor(owner);
+        int maxTests = limits.maxTests();
+
+        if (maxTests == SubscriptionLimitService.UNLIMITED) {
+            return null;
+        }
+
+        long currentTests = subscriptionLimitService.countTestsInOwnedCollections(
+                owner.getId()
+        );
+
+        if (currentTests < maxTests) {
+            return null;
+        }
+
+        return Response.status(Response.Status.CONFLICT)
+                .entity(Map.of(
+                        "code", "TEST_LIMIT_REACHED",
+                        "current", currentTests,
+                        "limit", maxTests,
+                        "plan", subscriptionLimitService.effectivePlan(owner).name()
+                ))
+                .build();
     }
 
     public Response updateTest(UUID testId, UUID userId, CreateTestDTO dto) {
@@ -142,8 +184,6 @@ public class TestRepository {
         }
 
         if (!test.getAdmin().getId().equals(userId) && !test.getCollection().getAdmin().getId().equals(userId)) {
-            LOG.warnf("event=test.update.denied userId=%s testId=%s collectionId=%s",
-                    userId, testId, test.getCollection().getId());
             return Response.status(Response.Status.FORBIDDEN)
                     .entity("Not allowed to update this test.")
                     .build();
@@ -178,9 +218,6 @@ public class TestRepository {
 
         addExamplesToTest(test, dto.exampleList());
         CollectionSocket.broadcast(test.getCollection().getId());
-        LOG.infof("event=test.updated userId=%s collectionId=%s testId=%s examples=%d",
-                userId, test.getCollection().getId(), testId,
-                dto.exampleList() == null ? 0 : dto.exampleList().size());
         return Response.ok().build();
     }
 
@@ -191,17 +228,13 @@ public class TestRepository {
         }
 
         if (!test.getAdmin().getId().equals(userId) && !test.getCollection().getAdmin().getId().equals(userId)) {
-            LOG.warnf("event=test.delete.denied userId=%s testId=%s collectionId=%s",
-                    userId, testId, test.getCollection().getId());
             return Response.status(Response.Status.FORBIDDEN)
                     .entity("Not allowed to delete this test.")
                     .build();
         }
 
-        UUID collectionId = test.getCollection().getId();
         em.remove(test);
-        CollectionSocket.broadcast(collectionId);
-        LOG.infof("event=test.deleted userId=%s collectionId=%s testId=%s", userId, collectionId, testId);
+        CollectionSocket.broadcast(test.getCollection().getId());
         return Response.ok().build();
     }
 
@@ -212,8 +245,6 @@ public class TestRepository {
         }
 
         if (!test.getAdmin().getId().equals(userId) && !test.getCollection().getAdmin().getId().equals(userId)) {
-            LOG.warnf("event=test.move.denied userId=%s testId=%s collectionId=%s",
-                    userId, testId, test.getCollection().getId());
             return Response.status(Response.Status.FORBIDDEN)
                     .entity("Not allowed to move this test.")
                     .build();
@@ -230,8 +261,6 @@ public class TestRepository {
         test.setFolder(folder);
         em.merge(test);
         CollectionSocket.broadcast(test.getCollection().getId());
-        LOG.infof("event=test.moved userId=%s collectionId=%s testId=%s folderId=%s",
-                userId, test.getCollection().getId(), testId, folderId);
         return Response.ok().build();
     }
 

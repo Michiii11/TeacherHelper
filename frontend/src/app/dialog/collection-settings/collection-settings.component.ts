@@ -10,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { HttpService } from '../../service/http.service';
+import { ApiErrorMessageService } from '../../service/api-error-message.service';
 import { CollectionDTO } from '../../model/Collection';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { UserDTO } from '../../model/User';
@@ -47,6 +48,7 @@ export interface SettingsDialogData {
 export class CollectionSettingsComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private service = inject(HttpService);
+  private apiErrorMessages = inject(ApiErrorMessageService);
   private translate = inject(TranslateService);
   private cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
@@ -409,14 +411,12 @@ export class CollectionSettingsComponent implements OnInit, OnDestroy {
           }
         },
         error: error => {
-          this.inviteErrorMessage =
-            typeof error?.error === 'string'
-              ? error.error
-              : error?.error?.message ?? this.translate.instant('common.error');
+          this.inviteErrorMessage = this.getApiErrorMessage(
+            error,
+            'schoolSettings.snackbar.inviteError'
+          );
 
-          if (this.inviteErrorMessage != null) {
-            this.snack.open(this.inviteErrorMessage, 'OK', {duration: 3000});
-          }
+          this.snack.open(this.inviteErrorMessage, 'OK', { duration: 5000 });
         }
       });
   }
@@ -478,7 +478,11 @@ export class CollectionSettingsComponent implements OnInit, OnDestroy {
               );
             },
             error: error => {
-              this.snack.open(error.error, 'OK', { duration: 5000 });
+              this.snack.open(
+                this.getApiErrorMessage(error, 'schoolSettings.snackbar.teacherKickError'),
+                'OK',
+                { duration: 5000 }
+              );
             }
           });
       });
@@ -590,11 +594,9 @@ export class CollectionSettingsComponent implements OnInit, OnDestroy {
             },
             error: error => {
               this.snack.open(
-                typeof error?.error === 'string'
-                  ? error.error
-                  : error?.error?.message ?? this.translate.instant('schoolSettings.snackbar.schoolLeaveError'),
+                this.getApiErrorMessage(error, 'schoolSettings.snackbar.schoolLeaveError'),
                 'OK',
-                { duration: 4000 }
+                { duration: 5000 }
               );
             }
           });
@@ -656,6 +658,13 @@ export class CollectionSettingsComponent implements OnInit, OnDestroy {
       .subscribe(users => {
         this.userSearchResults = users.filter(user => !!user?.username);
       });
+  }
+
+  private getApiErrorMessage(error: unknown, fallbackKey: string): string {
+    return this.apiErrorMessages.getMessage(
+      error,
+      this.translate.instant(fallbackKey)
+    );
   }
 
   private searchUsersByUsername(query: string): Observable<UserDTO[]> {

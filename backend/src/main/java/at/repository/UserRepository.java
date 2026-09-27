@@ -5,7 +5,10 @@ import at.dtos.Example.ExampleOverviewDTO;
 import at.dtos.Folder.FolderDTO;
 import at.dtos.Test.TestOverviewDTO;
 import at.dtos.User.*;
+import at.enums.PaymentStatus;
 import at.enums.SubscriptionModel;
+import at.enums.SubscriptionSource;
+import at.enums.SubscriptionStatus;
 import at.model.*;
 import at.model.helper.AppTime;
 import at.service.Auth0ManagementService;
@@ -67,22 +70,45 @@ public class UserRepository {
         String auth0Id = user.getAuth0Id();
         LOG.infof("event=user.delete.started userId=%s", userId);
 
-        List<Collection> collections = em.createQuery(
-                "SELECT s FROM Collection s WHERE s.admin.id = :userId",
+        /*
+         * Delete collections owned by the user first. CollectionRepository
+         * already removes the collection's tests, examples, folders, invites
+         * and related data.
+         */
+        List<Collection> ownedCollections = em.createQuery(
+                "SELECT c FROM Collection c WHERE c.admin.id = :userId",
                 Collection.class
         ).setParameter("userId", userId).getResultList();
 
-        for (Collection collection : collections) {
+        for (Collection collection : ownedCollections) {
             collectionRepository.deleteCollection(collection.getId(), userId);
         }
 
+        /*
+         * Keep a managed User instance for the remaining cleanup. Collection
+         * deletion used to clear the persistence context and could leave this
+         * entity detached, which later caused em.remove(user) to fail.
+         */
+        user = em.find(User.class, userId);
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("User not found after collection cleanup.")
+                    .build();
+        }
+
+        /*
+         * Content created by this user inside somebody else's collection stays
+         * with the collection and is reassigned to that collection's admin.
+         */
         List<Example> examples = em.createQuery(
                 "SELECT e FROM Example e WHERE e.admin.id = :userId",
                 Example.class
         ).setParameter("userId", userId).getResultList();
 
         for (Example example : examples) {
-            example.setAdmin(example.getCollection().getAdmin());
+            if (example.getCollection() != null && example.getCollection().getAdmin() != null) {
+                example.setAdmin(example.getCollection().getAdmin());
+            }
         }
 
         List<Test> tests = em.createQuery(
@@ -91,19 +117,69 @@ public class UserRepository {
         ).setParameter("userId", userId).getResultList();
 
         for (Test test : tests) {
-            test.setAdmin(test.getCollection().getAdmin());
+            if (test.getCollection() != null && test.getCollection().getAdmin() != null) {
+                test.setAdmin(test.getCollection().getAdmin());
+            }
         }
+
+        /*
+         * Remove the user from collections owned by other users. This clears
+         * rows in the collection_members join table before deleting User.
+         */
+        List<Collection> memberCollections = em.createQuery(
+                "SELECT DISTINCT c FROM Collection c JOIN c.users u WHERE u.id = :userId",
+                Collection.class
+        ).setParameter("userId", userId).getResultList();
+
+        for (Collection collection : memberCollections) {
+            collection.removeUser(user);
+        }
+
+        em.flush();
+
+        /*
+         * Explicitly clear all remaining foreign-key references to User.
+         * Payment records are removed locally with the account; Stripe remains
+         * the authoritative billing/invoice record.
+         */
+        int deletedNotifications = em.createQuery(
+                "DELETE FROM Notification n WHERE n.recipient.id = :userId OR n.actor.id = :userId"
+        ).setParameter("userId", userId).executeUpdate();
+
+        int deletedInvites = em.createQuery(
+                "DELETE FROM CollectionInvite i WHERE i.sender.id = :userId OR i.recipient.id = :userId"
+        ).setParameter("userId", userId).executeUpdate();
+
+        int deletedPayments = em.createQuery(
+                "DELETE FROM PaymentRecord p WHERE p.user.id = :userId"
+        ).setParameter("userId", userId).executeUpdate();
+
+        em.flush();
 
         if (user.getProfileImageUrl() != null) {
             mediaStorageService.delete(user.getProfileImageUrl());
         }
 
-        em.remove(user);
-        em.flush();
+        User managedUser = em.contains(user)
+                ? user
+                : em.find(User.class, userId);
 
-        auth0ManagementService.deleteUser(auth0Id);
+        if (managedUser != null) {
+            em.remove(managedUser);
+            em.flush();
+        }
 
-        LOG.infof("event=user.deleted userId=%s", userId);
+        if (auth0Id != null && !auth0Id.isBlank()) {
+            auth0ManagementService.deleteUser(auth0Id);
+        }
+
+        LOG.infof(
+                "event=user.deleted userId=%s notifications=%s invites=%s payments=%s",
+                userId,
+                deletedNotifications,
+                deletedInvites,
+                deletedPayments
+        );
         return Response.ok().build();
     }
 
@@ -241,7 +317,11 @@ public class UserRepository {
         long proAbos = countUsersBySubscription("PRO");
         long schoolAbos = countUsersBySubscription("SCHOOL");
 
-        long cashflow = 0;
+        long revenueTotalCents = sumPaymentsByStatus(PaymentStatus.PAID);
+        long revenueMonthCents = sumPaymentsByStatusSince(PaymentStatus.PAID, oneMonthAgo);
+        long successfulPayments = countPaymentsByStatus(PaymentStatus.PAID);
+        long failedPayments = countPaymentsByStatus(PaymentStatus.FAILED);
+        long schoolSeatsTotal = sumSchoolSeats();
 
         AdminCountPeriodDTO collections = new AdminCountPeriodDTO(
                 countCollectionsCreatedSince(oneHourAgo),
@@ -283,7 +363,22 @@ public class UserRepository {
                         u.getLastActivityAt(),
                         countCollectionsByUser(u),
                         countExamplesByUser(u),
-                        countTestsByUser(u)
+                        countTestsByUser(u),
+
+                        u.getSubscriptionModel(),
+                        u.getSubscriptionStatus(),
+                        u.getSubscriptionSource(),
+
+                        u.getSubscriptionSeats(),
+                        u.getSubscriptionValidUntil(),
+                        u.getSubscriptionPeriodStart(),
+                        u.getSubscriptionPeriodEnd(),
+                        u.getCancelAtPeriodEnd(),
+
+                        u.isLocked(),
+
+                        countSuccessfulPaymentsByUser(u),
+                        sumSuccessfulPaymentsByUser(u)
                 ))
                 .toList();
 
@@ -295,7 +390,11 @@ public class UserRepository {
                 freeAbos,
                 proAbos,
                 schoolAbos,
-                cashflow,
+                revenueTotalCents,
+                revenueMonthCents,
+                successfulPayments,
+                failedPayments,
+                schoolSeatsTotal,
                 collections,
                 examples,
                 tests,
@@ -411,8 +510,53 @@ public class UserRepository {
                 })
                 .toList();
 
+        List<AdminUserDetailDTO.PaymentDTO> payments = em.createQuery(
+                        """
+                        SELECT p
+                        FROM PaymentRecord p
+                        WHERE p.user = :user
+                        ORDER BY p.createdAt DESC
+                        """,
+                        PaymentRecord.class
+                )
+                .setParameter("user", user)
+                .getResultList()
+                .stream()
+                .map(p -> new AdminUserDetailDTO.PaymentDTO(
+                        p.getId(),
+                        p.getStripeInvoiceId(),
+                        p.getAmountCents() == null ? 0L : p.getAmountCents(),
+                        p.getCurrency(),
+                        p.getStatus(),
+                        p.getInvoiceUrl(),
+                        p.getInvoicePdfUrl(),
+                        p.getPaidAt(),
+                        p.getCreatedAt()
+                ))
+                .toList();
+
         AdminUserDetailDTO dto = new AdminUserDetailDTO(
                 user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getCreatedAt(),
+                user.getLastActivityAt(),
+
+                user.getSubscriptionModel(),
+                user.getSubscriptionStatus(),
+                user.getSubscriptionSource(),
+                user.getSubscriptionSeats(),
+                user.getSubscriptionValidUntil(),
+                user.getSubscriptionPeriodStart(),
+                user.getSubscriptionPeriodEnd(),
+                user.getCancelAtPeriodEnd(),
+
+                user.isLocked(),
+
+                countSuccessfulPaymentsByUser(user),
+                sumSuccessfulPaymentsByUser(user),
+                payments,
+
                 collectionDTOs
         );
 
@@ -421,6 +565,176 @@ public class UserRepository {
 
 
 
+
+    public Response updateAdminSubscription(UUID userId, AdminSubscriptionUpdateDTO request) {
+        if (request == null || request.subscriptionModel() == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(java.util.Map.of(
+                            "code", "SUBSCRIPTION_MODEL_REQUIRED",
+                            "message", "Subscription model is required."
+                    ))
+                    .build();
+        }
+
+        User user = em.find(User.class, userId);
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(java.util.Map.of(
+                            "code", "USER_NOT_FOUND",
+                            "message", "User not found."
+                    ))
+                    .build();
+        }
+
+        /*
+         * A Stripe-managed subscription must not be silently overwritten in the DB.
+         * Otherwise the Stripe webhook could overwrite the admin value again while
+         * the customer continues to be charged.
+         */
+        if (user.getSubscriptionSource() == SubscriptionSource.STRIPE
+                && user.getStripeSubscriptionId() != null
+                && !user.getStripeSubscriptionId().isBlank()) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(java.util.Map.of(
+                            "code", "STRIPE_SUBSCRIPTION_MANAGED",
+                            "message", "This subscription is managed by Stripe."
+                    ))
+                    .build();
+        }
+
+        SubscriptionModel model = request.subscriptionModel();
+        LocalDateTime now = AppTime.now();
+
+        if (request.validUntil() != null && !request.validUntil().isAfter(now)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(java.util.Map.of(
+                            "code", "INVALID_SUBSCRIPTION_END",
+                            "message", "validUntil must be in the future."
+                    ))
+                    .build();
+        }
+
+        if (model == SubscriptionModel.SCHOOL) {
+            int seats = request.seats() == null ? 20 : request.seats();
+            if (seats < 20) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(java.util.Map.of(
+                                "code", "SCHOOL_MIN_SEATS",
+                                "message", "School requires at least 20 seats."
+                        ))
+                        .build();
+            }
+            user.setSubscriptionSeats(seats);
+        } else {
+            user.setSubscriptionSeats(null);
+        }
+
+        user.setCancelAtPeriodEnd(false);
+        user.setSubscriptionStatus(SubscriptionStatus.ACTIVE);
+
+        if (model == SubscriptionModel.FREE) {
+            user.setSubscriptionModel(SubscriptionModel.FREE);
+            user.setSubscriptionSource(SubscriptionSource.FREE);
+            user.setSubscriptionValidUntil(null);
+            user.setSubscriptionPeriodStart(null);
+            user.setSubscriptionPeriodEnd(null);
+        } else {
+            user.setSubscriptionModel(model);
+            user.setSubscriptionSource(SubscriptionSource.ADMIN);
+            user.setSubscriptionValidUntil(request.validUntil());
+            user.setSubscriptionPeriodStart(now);
+            user.setSubscriptionPeriodEnd(request.validUntil());
+        }
+
+        em.merge(user);
+
+        LOG.infof(
+                "event=admin.subscription-updated userId=%s model=%s validUntil=%s seats=%s",
+                userId,
+                user.getSubscriptionModel(),
+                user.getSubscriptionValidUntil(),
+                user.getSubscriptionSeats()
+        );
+
+        return Response.ok(java.util.Map.of(
+                "id", user.getId().toString(),
+                "subscriptionModel", user.getSubscriptionModel().name(),
+                "subscriptionSource", user.getSubscriptionSource().name(),
+                "subscriptionStatus", user.getSubscriptionStatus().name(),
+                "subscriptionSeats", user.getSubscriptionSeats() == null ? 0 : user.getSubscriptionSeats(),
+                "validUntil", user.getSubscriptionValidUntil() == null ? "" : user.getSubscriptionValidUntil().toString()
+        )).build();
+    }
+
+    public Response updateAdminLock(UUID userId, boolean locked, UUID actingAdminId) {
+        User user = em.find(User.class, userId);
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(java.util.Map.of(
+                            "code", "USER_NOT_FOUND",
+                            "message", "User not found."
+                    ))
+                    .build();
+        }
+
+        if (locked && userId.equals(actingAdminId)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(java.util.Map.of(
+                            "code", "CANNOT_LOCK_SELF",
+                            "message", "You cannot lock your own admin account."
+                    ))
+                    .build();
+        }
+
+        user.setLocked(locked);
+        em.merge(user);
+
+        LOG.infof("event=admin.user-lock-updated userId=%s locked=%s", userId, locked);
+
+        return Response.ok(java.util.Map.of(
+                "id", user.getId().toString(),
+                "locked", user.isLocked()
+        )).build();
+    }
+
+    private void expireAdminSubscriptionIfNeeded(User user) {
+        if (user == null
+                || user.getSubscriptionSource() != SubscriptionSource.ADMIN
+                || user.getSubscriptionValidUntil() == null
+                || user.getSubscriptionValidUntil().isAfter(AppTime.now())) {
+            return;
+        }
+
+        user.setSubscriptionModel(SubscriptionModel.FREE);
+        user.setSubscriptionSource(SubscriptionSource.FREE);
+        user.setSubscriptionStatus(SubscriptionStatus.ACTIVE);
+        user.setSubscriptionSeats(null);
+        user.setSubscriptionValidUntil(null);
+        user.setSubscriptionPeriodStart(null);
+        user.setSubscriptionPeriodEnd(null);
+        user.setCancelAtPeriodEnd(false);
+
+        LOG.infof("event=admin.subscription-expired userId=%s", user.getId());
+    }
+
+    private User prepareAuthenticatedUser(User user) {
+        expireAdminSubscriptionIfNeeded(user);
+
+        if (user.isLocked()) {
+            throw new WebApplicationException(
+                    Response.status(Response.Status.FORBIDDEN)
+                            .type("application/json")
+                            .entity(java.util.Map.of(
+                                    "code", "ACCOUNT_LOCKED",
+                                    "message", "Your TeacherHelper account is locked."
+                            ))
+                            .build()
+            );
+        }
+
+        touchActivityIfNeeded(user);
+        return user;
+    }
 
     public User getOrCreateAuth0User(JsonWebToken jwt) {
         if (jwt == null || jwt.getSubject() == null || jwt.getSubject().isBlank()) {
@@ -436,8 +750,7 @@ public class UserRepository {
          */
         User existingByAuth0Id = findByAuth0Id(auth0Id);
         if (existingByAuth0Id != null) {
-            touchActivityIfNeeded(existingByAuth0Id);
-            return existingByAuth0Id;
+            return prepareAuthenticatedUser(existingByAuth0Id);
         }
 
         /*
@@ -449,8 +762,7 @@ public class UserRepository {
 
         existingByAuth0Id = findByAuth0Id(auth0Id);
         if (existingByAuth0Id != null) {
-            touchActivityIfNeeded(existingByAuth0Id);
-            return existingByAuth0Id;
+            return prepareAuthenticatedUser(existingByAuth0Id);
         }
 
         String email = normalizeEmail(readStringClaim(
@@ -472,7 +784,7 @@ public class UserRepository {
             existingByEmail.newActivity();
             User linkedUser = em.merge(existingByEmail);
             LOG.infof("event=user.auth-linked userId=%s", linkedUser.getId());
-            return linkedUser;
+            return prepareAuthenticatedUser(linkedUser);
         }
 
         String emailPrefix = email.contains("@")
@@ -554,16 +866,29 @@ public class UserRepository {
             return candidate;
         }
 
-        if (findByUsername(candidate) == null) {
-            return candidate;
-        }
+        for (int suffixNumber = 2; suffixNumber <= 9999; suffixNumber++) {
+            String suffix = "-" + suffixNumber;
+            candidate = trimUsername(base, suffix.length()) + suffix;
 
-        while (true) {
-            candidate = trimUsername(base);
             if (findByUsername(candidate) == null) {
                 return candidate;
             }
         }
+
+        /*
+         * Extremely unlikely fallback if user, user-2 ... user-9999 are all
+         * occupied. Use a random suffix instead of looping forever.
+         */
+        for (int attempt = 0; attempt < 100; attempt++) {
+            String suffix = "-" + (10000 + CODE_RANDOM.nextInt(90000));
+            candidate = trimUsername(base, suffix.length()) + suffix;
+
+            if (findByUsername(candidate) == null) {
+                return candidate;
+            }
+        }
+
+        throw new IllegalStateException("Could not generate a unique username.");
     }
 
     private String sanitizeUsername(String value) {
@@ -615,6 +940,40 @@ public class UserRepository {
                             User.class
                     )
                     .setParameter("username", username.toLowerCase().trim())
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    public User findByStripeSubscriptionId(String stripeSubscriptionId) {
+        if (stripeSubscriptionId == null || stripeSubscriptionId.isBlank()) {
+            return null;
+        }
+
+        try {
+            return em.createQuery(
+                            "SELECT u FROM User u WHERE u.stripeSubscriptionId = :stripeSubscriptionId",
+                            User.class
+                    )
+                    .setParameter("stripeSubscriptionId", stripeSubscriptionId)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    public User findByStripeCustomerId(String stripeCustomerId) {
+        if (stripeCustomerId == null || stripeCustomerId.isBlank()) {
+            return null;
+        }
+
+        try {
+            return em.createQuery(
+                            "SELECT u FROM User u WHERE u.stripeCustomerId = :stripeCustomerId",
+                            User.class
+                    )
+                    .setParameter("stripeCustomerId", stripeCustomerId)
                     .getSingleResult();
         } catch (NoResultException e) {
             return null;
@@ -711,6 +1070,98 @@ public class UserRepository {
             """, Long.class)
                 .setParameter("since", since)
                 .getSingleResult();
+    }
+
+    private long countSuccessfulPaymentsByUser(User user) {
+        return em.createQuery(
+                        """
+                        SELECT COUNT(p)
+                        FROM PaymentRecord p
+                        WHERE p.user = :user
+                          AND p.status = :status
+                        """,
+                        Long.class
+                )
+                .setParameter("user", user)
+                .setParameter("status", PaymentStatus.PAID)
+                .getSingleResult();
+    }
+
+    private long sumSuccessfulPaymentsByUser(User user) {
+        Long total = em.createQuery(
+                        """
+                        SELECT COALESCE(SUM(p.amountCents), 0)
+                        FROM PaymentRecord p
+                        WHERE p.user = :user
+                          AND p.status = :status
+                        """,
+                        Long.class
+                )
+                .setParameter("user", user)
+                .setParameter("status", PaymentStatus.PAID)
+                .getSingleResult();
+
+        return total == null ? 0L : total;
+    }
+
+    private long countPaymentsByStatus(PaymentStatus status) {
+        return em.createQuery(
+                        """
+                        SELECT COUNT(p)
+                        FROM PaymentRecord p
+                        WHERE p.status = :status
+                        """,
+                        Long.class
+                )
+                .setParameter("status", status)
+                .getSingleResult();
+    }
+
+    private long sumPaymentsByStatus(PaymentStatus status) {
+        Long total = em.createQuery(
+                        """
+                        SELECT COALESCE(SUM(p.amountCents), 0)
+                        FROM PaymentRecord p
+                        WHERE p.status = :status
+                        """,
+                        Long.class
+                )
+                .setParameter("status", status)
+                .getSingleResult();
+
+        return total == null ? 0L : total;
+    }
+
+    private long sumPaymentsByStatusSince(PaymentStatus status, LocalDateTime since) {
+        Long total = em.createQuery(
+                        """
+                        SELECT COALESCE(SUM(p.amountCents), 0)
+                        FROM PaymentRecord p
+                        WHERE p.status = :status
+                          AND p.paidAt >= :since
+                        """,
+                        Long.class
+                )
+                .setParameter("status", status)
+                .setParameter("since", since)
+                .getSingleResult();
+
+        return total == null ? 0L : total;
+    }
+
+    private long sumSchoolSeats() {
+        Long total = em.createQuery(
+                        """
+                        SELECT COALESCE(SUM(u.subscriptionSeats), 0)
+                        FROM User u
+                        WHERE u.subscriptionModel = :school
+                        """,
+                        Long.class
+                )
+                .setParameter("school", SubscriptionModel.SCHOOL)
+                .getSingleResult();
+
+        return total == null ? 0L : total;
     }
 
     private long countCollectionsByUser(User user) {

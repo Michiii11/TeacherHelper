@@ -1,21 +1,44 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService as Auth0Service } from '@auth0/auth0-angular';
-import { switchMap } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
 
 import { Config } from '../config';
 
+function isAccountLockedError(error: HttpErrorResponse): boolean {
+  if (error.status !== 403) {
+    return false;
+  }
+
+  const body = error.error;
+
+  if (typeof body === 'string') {
+    return body.includes('ACCOUNT_LOCKED');
+  }
+
+  if (body && typeof body === 'object') {
+    const values = [
+      String(body.code ?? ''),
+      String(body.message ?? ''),
+      String(body.detail ?? ''),
+      String(body.title ?? ''),
+    ];
+
+    return values.some(value => value.includes('ACCOUNT_LOCKED'));
+  }
+
+  return false;
+}
+
 export const auth0TokenInterceptor: HttpInterceptorFn = (req, next) => {
   const auth0 = inject(Auth0Service);
+  const router = inject(Router);
 
-  // Only attach Auth0 access tokens to our own backend API calls.
-  // This avoids sending tokens to assets, i18n files, Auth0 itself, etc.
   if (!req.url.startsWith(Config.API_URL)) {
     return next(req);
   }
 
-  // Public auth endpoints from the old local auth flow do not need Auth0 tokens.
-  // You can remove these later when the old login/register flow is fully deleted.
   const publicAuthEndpoints = [
     '/user/server',
     '/user/register',
@@ -45,7 +68,15 @@ export const auth0TokenInterceptor: HttpInterceptorFn = (req, next) => {
         },
       });
 
-      return next(authReq);
+      return next(authReq).pipe(
+        catchError((error: HttpErrorResponse) => {
+          if (isAccountLockedError(error) && router.url !== '/blocked') {
+            void router.navigateByUrl('/blocked');
+          }
+
+          return throwError(() => error);
+        }),
+      );
     }),
   );
 };

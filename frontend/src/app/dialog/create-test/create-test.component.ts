@@ -20,6 +20,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Example, ExampleDTO, ExampleTypeLabels, ExampleTypes } from '../../model/Example';
 import { CreateTestDTO, GradingLevel, TestExample, TestExampleDTO, TestExampleVariableValues } from '../../model/Test';
 import { HttpService } from '../../service/http.service';
+import { ApiErrorMessageService } from '../../service/api-error-message.service';
 import { TestBranding, TestPrintLabels, TestPrintService } from '../../service/test-print.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { ExamplePickerDialogComponent, ExamplePickerDialogResult } from '../example-picker-dialog/example-picker-dialog.component';
@@ -93,6 +94,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   private translate = inject(TranslateService);
   private sanitizer = inject(DomSanitizer);
   private service = inject(HttpService);
+  private apiErrorMessages = inject(ApiErrorMessageService);
   private testPrintService = inject(TestPrintService);
   private previewRenderer = inject(ExamplePreviewRendererService);
   private readonly destroy$ = new Subject<void>();
@@ -100,7 +102,6 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   private readonly exampleImageObjectUrlCache = new Map<string, string>();
 
   showAdvancedSettings = false;
-  mobilePane: 'editor' | 'preview' = 'editor';
   printCopies = 1;
   includeSolutionSheet = false;
   readonly defaultImageWidth = 320;
@@ -108,6 +109,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   isExportingWord = false;
   isSaving = false;
   isLoading = true;
+  mobilePane: 'editor' | 'preview' = 'editor';
 
   previewHtml: SafeHtml = '';
   labels: TestPrintLabels = this.buildPrintLabels();
@@ -617,9 +619,19 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
           this.isSaving = false;
         },
-        error: () => {
+        error: (error) => {
           this.isSaving = false;
-          this.snackBar.open(this.translate.instant('createTest.snackbar.saveError'), 'OK', { duration: 3000 });
+
+          const message = this.apiErrorMessages.getMessage(
+            error,
+            this.translate.instant('createTest.snackbar.saveError')
+          );
+
+          this.snackBar.open(
+            message,
+            this.translate.instant('common.ok'),
+            { duration: 4200 }
+          );
         }
       });
   }
@@ -1453,18 +1465,14 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   openAddExampleDialog(): void {
-    const isMobile = window.innerWidth <= 768;
-
     const ref = this.dialog.open(ExamplePickerDialogComponent, {
-      width: isMobile ? '100vw' : 'min(1168px, calc(100vw - 48px))',
-      height: isMobile ? '100dvh' : 'min(720px, calc(100vh - 48px))',
-      maxWidth: isMobile ? '100vw' : 'calc(100vw - 48px)',
-      maxHeight: isMobile ? '100dvh' : 'calc(100vh - 48px)',
+      width: 'min(1168px, calc(100vw - 48px))',
+      height: 'min(720px, calc(100vh - 48px))',
+      maxWidth: 'calc(100vw - 48px)',
+      maxHeight: 'calc(100vh - 48px)',
       autoFocus: false,
       restoreFocus: false,
-      panelClass: isMobile
-        ? ['example-picker-dialog-panel', 'mobile-fullscreen-dialog']
-        : 'example-picker-dialog-panel',
+      panelClass: 'example-picker-dialog-panel',
       data: {
         examples: this.allExamples,
         selectedIds: this.selectedExamples.map(entry => entry.example.id),

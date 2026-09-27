@@ -6,12 +6,16 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { Subject, debounceTime, distinctUntilChanged, finalize, takeUntil } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, finalize, take, takeUntil, timer } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { HttpService } from '../../service/http.service';
 import { User, UserSettings } from '../../model/User';
+import { PaidSubscriptionPlan, SubscriptionDTO } from '../../model/Subscription';
+import { PaymentRecordDTO } from '../../model/Payment';
 import { ConfirmDialogComponent } from '../../dialog/confirm-dialog/confirm-dialog.component';
+import { SubscriptionChangeDialogComponent } from '../../dialog/subscription-change-dialog/subscription-change-dialog.component';
 import { ThemeService } from '../../service/theme.service';
 import { LanguageService } from '../../service/language.service';
 import { NavbarActionsService } from '../navigation/navbar-actions.service';
@@ -43,9 +47,31 @@ export class ProfileComponent implements OnInit, OnDestroy {
   protected readonly translate = inject(TranslateService);
   private readonly navbarActions = inject(NavbarActionsService);
   private readonly auth = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   user: User | null = null;
   loading = true;
+
+  subscription: SubscriptionDTO | null = null;
+  subscriptionLoading = true;
+  subscriptionLoadError = false;
+
+  payments: PaymentRecordDTO[] = [];
+  paymentsLoading = true;
+  paymentsLoadError = false;
+  paymentHistoryExpanded = false;
+  readonly paymentHistoryLimit = 12;
+  readonly paymentHistoryPreviewCount = 5;
+
+  startingCheckout = false;
+  openingPortal = false;
+  changingPlan = false;
+  cancelingSubscription = false;
+  resumingSubscription = false;
+  readonly minSchoolSeats = 20;
+  schoolSeats = 20;
+  currentSchoolSeats = 20;
 
   selectedAvatarFile: File | null = null;
   avatarPreviewUrl: string | null = null;
@@ -77,6 +103,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.setupSettingsAutoSave();
     this.loadUser();
+    this.loadSubscription();
+    this.loadPayments();
+    this.handleCheckoutReturn();
     this.setNavbarActions();
   }
 
@@ -90,6 +119,99 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private setNavbarActions(): void {
     this.navbarActions.setBreadcrumbs([{ labelKey: 'profile.title', route: '/profile' }]);
     this.navbarActions.setActions([{ labelKey: 'common.logout', icon: 'logout', variant: 'flat', action: () => this.logout() }]);
+  }
+
+  private handleCheckoutReturn(): void {
+    const checkoutState = this.route.snapshot.queryParamMap.get('checkout');
+    const sessionId = this.route.snapshot.queryParamMap.get('session_id');
+
+    if (checkoutState !== 'success' && checkoutState !== 'cancelled') {
+      return;
+    }
+
+    // Remove Stripe return parameters immediately so a browser refresh does not
+    // repeat the same confirmation flow.
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        checkout: null,
+        session_id: null,
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+
+    if (checkoutState === 'cancelled') {
+      this.snack.open(
+        this.translate.instant('profile.subscription.checkoutReturn.cancelled'),
+        'OK',
+        { duration: 3500 }
+      );
+      return;
+    }
+
+    this.snack.open(
+      this.translate.instant('profile.subscription.checkoutReturn.success'),
+      'OK',
+      { duration: 5000 }
+    );
+
+    if (sessionId) {
+      this.http.confirmSubscriptionCheckout(sessionId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.loadSubscription();
+            this.loadPayments();
+          },
+          error: () => {
+            // The webhook remains the source of truth. The retry loop below
+            // will pick up the webhook-written state if direct confirmation
+            // is temporarily unavailable.
+          }
+        });
+    }
+
+    timer(900, 1500)
+      .pipe(
+        take(3),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        this.loadSubscription();
+        this.loadPayments();
+      });
+  }
+
+  hasSubscriptionIssue(): boolean {
+    return this.subscription?.status === 'PAST_DUE'
+      || this.subscription?.status === 'INCOMPLETE';
+  }
+
+  getSubscriptionIssueIcon(): string {
+    return this.subscription?.status === 'PAST_DUE'
+      ? 'credit_card_off'
+      : 'pending_actions';
+  }
+
+  getSubscriptionIssueTitle(): string {
+    const status = this.subscription?.status?.toLowerCase();
+
+    if (status !== 'past_due' && status !== 'incomplete') {
+      return '';
+    }
+
+    return this.translate.instant(`profile.subscription.health.${status}.title`);
+  }
+
+  getSubscriptionIssueText(): string {
+    const status = this.subscription?.status?.toLowerCase();
+
+    if (status !== 'past_due' && status !== 'incomplete') {
+      return '';
+    }
+
+    return this.translate.instant(`profile.subscription.health.${status}.text`);
   }
 
   loadUser(): void {
@@ -110,6 +232,634 @@ export class ProfileComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.snack.open(this.translate.instant('snackbar.userLoadedError'), 'OK', { duration: 3500 });
+        }
+      });
+  }
+
+  loadSubscription(): void {
+    this.subscriptionLoading = true;
+    this.subscriptionLoadError = false;
+
+    this.http.getSubscription()
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.subscriptionLoading = false)
+      )
+      .subscribe({
+        next: (subscription: SubscriptionDTO) => {
+          this.subscription = subscription;
+          if (subscription.plan === 'SCHOOL' && subscription.seats) {
+            const seats = Math.max(this.minSchoolSeats, subscription.seats);
+            this.schoolSeats = seats;
+            this.currentSchoolSeats = seats;
+          }
+        },
+        error: () => {
+          this.subscription = null;
+          this.subscriptionLoadError = true;
+        }
+      });
+  }
+
+  loadPayments(): void {
+    this.paymentsLoading = true;
+    this.paymentsLoadError = false;
+
+    this.http.getMyPayments(this.paymentHistoryLimit)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.paymentsLoading = false)
+      )
+      .subscribe({
+        next: (payments: PaymentRecordDTO[]) => {
+          this.payments = payments ?? [];
+        },
+        error: () => {
+          this.payments = [];
+          this.paymentsLoadError = true;
+        }
+      });
+  }
+
+  get visiblePayments(): PaymentRecordDTO[] {
+    return this.paymentHistoryExpanded
+      ? this.payments
+      : this.payments.slice(0, this.paymentHistoryPreviewCount);
+  }
+
+  get hasMorePayments(): boolean {
+    return this.payments.length > this.paymentHistoryPreviewCount;
+  }
+
+  togglePaymentHistory(): void {
+    this.paymentHistoryExpanded = !this.paymentHistoryExpanded;
+  }
+
+  getPaymentStatusLabel(payment: PaymentRecordDTO): string {
+    const status = payment.status.toLowerCase();
+    return this.translate.instant(`profile.subscription.paymentHistory.statuses.${status}`);
+  }
+
+  formatPaymentDate(payment: PaymentRecordDTO): string {
+    return this.formatSubscriptionDate(payment.paidAt ?? payment.createdAt);
+  }
+
+  private getLocale(): 'de-AT' | 'en-US' {
+    return (this.translate.currentLang || '').toLowerCase().startsWith('en')
+      ? 'en-US'
+      : 'de-AT';
+  }
+
+  formatPaymentMoney(payment: PaymentRecordDTO): string {
+    return new Intl.NumberFormat(this.getLocale(), {
+      style: 'currency',
+      currency: (payment.currency || 'EUR').toUpperCase()
+    }).format((payment.amountCents ?? 0) / 100);
+  }
+
+  getUsagePercent(current: number, limit: number | null): number {
+    if (limit === null || limit <= 0) return 0;
+    return Math.min(100, Math.max(0, (current / limit) * 100));
+  }
+
+  getUsageText(current: number, limit: number | null): string {
+    return `${current} / ${limit === null ? '∞' : limit}`;
+  }
+
+  getSubscriptionPlanLabel(): string {
+    const plan = (this.subscription?.plan ?? this.user?.subscriptionModel ?? 'FREE').toLowerCase();
+    return this.translate.instant(`profile.subscription.plans.${plan}`);
+  }
+
+  getSubscriptionPlanDescription(): string {
+    const plan = (this.subscription?.plan ?? this.user?.subscriptionModel ?? 'FREE').toLowerCase();
+    return this.translate.instant(`profile.subscription.descriptions.${plan}`);
+  }
+
+  getSubscriptionStatusLabel(): string {
+    const status = this.subscription?.status?.toLowerCase() ?? 'active';
+    return this.translate.instant(`profile.subscription.statuses.${status}`);
+  }
+
+  isSchoolPlan(): boolean {
+    return this.subscription?.plan === 'SCHOOL';
+  }
+
+  getCurrentPlan(): 'FREE' | 'PRO' | 'SCHOOL' | 'ADMIN' {
+    return this.subscription?.plan ?? this.user?.subscriptionModel ?? 'FREE';
+  }
+
+  isCurrentPlan(plan: 'FREE' | 'PRO' | 'SCHOOL'): boolean {
+    return this.getCurrentPlan() === plan;
+  }
+
+  isStripeManagedSubscription(): boolean {
+    return this.subscription?.source === 'STRIPE'
+      && (this.getCurrentPlan() === 'PRO' || this.getCurrentPlan() === 'SCHOOL');
+  }
+
+  isAdminManagedSubscription(): boolean {
+    return this.subscription?.source === 'ADMIN'
+      && (this.getCurrentPlan() === 'PRO' || this.getCurrentPlan() === 'SCHOOL');
+  }
+
+  canStartPaidCheckout(_plan: PaidSubscriptionPlan): boolean {
+    return this.getCurrentPlan() === 'FREE' && !this.startingCheckout;
+  }
+
+  hasSchoolSeatChanges(): boolean {
+    return this.isCurrentPlan('SCHOOL') && this.schoolSeats !== this.currentSchoolSeats;
+  }
+
+  getMinimumSchoolSeatsRequired(): number {
+    const collections = this.subscription?.usage.collections ?? 0;
+    const schoolUsers = this.subscription?.usage.schoolUsers ?? 0;
+
+    return Math.max(
+      this.minSchoolSeats,
+      collections,
+      schoolUsers
+    );
+  }
+
+  canUseProPlan(): boolean {
+    if (!this.subscription) {
+      return true;
+    }
+
+    return this.subscription.usage.collections <= 5
+      && this.subscription.usage.examples <= 500
+      && this.subscription.usage.tests <= 50
+      && this.subscription.usage.maxCollectionMembers <= 5;
+  }
+
+  isCurrentPlanOverLimit(): boolean {
+    if (!this.subscription) {
+      return false;
+    }
+
+    const { usage, limits } = this.subscription;
+
+    return this.isUsageOverLimit(usage.collections, limits.collections)
+      || this.isUsageOverLimit(usage.examples, limits.examples)
+      || this.isUsageOverLimit(usage.tests, limits.tests)
+      || this.isUsageOverLimit(usage.maxCollectionMembers, limits.membersPerCollection)
+      || this.isUsageOverLimit(usage.schoolUsers, limits.schoolUsers);
+  }
+
+  getCurrentPlanOverLimitItems(): string[] {
+    if (!this.subscription) {
+      return [];
+    }
+
+    const { usage, limits } = this.subscription;
+    const items: string[] = [];
+
+    if (this.isUsageOverLimit(usage.collections, limits.collections)) {
+      items.push(this.translate.instant('profile.subscription.overLimit.items.collections', {
+        current: usage.collections,
+        limit: limits.collections,
+      }));
+    }
+
+    if (this.isUsageOverLimit(usage.examples, limits.examples)) {
+      items.push(this.translate.instant('profile.subscription.overLimit.items.examples', {
+        current: usage.examples,
+        limit: limits.examples,
+      }));
+    }
+
+    if (this.isUsageOverLimit(usage.tests, limits.tests)) {
+      items.push(this.translate.instant('profile.subscription.overLimit.items.tests', {
+        current: usage.tests,
+        limit: limits.tests,
+      }));
+    }
+
+    if (this.isUsageOverLimit(usage.maxCollectionMembers, limits.membersPerCollection)) {
+      items.push(this.translate.instant('profile.subscription.overLimit.items.members', {
+        current: usage.maxCollectionMembers,
+        limit: limits.membersPerCollection,
+      }));
+    }
+
+    if (this.isUsageOverLimit(usage.schoolUsers, limits.schoolUsers)) {
+      items.push(this.translate.instant('profile.subscription.overLimit.items.schoolUsers', {
+        current: usage.schoolUsers,
+        limit: limits.schoolUsers,
+      }));
+    }
+
+    return items;
+  }
+
+  willExceedFreePlanAfterCancellation(): boolean {
+    if (!this.subscription?.cancelAtPeriodEnd) {
+      return false;
+    }
+
+    const usage = this.subscription.usage;
+
+    return usage.collections > 1
+      || usage.examples > 50
+      || usage.tests > 5
+      || usage.maxCollectionMembers > 0;
+  }
+
+  getFreePlanDowngradeItems(): string[] {
+    if (!this.subscription) {
+      return [];
+    }
+
+    const usage = this.subscription.usage;
+    const items: string[] = [];
+
+    if (usage.collections > 1) {
+      items.push(this.translate.instant('profile.subscription.cancellationImpact.items.collections', {
+        current: usage.collections,
+        limit: 1,
+      }));
+    }
+
+    if (usage.examples > 50) {
+      items.push(this.translate.instant('profile.subscription.cancellationImpact.items.examples', {
+        current: usage.examples,
+        limit: 50,
+      }));
+    }
+
+    if (usage.tests > 5) {
+      items.push(this.translate.instant('profile.subscription.cancellationImpact.items.tests', {
+        current: usage.tests,
+        limit: 5,
+      }));
+    }
+
+    if (usage.maxCollectionMembers > 0) {
+      items.push(this.translate.instant('profile.subscription.cancellationImpact.items.members', {
+        current: usage.maxCollectionMembers,
+      }));
+    }
+
+    return items;
+  }
+
+  private isUsageOverLimit(current: number, limit: number | null): boolean {
+    return limit !== null && current > limit;
+  }
+
+  updateSchoolSeats(event: Event): void {
+    const minimumSeats = this.getMinimumSchoolSeatsRequired();
+    const value = Number((event.target as HTMLInputElement).value);
+
+    if (!Number.isFinite(value)) {
+      this.schoolSeats = minimumSeats;
+      return;
+    }
+
+    this.schoolSeats = Math.max(minimumSeats, Math.floor(value));
+  }
+
+  startCheckout(plan: PaidSubscriptionPlan, seats?: number): void {
+    if (this.startingCheckout) return;
+
+    const current = this.getCurrentPlan();
+
+    if (current === 'ADMIN') {
+      return;
+    }
+
+    // Do not create a second Stripe subscription for an already paid account.
+    // Paid-plan changes/cancellation will be routed through Stripe Billing Portal
+    // once the webhook/customer mapping is active.
+    if (current !== 'FREE') {
+      this.snack.open(
+        this.translate.instant('profile.subscription.messages.existingPaidPlan'),
+        'OK',
+        { duration: 3800 }
+      );
+      return;
+    }
+
+    const normalizedSeats = plan === 'SCHOOL'
+      ? Math.max(this.getMinimumSchoolSeatsRequired(), Math.floor(seats ?? this.schoolSeats))
+      : undefined;
+
+    this.startingCheckout = true;
+
+    this.http.createSubscriptionCheckout(plan, normalizedSeats)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.startingCheckout = false)
+      )
+      .subscribe({
+        next: ({ url }) => {
+          if (url) {
+            window.location.href = url;
+          }
+        },
+        error: (err) => {
+          this.snack.open(
+            this.getSubscriptionActionError(
+              err,
+              'profile.subscription.messages.checkoutError'
+            ),
+            'OK',
+            { duration: 3500 }
+          );
+        }
+      });
+  }
+
+  private getSubscriptionActionError(err: any, fallbackKey: string): string {
+    if (err?.error?.code === 'SCHOOL_CAPACITY_BELOW_USAGE') {
+      return this.translate.instant(
+        'profile.subscription.messages.schoolCapacityBelowUsage',
+        { minimumSeats: err?.error?.minimumSeats ?? this.getMinimumSchoolSeatsRequired() }
+      );
+    }
+
+    if (err?.error?.code === 'PRO_CAPACITY_BELOW_USAGE') {
+      return this.translate.instant(
+        'profile.subscription.messages.proCapacityBelowUsage'
+      );
+    }
+
+    return err?.error?.message || this.translate.instant(fallbackKey);
+  }
+
+  changePlan(plan: PaidSubscriptionPlan, seats?: number): void {
+    if (this.changingPlan || !this.isStripeManagedSubscription()) return;
+
+    const currentPlan = this.getCurrentPlan();
+    if (currentPlan !== 'PRO' && currentPlan !== 'SCHOOL') return;
+
+    const normalizedSeats = plan === 'SCHOOL'
+      ? Math.max(this.getMinimumSchoolSeatsRequired(), Math.floor(seats ?? this.schoolSeats))
+      : undefined;
+
+    this.changingPlan = true;
+
+    this.http.previewSubscriptionPlanChange(plan, normalizedSeats)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.changingPlan = false)
+      )
+      .subscribe({
+        next: (preview) => {
+          const dialogRef = this.dialog.open(SubscriptionChangeDialogComponent, {
+            width: 'min(94vw, 720px)',
+            maxWidth: '94vw',
+            disableClose: true,
+            panelClass: 'subscription-change-dialog-panel',
+            data: {
+              currentPlan,
+              targetPlan: plan,
+              targetSeats: preview.seats,
+              currentMonthlyAmountCents: preview.currentMonthlyAmountCents,
+              newMonthlyAmountCents: preview.newMonthlyAmountCents,
+              monthlyDifferenceCents: preview.monthlyDifferenceCents,
+              currentPeriodAdjustmentCents: preview.currentPeriodAdjustmentCents,
+              nextInvoiceAmountCents: preview.nextInvoiceAmountCents,
+              nextBillingAt: preview.nextBillingAt,
+              prorationDate: preview.prorationDate,
+              currency: preview.currency,
+              cancelAtPeriodEnd: !!this.subscription?.cancelAtPeriodEnd
+            }
+          });
+
+          dialogRef.afterClosed()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe((confirmed: boolean) => {
+              if (!confirmed) return;
+              this.executePlanChange(plan, normalizedSeats, preview.prorationDate);
+            });
+        },
+        error: (err) => {
+          this.snack.open(
+            this.getSubscriptionActionError(
+              err,
+              'profile.subscription.billingPreview.failed'
+            ),
+            'OK',
+            { duration: 4200 }
+          );
+        }
+      });
+  }
+
+  private executePlanChange(
+    plan: PaidSubscriptionPlan,
+    normalizedSeats?: number,
+    prorationDate?: number
+  ): void {
+    if (this.changingPlan || !this.isStripeManagedSubscription()) return;
+
+    this.changingPlan = true;
+
+    this.http.changeSubscriptionPlan(plan, normalizedSeats, prorationDate)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.changingPlan = false)
+      )
+      .subscribe({
+        next: () => {
+          this.snack.open(
+            this.translate.instant('profile.subscription.messages.planChanged'),
+            'OK',
+            { duration: 3000 }
+          );
+
+          setTimeout(() => this.loadSubscription(), 800);
+        },
+        error: (err) => {
+          this.snack.open(
+            this.getSubscriptionActionError(
+              err,
+              'profile.subscription.messages.planChangeError'
+            ),
+            'OK',
+            { duration: 3500 }
+          );
+        }
+      });
+  }
+
+  getCurrentMonthlyPriceCents(): number {
+    const plan = this.getCurrentPlan();
+
+    if (plan === 'PRO') return 500;
+
+    if (plan === 'SCHOOL') {
+      const seats = this.subscription?.seats ?? this.currentSchoolSeats ?? this.minSchoolSeats;
+      return Math.max(this.minSchoolSeats, seats) * 100;
+    }
+
+    return 0;
+  }
+
+  getSubscriptionPeriodStart(): string | null {
+    return this.subscription?.periodStart ?? null;
+  }
+
+  getSubscriptionPeriodEnd(): string | null {
+    return this.subscription?.periodEnd ?? null;
+  }
+
+  formatSubscriptionDate(value: string | null | undefined): string {
+    if (!value) return '—';
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '—';
+
+    return new Intl.DateTimeFormat(this.getLocale(), {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(date);
+  }
+
+  formatSubscriptionMoney(amountCents: number): string {
+    return new Intl.NumberFormat(this.getLocale(), {
+      style: 'currency',
+      currency: 'EUR'
+    }).format((amountCents ?? 0) / 100);
+  }
+
+  confirmResumeSubscription(): void {
+    if (this.resumingSubscription || !this.isStripeManagedSubscription() || !this.subscription?.cancelAtPeriodEnd) return;
+
+    const endDate = this.formatSubscriptionDate(this.getSubscriptionPeriodEnd());
+    const monthlyPrice = this.formatSubscriptionMoney(this.getCurrentMonthlyPriceCents());
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: 'min(92vw, 540px)',
+      maxWidth: '92vw',
+      disableClose: true,
+      data: {
+        title: this.translate.instant('profile.subscription.resumeDialog.title'),
+        message: this.translate.instant('profile.subscription.resumeDialog.message', {
+          date: endDate,
+          price: monthlyPrice
+        }),
+        confirmText: this.translate.instant('profile.subscription.resumeDialog.confirm'),
+        cancelText: this.translate.instant('common.cancel')
+      }
+    });
+
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((confirmed: boolean) => {
+        if (confirmed) this.resumeSubscription();
+      });
+  }
+
+  private resumeSubscription(): void {
+    if (this.resumingSubscription || !this.isStripeManagedSubscription()) return;
+
+    this.resumingSubscription = true;
+
+    this.http.resumeSubscription()
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.resumingSubscription = false)
+      )
+      .subscribe({
+        next: () => {
+          this.snack.open(
+            this.translate.instant('profile.subscription.resumeSuccess'),
+            'OK',
+            { duration: 3200 }
+          );
+
+          setTimeout(() => this.loadSubscription(), 800);
+        },
+        error: (err) => {
+          this.snack.open(
+            err?.error?.message || this.translate.instant('profile.subscription.resumeError'),
+            'OK',
+            { duration: 3600 }
+          );
+        }
+      });
+  }
+
+  confirmCancelSubscription(): void {
+    if (this.cancelingSubscription || !this.isStripeManagedSubscription() || this.subscription?.cancelAtPeriodEnd) return;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: 'min(92vw, 520px)',
+      maxWidth: '92vw',
+      disableClose: true,
+      data: {
+        title: this.translate.instant('profile.subscription.cancelDialog.title'),
+        message: this.translate.instant('profile.subscription.cancelDialog.message'),
+        confirmText: this.translate.instant('profile.subscription.cancelDialog.confirm'),
+        cancelText: this.translate.instant('common.cancel')
+      }
+    });
+
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((confirmed: boolean) => {
+        if (confirmed) this.cancelSubscription();
+      });
+  }
+
+  private cancelSubscription(): void {
+    if (this.cancelingSubscription || !this.isStripeManagedSubscription()) return;
+
+    this.cancelingSubscription = true;
+
+    this.http.cancelSubscription()
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.cancelingSubscription = false)
+      )
+      .subscribe({
+        next: () => {
+          this.snack.open(
+            this.translate.instant('profile.subscription.messages.cancellationScheduled'),
+            'OK',
+            { duration: 4200 }
+          );
+
+          setTimeout(() => this.loadSubscription(), 800);
+        },
+        error: (err) => {
+          this.snack.open(
+            err?.error?.message
+            || this.translate.instant('profile.subscription.messages.cancelError'),
+            'OK',
+            { duration: 3500 }
+          );
+        }
+      });
+  }
+
+  openSubscriptionPortal(): void {
+    if (this.openingPortal || !this.isStripeManagedSubscription()) return;
+
+    this.openingPortal = true;
+
+    this.http.createSubscriptionPortal()
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.openingPortal = false)
+      )
+      .subscribe({
+        next: ({ url }) => {
+          if (url) {
+            window.location.href = url;
+          }
+        },
+        error: (err) => {
+          this.snack.open(
+            err?.error?.message
+            || this.translate.instant('profile.subscription.messages.portalError'),
+            'OK',
+            { duration: 3500 }
+          );
         }
       });
   }
@@ -332,7 +1082,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   getDisplayName(): string { return this.user?.username || this.translate.instant('profile.fallbackName'); }
   getDisplayEmail(): string { return this.user?.email || this.translate.instant('profile.fallbackEmail'); }
-  getPlanLabel(): string { return this.user?.subscriptionModel || 'FREE'; }
+  getPlanLabel(): string { return this.getSubscriptionPlanLabel(); }
 
   getAvatarUrl(): string | null {
     return this.avatarPreviewUrl || this.avatarObjectUrl;

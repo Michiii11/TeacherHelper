@@ -9,14 +9,17 @@ import at.enums.NotificationActionType;
 import at.enums.NotificationType;
 import at.enums.InviteStatus;
 import at.enums.InviteType;
+import at.enums.SubscriptionModel;
 import at.model.*;
 import at.model.helper.AppTime;
 import at.model.helper.Focus;
 import at.service.MediaStorageService;
+import at.service.SubscriptionLimitService;
 import at.websocket.CollectionSocket;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
@@ -50,6 +53,9 @@ public class CollectionRepository {
 
     @Inject
     MediaStorageService mediaStorageService;
+
+    @Inject
+    SubscriptionLimitService subscriptionLimitService;
 
     public Response getYourCollections(UUID userId) {
         /*
@@ -268,12 +274,17 @@ public class CollectionRepository {
     }
 
     public Response addCollection(String collectionName, UUID userId) {
-        User user = em.find(User.class, userId);
+        User user = em.find(User.class, userId, LockModeType.PESSIMISTIC_WRITE);
 
         if (user == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("USER_NOT_FOUND")
                     .build();
+        }
+
+        Response collectionLimitError = validateCollectionCreationCapacity(user);
+        if (collectionLimitError != null) {
+            return collectionLimitError;
         }
 
         if (collectionName == null || collectionName.isBlank()) {
@@ -287,8 +298,10 @@ public class CollectionRepository {
         Long existing = em.createQuery("""
             SELECT COUNT(c)
             FROM Collection c
-            WHERE LOWER(c.name) = LOWER(:name)
+            WHERE c.admin.id = :userId
+              AND LOWER(c.name) = LOWER(:name)
             """, Long.class)
+                .setParameter("userId", userId)
                 .setParameter("name", cleanedName)
                 .getSingleResult();
 
@@ -395,7 +408,6 @@ public class CollectionRepository {
 
         em.remove(em.contains(collection) ? collection : em.merge(collection));
         em.flush();
-        em.clear();
 
         CollectionSocket.broadcast(collectionId);
         LOG.infof("event=collection.deleted userId=%s collectionId=%s tests=%d examples=%d folders=%d",
@@ -634,6 +646,228 @@ public class CollectionRepository {
         return Response.ok().build();
     }
 
+    private Response validateCollectionCreationCapacity(User owner) {
+        var limits = subscriptionLimitService.limitsFor(owner);
+        int maxCollections = limits.maxCollections();
+
+        if (maxCollections == SubscriptionLimitService.UNLIMITED) {
+            return null;
+        }
+
+        long currentCollections = subscriptionLimitService.countOwnedCollections(owner.getId());
+
+        if (currentCollections < maxCollections) {
+            return null;
+        }
+
+        LOG.warnf(
+                "event=subscription.limit.collection ownerId=%s current=%d limit=%d",
+                owner.getId(),
+                currentCollections,
+                maxCollections
+        );
+
+        return Response.status(Response.Status.CONFLICT)
+                .entity(Map.of(
+                        "code", "COLLECTION_LIMIT_REACHED",
+                        "current", currentCollections,
+                        "limit", maxCollections,
+                        "plan", subscriptionLimitService.effectivePlan(owner).name()
+                ))
+                .build();
+    }
+
+    private Response validateInvitationCapacity(
+            Collection collection,
+            User owner,
+            User candidate
+    ) {
+        if (owner == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("COLLECTION_OWNER_NOT_FOUND")
+                    .build();
+        }
+
+        var limits = subscriptionLimitService.limitsFor(owner);
+        int maxMembersPerCollection = limits.maxMembersPerCollection();
+
+        if (maxMembersPerCollection != SubscriptionLimitService.UNLIMITED) {
+            long pendingForCollection = countPendingInvitesForCollection(collection.getId());
+            long reservedCollectionMembers = collection.getUsers().size() + pendingForCollection;
+
+            if (reservedCollectionMembers >= maxMembersPerCollection) {
+                LOG.warnf(
+                        "event=subscription.limit.collection-members ownerId=%s collectionId=%s current=%d pending=%d limit=%d",
+                        owner.getId(),
+                        collection.getId(),
+                        collection.getUsers().size(),
+                        pendingForCollection,
+                        maxMembersPerCollection
+                );
+
+                return Response.status(Response.Status.CONFLICT)
+                        .entity(Map.of(
+                                "code", "COLLECTION_MEMBER_LIMIT_REACHED",
+                                "current", reservedCollectionMembers,
+                                "limit", maxMembersPerCollection,
+                                "plan", subscriptionLimitService.effectivePlan(owner).name()
+                        ))
+                        .build();
+            }
+        }
+
+        if (subscriptionLimitService.effectivePlan(owner) != SubscriptionModel.SCHOOL) {
+            return null;
+        }
+
+        int maxSchoolUsers = limits.maxSchoolUsers();
+        if (maxSchoolUsers == SubscriptionLimitService.UNLIMITED) {
+            return null;
+        }
+
+        long currentSchoolUsers = subscriptionLimitService.countTotalSchoolUsers(owner.getId());
+        Set<UUID> currentMemberIds = currentOwnedCollectionMemberIds(owner.getId());
+        Set<UUID> pendingRecipientIds = pendingOwnedCollectionRecipientIds(owner.getId());
+
+        long pendingAdditionalUsers = pendingRecipientIds.stream()
+                .filter(id -> !currentMemberIds.contains(id))
+                .count();
+
+        boolean candidateAlreadyCounted = currentMemberIds.contains(candidate.getId());
+        boolean candidateAlreadyReserved = pendingRecipientIds.contains(candidate.getId());
+        long additionalSeat = candidateAlreadyCounted || candidateAlreadyReserved ? 0L : 1L;
+
+        if (currentSchoolUsers + pendingAdditionalUsers + additionalSeat <= maxSchoolUsers) {
+            return null;
+        }
+
+        LOG.warnf(
+                "event=subscription.limit.school-users ownerId=%s current=%d pending=%d limit=%d",
+                owner.getId(),
+                currentSchoolUsers,
+                pendingAdditionalUsers,
+                maxSchoolUsers
+        );
+
+        return Response.status(Response.Status.CONFLICT)
+                .entity(Map.of(
+                        "code", "SCHOOL_USER_LIMIT_REACHED",
+                        "current", currentSchoolUsers + pendingAdditionalUsers,
+                        "limit", maxSchoolUsers,
+                        "plan", subscriptionLimitService.effectivePlan(owner).name()
+                ))
+                .build();
+    }
+
+    private Response validateAcceptanceCapacity(
+            Collection collection,
+            User owner,
+            User candidate
+    ) {
+        if (owner == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("COLLECTION_OWNER_NOT_FOUND")
+                    .build();
+        }
+
+        var limits = subscriptionLimitService.limitsFor(owner);
+        int maxMembersPerCollection = limits.maxMembersPerCollection();
+
+        if (maxMembersPerCollection != SubscriptionLimitService.UNLIMITED
+                && collection.getUsers().size() >= maxMembersPerCollection) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(Map.of(
+                            "code", "COLLECTION_MEMBER_LIMIT_REACHED",
+                            "current", collection.getUsers().size(),
+                            "limit", maxMembersPerCollection,
+                            "plan", subscriptionLimitService.effectivePlan(owner).name()
+                    ))
+                    .build();
+        }
+
+        if (subscriptionLimitService.effectivePlan(owner) != SubscriptionModel.SCHOOL) {
+            return null;
+        }
+
+        int maxSchoolUsers = limits.maxSchoolUsers();
+        if (maxSchoolUsers == SubscriptionLimitService.UNLIMITED) {
+            return null;
+        }
+
+        Set<UUID> currentMemberIds = currentOwnedCollectionMemberIds(owner.getId());
+
+        if (currentMemberIds.contains(candidate.getId())) {
+            return null;
+        }
+
+        long currentSchoolUsers = subscriptionLimitService.countTotalSchoolUsers(owner.getId());
+
+        if (currentSchoolUsers < maxSchoolUsers) {
+            return null;
+        }
+
+        return Response.status(Response.Status.CONFLICT)
+                .entity(Map.of(
+                        "code", "SCHOOL_USER_LIMIT_REACHED",
+                        "current", currentSchoolUsers,
+                        "limit", maxSchoolUsers,
+                        "plan", subscriptionLimitService.effectivePlan(owner).name()
+                ))
+                .build();
+    }
+
+    private long countPendingInvitesForCollection(UUID collectionId) {
+        return em.createQuery(
+                        """
+                        SELECT COUNT(i)
+                        FROM CollectionInvite i
+                        WHERE i.collection.id = :collectionId
+                          AND i.type = :type
+                          AND i.status = :status
+                        """,
+                        Long.class
+                )
+                .setParameter("collectionId", collectionId)
+                .setParameter("type", InviteType.TEACHER_INVITATION)
+                .setParameter("status", InviteStatus.PENDING)
+                .getSingleResult();
+    }
+
+    private Set<UUID> currentOwnedCollectionMemberIds(UUID ownerId) {
+        return new LinkedHashSet<>(
+                em.createQuery(
+                                """
+                                SELECT DISTINCT member.id
+                                FROM Collection c
+                                JOIN c.users member
+                                WHERE c.admin.id = :ownerId
+                                """,
+                                UUID.class
+                        )
+                        .setParameter("ownerId", ownerId)
+                        .getResultList()
+        );
+    }
+
+    private Set<UUID> pendingOwnedCollectionRecipientIds(UUID ownerId) {
+        return new LinkedHashSet<>(
+                em.createQuery(
+                                """
+                                SELECT DISTINCT i.recipient.id
+                                FROM CollectionInvite i
+                                WHERE i.collection.admin.id = :ownerId
+                                  AND i.type = :type
+                                  AND i.status = :status
+                                """,
+                                UUID.class
+                        )
+                        .setParameter("ownerId", ownerId)
+                        .setParameter("type", InviteType.TEACHER_INVITATION)
+                        .setParameter("status", InviteStatus.PENDING)
+                        .getResultList()
+        );
+    }
+
     public Response inviteTeacher(UUID collectionId, UUID userId, String username) {
         Collection collection = em.find(Collection.class, collectionId);
         User sender = em.find(User.class, userId);
@@ -675,6 +909,21 @@ public class CollectionRepository {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("There is already an open invitation for this teacher")
                     .build();
+        }
+
+        User owner = em.find(
+                User.class,
+                collection.getAdmin().getId(),
+                LockModeType.PESSIMISTIC_WRITE
+        );
+
+        Response inviteCapacityError = validateInvitationCapacity(
+                collection,
+                owner,
+                teacher
+        );
+        if (inviteCapacityError != null) {
+            return inviteCapacityError;
         }
 
         CollectionInvite invite = new CollectionInvite(
@@ -728,16 +977,31 @@ public class CollectionRepository {
         User recipient = invite.getRecipient();
         User sender = invite.getSender();
 
-        notificationRepository.markRelatedNotificationsAsHandled(invite.getId());
-
         if (accept) {
             boolean alreadyMember = collection.getAdmin().getId().equals(recipient.getId())
                     || collection.getUsers().stream().anyMatch(u -> u.getId().equals(recipient.getId()));
 
             if (!alreadyMember) {
+                User owner = em.find(
+                        User.class,
+                        collection.getAdmin().getId(),
+                        LockModeType.PESSIMISTIC_WRITE
+                );
+
+                Response acceptanceCapacityError = validateAcceptanceCapacity(
+                        collection,
+                        owner,
+                        recipient
+                );
+                if (acceptanceCapacityError != null) {
+                    return acceptanceCapacityError;
+                }
+
                 collection.getUsers().add(recipient);
                 em.merge(collection);
             }
+
+            notificationRepository.markRelatedNotificationsAsHandled(invite.getId());
 
             invite.setStatus(InviteStatus.ACCEPTED);
             invite.setDecidedAt(AppTime.now());
@@ -752,6 +1016,8 @@ public class CollectionRepository {
                     null, null
             );
         } else {
+            notificationRepository.markRelatedNotificationsAsHandled(invite.getId());
+
             invite.setStatus(InviteStatus.DECLINED);
             invite.setDecidedAt(AppTime.now());
             em.merge(invite);
@@ -791,9 +1057,11 @@ public class CollectionRepository {
         Long existing = em.createQuery("""
                 SELECT COUNT(s)
                 FROM Collection s
-                WHERE LOWER(s.name) = LOWER(:name)
+                WHERE s.admin.id = :userId
+                  AND LOWER(s.name) = LOWER(:name)
                   AND s.id <> :collectionId
                 """, Long.class)
+                .setParameter("userId", userId)
                 .setParameter("name", cleanedName)
                 .setParameter("collectionId", collectionId)
                 .getSingleResult();
