@@ -45,9 +45,16 @@ jobs:
         run: mvn clean package -DskipTests
 
       - name: Deploy backend to Cloud Run
+        env:
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY_LIVE }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET_LIVE }}
+          STRIPE_PRICE_PRO: ${{ secrets.STRIPE_PRICE_PRO_LIVE }}
+          STRIPE_PRICE_SCHOOL: ${{ secrets.STRIPE_PRICE_SCHOOL_LIVE }}
+          STRIPE_PORTAL_CONFIGURATION_ID: ${{ secrets.STRIPE_PORTAL_CONFIGURATION_ID_LIVE }}
         run: |
           gcloud run deploy teacher-helper-backend-production \
             --source ./backend \
             --region europe-west1 \
             --platform managed \
-            --allow-unauthenticated
+            --allow-unauthenticated \
+            --update-env-vars="STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY},STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET},STRIPE_PRICE_PRO=${STRIPE_PRICE_PRO},STRIPE_PRICE_SCHOOL=${STRIPE_PRICE_SCHOOL},STRIPE_PORTAL_CONFIGURATION_ID=${STRIPE_PORTAL_CONFIGURATION_ID}"
