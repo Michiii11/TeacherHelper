@@ -2,20 +2,25 @@
   display: block;
   width: min(1120px, 92vw);
   max-width: 100%;
-  color: var(--text, #e8edf7);
+  color: var(--text);
 }
 
 .picker-shell {
-  --picker-bg: var(--bg-card, #0f172a);
-  --picker-bg-soft: var(--bg-soft, rgba(255, 255, 255, 0.04));
-  --picker-bg-hover: rgba(255, 255, 255, 0.06);
-  --picker-border: var(--border, rgba(255, 255, 255, 0.12));
-  --picker-border-strong: rgba(255, 255, 255, 0.18);
-  --picker-text: var(--text, #eef2ff);
-  --picker-text-soft: var(--text-soft, rgba(226, 232, 240, 0.72));
-  --picker-primary: var(--primary, #5b8cff);
-  --picker-primary-soft: color-mix(in srgb, var(--picker-primary) 12%, transparent);
-  --picker-primary-strong: color-mix(in srgb, var(--picker-primary) 24%, transparent);
+  --picker-bg: var(--surface-solid);
+  --picker-bg-soft: var(--surface-2);
+  --picker-bg-hover: var(--row-hover);
+  --picker-border: var(--border);
+  --picker-border-strong: var(--border-strong);
+  --picker-text: var(--text);
+  --picker-text-soft: var(--text-soft);
+  --picker-primary: var(--primary);
+  --picker-primary-soft: var(--primary-soft);
+  --picker-primary-strong: var(--primary-soft-strong);
+  --picker-on-primary: var(--on-primary);
+  --picker-surface: var(--surface-soft);
+  --picker-surface-muted: var(--surface-muted);
+  --picker-shadow-lg: var(--shadow-lg);
+  --picker-shadow-sm: var(--shadow-sm);
 
   display: flex;
   flex-direction: column;
@@ -127,7 +132,7 @@ button {
 
 .search-icon-btn:hover,
 .search-clear-btn:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--picker-bg-hover);
   color: var(--picker-text);
 }
 
@@ -172,7 +177,7 @@ button {
 
 .toolbar-pill-btn.open {
   border-color: var(--picker-primary);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--picker-primary) 26%, transparent);
+  box-shadow: 0 0 0 1px var(--primary-ring);
 }
 
 .filter-badge {
@@ -183,7 +188,7 @@ button {
   padding: 0 6px;
   border-radius: 999px;
   background: var(--picker-primary);
-  color: #fff;
+  color: var(--picker-on-primary);
   font-size: 11px;
   font-weight: 700;
 }
@@ -205,8 +210,8 @@ button {
   padding: 12px;
   border-radius: 18px;
   border: 1px solid var(--picker-border-strong);
-  background: color-mix(in srgb, var(--picker-bg) 92%, black 8%);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.28);
+  background: var(--surface-solid);
+  box-shadow: var(--picker-shadow-lg);
 }
 
 .sort-popup-panel {
@@ -244,7 +249,7 @@ button {
 
 .filter-option:hover,
 .sort-option:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--picker-bg-hover);
 }
 
 .sort-option {
@@ -320,7 +325,7 @@ button {
   min-height: 34px;
   max-width: 100%;
   padding: 0 12px;
-  border: 1px solid color-mix(in srgb, var(--picker-primary) 22%, var(--picker-border));
+  border: 1px solid var(--primary-border-medium);
   background: var(--picker-primary-soft);
   color: var(--picker-text);
   border-radius: 999px;
@@ -355,7 +360,7 @@ button {
   min-height: 0;
   border: 1px solid var(--picker-border);
   border-radius: 20px;
-  background: color-mix(in srgb, var(--picker-bg) 86%, white 2%);
+  background: var(--picker-surface);
 }
 
 .picker-sidebar {
@@ -417,11 +422,11 @@ button {
 }
 
 .folder-chip:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--picker-bg-hover);
 }
 
 .folder-chip.active {
-  border-color: color-mix(in srgb, var(--picker-primary) 22%, var(--picker-border));
+  border-color: var(--primary-border-medium);
   background: var(--picker-primary-soft);
 }
 
@@ -464,7 +469,7 @@ button {
   height: 22px;
   padding: 0 7px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--picker-surface-muted);
   color: var(--picker-text-soft);
   font-size: 12px;
   font-weight: 700;
@@ -523,11 +528,11 @@ button {
 .picker-row:hover {
   transform: translateY(-1px);
   border-color: var(--picker-border-strong);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--picker-bg-hover);
 }
 
 .picker-row.selected {
-  border-color: color-mix(in srgb, var(--picker-primary) 30%, var(--picker-border));
+  border-color: var(--primary-border-medium);
   background: var(--picker-primary-soft);
 }
 
@@ -543,7 +548,7 @@ button {
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--picker-bg-hover);
 }
 
 .picker-row-copy {
@@ -589,7 +594,7 @@ button {
 }
 
 .state-badge.muted {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--picker-surface-muted);
   color: var(--picker-text-soft);
 }
 
@@ -636,7 +641,7 @@ button {
 .row-check.checked {
   background: var(--picker-primary);
   border-color: var(--picker-primary);
-  color: #fff;
+  color: var(--picker-on-primary);
 }
 
 .row-check mat-icon,
@@ -1620,15 +1625,15 @@ mat-dialog-actions {
   padding: 8px 10px !important;
 
   border-radius: 10px !important;
-  background: rgba(255, 255, 255, 0.018) !important;
+  background: var(--picker-bg-soft) !important;
 }
 
 .picker-row:hover {
-  background: rgba(255, 255, 255, 0.045) !important;
+  background: var(--picker-bg-hover) !important;
 }
 
 .picker-row.selected {
-  background: color-mix(in srgb, var(--picker-primary) 11%, transparent) !important;
+  background: var(--picker-primary-soft) !important;
 }
 
 .example-type-icon {
