@@ -901,9 +901,18 @@
 }
 
 
+::ng-deep .example-picker-dialog-panel .mat-mdc-dialog-container,
 ::ng-deep .example-picker-dialog-panel .mdc-dialog__surface {
-  background: transparent !important;
-  box-shadow: none !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border-radius: 22px !important;
+  background: var(--bg-card, #0f172a) !important;
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.42) !important;
+}
+
+::ng-deep .example-picker-dialog-panel .mat-mdc-dialog-surface {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 
@@ -1355,3 +1364,29 @@
     min-height: 44px;
   }
 }
+
+
+/* Responsive sizing for the example picker overlay */
+@media (max-width: 860px) {
+  ::ng-deep .cdk-overlay-pane.example-picker-dialog-panel {
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    height: calc(100dvh - 24px) !important;
+    max-height: calc(100dvh - 24px) !important;
+  }
+}
+
+@media (max-width: 520px) {
+  ::ng-deep .cdk-overlay-pane.example-picker-dialog-panel {
+    width: calc(100vw - 12px) !important;
+    max-width: calc(100vw - 12px) !important;
+    height: calc(100dvh - 12px) !important;
+    max-height: calc(100dvh - 12px) !important;
+  }
+
+  ::ng-deep .example-picker-dialog-panel .mat-mdc-dialog-container,
+  ::ng-deep .example-picker-dialog-panel .mdc-dialog__surface {
+    border-radius: 16px !important;
+  }
+}
+

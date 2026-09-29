@@ -2396,3 +2396,15 @@ mat-icon { overflow: visible; line-height: 1; }
     height: 34px;
   }
 }
+
+/* Final rounded-frame clipping fix */
+.collection-frame {
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.content-card,
+.item-card,
+.folder-card {
+  overflow: hidden;
+}
