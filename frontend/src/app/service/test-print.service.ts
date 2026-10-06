@@ -140,7 +140,7 @@ export class TestPrintService {
 
       await html2pdf()
         .set({
-          margin: [10, 20, 10, 10],
+          margin: [15, 20, 10, 10],
           filename,
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: {
@@ -463,7 +463,7 @@ export class TestPrintService {
   private buildSharedStyles(): string {
     return `
       <style>
-        @page { size: A4; margin: 10mm 10mm 10mm 20mm; }
+        @page { size: A4; margin: 15mm 10mm 10mm 20mm; }
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         body { font-family: Arial, Helvetica, sans-serif; color: #111; font-size: 12px; }
@@ -479,10 +479,13 @@ export class TestPrintService {
         .preview-mode {
           container-type: inline-size;
         }
+
         .preview-mode .print-doc {
           --preview-page-height: 141.428571cqw; /* A4: 297 / 210 */
-          --preview-page-break-color: rgba(71, 85, 105, 0.34);
+          --preview-page-break-offset: 8px;
+          --preview-page-break-line: rgba(71, 85, 105, 0.42);
 
+          position: relative;
           border-radius: 16px;
           border: 1px solid #d7deea;
           box-shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
@@ -492,12 +495,31 @@ export class TestPrintService {
           background-image: repeating-linear-gradient(
             to bottom,
             transparent 0,
-            transparent calc(var(--preview-page-height) - 2px),
-            var(--preview-page-break-color) calc(var(--preview-page-height) - 2px),
-            var(--preview-page-break-color) var(--preview-page-height)
+            transparent calc(var(--preview-page-height) + var(--preview-page-break-offset) - 1px),
+            var(--preview-page-break-line) calc(var(--preview-page-height) + var(--preview-page-break-offset) - 1px),
+            var(--preview-page-break-line) calc(var(--preview-page-height) + var(--preview-page-break-offset)),
+            transparent calc(var(--preview-page-height) + var(--preview-page-break-offset))
           );
           background-size: 100% var(--preview-page-height);
           color: #111111;
+        }
+
+        .preview-mode .print-doc::after {
+          content: "SEITENUMBRUCH";
+          position: absolute;
+          top: calc(var(--preview-page-height) + var(--preview-page-break-offset));
+          right: 10mm;
+          transform: translateY(-50%);
+          padding: 2px 7px;
+          border-radius: 999px;
+          background: #ffffff;
+          border: 1px solid rgba(71, 85, 105, 0.30);
+          color: rgba(71, 85, 105, 0.78);
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          line-height: 1.4;
+          pointer-events: none;
         }
         .brand-row {
           display: flex;
@@ -923,7 +945,7 @@ export class TestPrintService {
 
         .test-print-root .multiple-choice-preview table,
         .test-print-root .gap-fill-preview table {
-          width: min(82%, 620px);
+          width: min(76%, 560px);
           max-width: 100%;
           table-layout: auto;
           border-collapse: collapse;

@@ -499,7 +499,7 @@ export class ExamplePreviewRendererService {
       }
       .multiple-choice-preview table,
       .gap-fill-preview table {
-        width: min(82%, 620px);
+        width: min(76%, 560px);
         max-width: 100%;
         border-collapse: collapse;
         margin-top: 0.75rem;
