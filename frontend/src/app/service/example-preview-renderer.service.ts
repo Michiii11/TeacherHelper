@@ -173,7 +173,7 @@ export class ExamplePreviewRendererService {
           .map((ans) =>
             isSolution
               ? `<div class="half-open-item"><span class="half-open-label">${this.renderMathInlineHtml(ans?.[0] ?? "", example.variables)}</span><span class="half-open-equals" aria-hidden="true">&nbsp;=&nbsp;</span><span class="half-open-solution">${this.renderMathInlineHtml(ans?.[1] ?? "", example.variables)}</span></div>`
-              : `<div class="half-open-item"><span class="half-open-label">${this.renderMathInlineHtml(ans?.[0] ?? "", example.variables)}</span><span class="half-open-equals" aria-hidden="true">&nbsp;=&nbsp;</span><span class="half-open-line" aria-hidden="true"></span></div>`,
+              : `<div class="half-open-item"><span class="half-open-label">${this.renderMathInlineHtml(ans?.[0] ?? "", example.variables)}</span><span class="half-open-equals" aria-hidden="true">&nbsp;=&nbsp;</span><span class="half-open-line" style="flex:0 0 7rem;width:7rem;max-width:7rem;" aria-hidden="true"></span></div>`,
           )
           .join("")}
           </div>
@@ -492,17 +492,65 @@ export class ExamplePreviewRendererService {
         object-position: center;
         border-radius: 14px;
       }
+      .multiple-choice-preview {
+        display: inline-block;
+        width: auto;
+        max-width: 100%;
+      }
       .multiple-choice-preview table,
-      .gap-fill-preview table,
+      .gap-fill-preview table {
+        width: auto;
+        max-width: 100%;
+        border-collapse: collapse;
+        margin-top: 0.75rem;
+        table-layout: auto;
+        border: 1px solid var(--border, #d7deea);
+      }
+      .multiple-choice-preview td,
+      .gap-fill-preview td {
+        padding: 0.55rem 0.7rem;
+        border: 0;
+        border-bottom: 1px solid var(--border, #d7deea);
+        vertical-align: middle;
+        overflow-wrap: normal;
+        word-break: normal;
+        color: var(--text-muted, #333);
+      }
+      .multiple-choice-preview tr:last-child td,
+      .gap-fill-preview tr:last-child td {
+        border-bottom: 0;
+      }
+      .gap-fill-preview {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.9rem;
+      }
+      .gap-fill-preview th {
+        padding: 0.45rem 0.7rem;
+        border: 0;
+        border-bottom: 1px solid var(--border, #d7deea);
+        text-align: center;
+        font-weight: 800;
+        color: var(--text, #111);
+        background: var(--table-head-bg, #f8fafc);
+      }
+      .multiple-choice-preview .checkbox-cell,
+      .gap-fill-preview .checkbox-cell {
+        width: 34px;
+        min-width: 34px;
+        padding-left: 0.35rem;
+        padding-right: 0.35rem;
+        text-align: center;
+        white-space: nowrap;
+        border-left: 0;
+      }
       .assign-preview table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 0.75rem;
         table-layout: fixed;
       }
-      .multiple-choice-preview td,
-      .gap-fill-preview td,
-      .gap-fill-preview th,
       .assign-preview td {
         padding: 0.7rem 0.8rem;
         border: 1px solid var(--border, #d7deea);
@@ -511,26 +559,13 @@ export class ExamplePreviewRendererService {
         word-break: normal;
         color: var(--text-muted, #333);
       }
-      .gap-fill-preview {
-        display: flex;
-        flex-direction: column;
-        gap: 0.9rem;
-      }
-      .gap-fill-preview th {
-        text-align: center;
-        font-weight: 800;
-        color: var(--text, #111);
-        background: var(--table-head-bg, #f8fafc);
-      }
       .assign-preview {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 1rem;
       }
       .fill { width: 56px; }
-      .small,
-      .checkbox-cell {
-        width: 48px;
+      .small {
         text-align: center;
       }
       .half-open-preview {
@@ -571,8 +606,9 @@ export class ExamplePreviewRendererService {
       }
       .half-open-line {
         display: inline-block;
-        flex: 0 0 9rem;
-        width: 9rem;
+        flex: 0 0 7rem;
+        width: 7rem;
+        max-width: 7rem;
         height: 0.95em;
         border-bottom: 1.5px solid currentColor;
       }

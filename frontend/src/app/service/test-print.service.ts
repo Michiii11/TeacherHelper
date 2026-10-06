@@ -835,10 +835,6 @@ export class TestPrintService {
           table-layout: fixed;
         }
 
-        .multiple-choice-preview table {
-          width: calc(100% - 6mm);
-          max-width: 100%;
-        }
         .multiple-choice-preview td,
         .gap-fill-preview td,
         .gap-fill-preview th,
@@ -894,6 +890,69 @@ export class TestPrintService {
           --table-head-bg: #f8fafc;
         }
         ${this.previewRenderer.buildPreviewCss()}
+
+        /* Compact checkbox tables for test print:
+           - checkbox stays on the right
+           - MC and SELECT gap-fill only use the width they need
+           - no extra inner divider around the checkbox */
+        .test-print-root .multiple-choice-preview,
+        .test-print-root .gap-fill-preview {
+          width: auto;
+          max-width: 100%;
+          align-items: flex-start;
+        }
+
+        .test-print-root .multiple-choice-preview {
+          display: inline-block;
+        }
+
+        .test-print-root .gap-fill-preview {
+          display: inline-flex;
+        }
+
+        .test-print-root .multiple-choice-preview table,
+        .test-print-root .gap-fill-preview table {
+          width: auto;
+          max-width: 100%;
+          table-layout: auto;
+          border-collapse: collapse;
+          border: 1px solid #d7deea;
+        }
+
+        .test-print-root .multiple-choice-preview td,
+        .test-print-root .gap-fill-preview td {
+          border: 0;
+          border-bottom: 1px solid #d7deea;
+          padding: 0.55rem 0.7rem;
+        }
+
+        .test-print-root .gap-fill-preview th {
+          border: 0;
+          border-bottom: 1px solid #d7deea;
+          padding: 0.45rem 0.7rem;
+        }
+
+        .test-print-root .multiple-choice-preview tr:last-child td,
+        .test-print-root .gap-fill-preview tr:last-child td {
+          border-bottom: 0;
+        }
+
+        .test-print-root .multiple-choice-preview td:not(.checkbox-cell),
+        .test-print-root .gap-fill-preview td:not(.checkbox-cell) {
+          min-width: 0;
+        }
+
+        .test-print-root .multiple-choice-preview .checkbox-cell,
+        .test-print-root .gap-fill-preview .checkbox-cell {
+          width: 34px;
+          min-width: 34px;
+          padding-left: 0.35rem;
+          padding-right: 0.35rem;
+          text-align: center;
+          white-space: nowrap;
+          border-left: 0;
+        }
+
         @media print {
           .preview-panel {
             background: #fff;

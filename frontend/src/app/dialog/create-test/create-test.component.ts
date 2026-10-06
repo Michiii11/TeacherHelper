@@ -1092,15 +1092,21 @@ export class CreateTestComponent implements OnInit, OnDestroy {
   }
 
   private buildResolvedExamplesForPreview(): TestExampleDTO[] {
-    return this.selectedExamples.map(entry => ({
-      ...entry,
-      title: this.getResolvedEntryTitle(entry),
-      variableValues: {
+    return this.selectedExamples.map(entry => {
+      const variableValues = {
         ...this.buildDefaultVariableValues(entry.example),
         ...(entry.variableValues ?? {}),
-      },
-      example: this.buildPreviewExample(entry),
-    }));
+      };
+
+      return {
+        ...entry,
+        // Only print an explicitly entered task title.
+        // Do not fall back to instruction/question here.
+        title: this.resolveVariables(entry.title?.trim() || '', variableValues, entry.example),
+        variableValues,
+        example: this.buildPreviewExample(entry),
+      };
+    });
   }
 
   /**
