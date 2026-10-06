@@ -482,7 +482,6 @@ export class TestPrintService {
 
         .preview-mode .print-doc {
           --preview-page-height: 141.428571cqw; /* A4: 297 / 210 */
-          --preview-page-break-offset: 8px;
           --preview-page-break-line: rgba(71, 85, 105, 0.42);
 
           position: relative;
@@ -495,10 +494,9 @@ export class TestPrintService {
           background-image: repeating-linear-gradient(
             to bottom,
             transparent 0,
-            transparent calc(var(--preview-page-height) + var(--preview-page-break-offset) - 1px),
-            var(--preview-page-break-line) calc(var(--preview-page-height) + var(--preview-page-break-offset) - 1px),
-            var(--preview-page-break-line) calc(var(--preview-page-height) + var(--preview-page-break-offset)),
-            transparent calc(var(--preview-page-height) + var(--preview-page-break-offset))
+            transparent calc(var(--preview-page-height) - 1px),
+            var(--preview-page-break-line) calc(var(--preview-page-height) - 1px),
+            var(--preview-page-break-line) var(--preview-page-height)
           );
           background-size: 100% var(--preview-page-height);
           color: #111111;
@@ -507,18 +505,13 @@ export class TestPrintService {
         .preview-mode .print-doc::after {
           content: "SEITENUMBRUCH";
           position: absolute;
-          top: calc(var(--preview-page-height) + var(--preview-page-break-offset));
+          top: calc(var(--preview-page-height) - 14px);
           right: 10mm;
-          transform: translateY(-50%);
-          padding: 2px 7px;
-          border-radius: 999px;
-          background: #ffffff;
-          border: 1px solid rgba(71, 85, 105, 0.30);
-          color: rgba(71, 85, 105, 0.78);
-          font-size: 9px;
+          color: rgba(71, 85, 105, 0.72);
+          font-size: 8px;
           font-weight: 700;
-          letter-spacing: 0.04em;
-          line-height: 1.4;
+          letter-spacing: 0.03em;
+          line-height: 1;
           pointer-events: none;
         }
         .brand-row {
