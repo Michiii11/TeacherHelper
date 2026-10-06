@@ -130,7 +130,7 @@ export class TestPrintService {
       wrapper.style.position = 'fixed';
       wrapper.style.left = '-100000px';
       wrapper.style.top = '0';
-      wrapper.style.width = '210mm';
+      wrapper.style.width = '180mm';
       wrapper.style.background = '#fff';
       wrapper.innerHTML = this.buildPdfBodyHtml(test, selectedExamples, options);
 
@@ -140,7 +140,7 @@ export class TestPrintService {
 
       await html2pdf()
         .set({
-          margin: [10, 10, 10, 10],
+          margin: [10, 20, 10, 10],
           filename,
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: {
@@ -463,7 +463,7 @@ export class TestPrintService {
   private buildSharedStyles(): string {
     return `
       <style>
-        @page { size: A4; margin: 10mm; }
+        @page { size: A4; margin: 10mm 10mm 10mm 20mm; }
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         body { font-family: Arial, Helvetica, sans-serif; color: #111; font-size: 12px; }
@@ -480,7 +480,7 @@ export class TestPrintService {
           border-radius: 16px;
           border: 1px solid #d7deea;
           box-shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
-          padding: 2rem 2.2rem;
+          padding: 10mm 10mm 10mm 20mm;
           background: #ffffff;
           color: #111111;
         }
@@ -833,6 +833,11 @@ export class TestPrintService {
           border-spacing: 0;
           margin-top: 0.75rem;
           table-layout: fixed;
+        }
+
+        .multiple-choice-preview table {
+          width: calc(100% - 6mm);
+          max-width: 100%;
         }
         .multiple-choice-preview td,
         .gap-fill-preview td,
