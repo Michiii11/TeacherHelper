@@ -476,12 +476,27 @@ export class TestPrintService {
           background: #fff;
           color: #111;
         }
+        .preview-mode {
+          container-type: inline-size;
+        }
         .preview-mode .print-doc {
+          --preview-page-height: 141.428571cqw; /* A4: 297 / 210 */
+          --preview-page-break-color: rgba(71, 85, 105, 0.34);
+
           border-radius: 16px;
           border: 1px solid #d7deea;
           box-shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
           padding: 10mm 10mm 10mm 20mm;
-          background: #ffffff;
+          min-height: var(--preview-page-height);
+          background-color: #ffffff;
+          background-image: repeating-linear-gradient(
+            to bottom,
+            transparent 0,
+            transparent calc(var(--preview-page-height) - 2px),
+            var(--preview-page-break-color) calc(var(--preview-page-height) - 2px),
+            var(--preview-page-break-color) var(--preview-page-height)
+          );
+          background-size: 100% var(--preview-page-height);
           color: #111111;
         }
         .brand-row {
@@ -690,7 +705,7 @@ export class TestPrintService {
         .solution-note { margin: 0 0 10px; color: #555; }
         .free-space { width: 100%; }
         .free-space.medium { min-height: 90px; }
-        .free-space.large { min-height: 150px; }
+        .free-space.large { min-height: 72px; }
 
 
         /* Task content uses the same inner rendering rules as ExamplePreviewComponent,
@@ -891,28 +906,24 @@ export class TestPrintService {
         }
         ${this.previewRenderer.buildPreviewCss()}
 
-        /* Compact checkbox tables for test print:
-           - checkbox stays on the right
-           - MC and SELECT gap-fill only use the width they need
-           - no extra inner divider around the checkbox */
-        .test-print-root .multiple-choice-preview,
+        /* Multiple choice + SELECT gap-fill:
+           medium-width table with a dedicated marking column on the right. */
+        .test-print-root .multiple-choice-preview {
+          display: block;
+          width: 100%;
+          max-width: 100%;
+        }
+
         .test-print-root .gap-fill-preview {
-          width: auto;
+          display: flex;
+          width: 100%;
           max-width: 100%;
           align-items: flex-start;
         }
 
-        .test-print-root .multiple-choice-preview {
-          display: inline-block;
-        }
-
-        .test-print-root .gap-fill-preview {
-          display: inline-flex;
-        }
-
         .test-print-root .multiple-choice-preview table,
         .test-print-root .gap-fill-preview table {
-          width: auto;
+          width: min(82%, 620px);
           max-width: 100%;
           table-layout: auto;
           border-collapse: collapse;
@@ -923,13 +934,13 @@ export class TestPrintService {
         .test-print-root .gap-fill-preview td {
           border: 0;
           border-bottom: 1px solid #d7deea;
-          padding: 0.55rem 0.7rem;
+          padding: 0.62rem 0.78rem;
         }
 
         .test-print-root .gap-fill-preview th {
           border: 0;
           border-bottom: 1px solid #d7deea;
-          padding: 0.45rem 0.7rem;
+          padding: 0.48rem 0.78rem;
         }
 
         .test-print-root .multiple-choice-preview tr:last-child td,
@@ -937,20 +948,16 @@ export class TestPrintService {
           border-bottom: 0;
         }
 
-        .test-print-root .multiple-choice-preview td:not(.checkbox-cell),
-        .test-print-root .gap-fill-preview td:not(.checkbox-cell) {
-          min-width: 0;
-        }
-
-        .test-print-root .multiple-choice-preview .checkbox-cell,
-        .test-print-root .gap-fill-preview .checkbox-cell {
-          width: 34px;
-          min-width: 34px;
-          padding-left: 0.35rem;
-          padding-right: 0.35rem;
+        .test-print-root .multiple-choice-preview .mark-cell,
+        .test-print-root .gap-fill-preview .mark-cell {
+          width: 42px;
+          min-width: 42px;
+          padding-left: 0.4rem;
+          padding-right: 0.4rem;
           text-align: center;
           white-space: nowrap;
-          border-left: 0;
+          border-left: 1px solid #d7deea;
+          font-weight: 700;
         }
 
         @media print {
@@ -1445,7 +1452,7 @@ export class TestPrintService {
               ${(example.options ?? []).map((opt: Option) => `
                 <tr>
                   <td>${this.formatMultiline(opt.text, example.variables)}</td>
-                  <td class="small checkbox-cell">${isSolution && opt.correct ? '☒' : '☐'}</td>
+                  <td class="small mark-cell">${isSolution && opt.correct ? '✓' : '&nbsp;'}</td>
                 </tr>
               `).join('')}
             </table>
@@ -1462,7 +1469,7 @@ export class TestPrintService {
                   ${(gap.options ?? []).map((opt: Option) => `
                     <tr>
                       <td>${this.formatMultiline(opt.text, example.variables)}</td>
-                      <td class="small checkbox-cell">${isSolution && opt.correct ? '☒' : '☐'}</td>
+                      <td class="small mark-cell">${isSolution && opt.correct ? '✓' : '&nbsp;'}</td>
                     </tr>
                   `).join('')}
                 </table>

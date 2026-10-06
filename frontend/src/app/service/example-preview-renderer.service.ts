@@ -173,7 +173,7 @@ export class ExamplePreviewRendererService {
           .map((ans) =>
             isSolution
               ? `<div class="half-open-item"><span class="half-open-label">${this.renderMathInlineHtml(ans?.[0] ?? "", example.variables)}</span><span class="half-open-equals" aria-hidden="true">&nbsp;=&nbsp;</span><span class="half-open-solution">${this.renderMathInlineHtml(ans?.[1] ?? "", example.variables)}</span></div>`
-              : `<div class="half-open-item"><span class="half-open-label">${this.renderMathInlineHtml(ans?.[0] ?? "", example.variables)}</span><span class="half-open-equals" aria-hidden="true">&nbsp;=&nbsp;</span><span class="half-open-line" style="flex:0 0 7rem;width:7rem;max-width:7rem;" aria-hidden="true"></span></div>`,
+              : `<div class="half-open-item"><span class="half-open-label">${this.renderMathInlineHtml(ans?.[0] ?? "", example.variables)}</span><span class="half-open-equals" aria-hidden="true">&nbsp;=&nbsp;</span><span class="half-open-line" aria-hidden="true"></span></div>`,
           )
           .join("")}
           </div>
@@ -217,7 +217,7 @@ export class ExamplePreviewRendererService {
             (option: Option) => `
                 <tr>
                   <td>${this.renderMathHtml(option.text, example.variables)}</td>
-                  <td class="small checkbox-cell">${isSolution && option.correct ? "☒" : "☐"}</td>
+                  <td class="small mark-cell">${isSolution && option.correct ? "✓" : "&nbsp;"}</td>
                 </tr>
               `,
           )
@@ -240,7 +240,7 @@ export class ExamplePreviewRendererService {
                   (opt: Option) => `
                     <tr>
                       <td>${this.renderMathHtml(opt.text, example.variables)}</td>
-                      <td class="small checkbox-cell">${isSolution && opt.correct ? "☒" : "☐"}</td>
+                      <td class="small mark-cell">${isSolution && opt.correct ? "✓" : "&nbsp;"}</td>
                     </tr>
                   `,
                 )
@@ -493,13 +493,13 @@ export class ExamplePreviewRendererService {
         border-radius: 14px;
       }
       .multiple-choice-preview {
-        display: inline-block;
-        width: auto;
+        display: block;
+        width: 100%;
         max-width: 100%;
       }
       .multiple-choice-preview table,
       .gap-fill-preview table {
-        width: auto;
+        width: min(82%, 620px);
         max-width: 100%;
         border-collapse: collapse;
         margin-top: 0.75rem;
@@ -508,7 +508,7 @@ export class ExamplePreviewRendererService {
       }
       .multiple-choice-preview td,
       .gap-fill-preview td {
-        padding: 0.55rem 0.7rem;
+        padding: 0.62rem 0.78rem;
         border: 0;
         border-bottom: 1px solid var(--border, #d7deea);
         vertical-align: middle;
@@ -527,7 +527,7 @@ export class ExamplePreviewRendererService {
         gap: 0.9rem;
       }
       .gap-fill-preview th {
-        padding: 0.45rem 0.7rem;
+        padding: 0.48rem 0.78rem;
         border: 0;
         border-bottom: 1px solid var(--border, #d7deea);
         text-align: center;
@@ -535,15 +535,16 @@ export class ExamplePreviewRendererService {
         color: var(--text, #111);
         background: var(--table-head-bg, #f8fafc);
       }
-      .multiple-choice-preview .checkbox-cell,
-      .gap-fill-preview .checkbox-cell {
-        width: 34px;
-        min-width: 34px;
-        padding-left: 0.35rem;
-        padding-right: 0.35rem;
+      .multiple-choice-preview .mark-cell,
+      .gap-fill-preview .mark-cell {
+        width: 42px;
+        min-width: 42px;
+        padding-left: 0.4rem;
+        padding-right: 0.4rem;
         text-align: center;
         white-space: nowrap;
-        border-left: 0;
+        border-left: 1px solid var(--border, #d7deea);
+        font-weight: 700;
       }
       .assign-preview table {
         width: 100%;
@@ -565,9 +566,7 @@ export class ExamplePreviewRendererService {
         gap: 1rem;
       }
       .fill { width: 56px; }
-      .small {
-        text-align: center;
-      }
+      .small { text-align: center; }
       .half-open-preview {
         display: flex;
         flex-direction: column;
@@ -606,9 +605,8 @@ export class ExamplePreviewRendererService {
       }
       .half-open-line {
         display: inline-block;
-        flex: 0 0 7rem;
-        width: 7rem;
-        max-width: 7rem;
+        flex: 0 0 6.5rem;
+        width: 6.5rem;
         height: 0.95em;
         border-bottom: 1.5px solid currentColor;
       }
