@@ -26,6 +26,7 @@ import org.jboss.logging.Logger;
 @Transactional
 public class TestRepository {
     private static final Logger LOG = Logger.getLogger(TestRepository.class);
+    private static final String TEST_ORDER_KEY = "__teacher_helper_test_order";
     @Inject
     EntityManager em;
 
@@ -73,14 +74,9 @@ public class TestRepository {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
-        List<TestExample> orderedExamples = em.createQuery("""
-                        SELECT te
-                        FROM TestExample te
-                        WHERE te.test.id = :testId
-                        ORDER BY te.sortOrder ASC, te.id ASC
-                        """, TestExample.class)
-                .setParameter("testId", testId)
-                .getResultList();
+        List<TestExample> orderedExamples = new ArrayList<>(t.getExampleList());
+        // Java's List.sort is stable: old tests without an order marker keep their current DB order.
+        orderedExamples.sort(Comparator.comparingInt(this::getStoredTestOrder));
 
         List<TestExampleDTO> exampleList = new LinkedList<>();
         orderedExamples.forEach(example ->
@@ -88,7 +84,7 @@ public class TestRepository {
                         mapToExampleDTO(example.getExample()),
                         example.getPoints(),
                         example.getTitle(),
-                        copyStringMap(example.getVariableValues())
+                        copyFrontendVariableValues(example.getVariableValues())
                 )));
 
         CreateTestDTO dto = new CreateTestDTO(
@@ -348,8 +344,11 @@ public class TestRepository {
             TestExampleDTO exampleDTO = exampleDTOs.get(index);
             Example managedExample = em.find(Example.class, exampleDTO.example().id());
             TestExample testExample = new TestExample(test, managedExample, exampleDTO.points(), exampleDTO.title());
-            testExample.setSortOrder(index);
-            testExample.setVariableValues(copyStringMap(exampleDTO.variableValues()));
+
+            Map<String, String> variableValues = copyStringMap(exampleDTO.variableValues());
+            variableValues.put(TEST_ORDER_KEY, String.valueOf(index));
+            testExample.setVariableValues(variableValues);
+
             em.persist(testExample);
             test.getExampleList().add(testExample);
         }
@@ -375,6 +374,29 @@ public class TestRepository {
 
     private Map<String, String> copyStringMap(Map<String, String> source) {
         return source == null ? new HashMap<>() : new HashMap<>(source);
+    }
+
+    private Map<String, String> copyFrontendVariableValues(Map<String, String> source) {
+        Map<String, String> copy = copyStringMap(source);
+        copy.remove(TEST_ORDER_KEY);
+        return copy;
+    }
+
+    private int getStoredTestOrder(TestExample testExample) {
+        if (testExample == null || testExample.getVariableValues() == null) {
+            return Integer.MAX_VALUE;
+        }
+
+        String raw = testExample.getVariableValues().get(TEST_ORDER_KEY);
+        if (raw == null || raw.isBlank()) {
+            return Integer.MAX_VALUE;
+        }
+
+        try {
+            return Integer.parseInt(raw);
+        } catch (NumberFormatException ignored) {
+            return Integer.MAX_VALUE;
+        }
     }
 
     private List<ExampleVariableDTO> mapVariables(List<ExampleVariable> variables) {
