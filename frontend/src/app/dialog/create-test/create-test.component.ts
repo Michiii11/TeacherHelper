@@ -1100,8 +1100,6 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
       return {
         ...entry,
-        // Only print an explicitly entered task title.
-        // Do not fall back to instruction/question here.
         title: this.resolveVariables(entry.title?.trim() || '', variableValues, entry.example),
         variableValues,
         example: this.buildPreviewExample(entry),
@@ -1326,7 +1324,7 @@ export class CreateTestComponent implements OnInit, OnDestroy {
     this.defaultTaskSpacing = this.normalizeSpacingValue(defaultSpacing);
     this.spacingForAll = this.defaultTaskSpacing;
 
-    this.taskSpacingMap = this.normalizeNumberMap(
+    this.taskSpacingMap = this.normalizeStringNumberMap(
       response?.taskSpacingMap ??
       response?.layoutSettings?.taskSpacingMap ??
       {}
@@ -1404,6 +1402,23 @@ export class CreateTestComponent implements OnInit, OnDestroy {
 
       if (Number.isFinite(numericKey) && Number.isFinite(numericValue)) {
         normalized[numericKey] = numericValue;
+      }
+    }
+
+    return normalized;
+  }
+
+  private normalizeStringNumberMap(
+    input: Record<string, number> | Record<number, number> | null | undefined
+  ): Record<string, number> {
+    const normalized: Record<string, number> = {};
+
+    for (const [key, value] of Object.entries(input ?? {})) {
+      const normalizedKey = String(key ?? '').trim();
+      const numericValue = Number(value);
+
+      if (normalizedKey && Number.isFinite(numericValue)) {
+        normalized[normalizedKey] = this.normalizeSpacingValue(numericValue);
       }
     }
 

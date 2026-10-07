@@ -571,7 +571,7 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
       this.test.defaultTaskSpacing
     );
 
-    this.test.taskSpacingMap = this.normalizeNumberMap(
+    this.test.taskSpacingMap = this.normalizeStringNumberMap(
       response?.taskSpacingMap ??
       response?.layoutSettings?.taskSpacingMap ??
       {}
@@ -633,6 +633,23 @@ export class TestPreviewComponent implements OnInit, OnDestroy {
 
       if (Number.isFinite(numericKey) && Number.isFinite(numericValue)) {
         normalized[numericKey] = numericValue;
+      }
+    }
+
+    return normalized;
+  }
+
+  private normalizeStringNumberMap(
+    input: Record<string, number> | Record<number, number> | null | undefined
+  ): Record<string, number> {
+    const normalized: Record<string, number> = {};
+
+    for (const [key, value] of Object.entries(input ?? {})) {
+      const normalizedKey = String(key ?? '').trim();
+      const numericValue = Number(value);
+
+      if (normalizedKey && Number.isFinite(numericValue)) {
+        normalized[normalizedKey] = this.normalizeSpacingValue(numericValue);
       }
     }
 
