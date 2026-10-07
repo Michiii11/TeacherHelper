@@ -73,8 +73,17 @@ public class TestRepository {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
+        List<TestExample> orderedExamples = em.createQuery("""
+                        SELECT te
+                        FROM TestExample te
+                        WHERE te.test.id = :testId
+                        ORDER BY te.sortOrder ASC, te.id ASC
+                        """, TestExample.class)
+                .setParameter("testId", testId)
+                .getResultList();
+
         List<TestExampleDTO> exampleList = new LinkedList<>();
-        t.getExampleList().forEach(example ->
+        orderedExamples.forEach(example ->
                 exampleList.add(new TestExampleDTO(
                         mapToExampleDTO(example.getExample()),
                         example.getPoints(),
@@ -335,9 +344,11 @@ public class TestRepository {
             return;
         }
 
-        for (TestExampleDTO exampleDTO : exampleDTOs) {
+        for (int index = 0; index < exampleDTOs.size(); index++) {
+            TestExampleDTO exampleDTO = exampleDTOs.get(index);
             Example managedExample = em.find(Example.class, exampleDTO.example().id());
             TestExample testExample = new TestExample(test, managedExample, exampleDTO.points(), exampleDTO.title());
+            testExample.setSortOrder(index);
             testExample.setVariableValues(copyStringMap(exampleDTO.variableValues()));
             em.persist(testExample);
             test.getExampleList().add(testExample);

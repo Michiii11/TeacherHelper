@@ -23,6 +23,9 @@ public class TestExample {
 
     private String title;
 
+    @Column(name = "sort_order")
+    private Integer sortOrder = 0;
+
     @ElementCollection
     @CollectionTable(name = "test_example_variable_values", joinColumns = @JoinColumn(name = "test_example_id"))
     @MapKeyColumn(name = "variable_key")
@@ -47,6 +50,7 @@ public class TestExample {
                 ", example=" + example +
                 ", points=" + points +
                 ", title='" + title + '\'' +
+                ", sortOrder=" + sortOrder +
                 ", variableValues=" + variableValues +
                 '}';
     }
@@ -89,6 +93,14 @@ public class TestExample {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public Integer getSortOrder() {
+        return sortOrder != null ? sortOrder : 0;
+    }
+
+    public void setSortOrder(Integer sortOrder) {
+        this.sortOrder = sortOrder != null ? sortOrder : 0;
     }
 
     public Map<String, String> getVariableValues() {

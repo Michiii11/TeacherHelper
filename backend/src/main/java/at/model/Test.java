@@ -32,7 +32,6 @@ public class Test {
     private int duration;
 
     @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderColumn(name = "example_order")
     private List<TestExample> exampleList = new ArrayList<>();
 
     @Column(name = "default_task_spacing")
