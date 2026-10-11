@@ -578,13 +578,18 @@ export class TestPrintService {
         .header-divider { border: none; border-top: 1px solid #222; margin: 10px 0 16px; }
         .task { page-break-inside: avoid; break-inside: avoid; }
         .task-head { display: flex; justify-content: space-between; gap: 12px; font-weight: 700; margin-bottom: 8px; font-size: 14px; }
-        .task-points { white-space: nowrap; }
-        .achieved-points-slot {
+        .task-points {
+          white-space: nowrap;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.28em;
+        }
+        .points-line {
           display: inline-block;
-          min-width: 3.2em;
-          margin: 0 0.12em;
-          text-align: center;
-          letter-spacing: 0.08em;
+          width: 1.8em;
+          height: 0.72em;
+          border-bottom: 1px solid #222;
+          flex: 0 0 1.8em;
         }
         .preview-panel { line-height: 1.4; overflow-wrap: normal; word-break: normal; }
         .task-instruction, .task-question { margin: 0 0 10px; white-space: normal; overflow-wrap: normal; word-break: normal; }
@@ -1282,9 +1287,16 @@ export class TestPrintService {
     const header = `
       <div class="task-head">
         <div class="task-title">${this.escapeHtml(exampleLabel)} ${index + 1}: ${taskTitle ? this.escapeHtml(taskTitle) : ''}</div>
-        <div class="task-points">(${isSolution
-      ? this.escapeHtml(entry.points || '__')
-      : '<span class="achieved-points-slot">___</span>'} / ${this.escapeHtml(entry.points || '__')} P.)</div>
+        <div class="task-points">(
+          ${isSolution
+      ? (Number(entry.points) > 0 ? this.escapeHtml(entry.points) : '<span class="points-line"></span>')
+      : '<span class="points-line"></span>'}
+          /
+          ${Number(entry.points) > 0
+      ? this.escapeHtml(entry.points)
+      : '<span class="points-line"></span>'}
+          P.)
+        </div>
       </div>
     `;
 
