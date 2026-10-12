@@ -32,6 +32,7 @@ public class User {
     @Column(name = "subscription_model", nullable = false, length = 40)
     private SubscriptionModel subscriptionModel = SubscriptionModel.FREE;
 
+    @Column(name = "subscription_valid_until")
     private LocalDateTime subscriptionValidUntil;
 
     @Column(name = "stripe_customer_id", unique = true, length = 255)
